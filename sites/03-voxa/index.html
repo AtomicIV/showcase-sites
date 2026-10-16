@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voxa — The voice agent that picks up on the first ring</title>
+<meta name="description" content="Voxa answers your support line, resolves routine calls end to end and hands the hard ones to your team with the whole story attached.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='20' fill='%238b5cff'/%3E%3Cpath d='M14 32h6l4-10 6 22 6-26 5 18 3-4h6' fill='none' stroke='%23efe8ff' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1d0b45;
+  --bg-2:#26105a;
+  --surface:#2e1670;
+  --surface-2:#3b2090;
+  --violet:#8b5cff;
+  --violet-soft:#b9a2ff;
+  --lilac:#f1ebff;
+  --muted:#c9bcf4;
+  --coral:#ff8f7d;
+  --mint:#6ff2c1;
+  --amber:#ffd166;
+  --display:'Unbounded',system-ui,sans-serif;
+  --body:'Manrope',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{background:var(--bg);color:var(--lilac);font-family:var(--body);font-size:17px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+canvas,svg{display:block}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid var(--mint);outline-offset:3px;border-radius:14px}
+.skip{position:absolute;left:-999px;top:8px;z-index:200;background:var(--lilac);color:var(--bg);padding:10px 16px;border-radius:999px}
+.skip:focus{left:12px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1240px,calc(100% - 40px));margin:0 auto}
+section{position:relative}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.03em;line-height:1.02}
+h2{font-size:clamp(36px,5vw,72px)}
+.sub{font-size:clamp(17px,1.4vw,20px);color:var(--muted);max-width:34em}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:0 28px;border-radius:999px;font-weight:700;font-size:16px;text-decoration:none;white-space:nowrap;transition:transform .4s cubic-bezier(.3,1.6,.5,1),background .3s,color .3s,box-shadow .3s}
+.btn:hover{transform:scale(1.04)}
+.btn:active{transform:scale(.97)}
+.btn-main{background:var(--lilac);color:var(--bg)}
+.btn-main:hover{box-shadow:0 0 0 6px rgba(241,235,255,.15)}
+.btn-line{border:2px solid rgba(241,235,255,.35)}
+.btn-line:hover{border-color:var(--lilac)}
+.btn .dot{width:10px;height:10px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 0 rgba(255,143,125,.6);animation:ping 1.6s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 10px rgba(255,143,125,0)}100%{box-shadow:0 0 0 0 rgba(255,143,125,0)}}
+
+/* nav */
+.nav{position:fixed;top:14px;left:0;right:0;z-index:100}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 8px 8px 22px;border-radius:999px;background:rgba(38,16,90,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:22px;text-decoration:none;letter-spacing:-.04em;min-height:44px}
+.logo svg{width:30px;height:30px}
+.nav ul{display:flex;list-style:none;gap:2px}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;text-decoration:none;font-weight:600;font-size:15px;color:var(--muted);transition:background .2s,color .2s}
+.nav ul a:hover{background:rgba(241,235,255,.08);color:var(--lilac)}
+.nav .btn{min-height:46px;padding:0 20px;font-size:15px}
+.menu-btn{display:none;width:46px;height:46px;border-radius:50%;background:var(--surface-2);align-items:center;justify-content:center}
+.menu-btn span{display:block;width:18px;height:2px;border-radius:2px;background:var(--lilac);box-shadow:0 -6px 0 var(--lilac),0 6px 0 var(--lilac);transition:transform .3s}
+.menu-btn[aria-expanded=true] span{box-shadow:none;transform:rotate(45deg)}
+.menu-btn[aria-expanded=true] span::after{content:"";display:block;width:18px;height:2px;border-radius:2px;background:var(--lilac);transform:rotate(-90deg)}
+.mmenu{position:fixed;top:86px;left:16px;right:16px;z-index:99;border-radius:28px;background:var(--surface);padding:10px;display:none;box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}
+.mmenu.open{display:grid}
+.mmenu a{display:flex;align-items:center;min-height:56px;padding:0 20px;border-radius:20px;text-decoration:none;font-family:var(--display);font-weight:500;font-size:20px}
+.mmenu a:hover{background:var(--surface-2)}
+
+/* hero */
+.hero{min-height:100svh;padding:150px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1fr minmax(300px,420px);gap:28px 40px;align-items:end;flex:1;align-content:end}
+.hero h1{grid-column:1/-1}
+.hero-side{grid-column:2}
+.hero h1{font-size:clamp(40px,8vw,132px);line-height:.98}
+.hero h1 .ln{display:block;overflow:hidden;padding:.06em 0 .1em}
+.hero h1 .ln span{display:inline-block}
+.hero h1 .pill{display:inline-flex;align-items:center;vertical-align:middle;height:.78em;padding:0 .28em;margin:0 .06em;border-radius:999px;background:var(--violet);gap:.06em}
+.hero h1 .pill i{display:block;width:.07em;border-radius:1em;background:var(--lilac);animation:eq 1.1s ease-in-out infinite}
+.hero h1 .pill i:nth-child(1){height:.22em;animation-delay:-.2s}.hero h1 .pill i:nth-child(2){height:.42em;animation-delay:-.5s}.hero h1 .pill i:nth-child(3){height:.3em;animation-delay:-.1s}.hero h1 .pill i:nth-child(4){height:.48em;animation-delay:-.7s}.hero h1 .pill i:nth-child(5){height:.26em;animation-delay:-.35s}
+@keyframes eq{50%{transform:scaleY(.4)}}
+.hero-side{display:flex;flex-direction:column;gap:24px;padding-bottom:12px}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
+.calls{position:relative;height:clamp(170px,24vh,240px);margin-top:36px}
+#heroWave{position:absolute;left:0;right:0;bottom:0;width:100%;height:100%}
+.chip-call{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 16px 10px 10px;border-radius:999px;background:var(--surface);font-size:14px;font-weight:600;white-space:nowrap;box-shadow:0 14px 30px -12px rgba(0,0,0,.6)}
+.chip-call b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;font-size:13px;color:var(--bg)}
+.chip-call small{color:var(--muted);font-weight:500}
+
+/* stats */
+.stats{padding:110px 0 40px}
+.stat-row{display:flex;flex-wrap:wrap;gap:14px}
+.stat{flex:1 1 220px;padding:26px 28px;border-radius:999px;background:var(--bg-2);display:flex;align-items:baseline;gap:14px}
+.stat:nth-child(2){background:var(--violet);color:var(--bg)}
+.stat:nth-child(2) span{color:#2a1260}
+.stat strong{font-family:var(--display);font-size:clamp(32px,3.2vw,46px);font-weight:700;letter-spacing:-.04em;line-height:1}
+.stat span{font-size:15px;color:var(--muted);line-height:1.3}
+
+/* demo */
+.demo{padding:110px 0 130px}
+.demo-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;margin-bottom:40px}
+.demo-head h2{max-width:11em}
+.console{display:grid;grid-template-columns:1.4fr .9fr;gap:14px}
+.call{border-radius:40px;background:var(--bg-2);padding:26px;display:flex;flex-direction:column;gap:18px;min-height:600px}
+.call-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.avatar{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:18px;background:var(--coral);color:var(--bg);flex:none}
+.who b{display:block;font-size:17px}
+.who small{color:var(--muted);font-size:14px}
+.timer{margin-left:auto;font-family:var(--display);font-size:22px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.live{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(255,143,125,.16);color:var(--coral);font-size:13px;font-weight:700}
+.live::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.live.idle{background:rgba(241,235,255,.08);color:var(--muted)}
+.live.done{background:rgba(111,242,193,.14);color:var(--mint)}
+.wave-box{position:relative;height:150px;border-radius:28px;background:var(--bg);overflow:hidden}
+#callWave{width:100%;height:100%}
+.speaker{position:absolute;left:16px;top:12px;font-size:13px;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.25)}
+.transcript{flex:1;min-height:220px;max-height:330px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-right:6px;overscroll-behavior:contain}
+.transcript .empty{margin:auto;text-align:center;color:var(--muted);max-width:22em}
+.line{display:grid;grid-template-columns:64px 1fr;gap:12px;font-size:16px;line-height:1.5}
+.line b{font-size:13px;font-weight:700;padding-top:3px}
+.line.v b{color:var(--violet-soft)}
+.line.c b{color:var(--coral)}
+.line.h b{color:var(--mint)}
+.line.sys{display:block;text-align:center;font-size:14px;color:var(--muted);padding:8px;border-radius:999px;background:rgba(241,235,255,.06)}
+.controls{display:flex;gap:10px;flex-wrap:wrap}
+.controls .btn{min-height:52px}
+.btn-hand{background:var(--coral);color:var(--bg)}
+.btn-hand:disabled,.btn-main:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-hand.pulse{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(255,143,125,.18)}}
+.scen{display:flex;gap:6px;padding:5px;border-radius:999px;background:var(--bg-2)}
+.scen button{min-height:46px;padding:0 18px;border-radius:999px;font-weight:700;font-size:15px;color:var(--muted)}
+.scen button[aria-pressed=true]{background:var(--surface-2);color:var(--lilac)}
+.side{display:flex;flex-direction:column;gap:14px}
+.card{border-radius:40px;background:var(--bg-2);padding:24px 26px}
+.card h3{font-family:var(--body);font-size:15px;font-weight:700;color:var(--muted);margin-bottom:12px;letter-spacing:0}
+.gauge{position:relative;width:100%;max-width:280px;margin:0 auto}
+.gauge svg{width:100%;height:auto;overflow:visible}
+.gauge-label{text-align:center;margin-top:-6px}
+.gauge-label strong{display:block;font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.03em}
+.gauge-label span{color:var(--muted);font-size:14px}
+.intents{display:flex;flex-wrap:wrap;gap:8px;min-height:36px}
+.intents span{padding:6px 14px;border-radius:999px;background:var(--surface-2);font-size:14px;font-weight:600}
+.intents .none{background:none;padding:6px 0;color:var(--muted);font-weight:500}
+.actions{list-style:none;display:grid;gap:8px}
+.actions li{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--muted)}
+.actions li::before{content:"";width:22px;height:22px;border-radius:50%;border:2px solid rgba(241,235,255,.25);flex:none}
+.actions li.on{color:var(--lilac)}
+.actions li.on::before{border-color:var(--mint);background:var(--mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12l4 4 8-8' fill='none' stroke='%231d0b45' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+.handoff-card{display:none;border-radius:32px;background:var(--lilac);color:var(--bg);padding:20px 22px}
+.handoff-card.show{display:block}
+.handoff-card b{font-family:var(--display);font-size:18px;letter-spacing:-.02em}
+.handoff-card p{font-size:15px;margin-top:6px;color:#3b2a6e}
+
+/* anatomy (pinned) */
+.anatomy{height:100vh;overflow:hidden}
+.anat-grid{height:100%;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:50px}
+.dial-wrap{position:relative;width:min(560px,42vw);aspect-ratio:1;justify-self:center}
+.dial{position:absolute;inset:0}
+.dial svg{width:100%;height:100%;overflow:visible}
+.dial-center{position:absolute;inset:28%;border-radius:50%;background:var(--violet);display:grid;place-items:center;text-align:center;box-shadow:0 0 0 18px rgba(139,92,255,.15),0 0 0 40px rgba(139,92,255,.07)}
+.dial-center strong{font-family:var(--display);font-size:clamp(28px,3vw,44px);letter-spacing:-.04em;color:var(--bg);line-height:1}
+.dial-center span{display:block;font-size:14px;color:#2a1260;font-weight:700;margin-top:6px}
+.node{position:absolute;width:24%;aspect-ratio:1;margin:-12% 0 0 -12%;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-family:var(--display);font-weight:500;font-size:clamp(11px,1vw,14px);text-align:center;transition:background .4s,color .4s}
+.node.on{background:var(--lilac);color:var(--bg);box-shadow:0 0 0 8px rgba(241,235,255,.15)}
+.anat-copy{position:relative;min-height:340px}
+.stage-txt{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:18px}
+.stage-txt .n{font-family:var(--display);font-size:15px;color:var(--violet-soft)}
+.stage-txt h2{font-size:clamp(34px,4.2vw,62px)}
+.stage-txt p{color:var(--muted);max-width:28em}
+.stage-txt .ms{display:inline-flex;align-self:flex-start;padding:8px 16px;border-radius:999px;background:var(--bg-2);font-weight:700;font-size:15px}
+
+/* handoff feature */
+.hf{padding:140px 0}
+.hf-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:center}
+.ticket{position:relative;border-radius:44px;background:var(--lilac);color:var(--bg);padding:34px;transform:rotate(-2deg);box-shadow:30px 40px 0 -10px var(--violet)}
+.ticket header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.ticket header .avatar{background:var(--violet);color:var(--lilac)}
+.ticket header b{font-family:var(--display);font-size:20px;letter-spacing:-.03em}
+.ticket header small{display:block;color:#5a4a8e;font-size:14px}
+.ticket dl{display:grid;grid-template-columns:120px 1fr;gap:12px 16px;font-size:16px}
+.ticket dt{font-weight:700;color:#5a4a8e}
+.ticket .trend{display:flex;align-items:flex-end;gap:4px;height:30px}
+.ticket .trend i{width:12px;border-radius:6px;background:var(--violet)}
+.ticket .quote{margin-top:22px;padding:16px 20px;border-radius:24px;background:#e2d8ff;font-size:16px}
+.hf ul{list-style:none;display:grid;gap:18px;margin-top:30px}
+.hf li{display:grid;grid-template-columns:44px 1fr;gap:16px;align-items:start}
+.hf li i{width:44px;height:44px;border-radius:50%;background:var(--bg-2);display:grid;place-items:center;font-style:normal;color:var(--mint)}
+.hf li b{display:block;font-size:18px}
+.hf li p{color:var(--muted);font-size:16px}
+
+/* voices */
+.voices{padding:40px 0 140px}
+.voices h2{margin-bottom:14px}
+.voices .sub{margin-bottom:40px}
+.voice-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.voice{position:relative;text-align:left;border-radius:999px 999px 40px 40px;background:var(--bg-2);padding:34px 24px 26px;display:flex;flex-direction:column;align-items:center;gap:14px;transition:background .35s,transform .45s cubic-bezier(.3,1.6,.5,1)}
+.voice:hover{transform:translateY(-6px)}
+.voice[aria-pressed=true]{background:var(--violet);color:var(--bg)}
+.voice .bars{display:flex;align-items:center;gap:4px;height:64px}
+.voice .bars i{width:6px;border-radius:6px;background:currentColor;height:20%;opacity:.8}
+.voice[aria-pressed=true] .bars i{animation:eq 0.9s ease-in-out infinite}
+.voice b{font-family:var(--display);font-size:24px;letter-spacing:-.03em}
+.voice span{font-size:15px;text-align:center;color:var(--muted)}
+.voice[aria-pressed=true] span{color:#2a1260}
+.sample{margin-top:24px;min-height:84px;padding:22px 28px;border-radius:32px;background:var(--bg-2);font-size:clamp(18px,1.6vw,22px);font-weight:600}
+.sample small{display:block;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:4px}
+
+/* cta */
+.cta{padding:0 0 40px}
+.cta-box{border-radius:56px;background:var(--violet);color:var(--bg);padding:clamp(40px,7vw,100px);display:grid;grid-template-columns:1.3fr .7fr;gap:30px;align-items:end;overflow:hidden;position:relative}
+.cta-box h2{font-size:clamp(40px,6vw,96px)}
+.cta-box p{font-size:18px;color:#24104f;font-weight:600}
+.cta-box .btn-main{background:var(--bg);color:var(--lilac)}
+.cta-box svg{position:absolute;right:-60px;top:-40px;width:360px;opacity:.18;pointer-events:none}
+footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:30px 0 10px;font-size:14px;color:var(--muted)}
+
+@media (max-width:960px){
+  .nav ul,.nav .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero{padding-top:120px}
+  .hero-grid{grid-template-columns:1fr;gap:24px;align-items:start;align-content:start}
+  .hero-side{grid-column:1}
+  .console{grid-template-columns:1fr}
+  .call{border-radius:32px;padding:20px;min-height:0}
+  .card{border-radius:32px}
+  .anat-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:10px;padding:96px 0 30px;align-content:start}
+  .dial-wrap{width:min(300px,72vw);grid-row:2;align-self:center}
+  .anat-copy{min-height:250px}
+  .stage-txt h2{font-size:32px}
+  .stage-txt p{font-size:16px}
+  .hf-grid{grid-template-columns:1fr}
+  .ticket{padding:24px;border-radius:32px;transform:rotate(-1deg)}
+  .ticket dl{grid-template-columns:1fr;gap:2px}
+  .ticket dd{margin-bottom:10px}
+  .voice-row{grid-template-columns:1fr 1fr}
+  .cta-box{grid-template-columns:1fr;border-radius:36px}
+  .cta-box svg{width:200px;right:-70px;top:-70px}
+}
+@media (max-width:560px){
+  .stat{border-radius:32px;padding:22px 24px}
+  .chip-call:nth-of-type(3){display:none}
+  .chip-call{font-size:13px}
+  .voice{border-radius:120px 120px 32px 32px;padding:26px 14px 20px}
+  .voice b{font-size:20px}
+  .voice span{font-size:14px}
+  .line{grid-template-columns:1fr;gap:0}
+  .timer{font-size:18px}
+  .scen{width:100%}
+  .scen button{flex:1;padding:0 10px}
+}
+@media (prefers-reduced-motion:reduce){
+  .hero h1 .pill i,.btn .dot,.btn-hand.pulse,.voice[aria-pressed=true] .bars i{animation:none}
+  .btn,.voice{transition:none}
+  .anatomy{height:auto;overflow:visible;padding:110px 0}
+  .anat-grid{height:auto}
+  .anat-copy{min-height:0;display:grid;gap:40px}
+  .stage-txt{position:static}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Voxa home">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="20" fill="#8b5cff"/><path d="M14 32h6l4-10 6 22 6-26 5 18 3-4h6" fill="none" stroke="#f1ebff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      voxa
+    </a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="#demo">Live call</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#handoff">Handoff</a></li>
+        <li><a href="#voices">Voices</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-main" href="#book">Book a demo</a>
+    <button class="menu-btn" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><span></span></button>
+  </div>
+  <div class="mmenu" id="mmenu">
+    <a href="#demo">Live call</a>
+    <a href="#how">How it works</a>
+    <a href="#handoff">Handoff</a>
+    <a href="#voices">Voices</a>
+    <a href="#book">Book a demo</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <h1 aria-label="Support that picks up on the first ring.">
+        <span class="ln" aria-hidden="true"><span>Support that</span></span>
+        <span class="ln" aria-hidden="true"><span>picks up <span class="pill"><i></i><i></i><i></i><i></i><i></i></span> on</span></span>
+        <span class="ln" aria-hidden="true"><span>the first ring.</span></span>
+      </h1>
+      <div class="hero-side">
+        <p class="sub hero-fade">Voxa is the voice agent for support teams. It answers every call, solves the routine ones end to end, and hands the hard ones to your people with the whole story attached.</p>
+        <div class="hero-ctas hero-fade">
+          <a class="btn btn-main" href="#demo"><span class="dot" aria-hidden="true"></span>Hear a live call</a>
+          <a class="btn btn-line" href="#book">Book a demo</a>
+        </div>
+      </div>
+    </div>
+    <div class="calls" aria-hidden="true">
+      <canvas id="heroWave"></canvas>
+      <div class="chip-call" style="left:6%;top:6%"><b style="background:var(--mint)">✓</b>Refund issued <small>· 1:04</small></div>
+      <div class="chip-call" style="left:40%;top:38%"><b style="background:var(--amber)">↻</b>Password reset <small>· 0:48</small></div>
+      <div class="chip-call" style="right:6%;top:10%"><b style="background:var(--coral)">→</b>Handed to Priya <small>· billing</small></div>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Voxa in numbers">
+    <div class="wrap stat-row">
+      <div class="stat"><strong>71%</strong><span>of calls resolved with no human needed</span></div>
+      <div class="stat"><strong>0.6s</strong><span>to the first word, every time</span></div>
+      <div class="stat"><strong>34</strong><span>languages, switched mid-call</span></div>
+      <div class="stat"><strong>4.8/5</strong><span>average caller rating</span></div>
+    </div>
+  </section>
+
+  <section class="demo" id="demo" aria-labelledby="demo-title">
+    <div class="wrap">
+      <div class="demo-head">
+        <h2 id="demo-title">Listen in on a real-time call.</h2>
+        <div class="scen" role="group" aria-label="Choose a call">
+          <button type="button" aria-pressed="true" data-s="0">Double charge</button>
+          <button type="button" aria-pressed="false" data-s="1">Torn tent</button>
+        </div>
+      </div>
+      <div class="console">
+        <div class="call">
+          <div class="call-top">
+            <div class="avatar" id="avatar" aria-hidden="true">D</div>
+            <div class="who"><b id="callerName">Dana Reyes</b><small id="callerMeta">Kestrel Outdoor · inbound support line</small></div>
+            <span class="live idle" id="liveTag">Ready</span>
+            <span class="timer" id="timer" aria-label="Call length">0:00</span>
+          </div>
+          <div class="wave-box">
+            <canvas id="callWave" aria-hidden="true"></canvas>
+            <span class="speaker" id="speaker">Waiting for call</span>
+          </div>
+          <div class="transcript" id="transcript" aria-live="polite">
+            <p class="empty">Press <b>Start call</b> to hear Voxa handle it. You can hand the caller to a human at any point.</p>
+          </div>
+          <div class="controls">
+            <button class="btn btn-main" id="startBtn" type="button">Start call</button>
+            <button class="btn btn-hand" id="handBtn" type="button" disabled>Hand off to a human</button>
+          </div>
+        </div>
+        <div class="side">
+          <div class="card">
+            <h3>Caller sentiment</h3>
+            <div class="gauge">
+              <svg viewBox="0 0 200 110" aria-hidden="true">
+                <defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#ff8f7d"/><stop offset=".5" stop-color="#ffd166"/><stop offset="1" stop-color="#6ff2c1"/></linearGradient></defs>
+                <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#3b2090" stroke-width="16" stroke-linecap="round"/>
+                <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="url(#gg)" stroke-width="16" stroke-linecap="round" opacity=".9"/>
+                <g id="needle" style="transform-origin:100px 100px"><line x1="100" y1="100" x2="100" y2="34" stroke="#f1ebff" stroke-width="5" stroke-linecap="round"/><circle cx="100" cy="100" r="9" fill="#f1ebff"/></g>
+              </svg>
+              <div class="gauge-label"><strong id="moodWord">—</strong><span id="moodNum">No call yet</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>What the caller needs</h3>
+            <div class="intents" id="intents"><span class="none">Listening…</span></div>
+          </div>
+          <div class="card">
+            <h3>What Voxa did</h3>
+            <ul class="actions" id="actions"></ul>
+          </div>
+          <div class="handoff-card" id="handoffCard" role="status">
+            <b id="hoTitle">Transferred to Priya Anand</b>
+            <p id="hoText">Priya joined with the transcript, intent and everything Voxa already did. The caller didn't repeat a thing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="anatomy" id="how" aria-label="How a call flows">
+    <div class="wrap anat-grid">
+      <div class="dial-wrap" aria-hidden="true">
+        <div class="dial" id="dial">
+          <svg viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#2e1670" stroke-width="2" stroke-dasharray="2 6"/>
+            <circle id="arc" cx="100" cy="100" r="88" fill="none" stroke="#b9a2ff" stroke-width="3" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-90 100 100)"/>
+          </svg>
+          <div class="node" style="left:50%;top:6%">Listen</div>
+          <div class="node" style="left:94%;top:50%">Understand</div>
+          <div class="node" style="left:50%;top:94%">Act</div>
+          <div class="node" style="left:6%;top:50%">Wrap up</div>
+        </div>
+        <div class="dial-center"><div><strong id="dialMs">0.2s</strong><span id="dialLbl">to hear the caller</span></div></div>
+      </div>
+      <div class="anat-copy">
+        <div class="stage-txt"><span class="n">Step 1 of 4</span><h2>It listens like a person does.</h2><p>Voxa hears interruptions, accents and the sigh before "fine". It picks up after the first ring and never puts anyone on hold to "look something up".</p><span class="ms">Picks up in 0.2s</span></div>
+        <div class="stage-txt"><span class="n">Step 2 of 4</span><h2>It works out what's really wrong.</h2><p>Intent, urgency and mood are read live from the conversation, so a polite caller with a trip on Friday still gets treated as urgent.</p><span class="ms">Intent found in 4s on average</span></div>
+        <div class="stage-txt"><span class="n">Step 3 of 4</span><h2>It fixes it, for real.</h2><p>Refunds, resets, reschedules, replacements — Voxa acts in your order system and billing tools, inside limits you set per action.</p><span class="ms">71% resolved end to end</span></div>
+        <div class="stage-txt"><span class="n">Step 4 of 4</span><h2>It writes the ticket for you.</h2><p>Every call ends with a clean summary, tags and next steps in your helpdesk. Or, when a human should take over, a warm handoff.</p><span class="ms">0 minutes of after-call work</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hf" id="handoff" aria-labelledby="hf-title">
+    <div class="wrap hf-grid">
+      <div class="ticket" aria-label="Example handoff card">
+        <header><div class="avatar" aria-hidden="true">PA</div><div><b>Incoming from Voxa</b><small>For Priya Anand · Gear team</small></div></header>
+        <dl>
+          <dt>Caller</dt><dd>Marcus Tell, member since 2021</dd>
+          <dt>Needs</dt><dd>Return only the torn rainfly, keep the poles. Trip on Friday.</dd>
+          <dt>Done</dt><dd>Order #5520 found · overnight replacement drafted</dd>
+          <dt>Mood</dt><dd><div class="trend" aria-label="Mood went from low to medium"><i style="height:30%;background:#ff8f7d"></i><i style="height:38%;background:#ff8f7d"></i><i style="height:50%;background:#ffd166"></i><i style="height:62%;background:#ffd166"></i><i style="height:58%;background:#ffd166"></i></div></dd>
+        </dl>
+        <p class="quote">"Partial returns need a quick approval — I'll bring in Priya, she'll see everything we've covered."</p>
+      </div>
+      <div>
+        <h2 id="hf-title">When a human should take over, they start ahead.</h2>
+        <ul>
+          <li><i aria-hidden="true">→</i><div><b>Warm transfer, not a cold queue</b><p>Voxa stays on the line, introduces your agent and hands over only once they're there.</p></div></li>
+          <li><i aria-hidden="true">≡</i><div><b>The whole story on one card</b><p>Who's calling, what they need, what's already done, and how their mood has moved.</p></div></li>
+          <li><i aria-hidden="true">⚑</i><div><b>Rules you write in plain English</b><p>"Anything over $500 goes to a person." "Always transfer if the caller asks twice." Done.</p></div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="voices" id="voices" aria-labelledby="voices-title">
+    <div class="wrap">
+      <h2 id="voices-title">Pick a voice that sounds like you.</h2>
+      <p class="sub">Twelve studio voices, recorded with paid, consenting voice actors. Tap one to hear how it greets your callers.</p>
+      <div class="voice-row" role="group" aria-label="Voices">
+        <button class="voice" type="button" aria-pressed="true" data-line="Hi, you've reached Kestrel Outdoor — I'm here to help. What's going on today?"><span class="bars" aria-hidden="true"></span><b>Mara</b><span>Warm and unhurried</span></button>
+        <button class="voice" type="button" aria-pressed="false" data-line="Hey! Thanks for calling — tell me what you need and let's get it sorted."><span class="bars" aria-hidden="true"></span><b>Theo</b><span>Crisp and upbeat</span></button>
+        <button class="voice" type="button" aria-pressed="false" data-line="Hola, gracias por llamar. Can I help you in English or Spanish today?"><span class="bars" aria-hidden="true"></span><b>Inés</b><span>Calm, bilingual EN/ES</span></button>
+        <button class="voice" type="button" aria-pressed="false" data-line="Good afternoon. You're through to support — I've got your account up already."><span class="bars" aria-hidden="true"></span><b>Ravi</b><span>Steady and low</span></button>
+      </div>
+      <p class="sample" aria-live="polite"><small id="sampleWho">Mara says</small><span id="sampleLine">Hi, you've reached Kestrel Outdoor — I'm here to help. What's going on today?</span></p>
+    </div>
+  </section>
+
+  <section class="cta" id="book" aria-labelledby="cta-title">
+    <div class="wrap">
+      <div class="cta-box">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M4 32h10l6-16 9 34 9-40 8 28 5-6h9" fill="none" stroke="#1d0b45" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h2 id="cta-title">Live on your phone line in a week.</h2>
+        <div>
+          <p>Bring your help centre and a few past calls. We'll tune Voxa on them and you'll hear it handle your real calls before a single customer does.</p>
+          <a class="btn btn-main" href="#top" style="margin-top:22px">Book a 20-minute demo</a>
+        </div>
+      </div>
+      <footer><span>© 2026 Voxa Labs</span><span>Concept design — fictional brand.</span></footer>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  gsap.registerPlugin(ScrollTrigger)
+  let lenis = null
+  if (!reduce) {
+    lenis = new Lenis({ lerp: 0.1 })
+    window.lenis = lenis
+    lenis.on('scroll', ScrollTrigger.update)
+    gsap.ticker.add((t) => lenis.raf(t * 1000))
+    gsap.ticker.lagSmoothing(0)
+  }
+  const menuBtn = document.querySelector('.menu-btn'), mmenu = document.getElementById('mmenu')
+  function setMenu(open) { mmenu.classList.toggle('open', open); menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu') }
+  menuBtn.addEventListener('click', () => setMenu(!mmenu.classList.contains('open')))
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false) })
+  document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href'), el = id === '#top' ? document.body : document.querySelector(id)
+    if (!el) return
+    e.preventDefault(); setMenu(false)
+    lenis ? lenis.scrollTo(el, { offset: -20 }) : el.scrollIntoView()
+  }))
+
+  /* ---------- wave renderer (shared) ---------- */
+  function makeWave(canvas, opts) {
+    const ctx = canvas.getContext('2d')
+    let w = 0, h = 0, dpr = 1
+    function size() { dpr = Math.min(devicePixelRatio || 1, 2); w = canvas.clientWidth; h = canvas.clientHeight; canvas.width = w * dpr; canvas.height = h * dpr }
+    size(); addEventListener('resize', size)
+    return function draw(t, amp, color, draw01 = 1) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.clearRect(0, 0, w, h)
+      const mid = h * (opts.mid || 0.5)
+      const layers = opts.layers || 3
+      for (let l = 0; l < layers; l++) {
+        ctx.beginPath()
+        const k = 1 - l * 0.28, xmax = w * draw01
+        for (let x = 0; x <= xmax; x += 3) {
+          const u = x / w
+          const env = Math.sin(Math.PI * u) ** 1.2
+          const y = mid + env * h * 0.42 * amp * k * (
+            Math.sin(u * (18 + l * 5) + t * (2.6 + l * 0.7)) * 0.55 +
+            Math.sin(u * (41 - l * 7) - t * (3.8 + l)) * 0.3 +
+            Math.sin(u * 7 + t * 1.3 + l) * 0.25)
+          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+        }
+        ctx.strokeStyle = color
+        ctx.globalAlpha = l === 0 ? 1 : 0.45 - l * 0.1
+        ctx.lineWidth = l === 0 ? (opts.lw || 3) : 2
+        ctx.lineCap = 'round'
+        ctx.stroke()
+      }
+      ctx.globalAlpha = 1
+    }
+  }
+  function loopWhenVisible(el, fn) {
+    let on = false, raf = 0
+    const loop = (t) => { fn(t / 1000); raf = requestAnimationFrame(loop) }
+    new IntersectionObserver(([en]) => {
+      if (en.isIntersecting && !on) { on = true; raf = requestAnimationFrame(loop) }
+      else if (!en.isIntersecting && on) { on = false; cancelAnimationFrame(raf) }
+    }).observe(el)
+  }
+
+  /* ---------- hero ---------- */
+  const heroWave = makeWave(document.getElementById('heroWave'), { mid: 0.62, layers: 4, lw: 4 })
+  const hero = { draw: reduce ? 1 : 0, amp: 0.55 }
+  if (reduce) heroWave(1.2, 0.55, '#b9a2ff', 1)
+  else {
+    loopWhenVisible(document.getElementById('heroWave'), (t) => {
+      const a = hero.amp * (0.75 + 0.25 * Math.sin(t * 0.9) + 0.15 * Math.sin(t * 2.3))
+      heroWave(t, a, '#b9a2ff', hero.draw)
+    })
+    gsap.set('.hero h1 .ln > span', { yPercent: 110 })
+    gsap.set('.hero-fade', { opacity: 0, y: 20 })
+    gsap.set('.chip-call', { opacity: 0, scale: 0.6 })
+    gsap.set('.nav .wrap', { y: -80 })
+    const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
+    tl.to('.hero h1 .ln > span', { yPercent: 0, duration: 1.1, stagger: 0.1 }, 0.1)
+      .to('.nav .wrap', { y: 0, duration: 1 }, 0.2)
+      .to('.hero-fade', { opacity: 1, y: 0, duration: 0.9, stagger: 0.08 }, 0.45)
+      .to(hero, { draw: 1, duration: 1.4, ease: 'power2.inOut' }, 0.2)
+      .to('.chip-call', { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(2)', stagger: 0.12 }, 0.9)
+    gsap.to('.chip-call', { y: (i) => [-12, 10, -8][i], duration: 2.6, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: 0.4, delay: 1.8 })
+  }
+
+  /* ---------- live call demo ---------- */
+  const SCRIPTS = [
+    {
+      caller: 'Dana Reyes', init: 'D', meta: 'Kestrel Outdoor · inbound support line', human: 'Priya Anand', humanTeam: 'billing team',
+      lines: [
+        ['v', "Thanks for calling Kestrel Outdoor, this is Voxa. How can I help?", 0.5],
+        ['c', "Hi — I got charged twice for my order and I'm honestly pretty annoyed.", 0.2, { intent: 'Duplicate charge' }],
+        ['v', "That's frustrating, I'm sorry. I can sort it right now. Can you confirm the email on the order?", 0.28],
+        ['c', "It's dana at reyes dot studio.", 0.3, { action: 'Caller verified' }],
+        ['v', "Thanks, Dana. I see order 4471 for the Trailhead pack — two charges of $129 on October 12th.", 0.38, { action: 'Found order #4471' }],
+        ['c', "Yes, that's the one.", 0.42],
+        ['v', "The second one is a duplicate. I've refunded $129 to your card ending 0381 — it'll show in 3 to 5 days.", 0.7, { action: 'Refund issued · $129', intent: 'Refund' }],
+        ['c', "Oh, great. That was way quicker than I expected.", 0.86],
+        ['v', "I've emailed you the receipt too. Anything else I can help with?", 0.88, { action: 'Receipt emailed' }],
+        ['c', "No, that's everything. Thanks!", 0.93],
+      ],
+      handoffLine: "I'll bring in Priya from our billing team now — she'll see everything we've covered, so you won't repeat a thing.",
+      humanLine: "Hi Dana, Priya here. I can see the duplicate charge on order 4471 — let's finish this together.",
+      endText: 'Resolved by Voxa',
+    },
+    {
+      caller: 'Marcus Tell', init: 'M', meta: 'Kestrel Outdoor · member since 2021', human: 'Priya Anand', humanTeam: 'gear team',
+      lines: [
+        ['v', "Thanks for calling Kestrel Outdoor, this is Voxa. How can I help?", 0.5],
+        ['c', "My tent arrived with a torn rainfly and I leave for a trip on Friday.", 0.24, { intent: 'Damaged item' }],
+        ['v', "Oh no — let's make sure you have a tent by Friday. What's the order number?", 0.32, { intent: 'Urgent · Friday' }],
+        ['c', "It's 5520.", 0.34, { action: 'Found order #5520' }],
+        ['v', "Got it, the Ridgeline 2P. I can ship a full replacement overnight at no cost.", 0.5, { action: 'Overnight replacement drafted' }],
+        ['c', "Overnight works, but can I just return the fly and keep the poles?", 0.4, { intent: 'Partial return' }],
+        ['v', "Partial returns need a quick approval from our gear team, so a person should take this one.", 0.45, { action: 'Handoff recommended', suggest: true }],
+      ],
+      handoffLine: "I'm bringing in Priya from the gear team — she'll see everything we've covered, so you won't need to repeat anything.",
+      humanLine: "Hi Marcus, Priya here. I've got order 5520 and the torn fly — I can approve the partial return right now.",
+      endText: 'Handed off by Voxa',
+      autoHandoff: true,
+    },
+  ]
+  const el = (id) => document.getElementById(id)
+  const transcript = el('transcript'), startBtn = el('startBtn'), handBtn = el('handBtn')
+  const liveTag = el('liveTag'), timerEl = el('timer'), speakerEl = el('speaker')
+  const intentsEl = el('intents'), actionsEl = el('actions'), moodWord = el('moodWord'), moodNum = el('moodNum')
+  const needle = el('needle'), hoCard = el('handoffCard')
+  const callWave = makeWave(el('callWave'), { mid: 0.5, layers: 3, lw: 3 })
+  const audio = { amp: 0.04, target: 0.04, color: '#8b5cff' }
+  let scen = 0, running = false, handedOff = false, runId = 0, t0 = 0, timerInt = 0, mood = 0.5
+  if (reduce) callWave(0.5, 0.06, '#8b5cff')
+  else loopWhenVisible(el('callWave'), (t) => {
+    audio.amp += (audio.target - audio.amp) * 0.18
+    audio.target = Math.max(0.05, audio.target * 0.94)
+    callWave(t, audio.amp, audio.color)
+  })
+  function setMood(v, instant) {
+    mood = v
+    gsap.to(needle, { svgOrigin: '100 100', rotation: -90 + v * 180, duration: instant || reduce ? 0 : 1.2, ease: 'elastic.out(1,0.55)' })
+    moodWord.textContent = v < 0.35 ? 'Frustrated' : v < 0.65 ? 'Neutral' : 'Happy'
+    moodNum.textContent = `Score ${Math.round(v * 100)} / 100`
+  }
+  gsap.set(needle, { svgOrigin: '100 100', rotation: 0 })
+  function addIntent(t) { intentsEl.querySelector('.none')?.remove(); const s = document.createElement('span'); s.textContent = t; intentsEl.appendChild(s); if (!reduce) gsap.from(s, { scale: 0.5, opacity: 0, duration: 0.5, ease: 'back.out(2)' }) }
+  function addAction(t) { const li = document.createElement('li'); li.textContent = t; actionsEl.appendChild(li); requestAnimationFrame(() => li.classList.add('on')); if (!reduce) gsap.from(li, { x: -16, opacity: 0, duration: 0.5, ease: 'power3.out' }) }
+  function sys(text) { const p = document.createElement('p'); p.className = 'line sys'; p.textContent = text; transcript.appendChild(p); transcript.scrollTop = transcript.scrollHeight }
+  const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? Math.min(ms, 500) : ms))
+  async function speak(who, text, id) {
+    const S = SCRIPTS[scen]
+    const label = who === 'v' ? 'Voxa' : who === 'h' ? S.human.split(' ')[0] : S.caller.split(' ')[0]
+    const row = document.createElement('div'); row.className = 'line ' + who
+    row.innerHTML = `<b>${label}</b><span></span>`
+    transcript.appendChild(row)
+    const span = row.querySelector('span')
+    audio.color = who === 'v' ? '#b9a2ff' : who === 'h' ? '#6ff2c1' : '#ff8f7d'
+    speakerEl.textContent = `${label} speaking`
+    speakerEl.style.color = audio.color
+    if (reduce) { span.textContent = text; transcript.scrollTop = transcript.scrollHeight; await wait(400); return true }
+    const words = text.split(' ')
+    for (let i = 0; i < words.length; i++) {
+      if (id !== runId) return false
+      span.textContent += (i ? ' ' : '') + words[i]
+      audio.target = 0.45 + Math.min(0.5, words[i].length * 0.06) + Math.random() * 0.15
+      transcript.scrollTop = transcript.scrollHeight
+      await wait(95 + words[i].length * 18)
+    }
+    speakerEl.textContent = 'Listening'
+    return true
+  }
+  function resetCall() {
+    runId++
+    running = false; handedOff = false
+    clearInterval(timerInt)
+    transcript.innerHTML = '<p class="empty">Press <b>Start call</b> to hear Voxa handle it. You can hand the caller to a human at any point.</p>'
+    intentsEl.innerHTML = '<span class="none">Listening…</span>'
+    actionsEl.innerHTML = ''
+    hoCard.classList.remove('show')
+    liveTag.className = 'live idle'; liveTag.textContent = 'Ready'
+    timerEl.textContent = '0:00'; speakerEl.textContent = 'Waiting for call'; speakerEl.style.color = ''
+    moodWord.textContent = '—'; moodNum.textContent = 'No call yet'; gsap.set(needle, { svgOrigin: '100 100', rotation: 0 })
+    startBtn.textContent = 'Start call'; startBtn.disabled = false
+    handBtn.disabled = true; handBtn.classList.remove('pulse')
+    const S = SCRIPTS[scen]
+    el('callerName').textContent = S.caller; el('avatar').textContent = S.init; el('callerMeta').textContent = S.meta
+  }
+  function tickTimer() { const s = Math.floor((Date.now() - t0) / 1000); timerEl.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }
+  async function startCall() {
+    if (running) { endCall('Call ended'); return }
+    resetCall()
+    const id = runId
+    running = true
+    transcript.innerHTML = ''
+    liveTag.className = 'live'; liveTag.textContent = 'Live'
+    startBtn.textContent = 'End call'
+    handBtn.disabled = false
+    t0 = Date.now(); timerInt = setInterval(tickTimer, 250)
+    sys('Incoming call · answered on the first ring')
+    const S = SCRIPTS[scen]
+    for (const [who, text, m, extra] of S.lines) {
+      if (id !== runId || handedOff) return
+      if (!(await speak(who, text, id))) return
+      setMood(m)
+      if (extra?.intent) addIntent(extra.intent)
+      if (extra?.action && !handedOff) addAction(extra.action)
+      if (id !== runId || handedOff) return
+      if (extra?.suggest) handBtn.classList.add('pulse')
+      await wait(who === 'c' ? 500 : 650)
+    }
+    if (id !== runId || handedOff) return
+    if (S.autoHandoff) { await wait(1400); if (id === runId && !handedOff) handoff(); return }
+    endCall(`${S.endText} in ${timerEl.textContent}`)
+  }
+  async function handoff() {
+    if (!running || handedOff) return
+    handedOff = true
+    const id = ++runId
+    const S = SCRIPTS[scen]
+    handBtn.disabled = true; handBtn.classList.remove('pulse')
+    addAction(`Warm transfer to ${S.human.split(' ')[0]}`)
+    if (!(await speak('v', S.handoffLine, id))) return
+    sys(`${S.human} joined · transcript, intent and actions attached`)
+    el('hoTitle').textContent = `Transferred to ${S.human}`
+    el('hoText').textContent = `${S.human.split(' ')[0]} from the ${S.humanTeam} joined with the transcript, intent and everything Voxa already did. ${S.caller.split(' ')[0]} didn't repeat a thing.`
+    hoCard.classList.add('show')
+    if (!reduce) gsap.from(hoCard, { y: 20, opacity: 0, scale: 0.95, duration: 0.6, ease: 'back.out(1.8)' })
+    liveTag.className = 'live done'; liveTag.textContent = 'With a human'
+    await wait(500)
+    if (!(await speak('h', S.humanLine, id))) return
+    setMood(Math.max(mood, 0.62))
+    clearInterval(timerInt)
+    running = false
+    startBtn.textContent = 'Replay call'
+    speakerEl.textContent = 'Call continues with your team'
+  }
+  function endCall(text) {
+    runId++
+    clearInterval(timerInt)
+    running = false
+    sys(text)
+    liveTag.className = 'live done'; liveTag.textContent = 'Ended'
+    speakerEl.textContent = 'Call ended'; speakerEl.style.color = ''
+    startBtn.textContent = 'Replay call'
+    handBtn.disabled = true; handBtn.classList.remove('pulse')
+  }
+  startBtn.addEventListener('click', startCall)
+  handBtn.addEventListener('click', handoff)
+  document.querySelectorAll('.scen button').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.scen button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+    scen = +b.dataset.s
+    resetCall()
+  }))
+  resetCall()
+
+  /* ---------- anatomy (pinned) ---------- */
+  const stages = gsap.utils.toArray('.stage-txt'), nodes = gsap.utils.toArray('.node')
+  const MS = [['0.2s', 'to hear the caller'], ['4s', 'to find the intent'], ['71%', 'solved end to end'], ['0 min', 'after-call work']]
+  let active = -1
+  function setStage(i, instant) {
+    if (i === active) return
+    const prev = active; active = i
+    nodes.forEach((n, k) => n.classList.toggle('on', k === i))
+    el('dialMs').textContent = MS[i][0]; el('dialLbl').textContent = MS[i][1]
+    if (reduce) return
+    if (!instant) gsap.fromTo('.dial-center > div', { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2)', overwrite: true })
+    stages.forEach((s, k) => {
+      if (k === i) gsap.fromTo(s, { autoAlpha: 0, y: instant ? 0 : (k > prev ? 40 : -40) }, { autoAlpha: 1, y: 0, duration: instant ? 0 : 0.7, delay: instant ? 0 : 0.12, ease: 'power3.out', overwrite: true })
+      else gsap.to(s, { autoAlpha: 0, y: k < i ? -40 : 40, duration: instant ? 0 : 0.3, ease: 'power2.in', overwrite: true })
+    })
+  }
+  if (!reduce) {
+    setStage(0, true)
+    const tl = gsap.timeline({ scrollTrigger: { trigger: '.anatomy', start: 'top top', end: '+=300%', pin: true, scrub: 0.6, onUpdate: (s) => setStage(Math.min(3, Math.floor(s.progress * 4))) } })
+    tl.to('#dial', { rotation: -270, ease: 'none', duration: 1 }, 0)
+      .to(nodes, { rotation: 270, ease: 'none', duration: 1 }, 0)
+      .to('#arc', { strokeDashoffset: 0, ease: 'none', duration: 1 }, 0)
+  } else {
+    nodes[0].classList.add('on')
+    gsap.set('#arc', { strokeDashoffset: 0 })
+  }
+
+  /* ---------- voices ---------- */
+  document.querySelectorAll('.voice .bars').forEach((b) => {
+    for (let i = 0; i < 9; i++) { const s = document.createElement('i'); s.style.height = (20 + Math.abs(Math.sin(i * 1.7)) * 80) + '%'; s.style.animationDelay = (-i * 0.13) + 's'; b.appendChild(s) }
+  })
+  let typeTimer = 0
+  document.querySelectorAll('.voice').forEach((v) => v.addEventListener('click', () => {
+    document.querySelectorAll('.voice').forEach((x) => x.setAttribute('aria-pressed', String(x === v)))
+    el('sampleWho').textContent = v.querySelector('b').textContent + ' says'
+    const line = v.dataset.line, out = el('sampleLine')
+    clearInterval(typeTimer)
+    if (reduce) { out.textContent = line; return }
+    let i = 0; out.textContent = ''
+    typeTimer = setInterval(() => { i += 2; out.textContent = line.slice(0, i); if (i >= line.length) clearInterval(typeTimer) }, 22)
+  }))
+
+  /* ---------- reveals ---------- */
+  if (!reduce) {
+    const rv = gsap.utils.toArray('.stat, .demo-head > *, .call, .side > .card, .ticket, .hf-grid > div:last-child > *, .voices h2, .voices .sub, .voice, .sample, .cta-box')
+    gsap.set(rv, { opacity: 0, y: 40 })
+    rv.forEach((x) => ScrollTrigger.create({ trigger: x, start: 'top 92%', once: true, onEnter: () => gsap.to(x, { opacity: 1, y: 0, duration: 0.9, ease: 'expo.out' }) }))
+    gsap.fromTo('.ticket', { rotation: 4 }, { rotation: -2, ease: 'none', scrollTrigger: { trigger: '.hf', start: 'top bottom', end: 'center center', scrub: true } })
+  }
+  addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

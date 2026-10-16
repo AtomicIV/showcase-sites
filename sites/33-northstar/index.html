@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northstar Aerospace — Orbit, on a schedule</title>
+<meta name="description" content="Northstar flies small satellites to low Earth orbit every nine days from Tarran Point. Watch a Polaris launch stage by stage and run the terminal count yourself.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2305070D'/%3E%3Cpath d='M16 3l2.6 10.4L29 16l-10.4 2.6L16 29l-2.6-10.4L3 16l10.4-2.6z' fill='%23FFB547'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Azeret+Mono:wght@300..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --space:#05070D; --panel:rgba(12,17,32,.78); --panel-2:#0D1324; --line:rgba(150,180,255,.16); --line-2:rgba(150,180,255,.3);
+  --tx:#E6ECF7; --tx-2:#93A0BB; --amber:#FFB547; --go:#5BE49B; --red:#FF5A4E; --flame:#FF7A2F;
+  --disp:'Michroma',sans-serif; --mono:'Azeret Mono',ui-monospace,monospace; --ease:cubic-bezier(.2,.75,.25,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;overflow-x:clip;background:var(--space)}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{background:transparent;color:var(--tx);font-family:var(--mono);font-size:16px;line-height:1.65;font-weight:400}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1320px,100% - 64px);margin-inline:auto}
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+main,.nav,.mmenu{position:relative;z-index:1}
+h1,h2,h3{font-family:var(--disp);font-weight:400;letter-spacing:.02em;line-height:1.08;text-transform:uppercase}
+h2{font-size:clamp(30px,3.8vw,58px)}
+.tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);display:flex;align-items:center;gap:10px}
+.tag::before{content:"";width:8px;height:8px;background:currentColor;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.muted{color:var(--tx-2)}
+
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:52px;padding:0 26px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;border:1px solid var(--line-2);clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);transition:background .3s,color .3s,border-color .3s;will-change:transform}
+.btn:hover{border-color:var(--amber);color:var(--amber)}
+.btn.pri{background:var(--amber);color:#160E00;border-color:var(--amber)}
+.btn.pri:hover{background:#FFD08A;color:#160E00}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 32px;transition:background .4s,box-shadow .4s}
+.nav.solid{background:rgba(5,7,13,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line)}
+.logo{display:flex;align-items:center;gap:12px;font-family:var(--disp);font-size:16px;letter-spacing:.14em;padding:8px 0}
+.logo svg{width:26px;height:26px}
+.nav ul{display:flex;gap:2px;list-style:none;align-items:center}
+.nav ul a{display:block;padding:12px 14px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx-2);transition:color .3s}
+.nav ul a:hover{color:var(--tx)}
+.nav .mini{display:flex;align-items:center;gap:10px;margin-left:12px;padding:8px 14px;border:1px solid var(--line);font-size:13px;font-variant-numeric:tabular-nums;color:var(--tx)}
+.nav .mini i{width:8px;height:8px;border-radius:50%;background:var(--go);box-shadow:0 0 10px var(--go);animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.25}}
+.burger{display:none;width:48px;height:48px;border:1px solid var(--line-2);position:relative}
+.burger span{position:absolute;left:14px;right:14px;height:1.5px;background:var(--tx);transition:transform .4s var(--ease)}
+.burger span:first-child{top:19px}.burger span:last-child{top:27px}
+.menu-open .burger span:first-child{transform:translateY(4px) rotate(45deg)}
+.menu-open .burger span:last-child{transform:translateY(-4px) rotate(-45deg)}
+.mmenu{position:fixed;inset:0;z-index:45;background:rgba(5,7,13,.97);padding:100px 20px 40px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s}
+.menu-open .mmenu{opacity:1;visibility:visible;transition:opacity .35s}
+.mmenu a{font-family:var(--disp);font-size:26px;text-transform:uppercase;padding:16px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.mmenu a small{font-family:var(--mono);font-size:12px;color:var(--amber)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:120px 32px 60px;overflow:hidden}
+.planet{position:absolute;left:50%;bottom:-124vw;width:150vw;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle at 50% 0%,#1B3C6E 0%,#0A1730 22%,#05070D 48%);box-shadow:0 -2px 0 rgba(140,190,255,.55),0 -18px 60px rgba(90,150,255,.35),0 -60px 160px rgba(60,110,230,.25);pointer-events:none}
+.planet::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 70% 2%,rgba(255,181,71,.35),transparent 14%)}
+.hero-in{position:relative;display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:40px;align-items:end;width:min(1320px,100%);margin:0 auto}
+.hero h1{font-size:clamp(46px,7.4vw,124px);line-height:.98;letter-spacing:-.01em}
+.hero h1 .ln{display:block;white-space:nowrap}
+.hero h1 .hl{color:var(--amber)}
+.hero-sub{margin-top:28px;max-width:46ch;color:var(--tx-2);font-size:17px;text-shadow:0 0 14px #05070D,0 0 4px #05070D}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px}
+.count{border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:22px 24px;position:relative}
+.count::before,.count::after{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--amber)}
+.count::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.count::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.count .row{display:flex;justify-content:space-between;gap:16px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-2)}
+.count .row b{color:var(--go);font-weight:500}
+.tminus{display:flex;align-items:baseline;gap:4px;margin:16px 0 6px;font-variant-numeric:tabular-nums}
+.tminus > span{font-family:var(--disp);font-size:16px;color:var(--amber);margin-right:8px}
+.tminus div{text-align:center}
+.tminus div b{display:block;font-size:clamp(34px,3.4vw,52px);font-weight:300;line-height:1;letter-spacing:-.02em}
+.tminus div small{font-size:11px;letter-spacing:.14em;color:var(--tx-2)}
+.tminus i{font-style:normal;font-size:clamp(28px,3vw,44px);color:var(--tx-2);font-weight:200;align-self:flex-start}
+.count p.win{font-size:14px;color:var(--tx-2);border-top:1px solid var(--line);padding-top:12px;margin-top:10px}
+.scroll-cue{position:absolute;left:32px;bottom:26px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--tx-2);display:flex;align-items:center;gap:12px}
+.scroll-cue i{width:1px;height:36px;background:linear-gradient(var(--amber),transparent);animation:cue 2s infinite var(--ease)}
+@keyframes cue{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* stats */
+.stats{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(5,7,13,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.stats .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.stat{padding:34px 24px 30px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0;padding-left:0}
+.stat b{display:block;font-family:var(--disp);font-size:clamp(32px,3.4vw,52px);font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+.stat span{display:block;margin-top:12px;color:var(--tx-2);font-size:14px}
+
+/* launch (pinned) */
+.launch{position:relative}
+.scene{position:relative;height:100vh;height:100svh;overflow:hidden}
+.sky{position:absolute;inset:0;background:linear-gradient(180deg,#0B1B36 0%,#17355E 45%,#3C6896 82%,#7FA2C4 100%)}
+.limb{position:absolute;left:50%;bottom:-150vw;width:180vw;aspect-ratio:1;border-radius:50%;transform:translate(-50%,40vh);background:radial-gradient(circle at 50% 0,#2C5C9A,#0B1D3B 18%,#05070D 40%);box-shadow:0 -3px 0 rgba(150,200,255,.7),0 -26px 80px rgba(90,150,255,.45);opacity:0}
+.clouds{position:absolute;inset:0;pointer-events:none}
+.clouds i{position:absolute;border-radius:50%;background:rgba(235,242,250,.85);filter:blur(14px)}
+.ground{position:absolute;left:0;right:0;bottom:0;height:46vh}
+.ground svg{position:absolute;left:0;bottom:0;width:100%;height:100%}
+.smoke{position:absolute;left:50%;bottom:11.5vh;width:0;height:0}
+.smoke i{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(235,232,226,.9),rgba(200,196,190,.5) 50%,transparent 70%);transform:translate(-50%,-50%) scale(0)}
+.rocket{--rh:62vh;position:absolute;left:50%;bottom:calc(11.5vh - var(--rh) * .24);height:var(--rh);aspect-ratio:320/1000;transform-origin:50% 76%;margin-left:calc(var(--rh) * -.16)}
+.rocket svg{width:100%;height:100%;overflow:visible}
+.fl{transform-box:fill-box;transform-origin:50% 0;animation:flick .09s infinite alternate}
+@keyframes flick{from{transform:scaleY(.94) scaleX(1.02)}to{transform:scaleY(1.05) scaleX(.97)}}
+.hud{position:absolute;inset:0;pointer-events:none;padding:96px 32px 40px;display:flex;justify-content:space-between;align-items:flex-start}
+.tele{width:280px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:16px 18px;font-variant-numeric:tabular-nums}
+.tele h3{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--amber);font-weight:500;margin-bottom:10px}
+.tele dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px}
+.tele dt{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx-2);align-self:center}
+.tele dd{text-align:right;font-size:22px;font-weight:300}
+.tele dd small{font-size:12px;color:var(--tx-2);margin-left:4px}
+.tele .bar{height:3px;background:var(--line);margin-top:12px;position:relative}
+.tele .bar i{position:absolute;inset:0;background:var(--amber);transform-origin:left;transform:scaleX(0)}
+.events{width:330px;list-style:none;border-left:1px solid var(--line);padding-left:0}
+.events li{position:relative;padding:8px 0 8px 22px;color:rgba(147,160,187,.75);font-size:13px;letter-spacing:.06em;text-transform:uppercase;transition:color .4s}
+.events li::before{content:"";position:absolute;left:-4px;top:15px;width:7px;height:7px;border-radius:50%;background:var(--space);border:1px solid var(--line-2);transition:background .4s,border-color .4s,box-shadow .4s}
+.events li span{display:inline-block;width:62px;color:inherit}
+.events li.done{color:var(--tx-2)}
+.events li.done::before{background:var(--tx-2);border-color:var(--tx-2)}
+.events li.on{color:var(--tx)}
+.events li.on::before{background:var(--amber);border-color:var(--amber);box-shadow:0 0 12px var(--amber)}
+.ev-cap{position:absolute;left:32px;right:32px;bottom:40px;display:grid;justify-items:center;text-align:center;pointer-events:none;isolation:isolate}
+.ev-cap::before{content:"";position:absolute;left:50%;top:50%;width:min(760px,130%);height:220%;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(5,7,13,.78),rgba(5,7,13,0));z-index:-1}
+.ev-cap div{grid-area:1/1;max-width:52ch}
+.ev-cap b{display:block;font-family:var(--disp);font-size:clamp(20px,2vw,28px);font-weight:400;text-transform:uppercase;letter-spacing:.04em}
+.ev-cap p{color:var(--tx-2);margin-top:6px;font-size:15px}
+.rm .scene{height:auto;min-height:100vh;padding-bottom:40px}
+
+/* console */
+.console{padding:clamp(100px,11vw,160px) 0;position:relative}
+.cs-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:end;margin-bottom:40px}
+.cs-head p{color:var(--tx-2);max-width:48ch}
+.cs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.panel{background:var(--panel-2);padding:22px;position:relative;min-width:0}
+.panel h3{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--amber);font-weight:500;display:flex;justify-content:space-between;margin-bottom:16px}
+.stations{list-style:none;display:grid;gap:2px;margin-bottom:20px}
+.stations li{display:grid;grid-template-columns:12px 1fr auto;gap:12px;align-items:center;padding:10px 12px;background:rgba(150,180,255,.04);font-size:14px}
+.stations .led{width:10px;height:10px;border-radius:50%;background:#2A3350;transition:background .3s,box-shadow .3s}
+.stations li[data-s=poll] .led{background:var(--amber);box-shadow:0 0 10px var(--amber);animation:blink .5s infinite}
+.stations li[data-s=go] .led{background:var(--go);box-shadow:0 0 10px var(--go)}
+.stations .st{font-size:12px;letter-spacing:.12em;color:var(--tx-2)}
+.stations li[data-s=go] .st{color:var(--go)}
+.stations li[data-s=poll] .st{color:var(--amber)}
+.panel .btn{width:100%}
+.clockp{display:flex;flex-direction:column}
+.tc{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tc span{font-family:var(--disp);font-size:14px;color:var(--tx-2)}
+.tc output{font-size:clamp(40px,4.6vw,68px);font-weight:300;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.tc output.live{color:var(--amber)}
+.tc output.up{color:var(--go)}
+.pad{position:relative;margin:16px 0;height:280px;border:1px solid var(--line);background:#070B16;overflow:hidden}
+.pad canvas{width:100%;height:100%;display:block}
+.pad .status{position:absolute;left:12px;top:10px;font-size:12px;letter-spacing:.14em;color:var(--tx-2)}
+.ctl{display:grid;grid-template-columns:1fr auto;gap:10px}
+.hold-btn{overflow:hidden}
+.hold-btn .fill{position:absolute;inset:0;background:rgba(255,255,255,.35);transform-origin:left;transform:scaleX(0);pointer-events:none}
+.stop-btn{min-width:110px}
+.stop-btn:not(:disabled){border-color:var(--red);color:var(--red)}
+.stop-btn:not(:disabled):hover{background:var(--red);color:#fff}
+.log{list-style:none;font-size:13px;line-height:1.5;display:flex;flex-direction:column;gap:8px;height:420px;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--line-2) transparent}
+.log li{display:grid;grid-template-columns:62px 1fr;gap:10px;color:var(--tx-2)}
+.log li b{font-weight:500;color:var(--tx)}
+.log li time{color:var(--amber);font-variant-numeric:tabular-nums}
+.log li.go b{color:var(--go)}
+.log li.red b{color:var(--red)}
+.log li.empty{display:block;font-style:italic}
+
+/* vehicle */
+.vehicle{padding:clamp(80px,10vw,140px) 0}
+.vh{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:60px;align-items:center}
+.vh-art{position:relative;display:grid;place-items:center;height:min(720px,80vh)}
+.vh-art svg{height:100%;width:auto;overflow:visible}
+.callout{font-size:18px;letter-spacing:.08em;fill:var(--tx-2);text-transform:uppercase}
+.callout.a{fill:var(--amber)}
+.vh h2{margin:16px 0 22px}
+.vh > div > p{color:var(--tx-2);max-width:52ch}
+.specs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:36px}
+.specs div{background:rgba(9,13,26,.92);padding:20px 18px}
+.specs b{display:block;font-family:var(--disp);font-size:clamp(22px,2.2vw,32px);font-weight:400;line-height:1.1}
+.specs span{display:block;margin-top:8px;font-size:13px;color:var(--tx-2)}
+
+/* manifest */
+.manifest{padding:0 0 clamp(80px,10vw,140px)}
+.mf-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;margin-bottom:30px}
+.mf{width:100%;border-collapse:collapse;font-size:15px}
+.mf th{text-align:left;font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--tx-2);padding:12px 14px;border-bottom:1px solid var(--line-2)}
+.mf td{padding:18px 14px;border-bottom:1px solid var(--line);vertical-align:middle;background:rgba(5,7,13,.55)}
+.mf tr{transition:background .3s}
+.mf tbody tr:hover td{background:rgba(255,181,71,.06)}
+.mf .id{font-family:var(--disp);font-size:15px}
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:6px 10px;border:1px solid var(--line-2);white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--tx-2)}
+.pill.go{color:var(--go);border-color:rgba(91,228,155,.4)}.pill.go i{background:var(--go);box-shadow:0 0 8px var(--go)}
+.pill.am{color:var(--amber);border-color:rgba(255,181,71,.4)}.pill.am i{background:var(--amber)}
+
+/* rideshare */
+.ride{padding:clamp(80px,10vw,140px) 0 40px;border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(5,7,13,.2),rgba(5,7,13,.9) 40%)}
+.rs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:60px;align-items:start}
+.rs h2{margin:16px 0 20px}
+.rs > div > p{color:var(--tx-2);max-width:46ch}
+.calc{border:1px solid var(--line);background:var(--panel-2);padding:26px}
+.calc label{display:flex;justify-content:space-between;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx-2)}
+.calc label output{color:var(--tx);font-size:16px;letter-spacing:0}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;margin:6px 0 18px}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:linear-gradient(90deg,var(--amber) var(--p,20%),var(--line-2) var(--p,20%))}
+input[type=range]::-moz-range-track{height:2px;background:var(--line-2)}
+input[type=range]::-moz-range-progress{height:2px;background:var(--amber)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;margin-top:-10px;background:var(--space);border:2px solid var(--amber);transform:rotate(45deg)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--space);border:2px solid var(--amber);border-radius:0;transform:rotate(45deg)}
+.orbits{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 22px}
+.orbits button{min-height:56px;border:1px solid var(--line-2);font-size:13px;line-height:1.3;padding:8px;transition:.3s}
+.orbits button small{display:block;color:var(--tx-2);font-size:11px}
+.orbits button[aria-pressed=true]{border-color:var(--amber);background:rgba(255,181,71,.1);color:var(--amber)}
+.quote{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:18px}
+.quote div{background:var(--space);padding:16px}
+.quote span{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx-2)}
+.quote b{display:block;font-family:var(--disp);font-weight:400;font-size:clamp(22px,2.2vw,30px);margin-top:6px;font-variant-numeric:tabular-nums}
+.calc .msg{min-height:1.6em;margin-top:12px;font-size:14px;color:var(--go)}
+.foot{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-top:80px;margin-top:80px;border-top:1px solid var(--line);font-size:13px;color:var(--tx-2);letter-spacing:.06em}
+.foot nav{display:flex;gap:22px;flex-wrap:wrap}
+.foot a{padding:8px 0}
+.foot a:hover{color:var(--tx)}
+
+@media (max-width:1060px){
+  .cs{grid-template-columns:1fr 1fr}
+  .cs .logp{grid-column:1/-1}
+  .log{height:220px}
+}
+@media (max-width:900px){
+  .wrap{width:calc(100% - 32px)}
+  .nav{padding:12px 16px}
+  .nav ul{display:none}
+  .burger{display:block}
+  .hero{padding:100px 16px 70px;justify-content:flex-start}
+  .hero-in{grid-template-columns:1fr;gap:34px}
+  .hero h1{font-size:clamp(30px,9.4vw,56px)}
+  .planet{bottom:-122vw;width:200vw}
+  .scroll-cue{display:none}
+  .stats .wrap{grid-template-columns:1fr 1fr}
+  .stat{padding:24px 0 22px 16px}
+  .stat:nth-child(odd){border-left:0;padding-left:0}
+  .stat:nth-child(n+3){border-top:1px solid var(--line)}
+  .rocket{--rh:46vh}
+  .hud{padding:76px 16px 0;flex-direction:column;gap:10px}
+  .tele{width:100%;padding:10px 14px;display:flex;gap:14px;align-items:center}
+  .tele h3{display:none}
+  .tele dl{grid-template-columns:repeat(3,auto);gap:0 16px;flex:1}
+  .tele dt{grid-row:1;font-size:10px}
+  .tele dd{grid-row:2;text-align:left;font-size:17px}
+  .tele dd small{display:none}
+  .tele .bar{display:none}
+  .events{display:none}
+  .ev-cap{left:16px;right:16px;bottom:26px}
+  .ev-cap p{font-size:14px}
+  .cs-head{grid-template-columns:1fr;gap:16px}
+  .cs{grid-template-columns:1fr}
+  .pad{height:220px}
+  .vh{grid-template-columns:1fr;gap:20px}
+  .vh-art{height:420px;order:2}
+  .vh-art .cl{display:none}
+  .specs{grid-template-columns:1fr 1fr}
+  .mf thead{display:none}
+  .mf,.mf tbody,.mf tr,.mf td{display:block;width:100%}
+  .mf tr{border-bottom:1px solid var(--line);padding:14px 0;display:grid;grid-template-columns:1fr auto;gap:4px 12px}
+  .mf td{border:0;padding:0;background:none}
+  .mf td:nth-child(1){grid-column:1}
+  .mf td:nth-child(5){grid-column:2;grid-row:1}
+  .mf td:nth-child(n+2):nth-child(-n+4){grid-column:1/-1;color:var(--tx-2);font-size:14px}
+  .rs{grid-template-columns:1fr;gap:30px}
+  .calc{padding:18px}
+  .orbits button{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<a class="sr" href="#console">Skip to the terminal count</a>
+<header class="nav" id="nav">
+  <a class="logo" href="#top" aria-label="Northstar Aerospace, home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2l2.8 11.2L30 16l-11.2 2.8L16 30l-2.8-11.2L2 16l11.2-2.8z" fill="#FFB547"/></svg>NORTHSTAR</a>
+  <nav aria-label="Main"><ul>
+    <li><a href="#launch">Launch</a></li>
+    <li><a href="#console">Terminal count</a></li>
+    <li><a href="#vehicle">Polaris</a></li>
+    <li><a href="#manifest">Manifest</a></li>
+    <li><a href="#ride">Rideshare</a></li>
+    <li><span class="mini" aria-hidden="true"><i></i><span id="navCount">T– --:--:--:--</span></span></li>
+  </ul></nav>
+  <button class="burger" id="burger" aria-label="Open menu" aria-expanded="false" aria-controls="mmenu"><span></span><span></span></button>
+</header>
+<nav class="mmenu" id="mmenu" aria-label="Mobile"><a href="#launch">Launch <small>01</small></a><a href="#console">Terminal count <small>02</small></a><a href="#vehicle">Polaris <small>03</small></a><a href="#manifest">Manifest <small>04</small></a><a href="#ride">Rideshare <small>05</small></a></nav>
+
+<main id="top">
+<section class="hero" aria-labelledby="h-hero">
+  <div class="planet" aria-hidden="true"></div>
+  <div class="hero-in">
+    <div>
+      <p class="tag">Small-satellite launch · Tarran Point</p>
+      <h1 id="h-hero" style="margin-top:22px" aria-label="Orbit, on a schedule."><span class="ln" data-t="ORBIT,">ORBIT,</span><span class="ln" data-t="ON A">ON A</span><span class="ln hl" data-t="SCHEDULE.">SCHEDULE.</span></h1>
+      <p class="hero-sub">Northstar flies small satellites to low Earth orbit every nine days. Book a slot on Polaris the way you would book freight: by the kilogram, with a date that holds.</p>
+      <div class="hero-cta"><a class="btn pri mag" href="#ride">Book a slot</a><a class="btn mag" href="#launch">Watch a launch</a></div>
+    </div>
+    <div class="count" aria-labelledby="cTitle">
+      <div class="row"><span id="cTitle">NS-47 · Polaris</span><b>● Go for launch</b></div>
+      <div class="tminus" role="timer" aria-live="off"><span>T–</span><div><b id="cD">00</b><small>DAYS</small></div><i>:</i><div><b id="cH">00</b><small>HRS</small></div><i>:</i><div><b id="cM">00</b><small>MIN</small></div><i>:</i><div><b id="cS">00</b><small>SEC</small></div></div>
+      <p class="win" id="cWin">Window opens 14:20 UTC from LC-2, Tarran Point.</p>
+    </div>
+  </div>
+  <p class="scroll-cue" aria-hidden="true"><i></i>Scroll to fly NS-46</p>
+</section>
+
+<section class="stats" aria-label="Northstar in numbers">
+  <div class="wrap">
+    <div class="stat"><b data-count="46">46</b><span>Launches flown since 2021</span></div>
+    <div class="stat"><b data-count="312">312</b><span>Satellites delivered to orbit</span></div>
+    <div class="stat"><b><span data-count="9">9</span> days</b><span>Between launches, on average this year</span></div>
+    <div class="stat"><b data-count="38">38</b><span>Boosters landed and flown again</span></div>
+  </div>
+</section>
+
+<section class="launch" id="launch" aria-labelledby="h-launch">
+  <h2 class="sr" id="h-launch">Replay of the NS-46 launch, from liftoff to payload deploy</h2>
+  <div class="scene" id="scene">
+    <div class="sky" id="sky" aria-hidden="true"></div>
+    <div class="limb" id="limb" aria-hidden="true"></div>
+    <div class="clouds" id="clouds" aria-hidden="true"></div>
+    <div class="ground" id="ground" aria-hidden="true"><svg viewBox="0 0 1600 400" preserveAspectRatio="xMidYMax slice" id="groundSvg"></svg></div>
+    <div class="smoke" id="smoke" aria-hidden="true"></div>
+    <div class="rocket" id="rocket" aria-hidden="true"><svg viewBox="-160 -760 320 1000" id="rocketSvg"></svg></div>
+    <div class="hud">
+      <div class="tele" aria-hidden="true">
+        <h3>NS-46 · REPLAY</h3>
+        <dl><dt>T+</dt><dd id="tT">00:00</dd><dt>Altitude</dt><dd><span id="tAlt">0.0</span><small>km</small></dd><dt>Speed</dt><dd><span id="tVel">0</span><small>km/h</small></dd></dl>
+        <div class="bar"><i id="tBar"></i></div>
+      </div>
+      <ol class="events" id="events" aria-hidden="true"></ol>
+    </div>
+    <div class="ev-cap" id="evCap" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="console" id="console" aria-labelledby="h-console">
+  <div class="wrap">
+    <div class="cs-head">
+      <div><p class="tag">Mission control</p><h2 id="h-console" style="margin-top:16px">Run the terminal count.</h2></div>
+      <p>The last minutes of every Northstar launch, compressed into one panel. Poll each station, then hold the button to commit. Call a hold at any point and the count recycles, just like the real thing.</p>
+    </div>
+    <div class="cs">
+      <div class="panel">
+        <h3><span>GO / NO-GO POLL</span><span id="pollState">STANDBY</span></h3>
+        <ol class="stations" id="stations"></ol>
+        <button class="btn pri" id="pollBtn">Start the poll</button>
+      </div>
+      <div class="panel clockp">
+        <h3><span>TERMINAL COUNT · NS-47</span><span id="padState">SAFE</span></h3>
+        <div class="tc"><span id="tcSign">T–</span><output id="tcOut" aria-live="off">00:00:10</output></div>
+        <div class="pad"><canvas id="padCanvas" aria-label="Launch pad camera" role="img"></canvas><span class="status" id="padCam">PAD CAM 2 · LC-2</span></div>
+        <div class="ctl">
+          <button class="btn pri hold-btn" id="launchBtn" disabled><span id="launchLabel">Hold to launch</span><i class="fill" id="holdFill"></i></button>
+          <button class="btn stop-btn" id="stopBtn" disabled>Hold</button>
+        </div>
+      </div>
+      <div class="panel logp">
+        <h3><span>FLIGHT LOOP</span><span>CH 1</span></h3>
+        <ol class="log" id="log" aria-live="polite"><li class="empty">Loop is quiet. Start the poll to bring the stations on.</li></ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="vehicle" id="vehicle" aria-labelledby="h-vehicle">
+  <div class="wrap vh">
+    <div class="vh-art" aria-hidden="true"><svg viewBox="-200 -770 660 1020" id="vehSvg"></svg></div>
+    <div>
+      <p class="tag">The vehicle</p>
+      <h2 id="h-vehicle">Polaris. Built to fly again on Tuesday.</h2>
+      <p>A two-stage rocket for the satellites most launchers treat as ballast. The first stage lands on our barge and is back on the pad in six days. The second stage goes to orbit once and then deorbits itself, so it never becomes debris.</p>
+      <div class="specs">
+        <div><b>34.2 m</b><span>Height, nose to nozzle</span></div>
+        <div><b>1,150 kg</b><span>Payload to 500 km sun-synchronous</span></div>
+        <div><b>10</b><span>Kestrel-1 engines, 9 + 1 vacuum</span></div>
+        <div><b>6 days</b><span>Booster turnaround, landing to launch</span></div>
+        <div><b>1.8 m</b><span>Fairing diameter, room for a 12U rack</span></div>
+        <div><b>&lt; 2 yr</b><span>For the upper stage to deorbit itself after flight</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="manifest" id="manifest" aria-labelledby="h-manifest">
+  <div class="wrap">
+    <div class="mf-head"><div><p class="tag">Manifest</p><h2 id="h-manifest" style="margin-top:16px">Next five flights.</h2></div><p class="muted" style="max-width:40ch">Dates are launch windows from Tarran Point and move only for weather. Rideshare slots close fourteen days before flight.</p></div>
+    <table class="mf"><thead><tr><th>Mission</th><th>Window</th><th>Payload</th><th>Orbit</th><th>Status</th></tr></thead><tbody id="mfBody"></tbody></table>
+  </div>
+</section>
+
+<section class="ride" id="ride" aria-labelledby="h-ride">
+  <div class="wrap">
+    <div class="rs">
+      <div>
+        <p class="tag">Rideshare</p>
+        <h2 id="h-ride">Price it like freight.</h2>
+        <p>One rate per kilogram, integration and insurance included. Move your mass and orbit and we will find the first flight with room for you.</p>
+      </div>
+      <form class="calc" id="calc" novalidate>
+        <label for="mass">Payload mass <output id="massOut">40 kg</output></label>
+        <input type="range" id="mass" min="5" max="300" step="5" value="40">
+        <p style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx-2)" id="orbLab">Target orbit</p>
+        <div class="orbits" role="group" aria-labelledby="orbLab">
+          <button type="button" data-o="0" aria-pressed="true">SSO 525 km<small>$6,200/kg</small></button>
+          <button type="button" data-o="1" aria-pressed="false">LEO 450 km<small>$5,600/kg</small></button>
+          <button type="button" data-o="2" aria-pressed="false">53° 550 km<small>$5,900/kg</small></button>
+        </div>
+        <div class="quote"><div><span>Price</span><b id="qPrice">$248,000</b></div><div><span>First flight</span><b id="qFlight">NS-49</b></div></div>
+        <button class="btn pri" type="submit" style="width:100%">Hold this slot</button>
+        <p class="msg" id="calcMsg" role="status"></p>
+      </form>
+    </div>
+    <footer class="foot">
+      <nav aria-label="Footer"><a href="#launch">Launch replay</a><a href="#manifest">Manifest</a><a href="mailto:ops@northstar.example">ops@northstar.example</a></nav>
+      <p>Concept design — fictional brand.</p>
+    </footer>
+  </div>
+</section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (reduce) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const pad2 = (n) => String(Math.max(0, Math.floor(n))).padStart(2, '0')
+const DPR = Math.min(2, devicePixelRatio || 1)
+
+/* ---------- starfield (fixed, parallax on scroll + pointer) ---------- */
+const sc = $('#stars'), sx = sc.getContext('2d')
+let SW = 0, SH = 0, stars = [], mx = 0, my = 0, smx = 0, smy = 0
+function sizeStars() {
+  SW = innerWidth; SH = innerHeight
+  sc.width = SW * DPR; sc.height = SH * DPR; sx.setTransform(DPR, 0, 0, DPR, 0, 0)
+  const n = Math.round(SW * SH / 3200)
+  stars = Array.from({ length: n }, () => ({ x: Math.random() * SW, y: Math.random() * SH * 3, z: Math.random() ** 2, t: Math.random() * 6.28, c: Math.random() < .08 ? '255,214,160' : Math.random() < .15 ? '170,200,255' : '235,240,255' }))
+}
+function drawStars(time) {
+  sx.clearRect(0, 0, SW, SH)
+  smx += (mx - smx) * .05; smy += (my - smy) * .05
+  const sy = scrollY
+  for (const s of stars) {
+    const depth = .15 + s.z * .85
+    let y = (s.y - sy * depth * .35 + smy * depth * 14) % (SH * 3)
+    if (y < 0) y += SH * 3
+    if (y > SH) continue
+    const x = (s.x + smx * depth * 18 + SW) % SW
+    const tw = reduce ? 1 : .6 + .4 * Math.sin(time * .0015 * (1 + s.z) + s.t)
+    const r = .4 + s.z * 1.4
+    sx.fillStyle = `rgba(${s.c},${(.35 + s.z * .65) * tw})`
+    sx.beginPath(); sx.arc(x, y, r, 0, 6.283); sx.fill()
+  }
+}
+sizeStars()
+addEventListener('resize', () => { sizeStars(); if (reduce) drawStars(0) })
+addEventListener('pointermove', (e) => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5 }, { passive: true })
+if (reduce) { drawStars(0); addEventListener('scroll', () => drawStars(0), { passive: true }) }
+else { const loop = (t) => { if (!document.hidden) drawStars(t); requestAnimationFrame(loop) }; requestAnimationFrame(loop) }
+
+/* ---------- live countdown (always relative to now) ---------- */
+// next window: 14:20 UTC, three days after today's UTC date — so it is always 2–3 days away
+const nowD = new Date()
+const LAUNCH = new Date(Date.UTC(nowD.getUTCFullYear(), nowD.getUTCMonth(), nowD.getUTCDate() + 3, 14, 20))
+const DAY = 864e5
+const localFmt = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+$('#cWin').textContent = `Window opens ${localFmt.format(LAUNCH)} your time (14:20 UTC) from LC-2, Tarran Point.`
+function tick() {
+  const ms = Math.max(0, LAUNCH - Date.now()), s = ms / 1000
+  const d = s / 86400, h = (s % 86400) / 3600, m = (s % 3600) / 60, ss = s % 60
+  $('#cD').textContent = pad2(d); $('#cH').textContent = pad2(h); $('#cM').textContent = pad2(m); $('#cS').textContent = pad2(ss)
+  $('#navCount').textContent = `T– ${pad2(d)}:${pad2(h)}:${pad2(m)}:${pad2(ss)}`
+}
+tick(); setInterval(tick, 1000)
+
+/* ---------- manifest (dates from the next window) ---------- */
+const dFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+const MF = [
+  { id: 'NS-47', d: 0, p: 'Kestrel Ag-Sat 3 + 4 cubesats', o: 'SSO 525 km', s: ['go', 'Go for launch'] },
+  { id: 'NS-48', d: 9, p: 'Tidewater ocean-buoy relay', o: '53° 550 km', s: ['am', 'Payload integration'] },
+  { id: 'NS-49', d: 18, p: 'Aurora rideshare · 11 payloads', o: 'SSO 525 km', s: ['am', '3 slots open'] },
+  { id: 'NS-50', d: 27, p: 'Halcyon weather pathfinder', o: 'LEO 450 km', s: ['', 'Vehicle in assembly'] },
+  { id: 'NS-51', d: 36, p: 'Open rideshare', o: 'Any', s: ['am', '9 slots open'] },
+]
+$('#mfBody').innerHTML = MF.map((m) => `<tr><td class="id">${m.id}</td><td>${dFmt.format(new Date(LAUNCH.getTime() + m.d * DAY))}</td><td>${m.p}</td><td>${m.o}</td><td><span class="pill ${m.s[0]}"><i></i>${m.s[1]}</span></td></tr>`).join('')
+
+/* ---------- rocket artwork ---------- */
+function rocketSvg(id) {
+  return `<defs>
+    <linearGradient id="${id}b" x1="0" x2="1"><stop offset="0" stop-color="#7C8597"/><stop offset=".3" stop-color="#E9EDF3"/><stop offset=".55" stop-color="#F7F9FC"/><stop offset="1" stop-color="#8992A3"/></linearGradient>
+    <linearGradient id="${id}d" x1="0" x2="1"><stop offset="0" stop-color="#0E121C"/><stop offset=".4" stop-color="#2A3142"/><stop offset="1" stop-color="#0E121C"/></linearGradient>
+    <linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6D8"/><stop offset=".18" stop-color="#FFD27A"/><stop offset=".5" stop-color="#FF7A2F" stop-opacity=".9"/><stop offset="1" stop-color="#FF4A1F" stop-opacity="0"/></linearGradient>
+    <radialGradient id="${id}g"><stop offset="0" stop-color="#FFB547" stop-opacity=".55"/><stop offset="1" stop-color="#FFB547" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g id="${id}S2">
+    <g id="${id}F2" opacity="0"><ellipse cx="0" cy="-360" rx="60" ry="90" fill="url(#${id}g)"/><path class="fl" d="M-12 -438C-22 -380 -8 -300 0 -260C8 -300 22 -380 12 -438Z" fill="url(#${id}f)"/></g>
+    <path d="M-10 -470L-16 -438H16L10 -470Z" fill="#3A4152"/>
+    <rect x="-20" y="-580" width="40" height="112" fill="url(#${id}b)"/>
+    <rect x="-20" y="-500" width="40" height="5" fill="#FFB547"/>
+  </g>
+  <g id="${id}P">
+    <rect x="-9" y="-660" width="18" height="40" fill="#C9A35A"/><rect x="-9" y="-660" width="18" height="40" fill="none" stroke="#6E5A2C"/>
+    <g id="${id}PL"><rect x="-55" y="-652" width="44" height="24" fill="#1D3D7A" stroke="#7FA8E8" stroke-width="1"/><path d="M-44 -652v24M-33 -652v24M-22 -652v24" stroke="#7FA8E8" stroke-width=".8"/></g>
+    <g id="${id}PR"><rect x="11" y="-652" width="44" height="24" fill="#1D3D7A" stroke="#7FA8E8" stroke-width="1"/><path d="M22 -652v24M33 -652v24M44 -652v24" stroke="#7FA8E8" stroke-width=".8"/></g>
+    <path d="M0 -660v-14" stroke="#C9A35A" stroke-width="2"/><circle cx="0" cy="-676" r="3" fill="#FFB547"/>
+  </g>
+  <g id="${id}FL"><path d="M0 -748C-16 -728 -24 -684 -24 -640V-580H0Z" fill="url(#${id}b)"/><path d="M-24 -598H0" stroke="#9AA3B2" stroke-width="1"/></g>
+  <g id="${id}FR"><path d="M0 -748C16 -728 24 -684 24 -640V-580H0Z" fill="url(#${id}b)"/><path d="M0 -598H24" stroke="#9AA3B2" stroke-width="1"/><path d="M0 -748V-580" stroke="#6E7788" stroke-width=".8"/></g>
+  <g id="${id}S1">
+    <g id="${id}F1"><ellipse cx="0" cy="70" rx="90" ry="120" fill="url(#${id}g)"/><path class="fl" d="M-22 4C-40 70 -18 170 0 230C18 170 40 70 22 4Z" fill="url(#${id}f)"/></g>
+    <path d="M-18 -14H18L22 6H-22Z" fill="#2A3142"/><path d="M-14 6l-4 0M14 6l4 0" stroke="#111"/>
+    <rect x="-20" y="-420" width="40" height="406" fill="url(#${id}b)"/>
+    <rect x="-20" y="-470" width="40" height="50" fill="url(#${id}d)"/>
+    <rect x="-20" y="-60" width="40" height="46" fill="url(#${id}d)" opacity=".85"/>
+    <path d="M-20 -405l-14 4v14l14 2M20 -405l14 4v14l-14 2" fill="#2A3142"/>
+    <path d="M-20 -40l-8 28M20 -40l8 28" stroke="#2A3142" stroke-width="4"/>
+    <text x="5" y="-260" transform="rotate(-90 5 -260)" text-anchor="middle" font-family="Michroma" font-size="13" letter-spacing="4" fill="#1C2230">NORTHSTAR</text>
+    <rect x="-20" y="-150" width="40" height="5" fill="#FFB547"/>
+  </g>`
+}
+$('#rocketSvg').innerHTML = rocketSvg('r')
+$('#vehSvg').innerHTML = rocketSvg('v') + `<g font-family="Azeret Mono">
+  ${[[-700, 'Fairing · 1.8 m', 'a'], [-640, 'Payload bay', ''], [-525, 'Stage 2 · 1 vacuum Kestrel', ''], [-445, 'Interstage', ''], [-400, 'Grid fins', ''], [-260, 'Stage 1 · 9 Kestrel-1 engines', 'a'], [-30, 'Landing legs (stowed)', '']].map(([y, t, c], i) => {
+    const left = false, x2 = 90 + (i % 2) * 30, tx = x2 + 10
+    return `<g class="cl"><path d="M${left ? -26 : 26} ${y}H${x2}" stroke="rgba(150,180,255,.45)" stroke-width="1"/><circle cx="${left ? -26 : 26}" cy="${y}" r="3" fill="${c ? '#FFB547' : '#93A0BB'}"/><text class="callout ${c}" x="${tx}" y="${y + 4}" text-anchor="${left ? 'end' : 'start'}">${t}</text></g>`
+  }).join('')}
+  <path d="M-120 -748V20" stroke="rgba(150,180,255,.3)"/><path d="M-126 -748h12M-126 20h12" stroke="rgba(150,180,255,.3)"/>
+  <text class="callout" x="-130" y="-364" text-anchor="end" transform="rotate(-90 -130 -364)">34.2 m</text></g>`
+$('#vF1').setAttribute('opacity', 0); $('#vPL').style.display = 'none'; $('#vPR').style.display = 'none'
+
+/* ground: pad, tower, coastline */
+$('#groundSvg').innerHTML = `<defs><linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E2C3E"/><stop offset="1" stop-color="#0A0F18"/></linearGradient><linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5D7FA3"/><stop offset="1" stop-color="#22374F"/></linearGradient></defs>
+  <rect x="0" y="250" width="1600" height="40" fill="url(#sea)"/>
+  <path d="M0 290 L520 282 L640 300 L960 300 L1100 284 L1600 292 V400 H0Z" fill="url(#gr)"/>
+  <path d="M740 300 h120 v8 h-120z" fill="#3A4659"/>
+  <g stroke="#0B1018" stroke-width="3" fill="none"><path d="M700 300V60M730 300V60M700 60h30"/>${[...Array(12)].map((_, k) => `<path d="M700 ${300 - k * 20}L730 ${280 - k * 20}M730 ${300 - k * 20}L700 ${280 - k * 20}"/>`).join('')}<path d="M730 120h50M730 200h50"/></g>
+  <g fill="#0B1018"><rect x="560" y="268" width="60" height="32"/><rect x="1040" y="262" width="22" height="38"/><circle cx="1051" cy="258" r="12"/><rect x="200" y="276" width="120" height="14"/></g>
+  <g fill="#FFB547"><circle cx="704" cy="60" r="3"/><circle cx="1051" cy="258" r="2"/></g>`
+// clouds and pad smoke
+$('#clouds').innerHTML = [[8, 20, 340, 70], [62, 34, 420, 80], [30, 62, 520, 90], [78, 78, 360, 70], [-6, 90, 460, 100]].map(([l, t, w, h]) => `<i style="left:${l}%;top:${t}%;width:${w}px;height:${h}px"></i>`).join('')
+$('#smoke').innerHTML = [...Array(14)].map((_, k) => { const a = (k / 13 - .5) * 2, s = 120 + Math.random() * 120; return `<i style="left:${(a * 300).toFixed(0)}px;top:${(-20 - Math.random() * 60).toFixed(0)}px;width:${s.toFixed(0)}px;height:${s.toFixed(0)}px"></i>` }).join('')
+
+/* ---------- launch timeline data ---------- */
+const EV = [
+  { p: 0, t: 'T+00:00', n: 'Liftoff', d: 'Ten Kestrel engines at full thrust. Polaris clears the tower in four seconds.' },
+  { p: .18, t: 'T+01:12', n: 'Max-Q', d: 'Peak aerodynamic pressure. The engines throttle down to 72% for twenty seconds.' },
+  { p: .35, t: 'T+02:34', n: 'Main engine cut-off', d: 'The first stage shuts down at 68 km, travelling at 8,300 km/h.' },
+  { p: .42, t: 'T+02:37', n: 'Stage separation', d: 'The booster flips and heads for the barge Quiet Water, 610 km downrange.' },
+  { p: .5, t: 'T+02:45', n: 'Second-stage ignition', d: 'One vacuum Kestrel takes over for the six-minute burn to orbit.' },
+  { p: .62, t: 'T+03:20', n: 'Fairing separation', d: 'Above the atmosphere, the nose cone splits in two and falls away.' },
+  { p: .8, t: 'T+08:41', n: 'Second-stage cut-off', d: '505 km up and moving at 27,300 km/h. That is orbit.' },
+  { p: .92, t: 'T+09:15', n: 'Payload deploy', d: 'The satellite springs free and unfolds its panels. Welcome to orbit.' },
+]
+$('#events').innerHTML = EV.map((e) => `<li><span>${e.t.slice(2)}</span>${e.n}</li>`).join('')
+$('#evCap').innerHTML = EV.map((e) => `<div><b>${e.n}</b><p>${e.d}</p></div>`).join('')
+const lerpK = (k, x) => { for (let i = 1; i < k.length; i++) if (x <= k[i][0]) { const [a, va] = k[i - 1], [b, vb] = k[i]; return va + (vb - va) * (x - a) / (b - a) } return k[k.length - 1][1] }
+const PT = [[0, 0], [.18, 72], [.35, 154], [.42, 157], [.5, 165], [.62, 200], [.8, 521], [.92, 555], [1, 570]]
+const ALT = [[0, 0], [72, 12], [154, 68], [200, 112], [521, 505], [570, 507]]
+const VEL = [[0, 0], [72, 1600], [154, 8300], [165, 8150], [200, 9800], [521, 27300], [570, 27350]]
+function telemetry(p) {
+  const T = lerpK(PT, p), alt = lerpK(ALT, T), vel = lerpK(VEL, T)
+  $('#tT').textContent = `${pad2(T / 60)}:${pad2(T % 60)}`
+  $('#tAlt').textContent = alt.toFixed(1)
+  $('#tVel').textContent = Math.round(vel).toLocaleString('en-US')
+  $('#tBar').style.transform = `scaleX(${p})`
+}
+const evLis = $$('#events li'), evCaps = $$('#evCap > div')
+let evI = -1
+const evTw = []
+function setEvent(i, instant) {
+  if (i === evI) return
+  const prev = evI; evI = i
+  evLis.forEach((li, k) => { li.classList.toggle('on', k === i); li.classList.toggle('done', k < i) })
+  evTw.forEach((t) => t.kill()); evTw.length = 0
+  evCaps.forEach((c, k) => {
+    if (instant || !anim) { c.style.opacity = k === i ? 1 : 0; c.style.visibility = k === i ? 'visible' : 'hidden'; return }
+    if (k === i) evTw.push(G.fromTo(c, { autoAlpha: 0, y: prev < i ? 16 : -16 }, { autoAlpha: 1, y: 0, duration: .55, delay: .1, ease: 'power3.out' }))
+    else evTw.push(G.to(c, { autoAlpha: 0, duration: .2 }))
+  })
+}
+
+/* ---------- terminal count console ---------- */
+const STATIONS = [
+  ['Range', 'Range is green and the sea lanes are clear.'],
+  ['Weather', 'Winds 14 knots at the pad, no lightning within 20 km.'],
+  ['Propulsion', 'Both stages at flight pressure, propellant topped.'],
+  ['Guidance', 'Inertial alignment complete, flight software loaded.'],
+  ['Recovery', 'Quiet Water on station, 610 km downrange.'],
+  ['Flight director', 'Northstar, you are go for launch.'],
+]
+const stEl = $('#stations')
+stEl.innerHTML = STATIONS.map(([n]) => `<li data-s="idle"><span class="led" aria-hidden="true"></span><span>${n}</span><span class="st">STANDBY</span></li>`).join('')
+const stLis = $$('li', stEl), logEl = $('#log')
+let state = 'idle', count = 10, timers = [], upT = 0
+const clearTimers = () => { timers.forEach(clearTimeout); timers = []; clearInterval(upT) }
+const later = (fn, ms) => timers.push(setTimeout(fn, ms))
+function log(msg, cls = '', tag) {
+  const empty = logEl.querySelector('.empty'); if (empty) empty.remove()
+  const li = document.createElement('li'); if (cls) li.className = cls
+  li.innerHTML = `<time>${tag || $('#tcSign').textContent + $('#tcOut').textContent.slice(3)}</time><span>${msg}</span>`
+  logEl.appendChild(li); logEl.scrollTop = logEl.scrollHeight
+  if (anim) G.from(li, { autoAlpha: 0, x: -10, duration: .4, ease: 'power2.out' })
+}
+function setClock(sign, secs) {
+  $('#tcSign').textContent = sign
+  $('#tcOut').textContent = `00:${pad2(secs / 60)}:${pad2(secs % 60)}`
+}
+$('#pollBtn').addEventListener('click', () => {
+  if (state === 'done-flown') resetAll()
+  if (state !== 'idle') return
+  state = 'polling'; $('#pollBtn').disabled = true; $('#pollState').textContent = 'POLLING'
+  log('<b>Flight director:</b> Stations, stand by for the go / no-go poll.', '', 'POLL')
+  STATIONS.forEach(([n, msg], i) => {
+    later(() => { stLis[i].dataset.s = 'poll'; stLis[i].querySelector('.st').textContent = 'POLLING' }, 300 + i * 700)
+    later(() => {
+      stLis[i].dataset.s = 'go'; stLis[i].querySelector('.st').textContent = 'GO'
+      log(`<b>${n}:</b> ${msg} Go.`, 'go', 'POLL')
+      if (i === STATIONS.length - 1) { state = 'ready'; $('#pollState').textContent = 'ALL GO'; $('#launchBtn').disabled = false; $('#padState').textContent = 'ARMED'; log('<b>Launch director:</b> Hold the button to start the terminal count.', '', 'POLL') }
+    }, 300 + i * 700 + 520)
+  })
+})
+// hold-to-launch: press for 1.2 s (pointer, Space or Enter)
+let holdTw = null, holdStart = 0, holdRaf = 0
+const fill = $('#holdFill')
+function holdBegin() {
+  if (state !== 'ready' || holdStart) return
+  holdStart = performance.now()
+  const step = () => {
+    const k = Math.min(1, (performance.now() - holdStart) / 1200)
+    fill.style.transform = `scaleX(${k})`
+    if (k >= 1) { holdStart = 0; fill.style.transform = 'scaleX(0)'; startCount(); return }
+    holdRaf = requestAnimationFrame(step)
+  }
+  holdRaf = requestAnimationFrame(step)
+}
+function holdEnd() { if (!holdStart) return; cancelAnimationFrame(holdRaf); holdStart = 0; fill.style.transform = 'scaleX(0)' }
+const lb = $('#launchBtn')
+lb.addEventListener('pointerdown', (e) => { e.preventDefault(); holdBegin() })
+;['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => lb.addEventListener(ev, holdEnd))
+lb.addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); holdBegin() } })
+lb.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') holdEnd() })
+const CALLS = { 9: 'Terminal count is running. Flight computer has control.', 7: 'Strongback retracting.', 5: 'Second stage tanks at flight pressure.', 3: 'Ignition sequence start.', 2: 'Engines ramping.', 1: 'All ten engines at full thrust.' }
+function startCount() {
+  state = 'counting'; count = 10
+  lb.disabled = true; $('#stopBtn').disabled = false; $('#padState').textContent = 'COUNTING'
+  $('#tcOut').className = 'live'
+  setClock('T–', count)
+  log('<b>Launch director:</b> Terminal count started.', '', 'T–00:10')
+  const stepDown = () => {
+    count--
+    setClock('T–', count)
+    if (CALLS[count]) log(CALLS[count], count === 3 ? 'go' : '', `T–00:${pad2(count)}`)
+    if (count === 3) pad.ignite()
+    if (count <= 0) return liftoff()
+    later(stepDown, 1000)
+  }
+  later(stepDown, 1000)
+}
+function liftoff() {
+  state = 'flown'; $('#stopBtn').disabled = true; $('#padState').textContent = 'IN FLIGHT'
+  $('#tcOut').className = 'up'
+  log('<b>Liftoff.</b> Polaris has cleared the tower.', 'go', 'T+00:00')
+  pad.lift()
+  let up = 0
+  upT = setInterval(() => {
+    up++; setClock('T+', up)
+    if (up === 6) log('Pitch and roll program under way.', '', 'T+00:06')
+    if (up === 12) log('Vehicle is supersonic.', '', 'T+00:12')
+    if (up === 14) { clearInterval(upT); lb.disabled = false; $('#launchLabel').textContent = 'Reset the count'; $('#pollBtn').disabled = false; $('#pollBtn').textContent = 'Run it again'; state = 'done-flown' }
+  }, 1000)
+}
+$('#stopBtn').addEventListener('click', () => {
+  if (state !== 'counting') return
+  clearTimers()
+  log(`<b>HOLD, HOLD, HOLD.</b> Count held at T–${pad2(count)}. Recycling to T–10.`, 'red', `T–00:${pad2(count)}`)
+  pad.abort()
+  state = 'ready'; count = 10; setClock('T–', 10); $('#tcOut').className = ''
+  $('#stopBtn').disabled = true; lb.disabled = false; $('#padState').textContent = 'ARMED'
+})
+function resetAll() {
+  clearTimers(); state = 'idle'
+  stLis.forEach((li) => { li.dataset.s = 'idle'; li.querySelector('.st').textContent = 'STANDBY' })
+  $('#pollState').textContent = 'STANDBY'; $('#padState').textContent = 'SAFE'
+  setClock('T–', 10); $('#tcOut').className = ''
+  lb.disabled = true; $('#launchLabel').textContent = 'Hold to launch'; $('#pollBtn').disabled = false; $('#pollBtn').textContent = 'Start the poll'
+  logEl.innerHTML = '<li class="empty">Loop is quiet. Start the poll to bring the stations on.</li>'
+  pad.reset()
+}
+lb.addEventListener('click', () => { if (state === 'done-flown') resetAll() })
+
+/* pad camera canvas */
+const pad = (() => {
+  const cv = $('#padCanvas'), c = cv.getContext('2d')
+  let W = 0, H = 0, ry = 0, vy = 0, burning = false, flying = false, parts = [], raf = 0, visible = true, t0 = 0
+  function size() { const r = cv.getBoundingClientRect(); W = r.width; H = r.height; cv.width = W * DPR; cv.height = H * DPR; c.setTransform(DPR, 0, 0, DPR, 0, 0); draw(0) }
+  function draw(t) {
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#05070D'); g.addColorStop(1, flying || burning ? '#2A1A12' : '#0E1626')
+    c.fillStyle = g; c.fillRect(0, 0, W, H)
+    const gy = H - 34, cx = W / 2
+    // stars
+    c.fillStyle = 'rgba(230,236,247,.5)'; for (let i = 0; i < 40; i++) { const x = (i * 97.3) % W, y = (i * 53.7) % (gy - 40); c.fillRect(x, y, 1, 1) }
+    // tower
+    c.strokeStyle = '#2A3350'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx - 40, gy); c.lineTo(cx - 40, gy - 150); c.moveTo(cx - 28, gy); c.lineTo(cx - 28, gy - 150)
+    for (let k = 0; k < 7; k++) { c.moveTo(cx - 40, gy - k * 20); c.lineTo(cx - 28, gy - k * 20 - 20) }
+    c.stroke()
+    // ground
+    c.fillStyle = '#0B111E'; c.fillRect(0, gy, W, H - gy); c.fillStyle = '#2A3350'; c.fillRect(cx - 40, gy - 4, 80, 4)
+    // rocket
+    const rh = 120, top = gy - 4 - rh - ry
+    if (burning || flying) {
+      const fl = 26 + Math.sin(t * .05) * 6 + (flying ? 30 : 0)
+      const fg = c.createLinearGradient(0, top + rh, 0, top + rh + fl)
+      fg.addColorStop(0, '#FFF3C4'); fg.addColorStop(.4, '#FF9A3D'); fg.addColorStop(1, 'rgba(255,90,40,0)')
+      c.fillStyle = fg; c.beginPath(); c.moveTo(cx - 7, top + rh); c.quadraticCurveTo(cx, top + rh + fl * 1.3, cx + 7, top + rh); c.fill()
+      c.fillStyle = 'rgba(255,181,71,.18)'; c.beginPath(); c.arc(cx, top + rh + 10, 40, 0, 6.283); c.fill()
+    }
+    c.fillStyle = '#E9EDF3'; c.fillRect(cx - 8, top + 16, 16, rh - 16)
+    c.beginPath(); c.moveTo(cx - 8, top + 16); c.quadraticCurveTo(cx, top - 6, cx + 8, top + 16); c.fill()
+    c.fillStyle = '#1A1F2B'; c.fillRect(cx - 8, top + 44, 16, 10); c.fillStyle = '#FFB547'; c.fillRect(cx - 8, top + 86, 16, 3)
+    // smoke
+    for (const p of parts) { c.fillStyle = `rgba(220,214,206,${p.a})`; c.beginPath(); c.arc(p.x, p.y, p.r, 0, 6.283); c.fill() }
+  }
+  function frame(t) {
+    if (!t0) t0 = t
+    if (burning || flying) for (let k = 0; k < (flying ? 3 : 2); k++) parts.push({ x: W / 2 + (Math.random() - .5) * 20, y: H - 40 - (flying ? 0 : 0), vx: (Math.random() - .5) * 3.2, vy: -Math.random() * .6, r: 6 + Math.random() * 6, a: .5 })
+    for (const p of parts) { p.x += p.vx; p.y += p.vy; p.r += .45; p.a *= .985 }
+    parts = parts.filter((p) => p.a > .02 && p.r < 140).slice(-260)
+    if (flying) { vy += .045; ry += vy }
+    draw(t)
+    const alive = burning || (flying && ry < H + 200) || parts.length
+    raf = alive && visible ? requestAnimationFrame(frame) : 0
+  }
+  const run = () => { if (!raf && !reduce) raf = requestAnimationFrame(frame); else if (reduce) draw(0) }
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) run() }).observe(cv)
+  addEventListener('resize', size)
+  requestAnimationFrame(size)
+  return {
+    ignite() { burning = true; run() },
+    lift() { flying = true; burning = true; run(); if (reduce) { ry = H; draw(0) } },
+    abort() { burning = false; flying = false; ry = 0; vy = 0; run(); draw(0) },
+    reset() { burning = false; flying = false; ry = 0; vy = 0; parts = []; draw(0) },
+  }
+})()
+
+/* ---------- rideshare calculator ---------- */
+const RATES = [6200, 5600, 5900]
+let orbit = 0
+const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+function quote() {
+  const m = +$('#mass').value
+  $('#massOut').textContent = `${m} kg`
+  $('#mass').style.setProperty('--p', `${(m - 5) / 295 * 100}%`)
+  $('#qPrice').textContent = usd.format(Math.max(40000, m * RATES[orbit]))
+  // heavier payloads need a flight with more room left
+  const flight = orbit === 1 ? (m > 150 ? 'NS-51' : 'NS-50') : orbit === 2 ? 'NS-51' : m > 120 ? 'NS-51' : 'NS-49'
+  const mf = MF.find((x) => x.id === flight)
+  $('#qFlight').textContent = flight
+  $('#qFlight').title = dFmt.format(new Date(LAUNCH.getTime() + mf.d * DAY))
+  return { m, flight, date: $('#qFlight').title }
+}
+$('#mass').addEventListener('input', quote)
+$$('.orbits button').forEach((b) => b.addEventListener('click', () => { orbit = +b.dataset.o; $$('.orbits button').forEach((x) => x.setAttribute('aria-pressed', x === b)); quote() }))
+$('#calc').addEventListener('submit', (e) => { e.preventDefault(); const q = quote(); $('#calcMsg').textContent = `${q.m} kg held on ${q.flight}, window ${q.date}. We will email a contract within a day. (Concept site: nothing was sent.)` })
+quote()
+
+/* ---------- nav, scroll, menu ---------- */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 40); addEventListener('scroll', onS, { passive: true }); onS()
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .1 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const h = a.getAttribute('href'), t = h.length > 1 && $(h); if (!t) return
+  e.preventDefault(); lenis ? lenis.scrollTo(h === '#top' ? 0 : t) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+const burger = $('#burger'), mmenu = $('#mmenu')
+const setMenu = (open) => {
+  document.body.classList.toggle('menu-open', open)
+  burger.setAttribute('aria-expanded', open); burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu')
+  if (lenis) open ? lenis.stop() : lenis.start()
+  if (open) setTimeout(() => mmenu.querySelector('a').focus(), 50)
+}
+burger.addEventListener('click', () => setMenu(!document.body.classList.contains('menu-open')))
+$$('#mmenu a').forEach((a) => a.addEventListener('click', () => setMenu(false), true))
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && document.body.classList.contains('menu-open')) { setMenu(false); burger.focus() } })
+
+if (!anim) {
+  // static frame of the replay: just after stage separation, all events listed
+  const rk = $('#rocket'); rk.style.transform = 'translateY(-22vh) rotate(8deg)'
+  $('#sky').style.opacity = .35; $('#ground').style.transform = 'translateY(60vh)'
+  $('#rF1').setAttribute('opacity', 0); $('#rF2').setAttribute('opacity', 1)
+  $('#rS1').setAttribute('transform', 'translate(0 260) rotate(-14)'); $('#rS1').setAttribute('opacity', .35)
+  telemetry(.5); setEvent(4, true); evLis.forEach((li) => li.classList.add('done'))
+  $('#clouds').style.display = 'none'; $('#rPL').style.display = 'none'; $('#rPR').style.display = 'none'
+  return
+}
+
+/* ---------- hero intro: decode the headline ---------- */
+const GLY = 'ABCDEFGHKMNOPRSTUVWXZ0123456789/<>-+'
+$$('.hero h1 .ln').forEach((el, i) => {
+  const final = el.dataset.t, o = { k: 0 }
+  el.textContent = final.replace(/\S/g, ' ')
+  G.to(o, { k: 1, duration: .9, delay: .15 + i * .14, ease: 'power2.out', onUpdate: () => {
+    const n = Math.floor(o.k * final.length)
+    el.textContent = final.slice(0, n) + final.slice(n).replace(/\S/g, () => (Math.random() < .5 ? GLY[Math.floor(Math.random() * GLY.length)] : ' '))
+  }, onComplete: () => (el.textContent = final) })
+})
+G.set(['.tag', '.hero-sub', '.hero-cta', '.count', '.nav', '.scroll-cue'], { autoAlpha: 0, y: 16 })
+G.set('.planet', { yPercent: 12, autoAlpha: 0 })
+G.timeline({ delay: .05 })
+  .to('.planet', { yPercent: 0, autoAlpha: 1, duration: 1.8, ease: 'expo.out' }, 0)
+  .to(['.nav', '.tag'], { autoAlpha: 1, y: 0, duration: .7, stagger: .06, ease: 'power3.out' }, .1)
+  .to('.count', { autoAlpha: 1, y: 0, duration: .9, ease: 'power3.out' }, .45)
+  .to(['.hero-sub', '.hero-cta', '.scroll-cue'], { autoAlpha: 1, y: 0, duration: .8, stagger: .08, ease: 'power3.out' }, .6)
+G.to('.planet', { yPercent: 8, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+// magnetic buttons
+if (matchMedia('(pointer:fine)').matches) $$('.mag').forEach((b) => {
+  const qx = G.quickTo(b, 'x', { duration: .5, ease: 'elastic.out(1,.4)' }), qy = G.quickTo(b, 'y', { duration: .5, ease: 'elastic.out(1,.4)' })
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); qx((e.clientX - r.left - r.width / 2) * .3); qy((e.clientY - r.top - r.height / 2) * .4) })
+  b.addEventListener('pointerleave', () => { qx(0); qy(0) })
+})
+
+/* ---------- stats ---------- */
+$$('[data-count]').forEach((el) => {
+  const to = +el.dataset.count, o = { v: 0 }; el.textContent = '0'
+  G.to(o, { v: to, duration: 1.6, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true }, onUpdate: () => (el.textContent = Math.round(o.v)) })
+})
+
+/* ---------- the launch: scrubbed transforms, events on the clock ---------- */
+const R = (id) => `#r${id}`
+G.set(R('F1'), { attr: { opacity: 1 }, scaleY: 0, transformOrigin: '50% 0%' })
+G.set(R('F2'), { attr: { opacity: 1 }, scaleY: 0, transformOrigin: '50% 0%' })
+G.set('#smoke i', { scale: 0 })
+G.set('#limb', { y: '40vh' })
+G.set(R('PL'), { scaleX: 0, transformOrigin: '100% 50%' }); G.set(R('PR'), { scaleX: 0, transformOrigin: '0% 50%' })
+setEvent(0, true)
+const L = G.timeline({ defaults: { ease: 'none' }, onUpdate: () => telemetry(L.progress()) })
+L.to(R('F1'), { scaleY: 1, duration: .04, ease: 'power2.out' }, 0)
+  .to('#smoke i', { scale: 1.6, opacity: 0, duration: .16, stagger: { each: .004, from: 'center' }, ease: 'power1.out' }, 0)
+  .to('#rocket', { y: () => -innerHeight * .26, duration: .16, ease: 'power1.in' }, 0)
+  .to('#ground', { y: () => innerHeight * 1.1, duration: .24, ease: 'power1.in' }, .02)
+  .fromTo('#clouds', { y: () => -innerHeight * .9 }, { y: () => innerHeight * 1.4, duration: .3 }, .06)
+  .to('#sky', { opacity: 0, duration: .38 }, .12)
+  .to('#rocket', { rotation: 12, duration: .7, ease: 'power1.inOut' }, .1)
+  .to(R('F1'), { scaleY: 0, duration: .01 }, .35)
+  .to(R('S1'), { y: 520, rotation: -22, svgOrigin: '0 -200', duration: .2, ease: 'power1.in' }, .42)
+  .to(R('S1'), { opacity: 0, duration: .06 }, .56)
+  .to(R('F2'), { scaleY: 1, duration: .02, ease: 'power2.out' }, .5)
+  .to(R('FL'), { x: -110, y: 60, rotation: -38, svgOrigin: '-24 -580', opacity: 0, duration: .14, ease: 'power1.in' }, .62)
+  .to(R('FR'), { x: 110, y: 60, rotation: 38, svgOrigin: '24 -580', opacity: 0, duration: .14, ease: 'power1.in' }, .62)
+  .to('#limb', { y: 0, opacity: 1, duration: .45, ease: 'power2.out' }, .5)
+  .to(R('F2'), { scaleY: 0, duration: .01 }, .8)
+  .to(R('P'), { y: -80, duration: .08, ease: 'power2.out' }, .92)
+  .to([R('PL'), R('PR')], { scaleX: 1, duration: .05, ease: 'back.out(2)' }, .95)
+  .to(R('S2'), { y: 40, opacity: .6, duration: .08 }, .92)
+  .set({}, {}, 1)
+ScrollTrigger.create({
+  trigger: '#scene', start: 'top top', end: '+=420%', pin: true, scrub: .6, animation: L, invalidateOnRefresh: true,
+  onUpdate: (st) => {
+    let i = 0; EV.forEach((e, k) => { if (st.progress >= e.p) i = k }); setEvent(i)
+  },
+})
+
+/* ---------- reveals ---------- */
+G.set(['.cs-head', '.cs'], { autoAlpha: 0, y: 40 })
+G.to(['.cs-head', '.cs'], { autoAlpha: 1, y: 0, duration: 1, stagger: .12, ease: 'power3.out', scrollTrigger: { trigger: '.console', start: 'top 70%', once: true } })
+G.set('#vehSvg', { autoAlpha: 0, y: 80 })
+G.to('#vehSvg', { autoAlpha: 1, y: 0, duration: 1.4, ease: 'expo.out', scrollTrigger: { trigger: '.vehicle', start: 'top 70%', once: true } })
+G.set('.specs div', { autoAlpha: 0, y: 20 })
+G.to('.specs div', { autoAlpha: 1, y: 0, duration: .7, stagger: .06, ease: 'power3.out', scrollTrigger: { trigger: '.specs', start: 'top 85%', once: true } })
+G.set('.mf tbody tr', { autoAlpha: 0, x: -20 })
+G.to('.mf tbody tr', { autoAlpha: 1, x: 0, duration: .7, stagger: .07, ease: 'power3.out', scrollTrigger: { trigger: '.mf', start: 'top 85%', once: true } })
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

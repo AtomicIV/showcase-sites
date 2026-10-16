@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aiko Mori — Low Tide Signals</title>
+<meta name="description" content="Aiko Mori makes warm, tape-worn electronic music. Spin the new record, play her synth in your browser, and catch the tour.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23171310'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%23332a22' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23EF6A2E'/%3E%3Ccircle cx='16' cy='16' r='1.4' fill='%23171310'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#171310; --bg-2:#211B16; --bg-3:#2C241D; --cream:#F2E9DA; --muted:#B3A792; --orange:#EF6A2E; --mustard:#E9B44C; --teal:#4FA39C; --plate:#E6DCC8; --plate-ink:#2A231C;
+  --display:'Syne',system-ui,sans-serif; --mono:'Space Mono',ui-monospace,monospace;
+  --gut:clamp(16px,4vw,64px); --spring:cubic-bezier(.34,1.4,.64,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--cream);font-family:var(--display);font-size:18px;line-height:1.55;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+svg{display:block}
+:focus-visible{outline:2px solid var(--mustard);outline-offset:3px;border-radius:4px}
+[hidden]{display:none!important}
+.skip{position:absolute;left:-999px;top:8px;background:var(--orange);color:var(--bg);padding:10px 16px;z-index:200}
+.skip:focus{left:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--mono)}
+.tag{font-family:var(--mono);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tag b{color:var(--orange);font-weight:700}
+.h2{font-family:var(--display);font-weight:800;font-size:clamp(44px,6.4vw,104px);line-height:.9;letter-spacing:-.035em;text-transform:uppercase;margin:14px 0 22px}
+.h2 span{color:var(--orange)}
+.lede{color:var(--muted);max-width:46ch;font-size:clamp(18px,1.3vw,20px)}
+.grain{position:fixed;inset:-100px;pointer-events:none;z-index:95;opacity:.09;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain .9s steps(5) infinite}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-40px,20px)}40%{transform:translate(30px,-50px)}60%{transform:translate(-20px,60px)}80%{transform:translate(50px,10px)}100%{transform:translate(0,0)}}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 24px;border-radius:999px;font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;transition:transform .4s var(--spring),background .3s,color .3s,box-shadow .3s}
+.btn:hover{transform:translateY(-2px)}
+.btn-or{background:var(--orange);color:var(--bg)}
+.btn-or:hover{box-shadow:0 10px 30px -10px rgba(239,106,46,.8)}
+.btn-ln{border:1.5px solid rgba(242,233,218,.35)}
+.btn-ln:hover{border-color:var(--cream)}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:60;display:flex;justify-content:space-between;align-items:center;padding:14px var(--gut);transition:background .4s}
+.nav.solid{background:rgba(23,19,16,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.logo{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:.02em;text-transform:uppercase;text-decoration:none;min-height:44px}
+.logo i{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,var(--orange) 0 30%,#0c0a08 31% 100%);box-shadow:0 0 0 2px #2c241d;animation:spin 1.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.nav ul{display:flex;list-style:none;gap:4px}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;font-family:var(--mono);font-size:14px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;color:var(--muted);border-radius:999px;transition:color .3s,background .3s}
+.nav ul a:hover{color:var(--cream);background:var(--bg-3)}
+.menu-btn{display:none;min-height:46px;padding:0 18px;border-radius:999px;border:1.5px solid rgba(242,233,218,.35);font-family:var(--mono);font-size:14px;text-transform:uppercase}
+.mmenu{position:fixed;inset:0;z-index:59;background:var(--bg);display:none;flex-direction:column;justify-content:center;padding:90px var(--gut) 40px}
+.mmenu.open{display:flex}
+.mmenu a{font-weight:800;font-size:46px;text-transform:uppercase;letter-spacing:-.02em;text-decoration:none;min-height:64px;display:flex;align-items:center;border-bottom:1px solid var(--bg-3)}
+
+/* record (shared) */
+.rec{position:relative;aspect-ratio:1;border-radius:50%}
+.rec .disc{position:absolute;inset:0;border-radius:50%;background:
+  radial-gradient(circle,transparent 0 31%,rgba(0,0,0,.0) 31%),
+  repeating-radial-gradient(circle,#0d0b09 0 1.2px,#1b1612 1.2px 2.6px,#120f0c 2.6px 3.4px);
+  box-shadow:0 30px 80px -20px rgba(0,0,0,.9),inset 0 0 0 6px #0b0908,inset 0 0 0 7px #2a221b;will-change:transform}
+.rec .disc::before{content:'';position:absolute;inset:6%;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 9%,rgba(255,255,255,.035) 9% 9.4%)}
+.rec .label{position:absolute;inset:31%;border-radius:50%;overflow:hidden}
+.rec .label svg{width:100%;height:100%}
+.rec .sheen{position:absolute;inset:0;border-radius:50%;pointer-events:none;background:conic-gradient(from 20deg,transparent 0 8%,rgba(255,240,220,.16) 12%,transparent 18% 50%,rgba(255,240,220,.12) 62%,transparent 68% 100%);mix-blend-mode:screen;-webkit-mask:radial-gradient(circle,transparent 0 31%,#000 32%);mask:radial-gradient(circle,transparent 0 31%,#000 32%)}
+.arm{position:absolute;pointer-events:none;transform-origin:85% 12%}
+.arm svg{width:100%;height:100%;overflow:visible}
+
+/* hero */
+.hero{position:relative;min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;padding:100px var(--gut) 60px;overflow:hidden}
+.hero-copy{position:relative;z-index:3}
+.hero h1{font-weight:800;font-size:clamp(72px,11vw,190px);line-height:.8;letter-spacing:-.05em;text-transform:uppercase}
+.hero h1 .ln{display:block;width:max-content;overflow:hidden;padding:.05em .04em .06em 0}
+.hero h1 .ln span{display:inline-block}
+.hero h1 .ln:nth-child(2) span{color:var(--orange)}
+.hero .new{display:inline-flex;align-items:center;gap:12px;margin-bottom:22px;padding:8px 14px 8px 8px;border:1px solid var(--bg-3);border-radius:999px;font-family:var(--mono);font-size:14px;color:var(--muted)}
+.hero .new b{white-space:nowrap;background:var(--mustard);color:var(--bg);padding:2px 8px;border-radius:999px;font-size:13px}
+.hero p.lede{margin:26px 0 30px}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap}
+.hero-deck{position:relative;justify-self:end;width:min(52vw,760px);margin-right:calc(var(--gut) * -1 - 8vw)}
+.hero-deck .rec{width:100%;cursor:grab;touch-action:none}
+.hero-deck .rec:active{cursor:grabbing}
+.hero-deck .arm{width:36%;height:48%;right:2%;top:0}
+.hero-deck .hint{position:absolute;left:8%;bottom:4%;font-family:var(--mono);font-size:13px;color:var(--muted);transform:rotate(-8deg)}
+.eq{display:inline-flex;align-items:flex-end;gap:2px;height:14px}
+.eq i{width:3px;background:var(--orange);height:40%;animation:eq 1s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:-.3s}.eq i:nth-child(3){animation-delay:-.6s}.eq i:nth-child(4){animation-delay:-.15s}
+@keyframes eq{50%{height:100%}}
+
+/* tracklist (pinned) */
+.tracks{position:relative;height:100vh;overflow:hidden;background:var(--bg-2)}
+.tracks-in{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:5vw;align-items:center;padding:90px var(--gut) 40px}
+.t-deck{position:relative;justify-self:center;width:min(40vw,62vh,560px)}
+.t-deck .plinth{position:absolute;inset:-9%;border-radius:18px;background:linear-gradient(145deg,#3a3027,#241d17);box-shadow:0 40px 80px -30px #000,inset 0 1px 0 rgba(255,255,255,.08)}
+.t-deck .rec{width:100%}
+.t-deck .arm{width:36%;height:48%;right:2%;top:0}
+.tlist{list-style:none;counter-reset:t}
+.tlist li{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid rgba(242,233,218,.08);color:rgba(242,233,218,.5);transition:color .5s}
+.tlist li .no{font-family:var(--mono);font-size:14px}
+.tlist li .nm{font-weight:700;font-size:clamp(20px,1.8vw,28px);letter-spacing:-.01em;line-height:1.1}
+.tlist li .tm{font-family:var(--mono);font-size:14px}
+.tlist li .eq{opacity:0;transition:opacity .3s}
+.tlist li.on{color:var(--cream)}
+.tlist li.on .no{color:var(--orange)}
+.tlist li.on .eq{opacity:1}
+.tlist .side{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mustard);padding:20px 0 6px;border:0;display:block}
+.t-readout{display:flex;justify-content:space-between;align-items:center;margin-top:18px;font-family:var(--mono);font-size:14px;color:var(--muted)}
+.t-bar{height:3px;background:rgba(242,233,218,.12);margin-top:10px;position:relative}
+.t-bar i{position:absolute;inset:0;background:var(--orange);transform-origin:left;transform:scaleX(0)}
+
+/* synth */
+.synth-sec{padding:16vh var(--gut) 14vh;position:relative}
+.synth-head{display:grid;grid-template-columns:1.1fr 1fr;gap:5vw;align-items:end;margin-bottom:48px}
+.synth{background:linear-gradient(180deg,#EDE4D2,#DCD0B9);color:var(--plate-ink);border-radius:18px;padding:clamp(16px,2.4vw,30px);box-shadow:0 50px 90px -40px #000,inset 0 1px 0 #fff,inset 0 -3px 0 rgba(0,0,0,.12);position:relative}
+.synth::before,.synth::after{content:'';position:absolute;top:14px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#9b9080);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.synth::before{left:14px}.synth::after{right:14px}
+.s-top{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(14px,2vw,28px);align-items:stretch}
+.brandrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:0 10px}
+.brandrow b{white-space:nowrap;font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase}
+.brandrow span{font-family:var(--mono);font-size:13px;color:#5D5345}
+.screen{position:relative;background:#14110E;border-radius:10px;overflow:hidden;box-shadow:inset 0 0 0 3px #3a3128,inset 0 0 40px rgba(0,0,0,.8);min-height:240px}
+.screen canvas{position:absolute;inset:0;width:100%;height:100%}
+.screen .read{position:absolute;left:12px;top:10px;right:12px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:#E9B44C;text-shadow:0 0 8px rgba(233,180,76,.6);pointer-events:none}
+.screen .idle{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-family:var(--mono);font-size:14px;color:#E9B44C;text-shadow:0 0 8px rgba(233,180,76,.5);padding:20px}
+.screen::after{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55))}
+.ctrls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 8px;align-content:start}
+.ctrl-group{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.lbl{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#4E4539}
+.seg{display:inline-flex;background:#CFC2A9;border-radius:10px;padding:3px;box-shadow:inset 0 1px 3px rgba(0,0,0,.25)}
+.seg button{min-width:46px;min-height:40px;border-radius:8px;display:grid;place-items:center;transition:background .2s,color .2s}
+.seg button svg{width:26px;height:16px}
+.seg button[aria-pressed="true"]{background:var(--plate-ink);color:var(--mustard);box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.knob{display:flex;flex-direction:column;align-items:center;gap:4px;user-select:none;-webkit-user-select:none;touch-action:none;cursor:ns-resize;border-radius:10px;padding:4px 0}
+.knob .cap{width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#4a4038,#1f1a16 70%);box-shadow:0 6px 10px -4px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.15),0 0 0 4px #CFC2A9;position:relative}
+.knob .cap::after{content:'';position:absolute;left:50%;top:6px;width:3px;height:14px;margin-left:-1.5px;border-radius:2px;background:var(--mustard)}
+.knob .cap{transform:rotate(var(--r,0deg))}
+.knob .v{font-family:var(--mono);font-size:12px;color:#4E4539;min-height:16px}
+.oct{display:flex;align-items:center;gap:6px}
+.oct button,.pbtn{min-width:44px;min-height:44px;border-radius:10px;background:#CFC2A9;font-family:var(--mono);font-weight:700;font-size:15px;box-shadow:0 2px 0 rgba(0,0,0,.25);transition:transform .1s,background .2s}
+.oct button:active,.pbtn:active{transform:translateY(2px);box-shadow:none}
+.oct output{font-family:var(--mono);font-size:14px;min-width:44px;text-align:center}
+.pbtn{padding:0 12px;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+.pbtn[aria-pressed="true"]{background:var(--plate-ink);color:var(--mustard)}
+.power{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 14px 0 8px;border-radius:999px;background:var(--plate-ink);color:var(--plate);font-family:var(--mono);font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+.power i{width:14px;height:14px;border-radius:50%;background:#5a2a1a;box-shadow:inset 0 0 0 2px #2a1a12;transition:background .3s,box-shadow .3s}
+.power[aria-pressed="true"] i{background:#FF7A3A;box-shadow:0 0 10px 2px rgba(255,122,58,.8)}
+.keys-wrap{margin-top:clamp(14px,2vw,24px);background:#1c1713;border-radius:12px;padding:12px 12px 14px;box-shadow:inset 0 2px 8px rgba(0,0,0,.6)}
+.keys{position:relative;display:flex;height:clamp(150px,18vw,220px);touch-action:none;user-select:none;-webkit-user-select:none}
+.key{position:relative;flex:1;border-radius:0 0 8px 8px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px;font-family:var(--mono);font-size:13px;transition:background .06s,transform .06s}
+.key.w{background:linear-gradient(180deg,#F6EFE2,#E7DCC6);color:#7A6D5B;margin:0 2px;box-shadow:inset 0 -6px 0 #CDBEA3,0 2px 0 #0e0b09}
+.key.w.on{background:linear-gradient(180deg,#F2C99A,#EF9B62);transform:translateY(2px);box-shadow:inset 0 -3px 0 #c06a35}
+.key.b{position:absolute;top:0;height:60%;background:linear-gradient(180deg,#2b241e,#0f0c0a);color:#B3A792;z-index:2;border-radius:0 0 6px 6px;box-shadow:inset 0 -5px 0 #000,0 3px 4px rgba(0,0,0,.5);font-size:12px;padding-bottom:8px}
+.key.b.on{background:linear-gradient(180deg,#9a4a22,#EF6A2E);color:#fff;transform:translateY(1px)}
+.key .nn{display:block;font-size:11px;opacity:.75}
+.k-help{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:12px;font-family:var(--mono);font-size:13px;color:#4E4539}
+.unsupported{margin-top:12px;font-family:var(--mono);font-size:14px;color:#8a2a10}
+
+/* releases */
+.releases{padding:12vh var(--gut)}
+.sleeves{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(18px,3vw,40px);margin-top:50px}
+.sleeve{position:relative}
+.sleeve .holder{position:relative;aspect-ratio:1}
+.sleeve .vinyl{position:absolute;inset:3%;border-radius:50%;background:radial-gradient(circle,var(--lc) 0 16%,#0b0908 16.5% 17%,transparent 17%),repeating-radial-gradient(circle,#0d0b09 0 1.2px,#1d1813 1.2px 2.6px);box-shadow:0 10px 30px rgba(0,0,0,.6);transition:transform .9s var(--spring)}
+.sleeve .cover{position:absolute;inset:0;border-radius:4px;overflow:hidden;box-shadow:0 20px 40px -18px rgba(0,0,0,.9);transition:transform .9s var(--spring)}
+.sleeve .cover svg{width:100%;height:100%}
+.sleeve:hover .vinyl,.sleeve:focus-within .vinyl{transform:translateX(34%) rotate(140deg)}
+.sleeve:hover .cover,.sleeve:focus-within .cover{transform:translateX(-6%) rotate(-2deg)}
+.sleeve h3{font-weight:700;font-size:22px;margin-top:18px;line-height:1.15}
+.sleeve p{font-family:var(--mono);font-size:14px;color:var(--muted);margin-top:4px}
+.sleeve a{position:absolute;inset:0;z-index:2;border-radius:4px}
+
+/* tour */
+.tour{padding:12vh var(--gut);background:var(--bg-2)}
+.tour-list{list-style:none;margin-top:44px;display:grid;gap:12px}
+.stub{display:grid;grid-template-columns:120px minmax(0,1fr) minmax(0,1fr) auto;align-items:center;gap:20px;background:var(--bg-3);border-radius:10px;padding:16px 20px;position:relative;transition:background .3s,transform .4s var(--spring)}
+.stub:hover{background:#352b22;transform:translateX(6px)}
+.stub::before,.stub::after{content:'';position:absolute;right:170px;width:18px;height:18px;border-radius:50%;background:var(--bg-2)}
+.stub::before{top:-9px}.stub::after{bottom:-9px}
+.stub .d{font-family:var(--mono);font-size:15px;line-height:1.3}
+.stub .d b{display:block;font-family:var(--display);font-weight:800;font-size:28px;color:var(--mustard)}
+.stub .c{font-weight:700;font-size:clamp(22px,2vw,30px);line-height:1.1}
+.stub .v{color:var(--muted);font-size:17px}
+.stub .act{min-width:150px;display:flex;justify-content:flex-end}
+.stub button{min-height:46px;padding:0 18px;border-radius:999px;border:1.5px solid var(--cream);font-family:var(--mono);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;transition:background .3s,color .3s}
+.stub button:hover{background:var(--cream);color:var(--bg)}
+.stub button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#0e1a19}
+.stub .so{font-family:var(--mono);font-size:13px;text-transform:uppercase;color:var(--orange);border:1.5px dashed var(--orange);padding:10px 14px;border-radius:999px}
+
+/* about */
+.about{padding:14vh var(--gut);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:6vw;align-items:start}
+.about blockquote{font-weight:700;font-size:clamp(30px,3.2vw,52px);line-height:1.08;letter-spacing:-.02em}
+.about blockquote em{font-style:normal;color:var(--orange)}
+.about .bio{color:var(--muted);margin-top:28px;max-width:52ch}
+.gear{list-style:none;border-top:1px solid var(--bg-3)}
+.gear li{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--bg-3)}
+.gear li span{font-family:var(--mono);font-size:13px;text-transform:uppercase;color:var(--mustard);padding-top:3px}
+
+/* footer */
+.foot{padding:12vh var(--gut) 34px;position:relative;overflow:hidden}
+.foot .band{margin:0 calc(var(--gut) * -1);overflow:hidden}
+.foot .big{display:flex;width:max-content;font-weight:800;font-size:clamp(60px,10vw,180px);line-height:.9;letter-spacing:-.04em;text-transform:uppercase;white-space:nowrap;animation:band 28s linear infinite}
+.foot .big span{padding-right:.4em}
+.foot .big span i{font-style:normal;color:var(--orange)}
+@keyframes band{to{transform:translateX(-50%)}}
+.foot .row{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-top:56px;padding-top:20px;border-top:1px solid var(--bg-3);font-family:var(--mono);font-size:14px;color:var(--muted)}
+.foot .row a{min-height:44px;display:inline-flex;align-items:center;margin-right:16px}
+.foot .mail{font-family:var(--display);font-weight:700;font-size:clamp(22px,2.4vw,36px);color:var(--cream);text-decoration-thickness:2px;text-underline-offset:6px;display:inline-flex;min-height:44px;align-items:center;margin-top:30px}
+
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .menu-btn{display:inline-flex;align-items:center}
+  .s-top{grid-template-columns:1fr}
+  .synth-head{grid-template-columns:1fr}
+  .sleeves{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .about{grid-template-columns:1fr}
+}
+@media (max-width:767px){
+  body{font-size:17px}
+  .hero{grid-template-columns:1fr;padding-top:84px;gap:0}
+  .hero-deck{order:-1;justify-self:center;width:86vw;margin:0 0 6px}
+  .hero-deck .hint{display:none}
+  .hero h1{font-size:19vw}
+  .tracks-in{grid-template-columns:1fr;grid-template-rows:auto 1fr;padding-top:78px;gap:18px;align-items:start}
+  .t-deck{width:min(56vw,30vh);margin-top:8px}
+  .tlist li{padding:6px 0;grid-template-columns:34px 1fr auto}
+  .tlist li .nm{font-size:18px}
+  .tlist .side{padding:8px 0 2px}
+  .synth{display:flex;flex-direction:column;padding:14px 12px}
+  .s-top{display:contents}
+  .brandrow{order:0;padding:0 14px}
+  .brandrow span{display:none}
+  .screen{order:1;min-height:170px}
+  .keys-wrap{order:2;margin-top:12px;padding:8px 8px 10px}
+  .key.w{margin:0 1px}
+  .ctrls{order:3;margin-top:18px}
+  .unsupported{order:4}
+  .k-help span:not(#voices){display:none}
+  .ctrls{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .knob .cap{width:50px;height:50px}
+  .stub{grid-template-columns:76px minmax(0,1fr);gap:6px 14px;padding:16px}
+  .stub .d b{font-size:24px}
+  .stub .v{grid-column:2}
+  .stub .act{grid-column:1/-1;justify-content:flex-start;margin-top:6px}
+  .stub::before,.stub::after{display:none}
+  .gear li{grid-template-columns:1fr;gap:4px}
+  .foot .big{font-size:15vw}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#synth">Skip to the synth</a>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- shared label art -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="label-art" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="100" fill="#EF6A2E"/>
+      <path d="M0 112c30-14 50 14 80 0s50-14 80 0 40 0 40 0v88H0z" fill="#E9B44C"/>
+      <path d="M0 136c30-14 50 14 80 0s50-14 80 0 40 0 40 0v64H0z" fill="#4FA39C"/>
+      <path d="M0 160c30-14 50 14 80 0s50-14 80 0 40 0 40 0v40H0z" fill="#2C5E5A"/>
+      <circle cx="140" cy="62" r="16" fill="#F2E9DA"/>
+      <path id="lbl-ring" d="M100 100m-78 0a78 78 0 1 1 156 0a78 78 0 1 1-156 0" fill="none"/>
+      <text font-family="Space Mono, monospace" font-size="11" letter-spacing="2" fill="#171310"><textPath href="#lbl-ring">AIKO MORI · LOW TIDE SIGNALS · SIDE A · 33⅓ ·</textPath></text>
+      <circle cx="100" cy="100" r="5" fill="#0b0908"/>
+    </symbol>
+    <symbol id="arm-art" viewBox="0 0 300 400">
+      <circle cx="255" cy="48" r="38" fill="#3a3128"/><circle cx="255" cy="48" r="26" fill="#bdb3a2"/><circle cx="255" cy="48" r="8" fill="#3a3128"/>
+      <rect x="236" y="20" width="38" height="14" rx="4" fill="#5a4e42"/>
+      <path d="M255 48 L240 300 L170 360" fill="none" stroke="#d8cfbf" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M255 48 L240 300 L170 360" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+      <rect x="140" y="346" width="52" height="30" rx="5" fill="#2a231c" transform="rotate(-38 166 361)"/>
+      <rect x="152" y="352" width="12" height="18" rx="2" fill="#EF6A2E" transform="rotate(-38 166 361)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="nav" id="nav">
+  <a class="logo" href="#top"><i aria-hidden="true"></i>Aiko Mori</a>
+  <nav aria-label="Main"><ul>
+    <li><a href="#tracks">Record</a></li>
+    <li><a href="#synth">Synth</a></li>
+    <li><a href="#releases">Releases</a></li>
+    <li><a href="#tour">Tour</a></li>
+    <li><a href="#about">About</a></li>
+  </ul></nav>
+  <button class="menu-btn" aria-expanded="false" aria-controls="mmenu">Menu</button>
+</header>
+<div class="mmenu" id="mmenu" role="dialog" aria-modal="true" aria-label="Menu">
+  <a href="#tracks">Record</a><a href="#synth">Synth</a><a href="#releases">Releases</a><a href="#tour">Tour</a><a href="#about">About</a>
+</div>
+
+<main id="top">
+<section class="hero" aria-labelledby="h1">
+  <div class="hero-copy">
+    <p class="new"><b>New LP</b><span id="release-line">Low Tide Signals</span><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span></p>
+    <h1 id="h1"><span class="ln"><span>Aiko</span></span><span class="ln"><span>Mori</span></span></h1>
+    <p class="lede">Warm, tape-worn electronics from Osaka by way of Glasgow. Music for night buses, ferry decks and kitchens at 2 a.m. — recorded through a cracked tape echo she refuses to fix.</p>
+    <div class="ctas">
+      <a class="btn btn-or" href="#synth">Play the synth</a>
+      <a class="btn btn-ln" href="#tracks">Drop the needle</a>
+    </div>
+  </div>
+  <div class="hero-deck" aria-hidden="true">
+    <div class="rec" id="hero-rec">
+      <div class="disc"><div class="label"><svg viewBox="0 0 200 200"><use href="#label-art"/></svg></div></div>
+      <div class="sheen"></div>
+    </div>
+    <div class="arm" id="hero-arm"><svg viewBox="0 0 300 400"><use href="#arm-art"/></svg></div>
+    <p class="hint">← drag to scratch</p>
+  </div>
+</section>
+
+<section class="tracks" id="tracks" aria-labelledby="tr-title">
+  <div class="tracks-in">
+    <div class="t-deck" aria-hidden="true">
+      <div class="plinth"></div>
+      <div class="rec" id="t-rec">
+        <div class="disc"><div class="label"><svg viewBox="0 0 200 200"><use href="#label-art"/></svg></div></div>
+        <div class="sheen"></div>
+      </div>
+      <div class="arm" id="t-arm"><svg viewBox="0 0 300 400"><use href="#arm-art"/></svg></div>
+    </div>
+    <div>
+      <p class="tag"><b>01</b> — The record</p>
+      <h2 class="h2" id="tr-title" style="font-size:clamp(36px,4.4vw,72px)">Low Tide <span>Signals</span></h2>
+      <ol class="tlist" id="tlist" aria-live="polite"></ol>
+      <div class="t-readout"><span id="t-now">Side A · 0:00</span><span id="t-total"></span></div>
+      <div class="t-bar" aria-hidden="true"><i></i></div>
+    </div>
+  </div>
+</section>
+
+<section class="synth-sec" id="synth" aria-labelledby="sy-title">
+  <div class="synth-head">
+    <div>
+      <p class="tag"><b>02</b> — Play it yourself</p>
+      <h2 class="h2" id="sy-title">The <span>Tide</span> synth</h2>
+    </div>
+    <p class="lede">A browser copy of the little two-oscillator synth all over the new record. Sound starts only when you press power or play a key. Use your mouse, your fingers, or your keyboard (A–K row; Z and X shift octaves).</p>
+  </div>
+  <div class="synth" id="synth-panel">
+    <div class="brandrow"><b>Tide-2</b><span>two-osc · lowpass · tape echo</span></div>
+    <div class="s-top">
+      <div class="screen">
+        <canvas id="scope" aria-hidden="true"></canvas>
+        <div class="read"><span id="rd-note">—</span><span id="rd-info">sine · 2.4 kHz</span></div>
+        <div class="idle" id="idle">Press POWER or any key to wake the synth.<br>No sound plays until you do.</div>
+      </div>
+      <div class="ctrls">
+        <div class="ctrl-group">
+          <button class="power" id="power" aria-pressed="false"><i aria-hidden="true"></i><span>Power</span></button>
+          <div class="oct" role="group" aria-label="Octave"><button id="oct-dn" aria-label="Octave down">−</button><output id="oct" aria-live="polite">C3</output><button id="oct-up" aria-label="Octave up">+</button></div>
+        </div>
+        <div class="ctrl-group">
+          <span class="lbl">Wave</span>
+          <div class="seg" role="group" aria-label="Waveform" id="waves">
+            <button data-w="sine" aria-pressed="false" aria-label="Sine"><svg viewBox="0 0 26 16"><path d="M1 8c3-8 6-8 6 0s6 8 6 0 6-8 6 0 6 8 6 0" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+            <button data-w="triangle" aria-pressed="false" aria-label="Triangle"><svg viewBox="0 0 26 16"><path d="M1 12 7 3l6 10 6-10 6 9" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+            <button data-w="sawtooth" aria-pressed="true" aria-label="Sawtooth"><svg viewBox="0 0 26 16"><path d="M1 13 13 3v10L25 3v10" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+            <button data-w="square" aria-pressed="false" aria-label="Square"><svg viewBox="0 0 26 16"><path d="M1 13V3h6v10h6V3h6v10h6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+          </div>
+        </div>
+        <div class="knob" data-p="cutoff" data-v="55" role="slider" tabindex="0" aria-label="Filter cutoff" aria-valuemin="0" aria-valuemax="100"><span class="lbl">Cutoff</span><div class="cap"></div><span class="v"></span></div>
+        <div class="knob" data-p="res" data-v="25" role="slider" tabindex="0" aria-label="Resonance" aria-valuemin="0" aria-valuemax="100"><span class="lbl">Reso</span><div class="cap"></div><span class="v"></span></div>
+        <div class="knob" data-p="attack" data-v="12" role="slider" tabindex="0" aria-label="Attack" aria-valuemin="0" aria-valuemax="100"><span class="lbl">Attack</span><div class="cap"></div><span class="v"></span></div>
+        <div class="knob" data-p="release" data-v="40" role="slider" tabindex="0" aria-label="Release" aria-valuemin="0" aria-valuemax="100"><span class="lbl">Release</span><div class="cap"></div><span class="v"></span></div>
+        <div class="knob" data-p="echo" data-v="35" role="slider" tabindex="0" aria-label="Tape echo" aria-valuemin="0" aria-valuemax="100"><span class="lbl">Echo</span><div class="cap"></div><span class="v"></span></div>
+        <div class="knob" data-p="drive" data-v="25" role="slider" tabindex="0" aria-label="Drive" aria-valuemin="0" aria-valuemax="100"><span class="lbl">Drive</span><div class="cap"></div><span class="v"></span></div>
+        <div class="knob" data-p="detune" data-v="30" role="slider" tabindex="0" aria-label="Detune" aria-valuemin="0" aria-valuemax="100"><span class="lbl">Detune</span><div class="cap"></div><span class="v"></span></div>
+        <div class="knob" data-p="vol" data-v="70" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="100"><span class="lbl">Volume</span><div class="cap"></div><span class="v"></span></div>
+        <div class="ctrl-group">
+          <span class="lbl">Patch</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" role="group" aria-label="Presets" id="presets">
+            <button class="pbtn" data-pre="tide" aria-pressed="true">Low tide</button>
+            <button class="pbtn" data-pre="bus" aria-pressed="false">Night bus</button>
+            <button class="pbtn" data-pre="glass" aria-pressed="false">Glass</button>
+          </div>
+          <button class="pbtn" id="hook" style="background:var(--orange);color:#171310">▶ Play the hook</button>
+        </div>
+      </div>
+    </div>
+    <div class="keys-wrap">
+      <div class="keys" id="keys" role="group" aria-label="Keyboard"></div>
+      <div class="k-help"><span>Keys: A W S E D F T G Y H U J K…</span><span>Z / X — octave</span><span id="voices">0 voices</span></div>
+    </div>
+    <p class="unsupported" id="unsupported" hidden>This browser doesn’t support the Web Audio API, so the synth stays silent — the controls still move.</p>
+  </div>
+</section>
+
+<section class="releases" id="releases" aria-labelledby="rl-title">
+  <p class="tag"><b>03</b> — Releases</p>
+  <h2 class="h2" id="rl-title">Pull one <span>out</span></h2>
+  <div class="sleeves" id="sleeves"></div>
+</section>
+
+<section class="tour" id="tour" aria-labelledby="to-title">
+  <p class="tag"><b>04</b> — Live</p>
+  <h2 class="h2" id="to-title">Tide <span>tour</span></h2>
+  <p class="lede">A live set built around the Tide-2, a tape loop the length of the room and whatever the venue’s piano sounds like. Tap “Remind me” and we’ll keep a seat warm.</p>
+  <ol class="tour-list" id="tour-list"></ol>
+</section>
+
+<section class="about" id="about" aria-labelledby="ab-title">
+  <div>
+    <p class="tag"><b>05</b> — About</p>
+    <h2 class="sr" id="ab-title">About Aiko Mori</h2>
+    <blockquote style="margin-top:18px">“I like machines that are a little <em>broken</em>. They wobble, they hiss, they forget what you told them — that’s where the songs are.”</blockquote>
+    <p class="bio">Aiko Mori grew up above her father’s radio-repair shop in Osaka and learned to solder before she learned to read music. She moved to Glasgow to study sound engineering, stayed for the rain, and has released four records of slow, melodic electronics since — most of them mixed at her kitchen table on headphones.</p>
+  </div>
+  <div>
+    <p class="tag" style="margin-bottom:14px">On the table</p>
+    <ul class="gear">
+      <li><span>Echo</span>A 1979 tape echo with a cracked capstan — the wobble on every record</li>
+      <li><span>Drums</span>A drum machine rebuilt from two broken ones bought for £20</li>
+      <li><span>Keys</span>The Tide-2, a two-oscillator synth she designed with a friend</li>
+      <li><span>Field</span>A pocket recorder full of ferry horns, rain and kettles</li>
+      <li><span>Toy</span>A toy keyboard with a broken C, used on every album since 2019</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="band" aria-hidden="true"><p class="big"><span>Low tide <i>signals</i> ·</span><span>Low tide <i>signals</i> ·</span><span>Low tide <i>signals</i> ·</span><span>Low tide <i>signals</i> ·</span></p></div>
+  <a class="mail" href="mailto:booking@aikomori.example">booking@aikomori.example</a>
+  <div class="row">
+    <div><a href="#synth">Synth</a><a href="#releases">Releases</a><a href="#tour">Tour</a></div>
+    <p>Concept design — fictional brand. Aiko Mori is not a real artist.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const hasGsap = typeof gsap !== 'undefined'
+  const $ = (s, r = document) => r.querySelector(s)
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+  const now = new Date()
+  const addDays = (n) => { const d = new Date(now); d.setDate(d.getDate() + n); return d }
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+  /* ---------- nav ---------- */
+  const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+  const mb = $('.menu-btn'), mm = $('#mmenu')
+  const setMenu = (o) => { mb.setAttribute('aria-expanded', o); mb.textContent = o ? 'Close' : 'Menu'; mm.classList.toggle('open', o); if (window.lenis) o ? lenis.stop() : lenis.start(); if (o) $('a', mm).focus() }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'))
+  $$('a', mm).forEach((a) => a.addEventListener('click', () => setMenu(false)))
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { setMenu(false); mb.focus() } })
+
+  const rel = addDays(-19)
+  $('#release-line').textContent = `Low Tide Signals — out ${rel.getDate()} ${MON[rel.getMonth()]}`
+
+  /* ---------- hero record: spins at 33⅓, drag to scratch ---------- */
+  const heroRec = $('#hero-rec'), heroDisc = $('.disc', heroRec)
+  let angle = 0, spin = reduced ? 0 : 200, dragging = false, lastA = 0, recOn = false, recRaf = 0, lastT = 0, boost = 0
+  const ptrAngle = (e) => { const r = heroRec.getBoundingClientRect(); return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI }
+  heroRec.addEventListener('pointerdown', (e) => { dragging = true; lastA = ptrAngle(e); heroRec.setPointerCapture(e.pointerId) })
+  heroRec.addEventListener('pointermove', (e) => { if (!dragging) return; let a = ptrAngle(e), d = a - lastA; if (d > 180) d -= 360; if (d < -180) d += 360; angle += d; lastA = a; heroDisc.style.transform = `rotate(${angle}deg)` })
+  const endDrag = () => { dragging = false }
+  heroRec.addEventListener('pointerup', endDrag); heroRec.addEventListener('pointercancel', endDrag)
+  function recLoop(t) {
+    recRaf = requestAnimationFrame(recLoop)
+    const dt = Math.min(.05, (t - (lastT || t)) / 1000); lastT = t
+    if (!dragging) { angle += (spin + boost) * dt; boost *= .92; heroDisc.style.transform = `rotate(${angle}deg)` }
+  }
+  if (!reduced) new IntersectionObserver(([e]) => { if (e.isIntersecting && !recOn) { recOn = true; lastT = 0; recRaf = requestAnimationFrame(recLoop) } else if (!e.isIntersecting && recOn) { recOn = false; cancelAnimationFrame(recRaf) } }).observe(heroRec)
+
+  /* ---------- tracklist ---------- */
+  const TRACKS = [['A', 'Ferry Horn, 6 a.m.', 214], ['A', 'Low Tide Signals', 302], ['A', 'Kitchen at 2', 251], ['A', 'Night Bus Hymn', 343], ['B', 'Salt on the Window', 268], ['B', 'Tape Weather', 196], ['B', 'Lighthouse Keeper’s Radio', 327], ['B', 'Slow Return', 389]]
+  const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
+  const tl = $('#tlist')
+  tl.innerHTML = TRACKS.map(([side, n, s], i) => `${i === 0 || TRACKS[i - 1][0] !== side ? `<li class="side" aria-hidden="true">Side ${side}</li>` : ''}<li data-i="${i}"${i === 0 ? ' class="on"' : ''}><span class="no">${String(i + 1).padStart(2, '0')}</span><span class="nm">${n}</span><span class="tm"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span> ${mmss(s)}</span></li>`).join('')
+  const trEls = $$('li[data-i]', tl), totalSec = TRACKS.reduce((a, t) => a + t[2], 0)
+  $('#t-total').textContent = `${TRACKS.length} tracks · ${mmss(totalSec)}`
+  let tIdx = 0
+  function setTrack(p) {
+    const sec = p * totalSec
+    let acc = 0, i = 0
+    while (i < TRACKS.length - 1 && sec >= acc + TRACKS[i][2]) { acc += TRACKS[i][2]; i++ }
+    $('#t-now').textContent = `Side ${TRACKS[i][0]} · ${String(i + 1).padStart(2, '0')} · ${mmss(sec - acc)}`
+    if (i !== tIdx) { tIdx = i; trEls.forEach((li, k) => li.classList.toggle('on', k === i)) }
+  }
+
+  /* ---------- synth ---------- */
+  const W_LABEL = { sine: 'sine', triangle: 'tri', sawtooth: 'saw', square: 'square' }
+  const P = { wave: 'sawtooth' }
+  $$('.knob').forEach((k) => (P[k.dataset.p] = +k.dataset.v))
+  let octave = 0
+  const cutHz = (v) => 80 * Math.pow(2, (v / 100) * 8)
+  const fmtHz = (f) => (f >= 1000 ? (f / 1000).toFixed(1) + ' kHz' : Math.round(f) + ' Hz')
+  const KNOB_TXT = { cutoff: (v) => fmtHz(cutHz(v)), res: (v) => 'Q ' + (.5 + v / 100 * 14).toFixed(1), attack: (v) => Math.round((.003 + Math.pow(v / 100, 2) * 2) * 1000) + ' ms', release: (v) => Math.round((.04 + Math.pow(v / 100, 2) * 3) * 1000) + ' ms', echo: (v) => v + '%', drive: (v) => v + '%', detune: (v) => Math.round(v / 100 * 25) + ' ct', vol: (v) => v + '%' }
+  let ctx = null, filter, shaper, master, delay, fb, wet, analyser, comp
+  const voices = new Map() // midi -> voice
+  const held = new Map() // midi -> count of sources holding it
+  function curve(amount) {
+    const n = 1024, c = new Float32Array(n), k = amount * 30 + 1
+    for (let i = 0; i < n; i++) { const x = (i / (n - 1)) * 2 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k) }
+    return c
+  }
+  function applyParams() {
+    if (!ctx) return
+    const t = ctx.currentTime
+    filter.frequency.setTargetAtTime(cutHz(P.cutoff), t, .02)
+    filter.Q.setTargetAtTime(.5 + P.res / 100 * 14, t, .02)
+    shaper.curve = curve(P.drive / 100)
+    wet.gain.setTargetAtTime(P.echo / 100 * .55, t, .05)
+    fb.gain.setTargetAtTime(.2 + P.echo / 100 * .4, t, .05)
+    master.gain.setTargetAtTime(P.vol / 100 * .55, t, .03)
+    voices.forEach((v) => v.o2.detune.setTargetAtTime(P.detune / 100 * 25, t, .02))
+  }
+  function initAudio() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume().catch(() => {}); return true }
+    const AC = window.AudioContext || window.webkitAudioContext
+    if (!AC) { $('#unsupported').hidden = false; return false }
+    try {
+      ctx = new AC()
+      filter = ctx.createBiquadFilter(); filter.type = 'lowpass'
+      shaper = ctx.createWaveShaper(); shaper.oversample = '2x'
+      master = ctx.createGain()
+      delay = ctx.createDelay(1.5); delay.delayTime.value = .34
+      fb = ctx.createGain(); wet = ctx.createGain()
+      const tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 2600 // darker repeats, like tape
+      comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4
+      analyser = ctx.createAnalyser(); analyser.fftSize = 2048; analyser.smoothingTimeConstant = .8
+      filter.connect(shaper); shaper.connect(master); shaper.connect(delay)
+      delay.connect(tone); tone.connect(fb); fb.connect(delay); tone.connect(wet); wet.connect(master)
+      master.connect(comp); comp.connect(analyser); analyser.connect(ctx.destination)
+      applyParams()
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+    } catch (err) { ctx = null; $('#unsupported').hidden = false; return false }
+    setPower(true)
+    return true
+  }
+  const power = $('#power')
+  function setPower(on) {
+    power.setAttribute('aria-pressed', on); $('#idle').hidden = on
+    if (!on) { voices.forEach((v, m) => stopVoice(m, true)); held.clear(); $$('.key.on').forEach((k) => k.classList.remove('on')) }
+  }
+  power.addEventListener('click', () => {
+    if (!ctx) return initAudio()
+    if (ctx.state === 'running' && power.getAttribute('aria-pressed') === 'true') { setPower(false); ctx.suspend().catch(() => {}) }
+    else { ctx.resume().catch(() => {}); setPower(true) }
+  })
+  const noteName = (m) => ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'][m % 12] + (Math.floor(m / 12) - 1)
+  function startVoice(m) {
+    if (!ctx || power.getAttribute('aria-pressed') !== 'true') return
+    if (voices.has(m)) stopVoice(m, true)
+    const t = ctx.currentTime, f = 440 * Math.pow(2, (m - 69) / 12)
+    const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain()
+    o1.type = o2.type = P.wave; o1.frequency.value = o2.frequency.value = f; o2.detune.value = P.detune / 100 * 25
+    const atk = .003 + Math.pow(P.attack / 100, 2) * 2, peak = .28
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + atk); g.gain.setTargetAtTime(peak * .7, t + atk, .25)
+    o1.connect(g); o2.connect(g); g.connect(filter); o1.start(t); o2.start(t)
+    voices.set(m, { o1, o2, g })
+    $('#rd-note').textContent = `${noteName(m)} · ${f.toFixed(1)} Hz`
+    updVoices()
+  }
+  function stopVoice(m, fast) {
+    const v = voices.get(m); if (!v || !ctx) return
+    const t = ctx.currentTime, rel = fast ? .02 : .04 + Math.pow(P.release / 100, 2) * 3
+    v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value, t); v.g.gain.setTargetAtTime(0, t, rel / 4)
+    try { v.o1.stop(t + rel + .1); v.o2.stop(t + rel + .1) } catch (e) { /* already stopped */ }
+    voices.delete(m); updVoices()
+  }
+  const updVoices = () => { $('#voices').textContent = `${voices.size} voice${voices.size === 1 ? '' : 's'}` }
+  const keyEl = (m) => $(`.key[data-m="${m}"]`)
+  function press(m) {
+    held.set(m, (held.get(m) || 0) + 1)
+    const k = keyEl(m); if (k) k.classList.add('on')
+    if (held.get(m) === 1) startVoice(m)
+  }
+  function release(m) {
+    const n = (held.get(m) || 0) - 1
+    if (n > 0) { held.set(m, n); return }
+    held.delete(m); const k = keyEl(m); if (k) k.classList.remove('on')
+    stopVoice(m)
+  }
+
+  /* keyboard layout: two octaves on wide screens, one on phones */
+  const base = () => 48 + octave * 12
+  const COMP = ['a', 'w', 's', 'e', 'd', 'f', 't', 'g', 'y', 'h', 'u', 'j', 'k', 'o', 'l', 'p', ';', "'"]
+  const keysEl = $('#keys')
+  let octs = 2
+  function buildKeys() {
+    octs = keysEl.clientWidth < 560 ? 1 : 2
+    const n = octs === 1 ? 12 : 25, whites = []
+    let html = ''
+    for (let i = 0; i < n; i++) { const pc = i % 12; if (![1, 3, 6, 8, 10].includes(pc)) whites.push(i) }
+    const ww = 100 / whites.length
+    whites.forEach((i) => { const m = base() + i; html += `<button class="key w" data-m="${m}" data-i="${i}" aria-label="${noteName(m)}" tabindex="-1">${COMP[i] ? `<span>${COMP[i].toUpperCase()}<span class="nn">${noteName(m)}</span></span>` : `<span class="nn">${noteName(m)}</span>`}</button>` })
+    for (let i = 0; i < n; i++) {
+      const pc = i % 12; if (![1, 3, 6, 8, 10].includes(pc)) continue
+      const left = whites.indexOf(i - 1) + 1, m = base() + i
+      html += `<button class="key b" data-m="${m}" data-i="${i}" aria-label="${noteName(m)}" tabindex="-1" style="left:calc(${left * ww}% - ${ww * .32}%);width:${ww * .64}%">${COMP[i] ? COMP[i].toUpperCase() : ''}</button>`
+    }
+    keysEl.innerHTML = html
+    $('#oct').textContent = noteName(base())
+  }
+  buildKeys()
+  let lastOcts = octs
+  addEventListener('resize', () => { const want = keysEl.clientWidth < 560 ? 1 : 2; if (want !== lastOcts) { lastOcts = want; allOff(); buildKeys() } })
+  function allOff() { [...held.keys()].forEach((m) => { held.set(m, 1); release(m) }); ptr.clear(); kbd.clear() }
+  function shiftOct(d) { const o = Math.max(-2, Math.min(2, octave + d)); if (o === octave) return; allOff(); octave = o; buildKeys() }
+  $('#oct-dn').addEventListener('click', () => shiftOct(-1)); $('#oct-up').addEventListener('click', () => shiftOct(1))
+
+  /* pointer + touch: glide across keys, multi-touch chords */
+  const ptr = new Map()
+  keysEl.addEventListener('pointerdown', (e) => {
+    const k = e.target.closest('.key'); if (!k) return
+    e.preventDefault(); initAudio()
+    // touch gives the first key implicit capture; release it so gliding reaches the other keys
+    if (e.target.hasPointerCapture && e.target.hasPointerCapture(e.pointerId)) e.target.releasePointerCapture(e.pointerId)
+    const m = +k.dataset.m; ptr.set(e.pointerId, m); press(m)
+  })
+  keysEl.addEventListener('pointermove', (e) => {
+    if (!ptr.has(e.pointerId)) return
+    const el = document.elementFromPoint(e.clientX, e.clientY), k = el && el.closest && el.closest('.key')
+    const cur = ptr.get(e.pointerId)
+    if (k && keysEl.contains(k) && +k.dataset.m !== cur) { release(cur); ptr.set(e.pointerId, +k.dataset.m); press(+k.dataset.m) }
+  })
+  const ptrUp = (e) => { if (!ptr.has(e.pointerId)) return; release(ptr.get(e.pointerId)); ptr.delete(e.pointerId) }
+  addEventListener('pointerup', ptrUp); addEventListener('pointercancel', ptrUp)
+  keysEl.addEventListener('contextmenu', (e) => e.preventDefault())
+
+  /* computer keyboard (only while the synth is on screen) */
+  const kbd = new Map(); let synthVisible = false
+  new IntersectionObserver(([e]) => { synthVisible = e.isIntersecting; if (!synthVisible) allOff() }, { threshold: .15 }).observe($('#synth-panel'))
+  addEventListener('keydown', (e) => {
+    if (!synthVisible || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return
+    const key = e.key.toLowerCase()
+    if (key === 'z' || key === 'x') { shiftOct(key === 'z' ? -1 : 1); e.preventDefault(); return }
+    const i = COMP.indexOf(key); if (i < 0 || i > octs * 12 + 5) return
+    e.preventDefault(); initAudio()
+    const m = base() + i; kbd.set(key, m); press(m)
+  })
+  addEventListener('keyup', (e) => { const key = e.key.toLowerCase(); if (!kbd.has(key)) return; release(kbd.get(key)); kbd.delete(key) })
+  addEventListener('blur', allOff)
+
+  /* knobs: drag up/down, arrow keys, page up/down */
+  function setKnob(k, v, silent) {
+    v = Math.max(0, Math.min(100, Math.round(v))); P[k.dataset.p] = v
+    k.setAttribute('aria-valuenow', v); k.setAttribute('aria-valuetext', KNOB_TXT[k.dataset.p](v))
+    $('.cap', k).style.setProperty('--r', `${-135 + v * 2.7}deg`); $('.v', k).textContent = KNOB_TXT[k.dataset.p](v)
+    if (!silent) { applyParams(); $$('#presets .pbtn').forEach((b) => b.setAttribute('aria-pressed', 'false')) }
+    $('#rd-info').textContent = `${W_LABEL[P.wave]} · ${fmtHz(cutHz(P.cutoff))}`
+  }
+  $$('.knob').forEach((k) => {
+    setKnob(k, +k.dataset.v, true)
+    let sy = 0, sv = 0, act = false
+    k.addEventListener('pointerdown', (e) => { act = true; sy = e.clientY; sv = P[k.dataset.p]; k.setPointerCapture(e.pointerId); k.focus({ preventScroll: true }); e.preventDefault() })
+    k.addEventListener('pointermove', (e) => { if (act) setKnob(k, sv + (sy - e.clientY) * .6) })
+    k.addEventListener('pointerup', () => (act = false)); k.addEventListener('pointercancel', () => (act = false))
+    k.addEventListener('keydown', (e) => {
+      const d = { ArrowUp: 2, ArrowRight: 2, ArrowDown: -2, ArrowLeft: -2, PageUp: 10, PageDown: -10 }[e.key]
+      if (e.key === 'Home') { setKnob(k, 0); e.preventDefault() } else if (e.key === 'End') { setKnob(k, 100); e.preventDefault() } else if (d) { setKnob(k, P[k.dataset.p] + d); e.preventDefault(); e.stopPropagation() }
+    })
+  })
+  const setWave = (w) => { P.wave = w; $$('#waves button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.w === w)); voices.forEach((v) => { v.o1.type = v.o2.type = w }); $('#rd-info').textContent = `${W_LABEL[w]} · ${fmtHz(cutHz(P.cutoff))}` }
+  $$('#waves button').forEach((b) => b.addEventListener('click', () => { setWave(b.dataset.w); $$('#presets .pbtn').forEach((x) => x.setAttribute('aria-pressed', 'false')) }))
+  const PRESETS = {
+    tide: { wave: 'sawtooth', cutoff: 55, res: 25, attack: 12, release: 40, echo: 35, drive: 25, detune: 30, oct: 0 },
+    bus: { wave: 'square', cutoff: 32, res: 60, attack: 2, release: 14, echo: 12, drive: 62, detune: 12, oct: -1 },
+    glass: { wave: 'triangle', cutoff: 82, res: 12, attack: 4, release: 62, echo: 58, drive: 8, detune: 45, oct: 1 },
+  }
+  $$('#presets .pbtn').forEach((b) => b.addEventListener('click', () => {
+    const p = PRESETS[b.dataset.pre]; setWave(p.wave)
+    $$('.knob').forEach((k) => { if (p[k.dataset.p] !== undefined) setKnob(k, p[k.dataset.p], true) })
+    applyParams(); if (p.oct !== octave) { allOff(); octave = p.oct; buildKeys() }
+    $$('#presets .pbtn').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  }))
+  /* the hook from "Low Tide Signals": a short phrase so anyone can hear the patch */
+  const HOOK = [[57, 0, .35], [60, .4, .35], [64, .8, .35], [67, 1.2, .7], [65, 2.0, .35], [64, 2.4, .35], [60, 2.8, .7], [62, 3.6, .35], [64, 4.0, 1.1], [52, 0, 2.0], [48, 2.0, 1.9], [50, 3.6, 1.5]]
+  let hookTimers = []
+  $('#hook').addEventListener('click', () => {
+    if (!initAudio()) return
+    if (power.getAttribute('aria-pressed') !== 'true') { ctx.resume().catch(() => {}); setPower(true) }
+    hookTimers.forEach(clearTimeout); hookTimers = []
+    const shift = octave * 12
+    HOOK.forEach(([m, at, dur]) => {
+      hookTimers.push(setTimeout(() => press(m + shift), at * 1000))
+      hookTimers.push(setTimeout(() => release(m + shift), (at + dur) * 1000))
+    })
+  })
+
+  /* scope: oscilloscope + spectrum, drawn only while visible */
+  const scope = $('#scope'), sc = scope.getContext('2d')
+  let SW = 0, SH = 0, scopeOn = false, scopeRaf = 0, tbuf = null, fbuf = null
+  function sizeScope() { const d = Math.min(2, devicePixelRatio || 1); SW = scope.clientWidth; SH = scope.clientHeight; scope.width = SW * d; scope.height = SH * d; sc.setTransform(d, 0, 0, d, 0, 0) }
+  sizeScope(); addEventListener('resize', sizeScope)
+  let peakAmp = 0
+  function drawScope(t) {
+    sc.fillStyle = 'rgba(20,17,14,.55)'; sc.fillRect(0, 0, SW, SH)
+    sc.strokeStyle = 'rgba(233,180,76,.12)'; sc.lineWidth = 1
+    for (let x = 0; x < SW; x += SW / 10) { sc.beginPath(); sc.moveTo(x, 0); sc.lineTo(x, SH); sc.stroke() }
+    for (let y = 0; y < SH; y += SH / 6) { sc.beginPath(); sc.moveTo(0, y); sc.lineTo(SW, y); sc.stroke() }
+    const mid = SH * .45
+    sc.lineWidth = 2.2; sc.strokeStyle = '#F59A52'; sc.shadowColor = 'rgba(245,154,82,.9)'; sc.shadowBlur = 10
+    sc.beginPath()
+    if (analyser && ctx && ctx.state === 'running') {
+      if (!tbuf) { tbuf = new Float32Array(analyser.fftSize); fbuf = new Uint8Array(analyser.frequencyBinCount) }
+      analyser.getFloatTimeDomainData(tbuf)
+      // trigger on a rising zero crossing so the wave stands still
+      let start = 0; for (let i = 1; i < tbuf.length / 2; i++) { if (tbuf[i - 1] < 0 && tbuf[i] >= 0) { start = i; break } }
+      const len = 900; let pk = 0
+      for (let i = 0; i < len; i++) { const v = tbuf[start + i] || 0; pk = Math.max(pk, Math.abs(v)); const x = (i / len) * SW, y = mid - v * SH * .6; i ? sc.lineTo(x, y) : sc.moveTo(x, y) }
+      peakAmp = Math.max(peakAmp * .96, pk)
+      sc.stroke(); sc.shadowBlur = 0
+      analyser.getByteFrequencyData(fbuf)
+      const bars = 48, bw = SW / bars
+      for (let i = 0; i < bars; i++) { const idx = Math.floor(Math.pow(i / bars, 2) * 380) + 1, v = fbuf[idx] / 255, h = v * SH * .28; sc.fillStyle = `rgba(79,163,156,${.35 + v * .6})`; sc.fillRect(i * bw + 1, SH - h, bw - 2, h) }
+    } else {
+      for (let x = 0; x <= SW; x += 4) { const y = mid + Math.sin(x * .03 + t * .002) * 3 * (reduced ? 0 : 1); x ? sc.lineTo(x, y) : sc.moveTo(x, y) }
+      sc.stroke(); sc.shadowBlur = 0
+    }
+  }
+  function scopeLoop(t) { scopeRaf = requestAnimationFrame(scopeLoop); drawScope(t) }
+  new IntersectionObserver(([e]) => { if (e.isIntersecting && !scopeOn) { scopeOn = true; scopeRaf = requestAnimationFrame(scopeLoop) } else if (!e.isIntersecting && scopeOn) { scopeOn = false; cancelAnimationFrame(scopeRaf) } }).observe(scope)
+  drawScope(0)
+  window.__aiko = { state: () => ({ ctx: ctx ? ctx.state : 'none', power: power.getAttribute('aria-pressed'), voices: voices.size, held: [...held.keys()], octave, wave: P.wave, cutoff: P.cutoff, peak: +peakAmp.toFixed(3), keys: $$('.key').length, on: $$('.key.on').map((k) => k.dataset.m) }) }
+
+  /* ---------- releases ---------- */
+  const y = now.getFullYear()
+  const REL = [
+    ['Low Tide Signals', `LP · ${y}`, '#EF6A2E', `<rect width="200" height="200" fill="#EF6A2E"/><path d="M0 120c30-14 50 14 80 0s50-14 80 0 40 0 40 0v80H0z" fill="#E9B44C"/><path d="M0 146c30-14 50 14 80 0s50-14 80 0 40 0 40 0v54H0z" fill="#4FA39C"/><path d="M0 172c30-14 50 14 80 0s50-14 80 0 40 0 40 0v28H0z" fill="#2C5E5A"/><circle cx="148" cy="58" r="22" fill="#F2E9DA"/><text x="14" y="30" font-family="Syne" font-weight="800" font-size="16" fill="#171310" textLength="96" lengthAdjust="spacingAndGlyphs">AIKO MORI</text>`],
+    ['Night Bus Hymns', `EP · ${y - 2}`, '#3B4A7A', `<rect width="200" height="200" fill="#1E2340"/>${Array.from({ length: 64 }, (_, i) => `<circle cx="${20 + (i % 8) * 23}" cy="${20 + Math.floor(i / 8) * 23}" r="${(i * 7) % 5 === 0 ? 5 : 2}" fill="${(i * 7) % 5 === 0 ? '#E9B44C' : '#5A6699'}"/>`).join('')}<rect x="0" y="150" width="200" height="50" fill="#EF6A2E"/><text x="14" y="182" font-family="Syne" font-weight="800" font-size="16" fill="#171310" textLength="172" lengthAdjust="spacingAndGlyphs">NIGHT BUS HYMNS</text>`],
+    ['Kitchen Radio', `LP · ${y - 4}`, '#E9B44C', `<rect width="200" height="200" fill="#E9B44C"/><circle cx="100" cy="100" r="70" fill="none" stroke="#171310" stroke-width="10"/><circle cx="100" cy="100" r="44" fill="none" stroke="#EF6A2E" stroke-width="10"/><circle cx="100" cy="100" r="18" fill="#171310"/><text x="14" y="190" font-family="Space Mono" font-weight="700" font-size="12" fill="#171310">KITCHEN RADIO</text>`],
+    ['Tape Weather', `Single · ${y - 5}`, '#4FA39C', `<rect width="200" height="200" fill="#4FA39C"/>${Array.from({ length: 10 }, (_, i) => `<rect x="0" y="${i * 20}" width="200" height="${6 + (i % 3) * 3}" fill="#2C5E5A" opacity="${.4 + (i % 4) * .15}"/>`).join('')}<rect x="30" y="30" width="140" height="140" fill="none" stroke="#F2E9DA" stroke-width="3"/><text x="40" y="160" font-family="Syne" font-weight="800" font-size="15" fill="#F2E9DA" textLength="120" lengthAdjust="spacingAndGlyphs">TAPE WEATHER</text>`],
+  ]
+  $('#sleeves').innerHTML = REL.map(([t, m, lc, art]) => `<article class="sleeve"><div class="holder"><div class="vinyl" style="--lc:${lc}" aria-hidden="true"></div><div class="cover"><svg viewBox="0 0 200 200" role="img" aria-label="Cover of ${t}">${art}</svg></div></div><h3>${t}</h3><p>${m}</p><a href="#tracks" aria-label="${t} — listen"></a></article>`).join('')
+
+  /* ---------- tour ---------- */
+  const TOUR = [[12, 'Tokyo', 'Studio Coral', 'few'], [15, 'Osaka', 'Harbour Hall 2', 'sold'], [21, 'Busan', 'Ferry Terminal 3', 'on'], [34, 'Taipei', 'The Lantern Room', 'on'], [58, 'Glasgow', 'The Long Room', 'on'], [63, 'Hamburg', 'Boiler Hall', 'few'], [70, 'Lisbon', 'Salt Warehouse', 'on']]
+  $('#tour-list').innerHTML = TOUR.map(([d, c, v, s]) => { const dt = addDays(d); return `<li class="stub"><p class="d"><b>${String(dt.getDate()).padStart(2, '0')}</b>${MON[dt.getMonth()]} ${dt.getFullYear()}</p><p class="c">${c}</p><p class="v">${v}${s === 'few' ? ' · last few' : ''}</p><div class="act">${s === 'sold' ? '<span class="so">Sold out</span>' : `<button aria-pressed="false" data-city="${c}">Remind me</button>`}</div></li>` }).join('')
+  $('#tour-list').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); b.textContent = on ? 'Reminder set ✓' : 'Remind me' })
+
+  /* ---------- motion ---------- */
+  if (!hasGsap) return
+  gsap.registerPlugin(ScrollTrigger)
+  if (!reduced) {
+    const lenis = new Lenis({ duration: 1.2, smoothWheel: true })
+    window.lenis = lenis
+    lenis.on('scroll', (l) => { ScrollTrigger.update(); boost = Math.max(-600, Math.min(900, boost + l.velocity * 6)) })
+    gsap.ticker.add((t) => lenis.raf(t * 1000)); gsap.ticker.lagSmoothing(0)
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const el = $(a.getAttribute('href')); if (!el) return
+    e.preventDefault(); window.lenis ? lenis.scrollTo(el, { offset: a.getAttribute('href') === '#top' ? 0 : -10, duration: 1.5 }) : el.scrollIntoView()
+  }))
+  if (reduced) {
+    gsap.set('#hero-arm', { rotation: 4 }); gsap.set('#t-arm', { rotation: 4 })
+    $('.tracks').style.height = 'auto'; $('.tracks-in').style.position = 'relative'
+    return
+  }
+
+  /* hero: record slides in spinning up, tonearm drops, name rises */
+  gsap.set('.hero h1 .ln span', { yPercent: 110 })
+  gsap.set('.hero .new, .hero .lede, .hero .ctas', { opacity: 0, y: 20 })
+  gsap.set('#hero-rec', { xPercent: 40, rotation: 0, opacity: 0 })
+  gsap.set('#hero-arm', { rotation: -24, opacity: 0 })
+  gsap.timeline({ defaults: { ease: 'expo.out' } })
+    .to('#hero-rec', { xPercent: 0, opacity: 1, duration: 1.4 }, 0)
+    .to('.hero h1 .ln span', { yPercent: 0, duration: 1.1, stagger: .1 }, .15)
+    .to('.hero .new', { opacity: 1, y: 0, duration: .7 }, .3)
+    .to('#hero-arm', { opacity: 1, duration: .4 }, .6)
+    .to('#hero-arm', { rotation: 4, duration: 1.2, ease: 'power3.inOut' }, .7)
+    .to('.hero .lede, .hero .ctas', { opacity: 1, y: 0, duration: .8, stagger: .08 }, .6)
+  gsap.to('.hero-deck', { yPercent: 12, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+
+  /* tracklist: record turns and the arm travels inward with scroll (continuous); highlighted track follows */
+  const tt = gsap.timeline({ defaults: { ease: 'none' } })
+  tt.fromTo('#t-rec .disc', { rotation: 0 }, { rotation: 2160, duration: 1 }, 0)
+    .fromTo('#t-arm', { rotation: 0 }, { rotation: 14, duration: 1 }, 0)
+    .fromTo('.t-bar i', { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0)
+  ScrollTrigger.create({ trigger: '.tracks', start: 'top top', end: '+=260%', pin: true, scrub: .6, animation: tt, onUpdate: (st) => setTrack(Math.min(.9999, st.progress)) })
+
+  const reveal = (sel, trig, vars = {}) => { const els = $$(sel); if (!els.length) return; gsap.set(els, { opacity: 0, y: 40 }); ScrollTrigger.create({ trigger: trig || els[0], start: 'top 86%', once: true, onEnter: () => gsap.to(els, { opacity: 1, y: 0, duration: 1, stagger: .08, ease: 'expo.out', clearProps: 'transform', ...vars }) }) }
+  reveal('.synth-head > *', '.synth-head')
+  gsap.set('#synth-panel', { opacity: 0, y: 60, scale: .97 })
+  ScrollTrigger.create({ trigger: '#synth-panel', start: 'top 85%', once: true, onEnter: () => gsap.to('#synth-panel', { opacity: 1, y: 0, scale: 1, duration: 1.2, ease: 'expo.out', clearProps: 'transform' }) })
+  reveal('.releases > .tag, .releases > .h2', '.releases'); reveal('.sleeve', '.sleeves')
+  reveal('.tour > *:not(.tour-list)', '.tour'); reveal('.stub', '.tour-list', { stagger: .06 })
+  reveal('.about > div > *', '.about')
+  gsap.from('.foot .band', { opacity: 0, y: 40, duration: 1.4, ease: 'expo.out', scrollTrigger: { trigger: '.foot', start: 'top 85%', toggleActions: 'play none none none' } })
+  addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

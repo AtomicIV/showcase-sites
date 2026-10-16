@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Current — Independent news, read slowly</title>
+<meta name="description" content="The Current is an independent, reader-funded news magazine. This week: a scrollytelling data story about summers, with a city picker that redraws every number (illustrative data).">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23F3EFE6'/%3E%3Cg%3E%3Crect x='6' y='40' width='7' height='18' fill='%232166AC'/%3E%3Crect x='13' y='40' width='7' height='18' fill='%2392C5DE'/%3E%3Crect x='20' y='40' width='8' height='18' fill='%23F7F7F7'/%3E%3Crect x='28' y='40' width='8' height='18' fill='%23F4A582'/%3E%3Crect x='36' y='40' width='8' height='18' fill='%23D6604D'/%3E%3Crect x='44' y='40' width='7' height='18' fill='%23B2182B'/%3E%3Crect x='51' y='40' width='7' height='18' fill='%2367001F'/%3E%3C/g%3E%3Ctext x='32' y='33' font-family='Georgia,serif' font-weight='700' font-size='30' text-anchor='middle' fill='%23121212'%3EC%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3EFE6; --paper-2:#EAE4D7; --ink:#121212; --ink-2:#3B3833; --muted:#5A554D; --rule:#121212; --hair:rgba(18,18,18,.18);
+  --blue:#2166AC; --blue-l:#92C5DE; --red:#B2182B; --red-d:#67001F; --link:#8C1220; --hi:#F6E27A;
+  --black:"UnifrakturMaguntia", serif; --head:"Old Standard TT", Georgia, serif; --serif:"PT Serif", Georgia, serif; --cond:"IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:18px;line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:200;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--link);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--paper);padding:10px 16px;z-index:300}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1240px,100% - 64px);margin-inline:auto}
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.04;letter-spacing:-.01em}
+p{margin:0}
+.kick{font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--link)}
+.cap{font-family:var(--cond);font-size:14px;color:var(--muted);line-height:1.4}
+.mask{display:block;overflow:hidden;padding:.06em 0 .12em;margin:-.06em 0 -.12em}
+.mask>span{display:block}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);font-family:var(--cond);font-weight:600;font-size:15px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:background .3s,color .3s,box-shadow .3s}
+.btn:hover{background:var(--paper);color:var(--ink);box-shadow:4px 4px 0 var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:var(--paper)}
+.k{transition:background .4s}
+.k.flash{animation:flash 1.4s ease-out}
+@keyframes flash{0%{background:var(--hi)}100%{background:transparent}}
+.illus{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border:1px solid var(--ink);font-family:var(--cond);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;background:var(--paper)}
+.illus::before{content:"";width:8px;height:8px;background:repeating-linear-gradient(45deg,var(--ink) 0 2px,transparent 2px 4px)}
+
+/* top bar (sticky after masthead) */
+.bar{position:fixed;top:0;left:0;right:0;z-index:90;background:rgba(243,239,230,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--ink);transform:translateY(-101%);transition:transform .45s var(--ease)}
+.bar.on{transform:none}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;height:58px;gap:16px}
+.bar .mini{font-family:var(--black);font-size:30px;text-decoration:none;line-height:1;min-height:44px;display:flex;align-items:center}
+.bar ul{display:flex;gap:2px;list-style:none;margin:0;padding:0}
+.bar ul a,.secnav a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;font-family:var(--cond);font-weight:500;font-size:15px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none}
+.bar ul a:hover,.secnav a:hover{text-decoration:underline;text-underline-offset:4px}
+.bar .r{display:flex;align-items:center;gap:8px}
+.bar .btn{min-height:40px;padding:0 14px;font-size:13px}
+.menu-btn{display:none;width:44px;height:44px;border:1.5px solid var(--ink);background:transparent;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:18px;height:2px;background:var(--ink);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:0;right:0;top:58px;z-index:89;background:var(--paper);border-bottom:2px solid var(--ink);padding:10px 16px 18px;display:grid;opacity:0;visibility:hidden;transform:translateY(-8px);transition:all .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:52px;border-bottom:1px solid var(--hair);font-family:var(--head);font-weight:700;font-size:26px;text-decoration:none}
+
+/* masthead */
+.mast{padding:22px 0 0}
+.mast-top{display:flex;justify-content:space-between;align-items:center;gap:16px;font-family:var(--cond);font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);padding-bottom:10px}
+.mast-top .mid{display:flex;gap:18px}
+.rule2{height:5px;border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);transform-origin:center}
+.rule1{height:0;border-top:1px solid var(--ink);transform-origin:center}
+.title{font-family:var(--black);font-weight:400;font-size:clamp(64px,11.5vw,170px);line-height:1;text-align:center;margin:10px 0 4px;letter-spacing:.01em}
+.title span{display:inline-block}
+.strap{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:8px 0;font-family:var(--head);font-style:italic;font-size:17px}
+.secnav{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;padding:4px 0}
+.stripebar{display:flex;height:12px;margin:0}
+.stripebar i{flex:1}
+
+/* front page */
+.front{padding:30px 0 70px}
+.fgrid{display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,1fr);gap:0}
+.lead{padding-right:34px;border-right:1px solid var(--ink)}
+.lead .lh{font-size:clamp(46px,6vw,96px);line-height:.98;margin:12px 0 18px;letter-spacing:-.02em}
+.lead .lh em{font-style:italic;font-weight:400}
+.dek{font-family:var(--head);font-size:clamp(21px,1.8vw,26px);line-height:1.35;color:var(--ink-2);max-width:46ch}
+.byline{display:flex;flex-wrap:wrap;gap:6px 18px;margin:18px 0 22px;font-family:var(--cond);font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.byline b{color:var(--ink);font-weight:600}
+.stripes{position:relative;height:clamp(200px,24vw,330px);display:flex;cursor:crosshair;touch-action:pan-y}
+.stripes i{flex:1;transition:background .5s}
+.tip{position:absolute;top:10px;left:0;transform:translateX(-50%);padding:6px 10px;background:var(--ink);color:var(--paper);font-family:var(--cond);font-size:14px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}
+.tip.on{opacity:1}
+.figcap{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding:10px 0 0;border-top:1px solid var(--ink);margin-top:8px}
+.side{padding-left:30px;display:flex;flex-direction:column;gap:18px}
+.side h2{font-family:var(--cond);font-weight:600;font-size:14px;letter-spacing:.14em;text-transform:uppercase;border-bottom:3px double var(--ink);padding-bottom:6px}
+.side article{padding-bottom:16px;border-bottom:1px solid var(--hair)}
+.side article h3{font-size:24px;line-height:1.12;margin:6px 0 6px}
+.side article p{font-size:16px;color:var(--ink-2)}
+.side a{text-decoration:none}
+.side a:hover h3{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.picker{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px;border:1.5px solid var(--ink);background:var(--paper-2)}
+.picker label{font-family:var(--cond);font-weight:600;font-size:14px;letter-spacing:.1em;text-transform:uppercase}
+.sel{position:relative}
+.sel select{appearance:none;min-height:48px;padding:0 44px 0 14px;border:1.5px solid var(--ink);background:var(--paper);font-family:var(--head);font-weight:700;font-size:21px;cursor:pointer;border-radius:0}
+.sel::after{content:"";position:absolute;right:16px;top:50%;width:9px;height:9px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.picker .type{font-family:var(--head);font-style:italic;color:var(--ink-2);font-size:17px}
+
+/* story (pinned) */
+.story{position:relative;border-top:3px double var(--ink);border-bottom:3px double var(--ink)}
+.story-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:40px;align-items:center;padding:84px max(32px,calc((100% - 1240px)/2)) 28px;background:var(--paper)}
+.steps-col{position:relative;align-self:stretch;display:flex;flex-direction:column;justify-content:center}
+.steps-col .picker{margin-bottom:26px;padding:10px 12px}
+.steps-col .sel select{font-size:19px;min-height:44px}
+.steps{position:relative;min-height:290px}
+.step{position:absolute;inset:0}
+.step .n{font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--link)}
+.step h3{font-size:clamp(30px,2.8vw,44px);margin:10px 0 14px}
+.step p{font-size:19px;line-height:1.55;color:var(--ink-2)}
+.step b{font-weight:700;color:var(--ink)}
+.dots{display:flex;gap:8px;margin-top:20px}
+.dots i{width:28px;height:4px;background:var(--hair);position:relative;overflow:hidden}
+.dots i::after{content:"";position:absolute;inset:0;background:var(--ink);transform:scaleX(var(--f,0));transform-origin:left}
+.chart{position:relative;height:100%;max-height:78vh;display:flex;flex-direction:column;justify-content:center}
+.chart-h{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;border-bottom:1px solid var(--ink);padding-bottom:8px;margin-bottom:6px}
+.chart-h h2{font-size:clamp(20px,1.7vw,26px)}
+.chart svg{width:100%;height:auto;max-height:64vh;overflow:visible}
+.chart .src{margin-top:6px}
+.ann{opacity:0;transition:opacity .6s var(--ease)}
+.ann.on{opacity:1}
+
+/* numbers */
+.nums{padding:90px 0}
+.nums-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;border-bottom:3px double var(--ink);padding-bottom:12px;margin-bottom:0}
+.nums-head h2{font-size:clamp(38px,4.4vw,66px)}
+.ngrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.ngrid div{padding:26px 22px 24px;border-right:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+.ngrid div:last-child{border-right:0}
+.ngrid b{display:block;font-family:var(--head);font-weight:700;font-size:clamp(54px,5.4vw,86px);line-height:1;letter-spacing:-.03em}
+.ngrid span{display:block;margin-top:10px;font-size:17px;color:var(--ink-2)}
+.method{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;margin-top:26px;padding:16px;background:var(--paper-2);border-left:4px solid var(--ink)}
+.method p{font-size:16px;color:var(--ink-2)}
+
+/* opinion */
+.op{padding:30px 0 90px}
+.op-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:0;border-top:1px solid var(--ink)}
+.essay{padding:26px 34px 0 0;border-right:1px solid var(--ink)}
+.essay h2{font-size:clamp(36px,3.8vw,58px);margin:10px 0 10px}
+.essay .byline{margin:8px 0 18px}
+.cols{columns:2;column-gap:34px;column-rule:1px solid var(--hair)}
+.cols p{margin-bottom:14px;text-align:justify;hyphens:auto}
+.cols p:first-child::first-letter{float:left;font-family:var(--head);font-weight:700;font-size:78px;line-height:.82;padding:6px 8px 0 0}
+.pq{break-inside:avoid;margin:6px 0 18px;padding:14px 0;border-top:3px solid var(--ink);border-bottom:1px solid var(--ink);font-family:var(--head);font-style:italic;font-size:26px;line-height:1.25}
+.letters{padding:26px 0 0 30px}
+.letters h2{font-family:var(--cond);font-weight:600;font-size:14px;letter-spacing:.14em;text-transform:uppercase;border-bottom:3px double var(--ink);padding-bottom:6px;margin-bottom:12px}
+.letters blockquote{margin:0 0 16px;padding-bottom:16px;border-bottom:1px solid var(--hair);font-size:17px}
+.letters cite{display:block;margin-top:6px;font-style:normal;font-family:var(--cond);font-size:14px;color:var(--muted)}
+.cartoon{border:1.5px solid var(--ink);padding:10px;margin-top:6px}
+.cartoon svg{width:100%;height:auto}
+
+/* also */
+.also{padding:0 0 90px}
+.also-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:3px double var(--ink)}
+.also article{padding:22px 22px 26px;border-right:1px solid var(--ink)}
+.also article:first-child{padding-left:0}
+.also article:last-child{border-right:0;padding-right:0}
+.also .pic{aspect-ratio:3/2;margin:10px 0 14px;background:var(--paper-2);border:1px solid var(--ink);overflow:hidden}
+.also .pic svg{width:100%;height:100%;transition:transform 1s var(--ease)}
+.also article:hover .pic svg{transform:scale(1.05)}
+.also h3{font-size:28px;line-height:1.1;margin-bottom:8px}
+.also a{text-decoration:none}
+.also a:hover h3{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.also p{font-size:16px;color:var(--ink-2)}
+
+/* support */
+.support{padding:80px 0;background:var(--ink);color:var(--paper)}
+.support .wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:60px;align-items:center}
+.support h2{font-size:clamp(40px,4.6vw,70px)}
+.support h2 em{font-style:italic;font-weight:400}
+.support p.lead{margin-top:16px;font-size:19px;color:#D8D2C6;max-width:42ch}
+.support .kick{color:#F2B8B8}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1.5px solid var(--paper)}
+.tier{position:relative;display:flex;flex-direction:column;gap:6px;padding:18px;border-right:1px solid rgba(243,239,230,.35);cursor:pointer;transition:background .3s}
+.tier:last-child{border-right:0}
+.tier input{position:absolute;opacity:0;pointer-events:none}
+.tier b{font-family:var(--head);font-size:40px;line-height:1}
+.tier span{font-family:var(--cond);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:#D8D2C6}
+.tier small{font-size:15px;color:#D8D2C6}
+.tier:has(input:checked){background:var(--paper);color:var(--ink)}
+.tier:has(input:checked) span,.tier:has(input:checked) small{color:var(--ink-2)}
+.tier:has(input:focus-visible){outline:2px solid var(--hi);outline-offset:-4px}
+.sform{display:flex;gap:8px;margin-top:14px}
+.sform input{flex:1;min-width:0;min-height:50px;padding:0 14px;border:1.5px solid var(--paper);background:transparent;color:var(--paper)}
+.sform input::placeholder{color:#B9B2A5}
+.support .btn{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.support .btn:hover{box-shadow:4px 4px 0 var(--red)}
+.support .ok{min-height:24px;margin-top:10px;font-size:16px;color:#D8D2C6}
+
+footer{padding:40px 0 34px}
+footer .ft{text-align:center;font-family:var(--black);font-size:56px;line-height:1;margin:10px 0}
+footer .cols3{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:18px 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+footer h4{margin:0 0 6px;font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:34px;text-decoration:none;font-size:16px}
+footer li a:hover{text-decoration:underline}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-top:12px;font-family:var(--cond);font-size:14px;color:var(--muted)}
+
+.rmc .story-pin{height:auto;padding-top:80px;padding-bottom:60px}
+.rmc .steps{min-height:0;display:grid;gap:26px}
+.rmc .step{position:static}
+.rmc .ann{opacity:1}
+
+@media (max-width:1000px){
+  .bar ul{display:none}
+  .menu-btn{display:inline-flex}
+  .bar .btn{display:none}
+  .fgrid,.op-grid,.support .wrap{grid-template-columns:1fr}
+  .lead{padding-right:0;border-right:0}
+  .side{padding:26px 0 0;border-top:3px double var(--ink);margin-top:26px}
+  .essay{padding-right:0;border-right:0}
+  .letters{padding:26px 0 0}
+  .story-pin{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:14px;padding:70px 32px 20px}
+  .chart{order:1;max-height:none;min-height:0}
+  .steps-col{order:2;justify-content:flex-start}
+  .ngrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ngrid div:nth-child(2){border-right:0}
+  .also-grid{grid-template-columns:1fr}
+  .also article,.also article:first-child,.also article:last-child{padding:22px 0;border-right:0;border-bottom:1px solid var(--ink)}
+  footer .cols3{grid-template-columns:1fr 1fr}
+}
+@media (max-width:760px){
+  .wrap{width:calc(100% - 32px)}
+  body{font-size:17px}
+  .mast-top .mid{display:none}
+  .mast-top{font-size:12px}
+  .strap{flex-direction:column;gap:2px;font-size:15px;text-align:center}
+  .secnav a{padding:0 8px;font-size:14px}
+  .lead .lh{font-size:clamp(40px,11vw,54px)}
+  .dek{font-size:19px}
+  .stripes{height:160px}
+  .figcap{flex-direction:column;gap:8px}
+  .picker{padding:10px}
+  .sel select{font-size:18px}
+  .story-pin{padding:66px 16px 14px}
+  .steps-col .picker{margin-bottom:10px;padding:8px 10px;gap:8px}
+  .steps-col .picker .type{display:none}
+  .steps-col .picker label{font-size:12px}
+  .steps{min-height:212px}
+  .step h3{font-size:26px;margin:6px 0 8px}
+  .step p{font-size:16px;line-height:1.5}
+  .dots{margin-top:10px}
+  .chart-h h2{font-size:17px}
+  .chart-h .illus{font-size:10px}
+  .nums{padding:60px 0}
+  .nums-head{flex-direction:column;align-items:flex-start}
+  .ngrid div{padding:20px 14px}
+  .ngrid b{font-size:42px}
+  .ngrid span{font-size:15px}
+  .cols{columns:1}
+  .pq{font-size:22px}
+  .tiers{grid-template-columns:1fr}
+  .tier{border-right:0;border-bottom:1px solid rgba(243,239,230,.35)}
+  .support{padding:60px 0}
+  footer .ft{font-size:42px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar" id="bar">
+  <div class="wrap">
+    <a class="mini" href="#top" aria-label="The Current, front page">The Current</a>
+    <nav aria-label="Sections"><ul><li><a href="#story">Climate</a></li><li><a href="#numbers">Your city</a></li><li><a href="#opinion">Opinion</a></li><li><a href="#also">Also inside</a></li></ul></nav>
+    <div class="r"><a class="btn" href="#support">Support us</a><button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><i></i></button></div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true"><a href="#story">Climate</a><a href="#numbers">Your city</a><a href="#opinion">Opinion</a><a href="#also">Also inside</a><a href="#support">Support us</a></div>
+
+<main id="main">
+<div class="mast" id="top">
+  <div class="wrap">
+    <div class="mast-top mf"><span id="today">—</span><span class="mid"><span>Vol. XII · No. <span id="issue">41</span></span><span>Reader-funded since 2014</span></span><span>Free to read</span></div>
+    <div class="rule2"></div>
+    <h1 class="title" id="title" aria-label="The Current">The Current</h1>
+    <div class="rule1"></div>
+    <div class="strap mf"><span>Independent news, read slowly.</span><span>“All the news that's worth the time.”</span></div>
+    <div class="rule2"></div>
+    <nav class="secnav mf" aria-label="Front page sections"><a href="#story">Climate</a><a href="#numbers">Cities</a><a href="#opinion">Opinion</a><a href="#letters">Letters</a><a href="#also">Culture</a><a href="#support">Membership</a></nav>
+    <div class="stripebar" id="stripebar" aria-hidden="true"></div>
+  </div>
+</div>
+
+<section class="front" aria-labelledby="lead-h">
+  <div class="wrap fgrid">
+    <div class="lead">
+      <p class="kick lf">Climate · A data story</p>
+      <h2 id="lead-h" class="lh"><span class="mask"><span>The summers</span></span><span class="mask"><span>your city <em>used to</em></span></span><span class="mask"><span>have.</span></span></h2>
+      <p class="dek lf">We modelled seventy-six summers in six cities. Pick yours, then scroll: every line, bar and number in this story redraws for the place you choose.</p>
+      <p class="byline lf">By <b>Ana Lindqvist</b> and <b>Tomas Reyes</b> · Graphics by <b>Priya Hale</b> · <span id="readtime">9 min read</span></p>
+      <div class="picker lf"><label for="city1">Your city</label><span class="sel"><select id="city1" data-city></select></span><span class="type" data-k="type">—</span></div>
+      <div class="stripes lf" id="stripes" role="img" aria-label="Warming stripes: one stripe per summer from 1950 to 2025, blue cooler and red warmer than the 1951 to 1980 average. Illustrative data."><span class="tip" id="tip" aria-hidden="true"></span></div>
+      <div class="figcap lf"><p class="cap">One stripe per summer, 1950–2025, coloured by how far it ran from the 1951–1980 average in <span class="k" data-k="city">—</span>. Hover or tap a stripe.</p><span class="illus">Illustrative data</span></div>
+    </div>
+    <aside class="side">
+      <h2>In this issue</h2>
+      <a href="#opinion"><article><p class="kick">Opinion</p><h3>Air-conditioning is not a climate plan</h3><p>Shade, trees and thick walls did it for centuries. We forgot.</p></article></a>
+      <a href="#also"><article><p class="kick">Cities</p><h3>The bus drivers who mapped every shady stop</h3><p>A route redesign started with a spreadsheet and a thermometer.</p></article></a>
+      <a href="#letters"><article><p class="kick">Letters</p><h3>“My allotment has never been so confused”</h3><p>Readers on the seasons that no longer arrive on time.</p></article></a>
+      <a href="#support"><article><p class="kick">Membership</p><h3>Why we will never put this behind a paywall</h3><p>A note from the editor on who pays for The Current.</p></article></a>
+    </aside>
+  </div>
+</section>
+
+<section class="story" id="story" aria-labelledby="chart-h">
+  <div class="story-pin" id="storyPin">
+    <div class="steps-col">
+      <div class="picker"><label for="city2">City</label><span class="sel"><select id="city2" data-city></select></span><span class="type" data-k="type">—</span></div>
+      <div class="steps" id="steps">
+        <article class="step"><p class="n">1 of 5 · The old normal</p><h3>A summer used to mean <span class="k" data-k="base">—</span></h3><p>Between 1951 and 1980, a typical June-to-August in <b class="k" data-k="city">—</b> averaged <b class="k" data-k="base">—</b>. That thirty-year stretch is the yardstick most climate records are measured against.</p></article>
+        <article class="step"><p class="n">2 of 5 · Thirty quiet years</p><h3>For a while, not much changed</h3><p>Hot summers and cool ones traded places. Year to year the line jumps about, but the long-run trend through the 1970s stays close to the old average.</p></article>
+        <article class="step"><p class="n">3 of 5 · The climb</p><h3>Then the line started to rise</h3><p>The last ten summers in <b class="k" data-k="city">—</b> averaged <b class="k" data-k="now">—</b>, which is <b class="k" data-k="delta">—</b> above the old normal. Not one of them came in below it.</p></article>
+        <article class="step"><p class="n">4 of 5 · Hot days</p><h3>The hot days add up</h3><p>In the 1950s, <b class="k" data-k="city">—</b> saw about <b class="k" data-k="hot0d">—</b> a summer above 30°C. In the 2020s it is <b class="k" data-k="hot1d">—</b>. Heat isn't only a higher average: it is more days you plan your life around.</p></article>
+        <article class="step"><p class="n">5 of 5 · The next 25 years</p><h3>What 2050 could look like</h3><p>Depending on how fast emissions fall, summers by mid-century could run <b class="k" data-k="plo">—</b> to <b class="k" data-k="phi">—</b> above the old normal. The lower number is not luck; it is a choice still on the table.</p></article>
+      </div>
+      <div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <figure class="chart" style="margin:0">
+      <div class="chart-h"><h2 id="chart-h">Summer temperature, <span class="k" data-k="city">—</span></h2><span class="illus">Illustrative data</span></div>
+      <svg viewBox="0 0 800 440" id="chartSvg" role="img" aria-labelledby="chart-h" aria-describedby="chart-d"></svg>
+      <figcaption class="cap src" id="chart-d">June–August mean temperature, yearly (thin) and ten-year average (thick). Figures are generated for this design concept and are not real measurements or forecasts.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="nums" id="numbers" aria-labelledby="nums-h">
+  <div class="wrap">
+    <div class="nums-head"><div><p class="kick">By the numbers</p><h2 id="nums-h" class="split" style="margin-top:8px"><span class="k" data-k="city">—</span>, then and now</h2></div><div class="picker" style="border-width:1px"><label for="city3">City</label><span class="sel"><select id="city3" data-city></select></span></div></div>
+    <div class="ngrid">
+      <div class="rv"><b class="k" data-k="delta">—</b><span>warmer summers than the 1951–1980 average</span></div>
+      <div class="rv"><b class="k" data-k="hot1">—</b><span>days above 30°C in a typical 2020s summer</span></div>
+      <div class="rv"><b class="k" data-k="ratio">—</b><span>as many hot days as in the 1950s</span></div>
+      <div class="rv"><b class="k" data-k="phi">—</b><span>by 2050 in the high-emissions scenario</span></div>
+    </div>
+    <div class="method rv"><span class="illus">Method</span><p>Every number on this page is illustrative: the six cities are fictional and their summers were generated for this design concept from a simple trend-plus-noise model. They show how a story like this would work, not what any real place has measured.</p></div>
+  </div>
+</section>
+
+<section class="op" id="opinion" aria-labelledby="op-h">
+  <div class="wrap op-grid">
+    <article class="essay">
+      <p class="kick">Opinion</p>
+      <h2 id="op-h" class="split">Air-conditioning is not<br>a climate plan</h2>
+      <p class="byline">By <b>Marguerite Osei</b> · architect and columnist</p>
+      <div class="cols rv">
+        <p>Walk through any old town built for hot summers and you will see the answer before anyone has to explain it. Narrow streets that keep each other in shade. Walls thick enough to hold the night's cool until the afternoon. Courtyards with a tree, a little water and a reason to sit still.</p>
+        <p>We stopped building like that because, for a few decades, we didn't need to. Electricity was cheap, glass was fashionable and the summers were mild enough to get away with it. A machine on the wall could fix whatever the building got wrong.</p>
+        <blockquote class="pq">A cool room that heats the street outside is not a solution. It is a transfer.</blockquote>
+        <p>That bargain is running out. Air-conditioners pour heat into the street, draw power at exactly the hour the grid is most stretched, and do nothing for the bus stop, the playground or the people who can't afford to run one.</p>
+        <p>None of this means switching them off. It means treating them as the last line of defence rather than the first: plant the trees, paint the roofs, open the windows at night, and build the next school as if the summers in the chart above are the summers it will have to survive.</p>
+      </div>
+    </article>
+    <aside class="letters" id="letters" aria-labelledby="let-h">
+      <h2 id="let-h">Letters to the editor</h2>
+      <blockquote class="rv">My allotment has never been so confused. The courgettes came in June, the apples in July, and the tomatoes simply gave up.<cite>— Rosalind Achebe, by post</cite></blockquote>
+      <blockquote class="rv">Thank you for printing the chart with a city picker. My father and I argued about whose town had it worse. We were both right.<cite>— Dev Malhotra, by email</cite></blockquote>
+      <div class="cartoon rv" aria-hidden="true"><svg viewBox="0 0 300 180"><rect width="300" height="180" fill="#F3EFE6"/><g fill="none" stroke="#121212" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 150h260"/><path d="M60 150V80h70v70"/><path d="M60 80l35-28 35 28"/><path d="M80 110h14v20H80z"/><circle cx="230" cy="52" r="22"/><path d="M230 18v-8M230 94v-8M196 52h-8M272 52h-8M206 28l-6-6M254 76l6 6M254 28l6-6M206 76l-6 6"/><path d="M160 150c0-26 14-40 30-40s24 12 24 24"/><path d="M180 110l-4-14 14 4"/></g><text x="150" y="172" text-anchor="middle" font-family="Old Standard TT, serif" font-style="italic" font-size="13" fill="#121212">“It's not the heat, it's the forty days of it.”</text></svg></div>
+    </aside>
+  </div>
+</section>
+
+<section class="also" id="also" aria-labelledby="also-h">
+  <div class="wrap">
+    <h2 id="also-h" class="sr">Also inside</h2>
+    <div class="also-grid">
+      <article class="rv"><a href="#also"><p class="kick">Cities</p><div class="pic" aria-hidden="true"><svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"><rect width="300" height="200" fill="#EAE4D7"/><g fill="#121212"><rect x="30" y="120" width="190" height="40" rx="8"/><circle cx="70" cy="164" r="12"/><circle cx="180" cy="164" r="12"/></g><g fill="#F3EFE6"><rect x="44" y="128" width="26" height="16"/><rect x="78" y="128" width="26" height="16"/><rect x="112" y="128" width="26" height="16"/><rect x="146" y="128" width="26" height="16"/></g><g fill="#3B3833"><circle cx="250" cy="70" r="40"/><rect x="246" y="100" width="8" height="64"/></g><path d="M200 176h100" stroke="#121212" stroke-width="2"/></svg></div><h3>The bus drivers who mapped every shady stop</h3><p>Forty drivers, one thermometer each and a summer of notes.</p></a></article>
+      <article class="rv"><a href="#also"><p class="kick">Culture</p><div class="pic" aria-hidden="true"><svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"><rect width="300" height="200" fill="#EAE4D7"/><g fill="none" stroke="#121212" stroke-width="2.5"><path d="M40 160V60h220v100"/><path d="M60 160V90h40v70M130 160V90h40v70M200 160V90h40v70"/><path d="M30 60h240M150 30v30"/></g><circle cx="150" cy="26" r="6" fill="#B2182B"/><g fill="#121212"><circle cx="80" cy="130" r="5"/><circle cx="150" cy="122" r="5"/><circle cx="220" cy="134" r="5"/></g></svg></div><h3>A library that stays open all night in August</h3><p>Cool rooms, quiet tables and a queue that starts at ten.</p></a></article>
+      <article class="rv"><a href="#also"><p class="kick">Economy</p><div class="pic" aria-hidden="true"><svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice"><rect width="300" height="200" fill="#EAE4D7"/><g fill="#121212"><rect x="50" y="110" width="22" height="60"/><rect x="90" y="90" width="22" height="80"/><rect x="130" y="70" width="22" height="100"/><rect x="170" y="100" width="22" height="70"/><rect x="210" y="50" width="22" height="120" fill="#B2182B"/></g><path d="M40 170h220" stroke="#121212" stroke-width="2"/></svg></div><h3>What a heatwave costs a small bakery</h3><p>Ovens, butter and staff who can't work at 41°C. We did the sums.</p></a></article>
+    </div>
+  </div>
+</section>
+
+<section class="support" id="support" aria-labelledby="sup-h">
+  <div class="wrap">
+    <div><p class="kick">Membership</p><h2 id="sup-h" class="split" style="margin-top:10px">Free to read,<br><em>paid for by readers</em></h2><p class="lead">No paywall, no billionaire, no ads that follow you around. The Current is funded by readers who chip in what they can, so everyone else can keep reading.</p></div>
+    <form id="supForm" novalidate>
+      <fieldset style="border:0;margin:0;padding:0"><legend class="sr">Choose a monthly amount</legend>
+        <div class="tiers"><label class="tier"><input type="radio" name="tier" value="4"><span>Reader</span><b>€4</b><small>a month · the weekly letter</small></label><label class="tier"><input type="radio" name="tier" value="9" checked><span>Supporter</span><b>€9</b><small>a month · plus the print edition</small></label><label class="tier"><input type="radio" name="tier" value="20"><span>Patron</span><b>€20</b><small>a month · plus events with the newsroom</small></label></div>
+      </fieldset>
+      <div class="sform"><label class="sr" for="supMail">Email address</label><input id="supMail" type="email" placeholder="Your email" autocomplete="email"><button class="btn" type="submit">Join</button></div>
+      <p class="ok" id="supOk" role="status"></p>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="rule2"></div>
+    <p class="ft" aria-hidden="true">The Current</p>
+    <div class="cols3">
+      <div><h4>Sections</h4><ul><li><a href="#story">Climate</a></li><li><a href="#numbers">Cities</a></li><li><a href="#opinion">Opinion</a></li></ul></div>
+      <div><h4>Read</h4><ul><li><a href="#letters">Letters</a></li><li><a href="#also">Culture</a></li><li><a href="#top">Front page</a></li></ul></div>
+      <div><h4>About</h4><ul><li><a href="#support">Membership</a></li><li><a href="#numbers">Our methods</a></li><li><a href="#letters">Corrections</a></li></ul></div>
+      <div><h4>Contact</h4><ul><li><a href="#letters">Write a letter</a></li><li><a href="#support">Tips</a></li><li><a href="#top">Advertising: none</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> The Current · Charts use illustrative data.</span><span>Concept design — fictional brand.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rmc')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+const seg = (p, a, b) => clamp((p - a) / (b - a), 0, 1)
+const lerp = (a, b, t) => a + (b - a) * t
+const rnd = (i, k = 1) => { const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v) }
+const now = new Date()
+$('#yr').textContent = now.getFullYear()
+$('#today').textContent = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+{ const start = new Date(now.getFullYear(), 0, 1); $('#issue').textContent = Math.ceil(((now - start) / 864e5 + start.getDay() + 1) / 7) }
+
+/* ---------- illustrative data model ---------- */
+const CITIES = [
+  { n: 'Port Ellery', t: 'a temperate harbour town', base: 17.4, rise: 1.6, hot: [1, 1, 2, 2, 3, 5, 8, 11], p: [2.2, 3.1] },
+  { n: 'Altmark', t: 'an inland river city', base: 20.1, rise: 2.3, hot: [6, 5, 7, 8, 11, 16, 22, 29], p: [3.0, 4.1] },
+  { n: 'San Corvo', t: 'a Mediterranean port', base: 24.6, rise: 2.0, hot: [28, 27, 30, 33, 38, 45, 54, 62], p: [2.7, 3.8] },
+  { n: 'Kestrel Falls', t: 'a northern lake town', base: 15.2, rise: 2.6, hot: [1, 1, 1, 1, 2, 3, 5, 8], p: [3.3, 4.6] },
+  { n: 'Valmora', t: 'a high-plateau capital', base: 18.8, rise: 1.8, hot: [2, 2, 3, 3, 5, 7, 10, 14], p: [2.4, 3.3] },
+  { n: 'New Harrow', t: 'a delta megacity', base: 27.3, rise: 1.5, hot: [61, 60, 64, 67, 72, 79, 86, 89], p: [2.1, 2.9] },
+]
+const Y0 = 1950, Y1 = 2025, YN = Y1 - Y0 + 1
+function build(ci) {
+  const c = CITIES[ci]
+  const series = Array.from({ length: YN }, (_, i) => {
+    const y = Y0 + i, tr = y < 1980 ? 0 : c.rise * Math.pow((y - 1980) / 45, 1.35)
+    return c.base + tr + (rnd(i, ci + 2) - .5) * 1.1 + Math.sin(i * .7 + ci) * .18
+  })
+  const smooth = series.map((_, i) => { const a = series.slice(Math.max(0, i - 4), Math.min(YN, i + 6)); return a.reduce((s, v) => s + v, 0) / a.length })
+  const baseAvg = series.slice(1, 31).reduce((s, v) => s + v, 0) / 30
+  const recent = series.slice(YN - 10).reduce((s, v) => s + v, 0) / 10
+  return { series, smooth, hot: c.hot.slice(), base: baseAvg, recent, delta: recent - baseAvg, plo: c.p[0], phi: c.p[1], yMin: Math.floor(c.base - 1.6), yMax: Math.ceil(c.base + c.p[1] + .8), hMax: Math.max(10, Math.ceil(Math.max(...c.hot) * 1.25 / 10) * 10) }
+}
+let ci = 0, D = build(0), shown = JSON.parse(JSON.stringify(D))
+
+/* ---------- city text ---------- */
+const sgn = (v) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(1)}°C`
+function texts() {
+  const c = CITIES[ci], r = D.hot[0] ? D.hot[7] / D.hot[0] : D.hot[7]
+  return { city: c.n, type: c.t[0].toUpperCase() + c.t.slice(1), base: `${D.base.toFixed(1)}°C`, now: `${D.recent.toFixed(1)}°C`, delta: sgn(D.delta), hot0: String(D.hot[0]), hot1: String(D.hot[7]), hot0d: `${D.hot[0]} day${D.hot[0] === 1 ? '' : 's'}`, hot1d: `${D.hot[7]} days`, ratio: `${r.toFixed(r < 10 ? 1 : 0)}×`, plo: sgn(D.plo), phi: sgn(D.phi) }
+}
+function applyText(flash) {
+  const T = texts()
+  $$('[data-k]').forEach((el) => {
+    const v = T[el.dataset.k]; if (v === undefined || el.textContent === v) return
+    el.textContent = v
+    if (flash && anim) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash') }
+  })
+}
+$$('[data-city]').forEach((s) => { s.innerHTML = CITIES.map((c, i) => `<option value="${i}">${c.n}</option>`).join('') })
+
+/* ---------- stripes ---------- */
+const STOPS = [[-1.2, [33, 102, 172]], [-.4, [146, 197, 222]], [0, [247, 247, 247]], [.6, [244, 165, 130]], [1.4, [214, 96, 77]], [2.2, [178, 24, 43]], [3, [103, 0, 31]]]
+function col(a) {
+  if (a <= STOPS[0][0]) return `rgb(${STOPS[0][1]})`
+  for (let i = 1; i < STOPS.length; i++) if (a <= STOPS[i][0]) { const [a0, c0] = STOPS[i - 1], [a1, c1] = STOPS[i], t = (a - a0) / (a1 - a0); return `rgb(${c0.map((v, k) => Math.round(lerp(v, c1[k], t))).join(',')})` }
+  return `rgb(${STOPS[STOPS.length - 1][1]})`
+}
+const stripes = $('#stripes')
+stripes.insertAdjacentHTML('beforeend', Array.from({ length: YN }, () => '<i></i>').join(''))
+const stripeEls = $$('i', stripes)
+$('#stripebar').innerHTML = Array.from({ length: 38 }, () => '<i></i>').join('')
+const barEls = $$('#stripebar i')
+function paintStripes() {
+  stripeEls.forEach((el, i) => { el.style.background = col(shown.series[i] - shown.base) })
+  barEls.forEach((el, i) => { const k = Math.round(i / 37 * (YN - 1)); el.style.background = col(shown.smooth[k] - shown.base) })
+}
+const tip = $('#tip')
+function showTip(e) {
+  const r = stripes.getBoundingClientRect(), i = clamp(Math.floor((e.clientX - r.left) / r.width * YN), 0, YN - 1)
+  tip.textContent = `${Y0 + i} · ${sgn(D.series[i] - D.base)}`
+  tip.style.left = `${clamp(e.clientX - r.left, 60, r.width - 60)}px`; tip.classList.add('on')
+}
+stripes.addEventListener('pointermove', showTip)
+stripes.addEventListener('pointerdown', showTip)
+stripes.addEventListener('pointerleave', () => tip.classList.remove('on'))
+
+/* ---------- chart ---------- */
+let VW = 800, VH = 440, FS = 13, mobileChart = null
+const M = { l: 54, r: 56, t: 34, b: 42 }, X1 = 2050
+const xs = (y) => M.l + (y - Y0) / (X1 - Y0) * (VW - M.l - M.r)
+const svg = $('#chartSvg')
+function buildChart() {
+  mobileChart = innerWidth < 760
+  VW = mobileChart ? 520 : 800; VH = mobileChart ? 420 : 440; FS = mobileChart ? 17 : 13; M.l = mobileChart ? 44 : 54; M.r = mobileChart ? 34 : 56
+  svg.setAttribute("viewBox", `0 0 ${VW} ${VH}`)
+  svg.innerHTML = `
+  <defs><clipPath id="drawClip"><rect id="clipR" x="0" y="0" width="0" height="${VH}"/></clipPath>
+  <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#F3EFE6"/><path d="M0 0v6" stroke="#B2182B" stroke-width="1.6"/></pattern></defs>
+  <g id="gGrid" font-family="IBM Plex Sans Condensed, sans-serif" font-size="${FS}" fill="#5A554D"></g>
+  <rect id="band" y="${M.t}" height="${VH - M.t - M.b}" fill="#121212" opacity=".06"/>
+  <text id="bandT" class="ann" font-family="IBM Plex Sans Condensed, sans-serif" font-size="${FS}" font-weight="600" fill="#121212">1951–1980 average</text>
+  <line id="baseL" stroke="#121212" stroke-width="1.5" stroke-dasharray="5 5"/>
+  <g id="gBars"></g>
+  <g id="gLines" clip-path="url(#drawClip)"><path id="pYear" fill="none" stroke="#121212" stroke-width="1.2" opacity=".45"/><path id="pTrend" fill="none" stroke="#B2182B" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/></g>
+  <g id="gProj" opacity="0"><path id="pBand" fill="url(#hatch)" opacity=".85"/><path id="pMid" fill="none" stroke="#B2182B" stroke-width="2" stroke-dasharray="6 5"/><text id="projT" font-family="IBM Plex Sans Condensed, sans-serif" font-size="${FS}" font-weight="600" fill="#8C1220" text-anchor="end"></text></g>
+  <g id="gEnd" opacity="0"><circle id="endDot" r="6" fill="#B2182B" stroke="#F3EFE6" stroke-width="2"/><text id="endT" font-family="Old Standard TT, serif" font-weight="700" font-size="${FS + 9}" fill="#121212"></text></g>
+  <line id="nowL" x1="${xs(2025)}" x2="${xs(2025)}" y1="${M.t}" y2="${VH - M.b}" stroke="#121212" stroke-width="1" opacity=".35"/>
+  <text x="${xs(2025) + 5}" y="${M.t + 12}" font-family="IBM Plex Sans Condensed, sans-serif" font-size="${FS - 1}" fill="#5A554D">today</text>`
+}
+buildChart()
+addEventListener("resize", () => { if ((innerWidth < 760) !== mobileChart) { buildChart(); drawChart() } })
+let drawYear = Y0, barsK = 0, projK = 0, lineFade = 1
+function ys(v) { return M.t + (1 - (v - shown.yMin) / (shown.yMax - shown.yMin)) * (VH - M.t - M.b) }
+function hy(d) { return VH - M.b - d / shown.hMax * (VH - M.t - M.b) * .62 }
+function drawChart() {
+  const S = shown
+  // grid + axes
+  let g = ''
+  const step = S.yMax - S.yMin > 8 ? 2 : 1
+  for (let v = Math.ceil(S.yMin); v <= S.yMax; v += step) g += `<line x1="${M.l}" x2="${VW - M.r}" y1="${ys(v).toFixed(1)}" y2="${ys(v).toFixed(1)}" stroke="#121212" stroke-opacity=".1"/><text x="${M.l - 8}" y="${(ys(v) + 4).toFixed(1)}" text-anchor="end">${v}°</text>`
+  ;(mobileChart ? [1950, 2000, 2050] : [1950, 1975, 2000, 2025, 2050]).forEach((y) => { g += `<text x="${xs(y)}" y="${VH - M.b + 22}" text-anchor="middle">${y}</text>` })
+  g += `<line x1="${M.l}" x2="${VW - M.r}" y1="${VH - M.b}" y2="${VH - M.b}" stroke="#121212"/>`
+  if (barsK > 0) for (let d = 0; d <= S.hMax; d += S.hMax / 2) g += `<text x="${VW - M.r + 8}" y="${(hy(d) + 4).toFixed(1)}" opacity="${barsK.toFixed(2)}">${Math.round(d)}d</text>`
+  $('#gGrid').innerHTML = g
+  $('#band').setAttribute('x', xs(1951)); $('#band').setAttribute('width', xs(1980) - xs(1951))
+  $('#bandT').setAttribute('x', xs(1951) + 8); $('#bandT').setAttribute('y', M.t + 18)
+  $('#baseL').setAttribute('x1', M.l); $('#baseL').setAttribute('x2', VW - M.r); $('#baseL').setAttribute('y1', ys(S.base)); $('#baseL').setAttribute('y2', ys(S.base))
+  const path = (arr) => arr.map((v, i) => `${i ? 'L' : 'M'}${xs(Y0 + i).toFixed(1)} ${ys(v).toFixed(1)}`).join('')
+  $('#pYear').setAttribute('d', path(S.series)); $('#pTrend').setAttribute('d', path(S.smooth))
+  $('#clipR').setAttribute('width', (xs(drawYear) + 4).toFixed(1))
+  $('#gLines').setAttribute('opacity', lineFade.toFixed(2))
+  // hot-day bars per decade
+  const bw = (xs(1960) - xs(1950)) * .62
+  $('#gBars').innerHTML = S.hot.map((d, k) => { const x = xs(1950 + k * 10 + 5) - bw / 2, h = (VH - M.b - hy(d)) * barsK; return `<rect x="${x.toFixed(1)}" y="${(VH - M.b - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0, h).toFixed(1)}" fill="#B2182B" opacity=".72"/><text x="${(x + bw / 2).toFixed(1)}" y="${(VH - M.b - h - 7).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Sans Condensed, sans-serif" font-size="${FS}" font-weight="600" fill="#121212" opacity="${barsK > .9 ? 1 : 0}">${Math.round(d)}</text>` }).join('')
+  $('#gBars').setAttribute('opacity', barsK > 0 ? 1 : 0)
+  // projection
+  const last = S.smooth[YN - 1], bx = xs(2025), ex = xs(2050)
+  $('#pBand').setAttribute('d', `M${bx} ${ys(last)}L${ex} ${ys(S.base + S.phi)}L${ex} ${ys(S.base + S.plo)}Z`)
+  $('#pMid').setAttribute('d', `M${bx} ${ys(last)}L${ex} ${ys(S.base + (S.plo + S.phi) / 2)}`)
+  $('#projT').setAttribute('x', ex); $('#projT').setAttribute('y', ys(S.base + S.phi) - 10); $('#projT').textContent = `2050: ${sgn(S.plo)} to ${sgn(S.phi)}`
+  $('#gProj').setAttribute('opacity', projK.toFixed(2))
+  // end marker
+  $('#endDot').setAttribute('cx', bx); $('#endDot').setAttribute('cy', ys(last))
+  $('#endT').setAttribute('x', bx - 12); $('#endT').setAttribute('y', ys(last) - 16); $('#endT').setAttribute('text-anchor', 'end'); $('#endT').textContent = sgn(S.recent - S.base)
+  $('#gEnd').setAttribute('opacity', (seg(drawYear, 2021, 2025) * (1 - barsK * .7)).toFixed(2))
+}
+let cityTw = null
+function setCity(i, from) {
+  if (i === ci && from !== 'init') return
+  ci = i; const target = build(i), start = JSON.parse(JSON.stringify(shown))
+  D = target
+  $$('[data-city]').forEach((s) => { if (+s.value !== i) s.value = i })
+  applyText(from !== 'init')
+  if (cityTw) cityTw.kill()
+  const mix = (t) => {
+    const o = {}
+    for (const k of Object.keys(target)) o[k] = Array.isArray(target[k]) ? target[k].map((v, j) => lerp(start[k][j], v, t)) : lerp(start[k], target[k], t)
+    shown = o; drawChart(); paintStripes()
+  }
+  if (!anim || from === 'init') { mix(1); return }
+  const p = { t: 0 }
+  cityTw = G.to(p, { t: 1, duration: .9, ease: 'power3.inOut', onUpdate: () => mix(p.t) })
+}
+$$('[data-city]').forEach((s) => s.addEventListener('change', () => setCity(+s.value)))
+setCity(0, 'init')
+
+/* ---------- story steps ---------- */
+const steps = $$('.step'), dots = $$('.dots i')
+function storyAt(p) {
+  drawYear = Y0 + 30 * seg(p, .1, .34) + 45 * seg(p, .44, .6)
+  barsK = seg(p, .63, .74) * (1 - seg(p, .84, .9))
+  lineFade = 1 - seg(p, .62, .7) * .78 + seg(p, .84, .9) * .78
+  projK = seg(p, .86, .96)
+  dots.forEach((d, i) => d.style.setProperty('--f', seg(p, i / 5, (i + 1) / 5).toFixed(3)))
+  drawChart()
+}
+let curS = -1, sTw = []
+function setStep(i) {
+  if (i === curS) return
+  const prev = curS; curS = i
+  $('#bandT').classList.toggle('on', i <= 1)
+  sTw.forEach((t) => t.kill()); sTw = []
+  steps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) sTw.push(G.to(steps[prev], { autoAlpha: 0, y: -12, duration: .3, ease: 'power2.in' }))
+  sTw.push(G.fromTo(steps[i], { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: .7, delay: prev >= 0 ? .2 : 0, ease: 'power3.out' }))
+}
+
+/* ---------- nav, menu, forms ---------- */
+const bar = $('#bar')
+const onS = () => bar.classList.toggle('on', scrollY > $('.title').offsetTop + $('.title').offsetHeight)
+addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Close menu' : 'Open menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+$('#supForm').addEventListener('submit', (e) => {
+  e.preventDefault()
+  const v = $('#supMail').value.trim(), t = ($('input[name=tier]:checked') || {}).value
+  $('#supOk').textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? `Thank you. €${t} a month keeps this page free for about ${t * 6} other readers.` : 'Please enter a valid email address.'
+})
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .1 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t, { offset: -60 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+
+if (!anim) {
+  storyAt(1); $('#bandT').classList.add('on')
+  // show the finished chart, hot-day bars included
+  barsK = 1; lineFade = .5; drawChart()
+  return
+}
+
+/* ---------- motion ---------- */
+const title = $('#title')
+title.innerHTML = [...'The Current'].map((c) => c === ' ' ? ' ' : `<span aria-hidden="true">${c}</span>`).join('')
+G.set(title.children, { autoAlpha: 0, y: -24, rotateX: -70 })
+G.set('.mast .rule2, .mast .rule1', { scaleX: 0 })
+G.set('.mf, .lf', { autoAlpha: 0, y: 14 })
+G.set('.lh .mask>span', { yPercent: 108 })
+G.set(barEls, { scaleY: 0, transformOrigin: 'bottom' })
+G.timeline({ delay: .1 })
+  .to('.mast .rule2, .mast .rule1', { scaleX: 1, duration: 1, ease: 'expo.out', stagger: .08 }, 0)
+  .to(title.children, { autoAlpha: 1, y: 0, rotateX: 0, duration: .9, stagger: .045, ease: 'back.out(1.6)' }, .15)
+  .to('.mf', { autoAlpha: 1, y: 0, duration: .6, stagger: .06, ease: 'power3.out' }, .5)
+  .to(barEls, { scaleY: 1, duration: .5, stagger: .012, ease: 'power2.out' }, .6)
+  .to('.lh .mask>span', { yPercent: 0, duration: 1, stagger: .1, ease: 'expo.out' }, .7)
+  .to('.lf', { autoAlpha: 1, y: 0, duration: .7, stagger: .07, ease: 'power3.out' }, .9)
+  .add(() => G.set(title.children, { clearProps: 'transform' }))
+G.from(stripeEls, { scaleY: 0, transformOrigin: 'bottom', duration: .6, stagger: .008, ease: 'power2.out', delay: 1.2 })
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 108 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, duration: 1, stagger: .1, ease: 'expo.out' }) })
+})
+G.set('.rv', { autoAlpha: 0, y: 30 })
+ScrollTrigger.batch('.rv', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: .9, stagger: .08, ease: 'expo.out', clearProps: 'transform' }) })
+
+G.set(steps, { autoAlpha: 0 })
+storyAt(0); setStep(0)
+ScrollTrigger.create({
+  trigger: '.story', start: 'top top', end: '+=360%', pin: '#storyPin', scrub: true,
+  onUpdate(self) { const p = self.progress; storyAt(p); setStep(p < .2 ? 0 : p < .4 ? 1 : p < .62 ? 2 : p < .82 ? 3 : 4) },
+})
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

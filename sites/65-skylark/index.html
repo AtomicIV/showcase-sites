@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skylark Air — Fly like it's still an occasion</title>
+<meta name="description" content="Skylark Air is a small airline flying from Lisbon to the islands, the Atlantic coast and beyond. Trace a route on the map, then pick your seat in the cabin.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23FBF3E4'/%3E%3Cpath d='M6 40C20 18 40 14 58 22' fill='none' stroke='%23F26B5B' stroke-width='6' stroke-linecap='round'/%3E%3Cpath d='M8 48C22 30 40 26 56 32' fill='none' stroke='%2314324F' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Yellowtail&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FBF3E4; --sand:#F4E6CC; --sky:#8FC9E8; --sky-l:#CFE8F5; --blue:#2E7FB8; --navy:#14324F; --navy-2:#24486B;
+  --coral:#F26B5B; --coral-t:#B23A2E; --mustard:#F2B544; --muted:#4F6275; --line:rgba(20,50,79,.16);
+  --disp:"Josefin Sans", "Futura", sans-serif; --script:"Yellowtail", cursive; --sans:"Mulish", system-ui, sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1); --spring:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--cream);color:var(--navy);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--coral-t);outline-offset:3px;border-radius:8px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--navy);color:var(--cream);padding:10px 16px;z-index:300;border-radius:8px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1240px,100% - 64px);margin-inline:auto}
+h1,h2,h3{font-family:var(--disp);font-weight:700;margin:0;line-height:1;text-transform:uppercase;letter-spacing:.02em}
+h2{font-size:clamp(40px,5vw,76px)}
+h2 .sc,h1 .sc{font-family:var(--script);font-weight:400;text-transform:none;letter-spacing:0;color:var(--coral-t);font-size:1.15em;line-height:.8}
+p{margin:0}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.24em;text-transform:uppercase;color:var(--coral-t)}
+.kick::before{content:"";width:26px;height:3px;border-radius:2px;background:var(--coral)}
+.mask{display:block;overflow:hidden;padding:.12em 0 .06em;margin:-.12em 0 -.06em}
+.mask>span{display:block}
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 28px;border-radius:999px;border:0;background:var(--navy);color:var(--cream);font-family:var(--disp);font-weight:600;font-size:16px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .5s var(--spring),background .3s,box-shadow .3s}
+.btn:hover{background:var(--navy-2);box-shadow:0 0 0 5px var(--sky-l),0 16px 30px -14px rgba(20,50,79,.6)}
+.btn.ghost{background:transparent;color:var(--navy);box-shadow:inset 0 0 0 2px var(--navy)}
+.btn.ghost:hover{background:var(--navy);color:var(--cream)}
+.btn.sm{min-height:44px;padding:0 18px;font-size:14px}
+.btn svg{width:18px;height:18px}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:90;transition:background .4s,box-shadow .4s}
+.nav.solid{background:rgba(251,243,228,.9);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;min-height:44px}
+.logo svg{width:44px;height:30px}
+.logo b{font-family:var(--script);font-weight:400;font-size:36px;line-height:1;color:var(--navy);transform:translateY(2px)}
+.logo span{font-family:var(--disp);font-size:12px;font-weight:600;letter-spacing:.3em;color:var(--coral-t);align-self:flex-end;margin-bottom:6px}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;text-decoration:none;font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.16em;text-transform:uppercase;transition:background .3s}
+.nav ul a:hover{background:var(--sky-l)}
+.nav-r{display:flex;align-items:center;gap:8px}
+.menu-btn{display:none;width:46px;height:46px;border-radius:50%;border:2px solid var(--navy);background:transparent;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:18px;height:2px;border-radius:2px;background:var(--navy);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:12px;right:12px;top:82px;z-index:89;background:var(--cream);border-radius:28px;padding:14px;display:grid;gap:2px;box-shadow:0 30px 60px -24px rgba(20,50,79,.45),inset 0 0 0 2px var(--navy);opacity:0;visibility:hidden;transform:translateY(-10px);transition:all .4s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:56px;padding:0 16px;border-radius:18px;text-decoration:none;font-family:var(--disp);font-weight:700;font-size:24px;letter-spacing:.08em;text-transform:uppercase}
+.mmenu a:hover{background:var(--sky-l)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:120px 0 0;overflow:hidden;background:linear-gradient(180deg,#7DBDE3 0%,#A9D6EE 45%,#E8F1EE 78%,var(--cream) 100%)}
+.sun{position:absolute;right:12%;top:16%;width:min(26vw,340px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#FFE3A3 0 52%,rgba(255,227,163,.45) 53% 64%,rgba(255,227,163,0) 66%)}
+.hero .wrap{position:relative;z-index:3}
+.hero h1{font-size:clamp(52px,7.6vw,128px);line-height:.94;max-width:11ch}
+.hero h1 .sc{display:block;font-size:1.3em;line-height:.9;margin:-.04em 0 -.12em .1em;color:var(--coral-t);text-shadow:3px 3px 0 #fff}
+.hero-lead{font-size:20px;max-width:40ch;margin:24px 0 30px;color:var(--navy)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px}
+.swoop{position:absolute;left:0;right:0;bottom:0;height:52%;z-index:1;pointer-events:none}
+.swoop svg{width:100%;height:100%;overflow:visible}
+.cloud{position:absolute;z-index:2;pointer-events:none}
+.cloud svg{width:100%;height:auto}
+.c1{left:-4%;top:52%;width:22vw}.c2{right:-6%;top:34%;width:26vw}.c3{left:42%;top:12%;width:12vw;opacity:.8}
+.hero-strip{position:relative;z-index:3;display:flex;gap:40px;flex-wrap:wrap;margin-top:56px;padding:22px 0 30px;font-family:var(--disp);font-size:14px;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+.hero-strip b{display:block;font-size:34px;letter-spacing:.02em;font-weight:700}
+
+/* flight profile (pinned) */
+.prof{position:relative}
+.prof-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:100px 0 34px;background:var(--sky)}
+.prof-sky{position:absolute;inset:0;width:100%;height:100%}
+.prof-top{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;gap:30px}
+.prof-top h2{color:var(--navy)}
+.alt{text-align:right;font-family:var(--disp);font-weight:600;letter-spacing:.16em;text-transform:uppercase;font-size:13px}
+.alt b{display:block;font-size:clamp(40px,4.4vw,66px);letter-spacing:.02em;line-height:1;font-variant-numeric:tabular-nums}
+.prof-svg{position:relative;z-index:1;min-height:0}
+.prof-svg svg{width:100%;height:100%;overflow:visible}
+.prof-bot{position:relative;z-index:2;display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:end}
+.clock{font-family:var(--disp);font-weight:700;font-size:clamp(46px,5vw,76px);line-height:1;font-variant-numeric:tabular-nums}
+.clock small{display:block;font-size:13px;letter-spacing:.2em;font-weight:600;color:var(--navy-2)}
+.moments{position:relative;min-height:130px;max-width:620px}
+.moment{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end}
+.moment h3{font-size:clamp(24px,2.2vw,32px);margin-bottom:8px}
+.moment p{font-size:17px;max-width:52ch}
+
+/* routes */
+.routes{padding:140px 0 120px;background:var(--cream)}
+.r-head{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:end;margin-bottom:40px}
+.r-head p:not(.kick){color:var(--muted);max-width:44ch}
+.r-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:24px;align-items:start}
+.map{position:relative;border-radius:32px;overflow:hidden;background:#BFE0F2;box-shadow:inset 0 0 0 3px var(--navy)}
+.map svg{width:100%;height:auto}
+.map .city{cursor:pointer}
+.map .city circle.dot{transition:r .3s var(--spring)}
+.map .city:hover circle.dot{r:9}
+.dest{display:flex;flex-direction:column;gap:16px}
+.dlist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dlist button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:58px;padding:10px 14px;border-radius:18px;border:2px solid var(--line);background:#fff;cursor:pointer;text-align:left;transition:border-color .3s,background .3s,transform .4s var(--spring)}
+.dlist button:hover{border-color:var(--navy);transform:translateY(-2px)}
+.dlist button b{font-family:var(--disp);font-size:16px;letter-spacing:.06em;text-transform:uppercase}
+.dlist button small{font-size:13px;color:var(--muted)}
+.dlist button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:var(--cream)}
+.dlist button[aria-pressed="true"] small{color:#CFE0EE}
+.ticket{position:relative;flex:1;border-radius:26px;background:var(--navy);color:var(--cream);padding:22px 24px;overflow:hidden}
+.ticket::after{content:"";position:absolute;right:-100px;bottom:-110px;width:200px;height:200px;border-radius:50%;border:24px solid rgba(242,107,91,.35)}
+.ticket .pair{display:flex;align-items:center;gap:14px;font-family:var(--disp);font-weight:700;font-size:44px;line-height:1}
+.ticket .pair svg{width:46px;height:20px;flex:none}
+.ticket .cities{display:flex;justify-content:space-between;gap:10px;font-size:14px;color:#CFE0EE;margin:6px 0 16px}
+.ticket dl{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;margin:0}
+.ticket dt{font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#9FC4DE}
+.ticket dd{margin:0;font-family:var(--disp);font-weight:600;font-size:22px}
+.ticket .btn{margin-top:18px;background:var(--coral);color:var(--navy)}
+.ticket .btn:hover{background:#FF8A7C;box-shadow:none}
+.cartouche{position:absolute;left:18px;bottom:16px;padding:8px 12px;border-radius:12px;background:var(--cream);box-shadow:inset 0 0 0 2px var(--navy);font-family:var(--disp);font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+
+/* seats */
+.seats{position:relative;padding:130px 0;background:linear-gradient(180deg,var(--sky-l),var(--cream) 70%)}
+.s-head{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:end;margin-bottom:40px}
+.s-head p:not(.kick){color:var(--muted);max-width:44ch}
+.s-grid{display:grid;grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:40px;align-items:start;justify-content:center}
+.fuse{position:relative;padding:150px 34px 80px;border-radius:220px 220px 60px 60px;background:#fff;box-shadow:inset 0 0 0 3px var(--navy),0 40px 60px -40px rgba(20,50,79,.5)}
+.fuse::before{content:"";position:absolute;left:50%;top:26px;width:130px;height:70px;margin-left:-65px;border-radius:70px 70px 10px 10px;background:linear-gradient(180deg,var(--sky),var(--sky-l));box-shadow:inset 0 0 0 3px var(--navy)}
+.fwrap{position:relative;isolation:isolate}
+.cab{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.24em;text-transform:uppercase;text-align:center;color:var(--coral-t);margin:6px 0 10px}
+.cols{display:grid;grid-template-columns:repeat(3,46px) 34px repeat(3,46px);justify-content:center;gap:6px;font-family:var(--disp);font-weight:600;font-size:13px;color:var(--muted);text-align:center;margin-bottom:6px}
+.srow{display:grid;grid-template-columns:repeat(3,46px) 34px repeat(3,46px);justify-content:center;gap:6px;margin-bottom:6px}
+.srow.club{grid-template-columns:repeat(2,58px) 46px repeat(2,58px)}
+.srow.exit{margin-top:16px;position:relative}
+.srow.exit::before,.srow.exit::after{content:"EXIT";position:absolute;top:-16px;font-family:var(--disp);font-weight:700;font-size:10px;letter-spacing:.2em;color:var(--coral-t)}
+.srow.exit::before{left:-30px}.srow.exit::after{right:-30px}
+.rn{display:grid;place-items:center;font-family:var(--disp);font-weight:600;font-size:13px;color:var(--muted)}
+.srow>span[role="gridcell"]{display:block;min-width:0}
+.seat{position:relative;display:block;width:100%;height:46px;border-radius:12px 12px 8px 8px;border:2px solid var(--navy);background:var(--sky-l);cursor:pointer;font-family:var(--disp);font-weight:700;font-size:13px;color:var(--navy);transition:transform .35s var(--spring),background .25s,color .25s;padding:0}
+.seat::after{content:"";position:absolute;left:6px;right:6px;bottom:4px;height:5px;border-radius:3px;background:rgba(20,50,79,.18)}
+.seat:hover{transform:translateY(-3px)}
+.seat.club{height:56px;background:var(--sand)}
+.seat.xl{background:#FFE9B8}
+.seat[aria-disabled="true"]{background:repeating-linear-gradient(45deg,#E4E9EE 0 6px,#F4F6F8 6px 12px);border-color:#B5C0CB;color:#5F7182;cursor:not-allowed}
+.seat[aria-disabled="true"]:hover{transform:none}
+.seat[aria-pressed="true"]{background:var(--coral);color:var(--navy);transform:translateY(-3px) scale(1.06)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:14px;color:var(--muted);margin-bottom:14px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:20px;height:20px;border-radius:6px;border:2px solid var(--navy)}
+.panel{position:sticky;top:110px;display:flex;flex-direction:column;gap:18px}
+.pax{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-radius:22px;background:#fff;box-shadow:inset 0 0 0 2px var(--line)}
+.pax b{font-family:var(--disp);font-size:15px;letter-spacing:.14em;text-transform:uppercase}
+.pax small{display:block;font-size:14px;color:var(--muted)}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:44px;height:44px;border-radius:50%;border:2px solid var(--navy);background:transparent;cursor:pointer;font-size:20px;line-height:1;transition:background .3s,color .3s}
+.step button:hover{background:var(--navy);color:var(--cream)}
+.step output{min-width:30px;text-align:center;font-family:var(--disp);font-weight:700;font-size:26px}
+.pass{position:relative;display:grid;grid-template-columns:1fr 130px;border-radius:24px;background:#fff;box-shadow:0 30px 50px -34px rgba(20,50,79,.6),inset 0 0 0 2px var(--navy);overflow:hidden}
+.pass .main{padding:20px 22px;border-right:2px dashed var(--navy)}
+.pass .stub{padding:20px 16px;background:var(--sand);display:flex;flex-direction:column;justify-content:space-between}
+.pass .brand{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.pass .brand b{font-family:var(--script);font-weight:400;font-size:30px;line-height:1}
+.pass .brand span{font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--coral-t)}
+.pass .od{display:flex;align-items:center;gap:12px;font-family:var(--disp);font-weight:700;font-size:40px;line-height:1}
+.pass .od svg{width:40px;height:18px}
+.pass dl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;margin:14px 0 0}
+.pass dt{font-family:var(--disp);font-weight:600;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.pass dd{margin:0;font-family:var(--disp);font-weight:700;font-size:18px;letter-spacing:.04em}
+.pass .stub dd{font-size:16px}
+.pass .bars{height:46px;background:repeating-linear-gradient(90deg,var(--navy) 0 2px,transparent 2px 4px,var(--navy) 4px 7px,transparent 7px 9px,var(--navy) 9px 10px,transparent 10px 13px)}
+.total{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px 18px;border-radius:22px;background:var(--navy);color:var(--cream)}
+.total b{font-family:var(--disp);font-weight:700;font-size:34px}
+.total small{display:block;font-size:14px;color:#CFE0EE}
+.total .btn{background:var(--coral);color:var(--navy);white-space:nowrap;flex:none}
+.total .btn:hover{background:#FF8A7C;box-shadow:none}
+.note{min-height:24px;font-size:15px;color:var(--muted)}
+
+/* onboard */
+.onboard{padding:130px 0;background:var(--navy);color:var(--cream);position:relative;overflow:hidden}
+.onboard h2{color:var(--cream)}
+.onboard h2 .sc{color:var(--coral)}
+.onboard .kick{color:#FFB4A9}
+.onboard .kick::before{background:var(--coral)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:50px}
+.card{border-radius:30px;background:var(--cream);color:var(--navy);overflow:hidden;transition:transform .6s var(--spring)}
+.card:hover{transform:translateY(-8px) rotate(-.6deg)}
+.card .art{aspect-ratio:5/4;background:var(--sky)}
+.card .art svg{width:100%;height:100%}
+.card .tx{padding:22px 24px 26px}
+.card h3{font-size:26px;margin-bottom:10px}
+.card p{color:var(--muted);font-size:16px}
+.onboard .swoopbg{position:absolute;left:-10%;right:-10%;top:40px;height:200px;opacity:.16;pointer-events:none}
+
+/* postcards */
+.post{padding:130px 0 120px}
+.post-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.pc{position:relative;aspect-ratio:3/2;border-radius:12px;background:#fff;box-shadow:0 30px 50px -30px rgba(20,50,79,.5);padding:26px;display:grid;grid-template-columns:1.3fr 1fr;gap:20px;transform:rotate(-2deg)}
+.pc::before{content:"";position:absolute;left:58%;top:22px;bottom:22px;width:2px;background:var(--line)}
+.pc blockquote{margin:0;font-family:var(--script);font-size:clamp(26px,2.3vw,34px);line-height:1.2;color:var(--navy)}
+.pc cite{display:block;margin-top:12px;font-family:var(--disp);font-style:normal;font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.pc .stamp{justify-self:end;width:92px;height:110px;border-radius:6px;background:radial-gradient(circle at 50% 40%,var(--mustard) 0 30%,var(--coral) 31% 100%);box-shadow:0 0 0 5px #fff,0 0 0 7px var(--coral);display:grid;place-items:center;font-family:var(--script);font-size:24px;color:#fff;transform:rotate(6deg)}
+.pc .addr{align-self:end;display:grid;gap:12px}
+.pc .addr i{display:block;height:2px;background:var(--line)}
+.club p:not(.kick){color:var(--muted);margin:18px 0 26px;max-width:42ch}
+.club form{display:flex;gap:8px;max-width:440px}
+.club input{flex:1;min-width:0;min-height:54px;padding:0 20px;border-radius:999px;border:2px solid var(--navy);background:#fff}
+.club .ok{min-height:24px;margin-top:10px;font-size:15px;color:var(--muted)}
+
+footer{padding:60px 0 40px;background:var(--sand)}
+footer .top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;padding-bottom:40px}
+footer h4{margin:0 0 10px;font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--coral-t)}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:36px;text-decoration:none}
+footer li a:hover{text-decoration:underline;text-underline-offset:4px}
+footer .about{color:var(--muted);max-width:34ch;margin-top:12px}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--muted);padding-top:24px;border-top:2px solid var(--line)}
+
+.rms .prof-pin{height:auto;min-height:0;padding:110px 0 70px;grid-template-rows:auto auto auto;gap:20px}
+.rms .moments{min-height:0;display:grid;gap:22px;max-width:none;grid-template-columns:repeat(2,1fr)}
+.rms .moment{position:static}
+
+@media (max-width:1100px){
+  .r-grid{grid-template-columns:1fr}
+  .dest{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .s-grid{grid-template-columns:minmax(0,440px) minmax(0,1fr)}
+}
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .menu-btn{display:inline-flex}
+  .nav .btn{display:none}
+  .r-head,.s-head,.post-grid{grid-template-columns:1fr;gap:28px}
+  .s-grid{grid-template-columns:1fr;justify-items:center}
+  .panel{position:static;width:100%;max-width:560px}
+  .cards{grid-template-columns:1fr 1fr}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .wrap{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav .wrap{height:66px}
+  .logo b{font-size:32px}
+  .mmenu{top:72px}
+  .hero{padding:96px 0 190px}
+  .hero h1{font-size:clamp(44px,13vw,60px)}
+  .hero-lead{font-size:17px;margin:18px 0 24px}
+  .sun{width:46vw;right:-6%;top:12%}
+  .c1{width:46vw;top:62%}.c2{width:50vw;top:40%}.c3{display:none}
+  .hero-strip{gap:22px;margin-top:40px}
+  .hero-strip b{font-size:26px}
+  .swoop{height:230px}
+  .prof-pin{padding:84px 0 20px}
+  .prof-top{flex-direction:column;align-items:flex-start;gap:6px}
+  .prof-top h2{font-size:34px}
+  .alt{text-align:left}
+  .alt b{font-size:34px}
+  .prof-bot{grid-template-columns:1fr;gap:6px}
+  .clock{font-size:40px}
+  .moments{min-height:150px}
+  .moment h3{font-size:22px}
+  .moment p{font-size:15px;line-height:1.5}
+  .routes{padding:100px 0 80px}
+  .map{border-radius:22px}
+  .dest{grid-template-columns:1fr}
+  .ticket .pair{font-size:36px}
+  .cartouche{font-size:10px;left:10px;bottom:10px;padding:6px 8px}
+  .seats{padding:100px 0}
+  .fuse{padding:120px 12px 60px;border-radius:170px 170px 40px 40px}
+  .cols,.srow{grid-template-columns:repeat(3,44px) 26px repeat(3,44px);gap:5px}
+  .srow.club{grid-template-columns:repeat(2,54px) 40px repeat(2,54px)}
+  .seat{height:44px}
+  .srow.exit::before{left:-10px}.srow.exit::after{right:-10px}
+  .pass{grid-template-columns:1fr}
+  .pass .main{border-right:0;border-bottom:2px dashed var(--navy)}
+  .pass .stub{flex-direction:row;gap:14px;align-items:center}
+  .pass .od{font-size:32px}
+  .cards{grid-template-columns:1fr}
+  .onboard{padding:90px 0}
+  .post{padding:90px 0}
+  .pc{padding:16px;grid-template-columns:1fr;aspect-ratio:auto;transform:rotate(-1deg)}
+  .pc::before{display:none}
+  .pc .stamp{position:absolute;right:14px;top:-20px;width:64px;height:78px;font-size:18px}
+  .pc .addr{display:none}
+  footer .top{grid-template-columns:1fr 1fr;gap:28px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="jet" viewBox="0 0 240 70">
+      <path d="M200 36L232 6h-14L182 30z" fill="#14324F"/>
+      <path d="M214 8h22l-4 8h-20z" fill="#F26B5B"/>
+      <path d="M8 40c0-8 10-14 26-14h170c14 0 26 4 30 10-4 6-16 10-30 10H34C18 46 8 46 8 40z" fill="#FBF3E4" stroke="#14324F" stroke-width="2.5"/>
+      <path d="M12 41h210" stroke="#F26B5B" stroke-width="4"/>
+      <path d="M14 36c4-5 10-7 18-7" stroke="#14324F" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <g fill="#2E7FB8"><circle cx="46" cy="34" r="2.2"/><circle cx="56" cy="34" r="2.2"/><circle cx="66" cy="34" r="2.2"/><circle cx="76" cy="34" r="2.2"/><circle cx="86" cy="34" r="2.2"/><circle cx="96" cy="34" r="2.2"/><circle cx="106" cy="34" r="2.2"/><circle cx="116" cy="34" r="2.2"/><circle cx="126" cy="34" r="2.2"/><circle cx="136" cy="34" r="2.2"/><circle cx="146" cy="34" r="2.2"/><circle cx="156" cy="34" r="2.2"/></g>
+      <rect x="164" y="27" width="34" height="10" rx="5" fill="#FBF3E4" stroke="#14324F" stroke-width="2.5"/>
+      <path d="M92 44l44 0-30 22h-16z" fill="#14324F"/>
+    </symbol>
+  </defs>
+</svg>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Skylark Air, home"><svg viewBox="0 0 66 44" aria-hidden="true"><path d="M2 32C18 8 40 4 64 12" fill="none" stroke="#F26B5B" stroke-width="6" stroke-linecap="round"/><path d="M4 42C20 22 40 18 62 24" fill="none" stroke="#14324F" stroke-width="4" stroke-linecap="round"/></svg><b>Skylark</b><span>Air</span></a>
+    <nav aria-label="Main"><ul><li><a href="#flight">The flight</a></li><li><a href="#routes">Routes</a></li><li><a href="#seats">Seats</a></li><li><a href="#onboard">On board</a></li><li><a href="#club">Lark Club</a></li></ul></nav>
+    <div class="nav-r"><a class="btn sm mag" href="#routes">Book a flight</a><button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><i></i></button></div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true"><a href="#flight">The flight</a><a href="#routes">Routes</a><a href="#seats">Seats</a><a href="#onboard">On board</a><a href="#club">Lark Club</a></div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="sun" aria-hidden="true"></div>
+  <div class="cloud c3" aria-hidden="true"><svg viewBox="0 0 200 70"><path d="M20 60c-14 0-18-20-2-24 2-18 26-24 38-10 8-16 36-16 42 4 16-8 34 4 30 20 20 0 22 10 22 10z" fill="#fff"/></svg></div>
+  <div class="wrap">
+    <p class="kick hf">Lisbon · the islands · the Atlantic</p>
+    <h1 id="hero-h" style="margin-top:20px"><span class="mask"><span>Fly like it's</span></span><span class="mask"><span class="sc">still</span></span><span class="mask"><span>an occasion</span></span></h1>
+    <p class="hero-lead hf">Skylark is a small airline with twelve routes, two cabins and one rule: every seat should feel like the window seat. Real china, real legroom, and departures that leave on time.</p>
+    <div class="hero-cta hf"><a class="btn mag" href="#routes">Find a route <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn ghost" href="#seats">Choose a seat</a></div>
+    <div class="hero-strip hf"><div><b>12</b>routes from Lisbon</div><div><b>94%</b>on time this year</div><div><b>81 cm</b>seat pitch, every row</div></div>
+  </div>
+  <div class="cloud c1" aria-hidden="true"><svg viewBox="0 0 200 70"><path d="M20 60c-14 0-18-20-2-24 2-18 26-24 38-10 8-16 36-16 42 4 16-8 34 4 30 20 20 0 22 10 22 10z" fill="#fff"/></svg></div>
+  <div class="cloud c2" aria-hidden="true"><svg viewBox="0 0 200 70"><path d="M20 60c-14 0-18-20-2-24 2-18 26-24 38-10 8-16 36-16 42 4 16-8 34 4 30 20 20 0 22 10 22 10z" fill="#fff" opacity=".9"/></svg></div>
+  <div class="swoop" aria-hidden="true">
+    <svg viewBox="0 0 1440 520" preserveAspectRatio="none" id="swoopSvg">
+      <path id="sw3" d="M260 540C540 470 760 330 1000 280S1340 250 1500 140" fill="none" stroke="#2E7FB8" stroke-width="26" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1"/>
+      <path id="sw2" d="M330 570C600 500 820 370 1040 330S1360 310 1500 210" fill="none" stroke="#14324F" stroke-width="18" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1"/>
+      <path id="sw1" d="M400 600C670 540 880 410 1080 380S1380 370 1500 290" fill="none" stroke="#F26B5B" stroke-width="34" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1"/>
+    </svg>
+  </div>
+  <svg class="hjet" id="hjet" viewBox="0 0 240 70" aria-hidden="true" style="position:absolute;left:0;top:0;width:clamp(150px,16vw,260px);height:auto;z-index:2;pointer-events:none;overflow:visible"><use href="#jet"/></svg>
+</section>
+
+<section class="prof" id="flight" aria-labelledby="prof-h">
+  <div class="prof-pin" id="profPin">
+    <svg class="prof-sky" viewBox="0 0 10 10" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="pSky" x1="0" y1="0" x2="0" y2="1"><stop id="ps1" offset="0" stop-color="#7DBDE3"/><stop id="ps2" offset="1" stop-color="#E8F1EE"/></linearGradient></defs><rect width="10" height="10" fill="url(#pSky)"/></svg>
+    <div class="wrap prof-top">
+      <div><p class="kick">Lisbon to Reykjavík · SK 214</p><h2 id="prof-h" style="margin-top:14px">A day <span class="sc">on board</span></h2></div>
+      <p class="alt" aria-hidden="true">Altitude, feet<b id="altN">0</b></p>
+    </div>
+    <div class="prof-svg" aria-hidden="true">
+      <svg viewBox="0 0 1200 420" id="profSvg" preserveAspectRatio="xMidYMid meet">
+        <g id="pClouds" fill="#fff" opacity=".85"><ellipse cx="160" cy="250" rx="90" ry="22"/><ellipse cx="420" cy="300" rx="120" ry="26"/><ellipse cx="760" cy="270" rx="140" ry="24"/><ellipse cx="1040" cy="300" rx="110" ry="22"/><ellipse cx="600" cy="80" rx="80" ry="14" opacity=".6"/></g>
+        <path d="M0 400H1200" stroke="#14324F" stroke-width="3"/>
+        <path d="M30 400H230M970 400H1170" stroke="#14324F" stroke-width="10" stroke-dasharray="26 14"/>
+        <path id="route" d="M40 396H200C300 396 340 120 500 110H780C920 110 980 396 1140 396" fill="none" stroke="#14324F" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round" opacity=".55"/>
+        <path id="routeOn" d="M40 396H200C300 396 340 120 500 110H780C920 110 980 396 1140 396" fill="none" stroke="#F26B5B" stroke-width="6" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1"/>
+        <g font-family="Josefin Sans, sans-serif" font-weight="600" font-size="16" fill="#14324F" letter-spacing="2"><text x="40" y="380">LIS</text><text x="1112" y="380">KEF</text></g>
+        <g id="pJet"><use href="#jet" x="-80" y="-42" width="160" height="47"/></g>
+      </svg>
+    </div>
+    <div class="wrap prof-bot">
+      <p class="clock" aria-hidden="true"><span id="pClock">07:40</span><small>local time</small></p>
+      <div class="moments" id="moments">
+        <article class="moment"><h3>Boarding, without the scrum</h3><p>Two doors, small groups, and a seat that's already yours. Coats go in the closet at the front, not in the overhead bin.</p></article>
+        <article class="moment"><h3>Wheels up at 08:05</h3><p>Our schedule leaves fifteen minutes of slack on the ground, so the departure time on your ticket is the one that happens.</p></article>
+        <article class="moment"><h3>Lunch at 35,000 feet</h3><p>Hot food on real plates, served row by row, with a glass of something from the Douro if you'd like one.</p></article>
+        <article class="moment"><h3>Down by eleven, bags first</h3><p>Checked bags come off before the cabin does. You'll be on the bus into town before the next flight has parked.</p></article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="routes" id="routes" aria-labelledby="routes-h">
+  <div class="wrap">
+    <div class="r-head"><div><p class="kick">Route map</p><h2 id="routes-h" class="split" style="margin-top:16px">Twelve places<br><span class="sc">worth the trip</span></h2></div><p class="reveal">Every Skylark route starts in Lisbon. Pick a city on the map or in the list to trace the flight, then carry it straight through to the seat map below.</p></div>
+    <div class="r-grid">
+      <div class="map rv" id="mapBox">
+        <svg viewBox="0 0 1000 620" id="mapSvg" aria-hidden="true"></svg>
+        <p class="cartouche">Not to scale · stylised map</p>
+      </div>
+      <div class="dest rv">
+        <div class="dlist" id="dlist" role="group" aria-label="Destinations"></div>
+        <div class="ticket" aria-live="polite" id="ticket"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="seats" id="seats" aria-labelledby="seats-h">
+  <div class="wrap">
+    <div class="s-head"><div><p class="kick">Seat map</p><h2 id="seats-h" class="split" style="margin-top:16px">Pick your<br><span class="sc">window</span></h2></div><p class="reveal">Tap a seat to hold it, or use the arrow keys to walk the aisle. Club seats sit two-by-two up front; exit rows have room for long legs. There's no row 13; there never was.</p></div>
+    <div class="s-grid">
+      <div class="fwrap">
+        <div class="legend" aria-hidden="true"><span><i style="background:var(--sand)"></i>Club</span><span><i style="background:var(--sky-l)"></i>Cabin</span><span><i style="background:#FFE9B8"></i>Extra legroom</span><span><i style="background:var(--coral)"></i>Yours</span><span><i style="background:repeating-linear-gradient(45deg,#E4E9EE 0 4px,#F4F6F8 4px 8px);border-color:#B5C0CB"></i>Taken</span></div>
+        <div class="fuse rv" id="fuse"><div id="seatmap" role="grid" aria-label="Seat map, nose at the top"></div></div>
+      </div>
+      <div class="panel">
+        <div class="pax"><div><b>Passengers</b><small id="paxSub">Choose up to 1 seat</small></div><div class="step"><button type="button" id="paxDown" aria-label="Fewer passengers">−</button><output id="paxN" aria-live="polite">1</output><button type="button" id="paxUp" aria-label="More passengers">+</button></div></div>
+        <div class="pass" id="pass" aria-live="polite"></div>
+        <div class="total"><div><small>Fare plus seats, per trip</small><b id="total">€0</b></div><button type="button" class="btn sm" id="holdBtn">Hold for 24 h</button></div>
+        <p class="note" id="note" role="status"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="onboard" id="onboard" aria-labelledby="ob-h">
+  <svg class="swoopbg" viewBox="0 0 1440 200" preserveAspectRatio="none" aria-hidden="true"><path d="M0 180C400 160 700 40 1440 30" fill="none" stroke="#F26B5B" stroke-width="30"/><path d="M0 200C420 180 720 70 1440 64" fill="none" stroke="#8FC9E8" stroke-width="16"/></svg>
+  <div class="wrap">
+    <p class="kick">On board</p>
+    <h2 id="ob-h" class="split" style="margin-top:16px">The small things,<br><span class="sc">done properly</span></h2>
+    <div class="cards">
+      <article class="card rv"><div class="art" aria-hidden="true"><svg viewBox="0 0 300 240"><rect width="300" height="240" fill="#8FC9E8"/><ellipse cx="150" cy="150" rx="104" ry="40" fill="#FBF3E4" stroke="#14324F" stroke-width="3"/><ellipse cx="150" cy="146" rx="70" ry="24" fill="#fff" stroke="#14324F" stroke-width="2"/><circle cx="130" cy="140" r="12" fill="#F26B5B"/><path d="M150 140c10-10 26-8 30 2" stroke="#4E8F57" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M60 110v70M52 110v24M68 110v24M240 110v70" stroke="#14324F" stroke-width="4" stroke-linecap="round"/><path d="M236 110c10 0 10 30 4 34" stroke="#14324F" stroke-width="4" fill="none"/></svg></div><div class="tx"><h3>Real china</h3><p>Plates, cups and a proper knife. Lunch is cooked in Lisbon the morning you fly, not reheated from last week.</p></div></article>
+      <article class="card rv"><div class="art" aria-hidden="true"><svg viewBox="0 0 300 240"><rect width="300" height="240" fill="#F2B544"/><rect x="40" y="60" width="220" height="130" rx="60" fill="#FBF3E4" stroke="#14324F" stroke-width="3"/><path d="M70 125c40-40 120-40 160 0" fill="#8FC9E8"/><path d="M70 125h160" stroke="#14324F" stroke-width="3"/><circle cx="210" cy="92" r="10" fill="#FFE3A3"/><path d="M100 120l30-14 30 14" stroke="#14324F" stroke-width="3" fill="none"/></svg></div><div class="tx"><h3>Windows that line up</h3><p>Our seat rows are spaced to match the windows, so a window seat actually comes with a view and not a wall panel.</p></div></article>
+      <article class="card rv"><div class="art" aria-hidden="true"><svg viewBox="0 0 300 240"><rect width="300" height="240" fill="#F26B5B"/><rect x="70" y="70" width="70" height="120" rx="12" fill="#FBF3E4" stroke="#14324F" stroke-width="3"/><rect x="160" y="70" width="70" height="120" rx="12" fill="#FBF3E4" stroke="#14324F" stroke-width="3"/><path d="M70 150h70M160 150h70" stroke="#14324F" stroke-width="3"/><path d="M60 196h180" stroke="#14324F" stroke-width="4"/><path d="M105 60v-14M195 60v-14" stroke="#14324F" stroke-width="3"/></svg></div><div class="tx"><h3>81 centimetres</h3><p>The same seat pitch in every cabin row, plus a bag allowance that fits a week away without a fee.</p></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="post" id="club" aria-labelledby="club-h">
+  <div class="wrap post-grid">
+    <div class="pc rv"><div><blockquote>“Landed in Funchal with my hat still on and lunch still in me. Best two hours of the holiday, honestly.”</blockquote><cite>Ines &amp; Tomás Brandão · LIS–FNC</cite></div><div style="display:grid;align-content:space-between"><span class="stamp" aria-hidden="true">Lark</span><div class="addr" aria-hidden="true"><i></i><i></i><i></i></div></div></div>
+    <div class="club">
+      <p class="kick">The Lark Club</p>
+      <h2 id="club-h" class="split" style="margin-top:16px">Postcards,<br><span class="sc">not points</span></h2>
+      <p>No tiers and no spreadsheets. Fly with us five times and the sixth is on the house; the newsletter tells you when the island fares drop.</p>
+      <form id="clubForm" novalidate><label class="sr" for="clubMail">Email address</label><input id="clubMail" type="email" placeholder="Your email" autocomplete="email"><button class="btn" type="submit">Join</button></form>
+      <p class="ok" id="clubOk" role="status"></p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo" href="#top"><svg viewBox="0 0 66 44" aria-hidden="true"><path d="M2 32C18 8 40 4 64 12" fill="none" stroke="#F26B5B" stroke-width="6" stroke-linecap="round"/><path d="M4 42C20 22 40 18 62 24" fill="none" stroke="#14324F" stroke-width="4" stroke-linecap="round"/></svg><b>Skylark</b><span>Air</span></a><p class="about">A small airline from Lisbon, flying since the days when people dressed for it.</p></div>
+      <div><h4>Fly</h4><ul><li><a href="#routes">Routes</a></li><li><a href="#seats">Seats</a></li><li><a href="#flight">The flight</a></li></ul></div>
+      <div><h4>On board</h4><ul><li><a href="#onboard">Food &amp; drink</a></li><li><a href="#onboard">Baggage</a></li><li><a href="#club">Lark Club</a></li></ul></div>
+      <div><h4>Help</h4><ul><li><a href="#seats">Manage booking</a></li><li><a href="#routes">Timetable</a></li><li><a href="#club">Contact</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Skylark Air</span><span>Concept design — fictional brand.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rms')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+const seg = (p, a, b) => clamp((p - a) / (b - a), 0, 1)
+const rnd = (i, k = 1) => { const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v) }
+const eur = (n) => '€' + Math.round(n)
+$('#yr').textContent = new Date().getFullYear()
+
+/* ---------- map ---------- */
+const X = (lon) => (lon + 80) / 100 * 1000, Y = (lat) => (70 - lat) / 45 * 620
+const LAND = [
+  [[-9.5, 43], [-8, 43.8], [-1.8, 43.4], [3.2, 42.2], [0.4, 40.4], [-0.4, 38.6], [-2, 36.7], [-5.6, 36], [-7, 37.2], [-8.9, 37], [-9.5, 38.8], [-8.8, 41]],
+  [[-1.8, 43.4], [3.2, 42.4], [7.5, 43.8], [12.3, 44.2], [13.7, 45.6], [20, 42], [22, 55], [14, 54], [10, 54.5], [8.6, 57], [10.5, 57.7], [8, 58], [7, 53.5], [4.7, 53], [3.6, 51.4], [1.6, 50.9], [-1.6, 48.7], [-4.6, 48.4], [-1.2, 46]],
+  [[5, 58], [5.5, 62], [10, 64], [15, 68.5], [22, 71], [22, 58], [18, 59.5], [16, 56.2], [12.7, 56], [11.3, 58.9]],
+  [[-5.7, 50], [1.4, 51.2], [1.7, 52.7], [0, 53.5], [-1.6, 55.6], [-3, 58.6], [-5, 58.6], [-6.2, 56.5], [-4.8, 54.8], [-3, 53.4], [-4.6, 52.8], [-5.2, 51.7]],
+  [[-6, 52.2], [-6.2, 53.9], [-5.6, 54.6], [-7.4, 55.3], [-10, 54.2], [-10.3, 51.9], [-8.4, 51.6]],
+  [[-22.6, 64], [-24, 65.5], [-22, 66.4], [-18, 66.1], [-14.6, 66.2], [-13.6, 65], [-15, 64.2], [-18.7, 63.4]],
+  [[-5.9, 35.8], [-9.8, 31], [-9.6, 29.5], [-13.2, 27.6], [-17, 21], [22, 20], [22, 32.5], [10.5, 37.2], [-2, 35.1]],
+  [[-82, 24], [-80, 32], [-75.5, 35.3], [-76, 38], [-74, 40.5], [-70, 41.6], [-70.6, 43], [-66.9, 44.8], [-64, 45.8], [-61, 45.2], [-60, 46.2], [-64.5, 47.9], [-66, 49.2], [-59.5, 47.6], [-55.5, 49.9], [-56, 51.7], [-60, 53.7], [-61.7, 56.6], [-64.5, 60.3], [-70, 61], [-78, 62.5], [-82, 63]],
+  [[-52, 60], [-43.5, 60], [-38, 65.5], [-22, 70.5], [-56, 71], [-55, 66]],
+]
+const ISLES = [[-16.9, 32.7, 6], [-25.6, 37.8, 5], [-28, 38.6, 4], [-16.3, 28.4, 6], [-15.5, 28, 4], [-17.9, 28.6, 3]]
+const smoothPath = (pts) => {
+  const P = pts.map(([lo, la]) => [X(lo), Y(la)])
+  let d = `M${((P[0][0] + P[P.length - 1][0]) / 2).toFixed(1)} ${((P[0][1] + P[P.length - 1][1]) / 2).toFixed(1)}`
+  for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; d += `Q${a[0].toFixed(1)} ${a[1].toFixed(1)} ${((a[0] + b[0]) / 2).toFixed(1)} ${((a[1] + b[1]) / 2).toFixed(1)}` }
+  return d + 'Z'
+}
+const HUB = { c: 'LIS', n: 'Lisbon', lat: 38.72, lon: -9.14 }
+const DEST = [
+  { c: 'OPO', n: 'Porto', k: 'Portugal', lat: 41.15, lon: -8.61, f: '3× daily', p: 49, dx: 14, dy: -6 },
+  { c: 'FNC', n: 'Funchal', k: 'Madeira', lat: 32.65, lon: -16.91, f: 'Daily', p: 79, dx: -82, dy: 4 },
+  { c: 'PDL', n: 'Ponta Delgada', k: 'Azores', lat: 37.74, lon: -25.67, f: 'Daily', p: 99, dx: -40, dy: 28 },
+  { c: 'TFN', n: 'Tenerife', k: 'Canaries', lat: 28.46, lon: -16.25, f: '5× weekly', p: 89, dx: 12, dy: 18 },
+  { c: 'RAK', n: 'Marrakech', k: 'Morocco', lat: 31.63, lon: -8.0, f: '4× weekly', p: 85, dx: 14, dy: 6 },
+  { c: 'SVQ', n: 'Seville', k: 'Spain', lat: 37.39, lon: -5.98, f: 'Daily', p: 59, dx: 8, dy: 26 },
+  { c: 'BOD', n: 'Bordeaux', k: 'France', lat: 44.84, lon: -0.58, f: '5× weekly', p: 75, dx: 14, dy: 4 },
+  { c: 'DUB', n: 'Dublin', k: 'Ireland', lat: 53.35, lon: -6.26, f: 'Daily', p: 95, dx: 12, dy: -10 },
+  { c: 'KEF', n: 'Reykjavík', k: 'Iceland', lat: 64.15, lon: -21.94, f: '3× weekly', p: 159, dx: 14, dy: 22 },
+  { c: 'YHZ', n: 'Halifax', k: 'Canada', lat: 44.65, lon: -63.57, f: '2× weekly', p: 289, dx: 14, dy: 22 },
+  { c: 'JFK', n: 'New York', k: 'USA', lat: 40.71, lon: -74.0, f: 'Daily', p: 329, dx: 12, dy: 24 },
+  { c: 'SID', n: 'Sal', k: 'Cape Verde', lat: 26.95, lon: -22.9, f: '2× weekly', p: 189, dx: 14, dy: 6 },
+]
+const hav = (a, b) => { const R = 6371, r = Math.PI / 180, dLa = (b.lat - a.lat) * r, dLo = (b.lon - a.lon) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)) }
+DEST.forEach((d) => { d.km = Math.round(hav(HUB, d) / 10) * 10; const h = d.km / 780 + .4; d.t = `${Math.floor(h)}h ${String(Math.round((h % 1) * 60 / 5) * 5).padStart(2, '0')}` })
+const arcD = (d) => {
+  const ax = X(HUB.lon), ay = Y(HUB.lat), bx = X(d.lon), by = Y(d.lat), mx = (ax + bx) / 2, my = (ay + by) / 2, len = Math.hypot(bx - ax, by - ay)
+  const nx = -(by - ay) / len, ny = (bx - ax) / len, s = ny > 0 ? -1 : 1
+  return `M${ax.toFixed(1)} ${ay.toFixed(1)}Q${(mx + nx * s * len * .28).toFixed(1)} ${(my + ny * s * len * .28).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)}`
+}
+$('#mapSvg').innerHTML = `
+  <defs><pattern id="waves" width="40" height="18" patternUnits="userSpaceOnUse"><path d="M0 12q10-8 20 0t20 0" fill="none" stroke="#14324F" stroke-opacity=".12" stroke-width="1.5"/></pattern></defs>
+  <rect width="1000" height="620" fill="#BFE0F2"/><rect width="1000" height="620" fill="url(#waves)"/>
+  <g fill="#F4E6CC" stroke="#14324F" stroke-width="2.5" stroke-linejoin="round">${LAND.map((l) => `<path d="${smoothPath(l)}"/>`).join('')}${ISLES.map(([lo, la, r]) => `<circle cx="${X(lo)}" cy="${Y(la)}" r="${r}"/>`).join('')}</g>
+  <g transform="translate(150 520)" fill="none" stroke="#14324F" stroke-width="2"><circle r="44" fill="#FBF3E4"/><path d="M0-56L9 0 0 56-9 0z" fill="#F26B5B"/><path d="M-56 0L0-7 56 0 0 7z" fill="#14324F"/><text y="-62" text-anchor="middle" font-family="Josefin Sans, sans-serif" font-weight="700" font-size="16" fill="#14324F" stroke="none">N</text></g>
+  <text x="300" y="300" font-family="Yellowtail, cursive" font-size="40" fill="#14324F" opacity=".35">Atlantic Ocean</text>
+  <g id="allArcs" fill="none" stroke="#14324F" stroke-width="1.6" stroke-dasharray="4 6" opacity=".45">${DEST.map((d) => `<path d="${arcD(d)}"/>`).join('')}</g>
+  <path id="selArc" fill="none" stroke="#F26B5B" stroke-width="5" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="1"/>
+  <g id="cities">${DEST.map((d, i) => `<g class="city" data-i="${i}"><circle cx="${X(d.lon)}" cy="${Y(d.lat)}" r="18" fill="transparent"/><circle class="dot" cx="${X(d.lon)}" cy="${Y(d.lat)}" r="6" fill="#FBF3E4" stroke="#14324F" stroke-width="3"/><text x="${X(d.lon) + d.dx}" y="${Y(d.lat) + d.dy}" font-family="Josefin Sans, sans-serif" font-weight="700" font-size="17" letter-spacing="1" fill="#14324F">${d.c}</text></g>`).join('')}</g>
+  <g><circle cx="${X(HUB.lon)}" cy="${Y(HUB.lat)}" r="13" fill="#F26B5B" stroke="#14324F" stroke-width="3"/><circle cx="${X(HUB.lon)}" cy="${Y(HUB.lat)}" r="4" fill="#14324F"/><text x="${X(HUB.lon) + 18}" y="${Y(HUB.lat) + 6}" font-family="Josefin Sans, sans-serif" font-weight="700" font-size="20" fill="#14324F">LIS</text></g>
+  <g id="mJet" opacity="0"><use href="#jet" x="-36" y="-21" width="72" height="21"/></g>`
+$('#dlist').innerHTML = DEST.map((d, i) => `<button type="button" aria-pressed="false" data-i="${i}"><b>${d.n}</b><small>${d.k} · ${d.c}</small></button>`).join('')
+let cur = -1, flyTw = null
+const selArc = $('#selArc'), mJet = $('#mJet')
+const arrow = '<svg viewBox="0 0 46 20" aria-hidden="true"><path d="M2 16C14 4 30 2 44 8" fill="none" stroke="#F26B5B" stroke-width="3" stroke-linecap="round"/><path d="M36 3l8 5-9 4" fill="none" stroke="#F26B5B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+function placeJet(t) {
+  const L = selArc.getTotalLength(), p = selArc.getPointAtLength(t * L), q = selArc.getPointAtLength(Math.min(L, t * L + 1)), p0 = selArc.getPointAtLength(Math.max(0, t * L - 1))
+  const a = Math.atan2(q.y - p0.y, q.x - p0.x) * 180 / Math.PI
+  mJet.setAttribute('transform', `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${a.toFixed(1)})`)
+}
+function pickDest(i) {
+  if (i === cur) return
+  cur = i; const d = DEST[i]
+  $$('#dlist button').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.i === i))
+  $$('.city .dot').forEach((c, k) => { c.setAttribute('fill', k === i ? '#F26B5B' : '#FBF3E4') })
+  selArc.setAttribute('d', arcD(d))
+  $('#ticket').innerHTML = `<p class="pair">LIS ${arrow} ${d.c}</p><p class="cities"><span>Lisbon</span><span>${d.n}, ${d.k}</span></p><dl><div><dt>Flight time</dt><dd>${d.t}</dd></div><div><dt>Distance</dt><dd>${d.km.toLocaleString('en-US')} km</dd></div><div><dt>Departures</dt><dd>${d.f}</dd></div><div><dt>Fares from</dt><dd>${eur(d.p)}</dd></div></dl><a class="btn sm" href="#seats">Choose seats</a>`
+  $('#ticket .btn').addEventListener('click', (e) => { e.preventDefault(); const t = $('#seats'); window.lenis ? window.lenis.scrollTo(t) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }) })
+  if (flyTw) flyTw.kill()
+  if (anim) {
+    const o = { t: 0 }
+    mJet.setAttribute('opacity', 1)
+    flyTw = G.to(o, { t: 1, duration: 1.4 + d.km / 4000, ease: 'power2.inOut', onUpdate: () => { selArc.setAttribute('stroke-dashoffset', (1 - o.t).toFixed(4)); placeJet(o.t) } })
+  } else { selArc.setAttribute('stroke-dashoffset', 0); mJet.setAttribute('opacity', 1); placeJet(1) }
+  renderPass()
+}
+$('#dlist').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) pickDest(+b.dataset.i) })
+$('#mapSvg').addEventListener('click', (e) => { const g = e.target.closest('.city'); if (g) pickDest(+g.dataset.i) })
+
+/* ---------- seat map ---------- */
+const ROWS = []
+;[1, 2, 3].forEach((r) => ROWS.push({ r, club: true, seats: ['A', 'C', '|', 'D', 'F'] }))
+for (let r = 5; r <= 18; r++) { if (r === 13) continue; ROWS.push({ r, exit: r === 10, xl: r === 10 || r === 11, seats: ['A', 'B', 'C', '|', 'D', 'E', 'F'] }) }
+const price = (row, s) => row.club ? 45 : row.xl ? 24 : (s === 'B' || s === 'E') ? 8 : 12
+const kind = (row, s) => row.club ? 'Club' : (s === 'A' || s === 'F') ? 'window' : (s === 'B' || s === 'E') ? 'middle' : 'aisle'
+let html = `<div class="cab">Club · rows 1–3</div>`
+let grid = [], gi = 0
+ROWS.forEach((row, ri) => {
+  if (row.r === 5) html += `<div class="cab" style="margin-top:22px">Cabin · rows 5–18</div><div class="cols" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span></span><span>D</span><span>E</span><span>F</span></div>`
+  const cells = []
+  html += `<div class="srow ${row.club ? 'club' : ''} ${row.exit ? 'exit' : ''}" role="row">`
+  row.seats.forEach((s) => {
+    if (s === '|') { html += `<span class="rn" role="presentation">${row.r}</span>`; return }
+    const id = `${row.r}${s}`, taken = rnd(row.r * 7 + s.charCodeAt(0), 5) < (row.club ? .45 : .34) && id !== '12A' && id !== '12C'
+    const k = kind(row, s), pr = price(row, s)
+    html += `<span role="gridcell"><button type="button" class="seat ${row.club ? 'club' : ''} ${row.xl ? 'xl' : ''}" data-id="${id}" data-p="${pr}" data-g="${gi}" tabindex="-1" aria-pressed="false" aria-disabled="${taken}" aria-label="Seat ${id}, ${k}${row.xl ? ', extra legroom' : ''}, ${taken ? 'taken' : `available, ${eur(pr)}`}">${s}</button></span>`
+    cells.push(gi++)
+  })
+  html += '</div>'
+  grid.push(cells)
+})
+$('#seatmap').innerHTML = html
+const seatEls = $$('.seat')
+const firstFree = seatEls.find((b) => b.getAttribute('aria-disabled') !== 'true')
+firstFree.tabIndex = 0
+let pax = 1, chosen = []
+function syncSeats() {
+  seatEls.forEach((b) => b.setAttribute('aria-pressed', chosen.includes(b.dataset.id)))
+  $('#paxN').textContent = pax
+  $('#paxSub').textContent = `Choose up to ${pax} seat${pax > 1 ? 's' : ''} · ${chosen.length} held`
+  renderPass()
+}
+function toggleSeat(b) {
+  if (b.getAttribute('aria-disabled') === 'true') { $('#note').textContent = `Seat ${b.dataset.id} is taken. Try one nearby.`; return }
+  const id = b.dataset.id
+  if (chosen.includes(id)) chosen = chosen.filter((x) => x !== id)
+  else { chosen.push(id); if (chosen.length > pax) { const out = chosen.shift(); $('#note').textContent = `Swapped ${out} for ${id}. Add a passenger to keep both.` } else $('#note').textContent = `Seat ${id} held.` }
+  if (anim) G.fromTo(b, { scale: .8 }, { scale: 1, duration: .5, ease: 'back.out(3)', clearProps: 'transform' })
+  syncSeats()
+}
+$('#seatmap').addEventListener('click', (e) => { const b = e.target.closest('.seat'); if (b) toggleSeat(b) })
+// roving focus: arrows walk the cabin like a grid, skipping the aisle
+$('#seatmap').addEventListener('keydown', (e) => {
+  const b = e.target.closest('.seat'); if (!b) return
+  const g = +b.dataset.g
+  let r = grid.findIndex((row) => row.includes(g)), c = grid[r].indexOf(g)
+  if (e.key === 'ArrowRight') c = Math.min(grid[r].length - 1, c + 1)
+  else if (e.key === 'ArrowLeft') c = Math.max(0, c - 1)
+  else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { const frac = c / (grid[r].length - 1); r = clamp(r + (e.key === 'ArrowDown' ? 1 : -1), 0, grid.length - 1); c = Math.round(frac * (grid[r].length - 1)) }
+  else if (e.key === 'Home') c = 0
+  else if (e.key === 'End') c = grid[r].length - 1
+  else return
+  e.preventDefault()
+  const n = seatEls[grid[r][c]]
+  seatEls.forEach((s) => { s.tabIndex = -1 }); n.tabIndex = 0; n.focus()
+})
+$('#paxUp').addEventListener('click', () => { pax = Math.min(4, pax + 1); syncSeats() })
+$('#paxDown').addEventListener('click', () => { pax = Math.max(1, pax - 1); while (chosen.length > pax) chosen.pop(); syncSeats() })
+const dep = new Date(); dep.setDate(dep.getDate() + 3)
+function renderPass() {
+  const d = cur >= 0 ? DEST[cur] : DEST[8]
+  const seatsP = chosen.reduce((s, id) => s + +seatEls.find((b) => b.dataset.id === id).dataset.p, 0)
+  const fare = d.p * pax
+  $('#total').textContent = eur(fare + seatsP)
+  const board = `${String(7 + (cur < 0 ? 0 : cur % 9)).padStart(2, '0')}:${cur % 2 ? '45' : '15'}`
+  $('#pass').innerHTML = `<div class="main"><div class="brand"><b>Skylark</b><span>Boarding pass</span></div><p class="od">LIS ${arrow} ${d.c}</p><dl><div><dt>Flight</dt><dd>SK ${200 + DEST.indexOf(d) * 7}</dd></div><div><dt>Date</dt><dd>${dep.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</dd></div><div><dt>Boards</dt><dd>${board}</dd></div><div><dt>To</dt><dd>${d.n}</dd></div><div><dt>Seats</dt><dd>${chosen.length ? chosen.join(' ') : '—'}</dd></div><div><dt>Gate</dt><dd>${String.fromCharCode(65 + DEST.indexOf(d) % 4)}${10 + DEST.indexOf(d)}</dd></div></dl></div><div class="stub"><dl style="grid-template-columns:1fr;margin:0"><div><dt>Passengers</dt><dd>${pax}</dd></div><div><dt>Seats</dt><dd>${eur(seatsP)}</dd></div></dl><div class="bars" aria-hidden="true"></div></div>`
+}
+$('#holdBtn').addEventListener('click', () => { $('#note').textContent = chosen.length ? `Held ${chosen.join(', ')} on SK ${200 + (cur < 0 ? 8 : cur) * 7} for 24 hours. (Concept site: nothing is booked.)` : 'Pick at least one seat first.' })
+pickDest(8); cur = 8
+chosen = ['12A']; syncSeats()
+
+/* ---------- forms, nav ---------- */
+$('#clubForm').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#clubMail').value.trim(); $('#clubOk').textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Welcome aboard. Your first postcard is on its way.' : 'Please enter a valid email address.' })
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Close menu' : 'Open menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .09 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .2}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .3}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+/* ---------- flight profile ---------- */
+const route = $('#route'), RL = route.getTotalLength(), pJet = $('#pJet'), profSvg = $('#profSvg')
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+const mixc = (a, b, t) => `rgb(${hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t)).join(',')})`
+const SKY = [['#7DBDE3', '#E8F1EE'], ['#4E9FD6', '#BFE0F2'], ['#3F86C2', '#F6D9B0'], ['#F2A07E', '#FBE3C4']]
+function profAt(p) {
+  const L = p * RL, pt = route.getPointAtLength(L), q = route.getPointAtLength(Math.min(RL, L + 2)), p0 = route.getPointAtLength(Math.max(0, L - 2))
+  const a = Math.atan2(q.y - p0.y, q.x - p0.x) * 180 / Math.PI
+  pJet.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)}) rotate(${clamp(a, -28, 28).toFixed(1)})`)
+  $('#routeOn').setAttribute('stroke-dashoffset', (1 - p).toFixed(4))
+  $('#altN').textContent = Math.round(clamp((396 - pt.y) / 286, 0, 1) * 35000 / 100) * 100
+  const s = Math.min(2.999, p * 3), i = Math.floor(s), t = s - i
+  $('#ps1').setAttribute('stop-color', mixc(SKY[i][0], SKY[i + 1][0], t)); $('#ps2').setAttribute('stop-color', mixc(SKY[i][1], SKY[i + 1][1], t))
+  $('#pClouds').setAttribute('transform', `translate(${(-p * 160).toFixed(1)} 0)`)
+  const mins = 7 * 60 + 40 + Math.round(p * 220 / 5) * 5
+  $('#pClock').textContent = `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`
+  // phones: the camera follows the plane across a narrower window
+  if (innerWidth < 760) { const vx = clamp(pt.x - 260, 0, 1200 - 520); profSvg.setAttribute('viewBox', `${vx.toFixed(1)} 40 520 380`) } else profSvg.setAttribute('viewBox', '0 0 1200 420')
+}
+const moments = $$('.moment')
+let curM = -1, mTw = []
+function setMoment(i) {
+  if (i === curM) return
+  const prev = curM; curM = i
+  mTw.forEach((t) => t.kill()); mTw = []
+  moments.forEach((m, k) => { if (k !== i && k !== prev) G.set(m, { autoAlpha: 0 }) })
+  if (prev >= 0) mTw.push(G.to(moments[prev], { autoAlpha: 0, y: -12, duration: .3, ease: 'power2.in' }))
+  mTw.push(G.fromTo(moments[i], { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: .7, delay: prev >= 0 ? .2 : 0, ease: 'power3.out' }))
+}
+
+/* ---------- hero jet on the swoop ---------- */
+const sw = $('#sw3'), hjet = $('#hjet'), hero = $('.hero')
+function heroJet(t) {
+  const svgEl = $('#swoopSvg'), r = svgEl.getBoundingClientRect(), hr = hero.getBoundingClientRect(), L = sw.getTotalLength()
+  const p = sw.getPointAtLength(t * L), q = sw.getPointAtLength(Math.min(L, t * L + 4))
+  const sx = r.width / 1440, sy = r.height / 520
+  const x = r.left - hr.left + p.x * sx, y = r.top - hr.top + p.y * sy, a = Math.atan2((q.y - p.y) * sy, (q.x - p.x) * sx) * 180 / Math.PI
+  const w = hjet.getBoundingClientRect().width
+  hjet.style.transform = `translate(${(x - w / 2).toFixed(1)}px,${(y - w * .29 - 18).toFixed(1)}px) rotate(${a.toFixed(1)}deg)`
+}
+let jetT = anim ? 0 : .78
+heroJet(jetT); addEventListener('resize', () => heroJet(jetT))
+
+if (!anim) {
+  ;['#sw1', '#sw2', '#sw3'].forEach((s) => $(s).setAttribute('stroke-dashoffset', 0))
+  profAt(.55)
+  return
+}
+
+/* ---------- motion ---------- */
+G.set('.hero h1 .mask>span', { yPercent: 110 })
+G.set('.hf', { autoAlpha: 0, y: 18 })
+G.set(['#sw1', '#sw2', '#sw3'], { attr: { 'stroke-dashoffset': 1 } })
+G.set('.cloud', { autoAlpha: 0, x: -40 })
+G.set('.sun', { scale: .6, autoAlpha: 0 })
+const jo = { t: 0 }
+G.timeline({ delay: .1 })
+  .to('.sun', { scale: 1, autoAlpha: 1, duration: 1.4, ease: 'expo.out' }, 0)
+  .to('#sw3', { attr: { 'stroke-dashoffset': 0 }, duration: 1.6, ease: 'power2.inOut' }, 0)
+  .to('#sw2', { attr: { 'stroke-dashoffset': 0 }, duration: 1.6, ease: 'power2.inOut' }, .12)
+  .to('#sw1', { attr: { 'stroke-dashoffset': 0 }, duration: 1.6, ease: 'power2.inOut' }, .24)
+  .to(jo, { t: .78, duration: 2.2, ease: 'power2.out', onUpdate: () => { jetT = jo.t; heroJet(jetT) } }, .1)
+  .to('.hero h1 .mask>span', { yPercent: 0, duration: 1.1, stagger: .12, ease: 'expo.out' }, .2)
+  .to('.cloud', { autoAlpha: 1, x: 0, duration: 1.6, stagger: .15, ease: 'power3.out' }, .3)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .8, stagger: .07, ease: 'power3.out' }, .6)
+// the jet bobs gently, and leans toward the pointer
+G.to(hjet, { y: '+=6', duration: 2.4, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: 2.4 })
+G.to('.c1', { xPercent: 12, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+G.to('.c2', { xPercent: -16, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+ScrollTrigger.create({ trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true, onUpdate: (s) => { if (jo.t >= .78) { jetT = .78 + s.progress * .22; heroJet(jetT) } } })
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 110 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, duration: 1.1, stagger: .1, ease: 'expo.out' }) })
+})
+G.set('.reveal, .rv', { opacity: 0, y: 36 })
+ScrollTrigger.batch('.reveal, .rv', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { opacity: 1, y: 0, duration: 1, stagger: .08, ease: 'expo.out', clearProps: 'transform' }) })
+
+G.set(moments, { autoAlpha: 0 })
+profAt(0); setMoment(0)
+ScrollTrigger.create({
+  trigger: '.prof', start: 'top top', end: '+=300%', pin: '#profPin', scrub: true,
+  onUpdate(self) { const p = self.progress; profAt(p); setMoment(p < .14 ? 0 : p < .42 ? 1 : p < .74 ? 2 : 3) },
+})
+addEventListener('load', () => { ScrollTrigger.refresh(); heroJet(jetT) })
+})()
+</script>
+</body>
+</html>

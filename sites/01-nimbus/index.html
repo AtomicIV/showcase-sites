@@ -1,0 +1,749 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nimbus — Notes that think back</title>
+<meta name="description" content="Nimbus is an AI notes app that reads what you've written and answers in your own words, with the source note attached.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='30%25' r='75%25'%3E%3Cstop offset='0' stop-color='%23c9fff2'/%3E%3Cstop offset='.5' stop-color='%23a99bff'/%3E%3Cstop offset='1' stop-color='%23ff9fc4'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='26' fill='url(%23g)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#10142e;
+  --night-2:#171c3d;
+  --mist:#eef0ff;
+  --muted:#b3b9dd;
+  --mint:#8ef5e0;
+  --lilac:#a99bff;
+  --rose:#ffb3cf;
+  --peach:#ffd6a5;
+  --glass:rgba(255,255,255,.065);
+  --glass-line:rgba(255,255,255,.16);
+  --serif:'Instrument Serif',Georgia,serif;
+  --sans:'Figtree',system-ui,sans-serif;
+  --r-lg:28px;
+  --r-md:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{background:var(--night);color:var(--mist);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+img,svg,canvas{display:block}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--mint);outline-offset:3px;border-radius:8px}
+.skip{position:absolute;left:-999px;top:8px;z-index:100;background:var(--mist);color:var(--night);padding:10px 16px;border-radius:12px}
+.skip:focus{left:12px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* aurora backdrop */
+.aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(120% 80% at 50% -10%,#1d2558 0%,var(--night) 60%)}
+.aurora i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.42;will-change:transform}
+.aurora i:nth-child(1){width:60vw;height:40vw;left:-12vw;top:-10vw;background:#3fd6c0;animation:drift1 26s ease-in-out infinite alternate}
+.aurora i:nth-child(2){width:50vw;height:42vw;right:-14vw;top:10vh;background:#7b63ff;animation:drift2 30s ease-in-out infinite alternate}
+.aurora i:nth-child(3){width:46vw;height:32vw;left:24vw;bottom:-18vw;background:#ff7fb0;opacity:.26;animation:drift3 34s ease-in-out infinite alternate}
+@keyframes drift1{to{transform:translate(18vw,12vh) scale(1.15)}}
+@keyframes drift2{to{transform:translate(-16vw,20vh) scale(.9)}}
+@keyframes drift3{to{transform:translate(-10vw,-14vh) scale(1.2)}}
+.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.cursor-glow{position:fixed;left:0;top:0;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;pointer-events:none;z-index:0;background:radial-gradient(circle,rgba(169,155,255,.16),transparent 65%);opacity:0;transition:opacity .4s}
+
+/* nav */
+.nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:50;width:min(1120px,calc(100% - 32px));display:flex;align-items:center;justify-content:space-between;padding:10px 10px 10px 20px;border-radius:999px;background:rgba(23,28,61,.55);border:1px solid var(--glass-line);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--serif);font-size:26px;letter-spacing:.01em}
+.brand svg{width:26px;height:26px}
+.nav ul{display:flex;gap:6px;list-style:none}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;text-decoration:none;color:var(--muted);font-size:15px;transition:color .25s,background .25s}
+.nav ul a:hover{color:var(--mist);background:rgba(255,255,255,.07)}
+.btn{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:999px;font-weight:600;font-size:16px;text-decoration:none;white-space:nowrap;transition:background .3s,color .3s,box-shadow .3s}
+.btn-light{background:var(--mist);color:var(--night);box-shadow:0 10px 40px -10px rgba(169,155,255,.7)}
+.btn-light:hover{background:#fff;box-shadow:0 14px 50px -8px rgba(142,245,224,.8)}
+.btn-ghost{border:1px solid var(--glass-line);background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.btn-ghost:hover{background:rgba(255,255,255,.12)}
+.btn span{pointer-events:none}
+.menu-btn{display:none;width:48px;height:48px;border-radius:50%;align-items:center;justify-content:center;background:var(--glass)}
+.menu-btn i{display:block;width:18px;height:1.5px;background:var(--mist);position:relative;transition:transform .3s}
+.menu-btn i::before,.menu-btn i::after{content:"";position:absolute;left:0;width:18px;height:1.5px;background:var(--mist);transition:transform .3s}
+.menu-btn i::before{top:-6px}.menu-btn i::after{top:6px}
+.menu-btn[aria-expanded=true] i{background:transparent}
+.menu-btn[aria-expanded=true] i::before{transform:translateY(6px) rotate(45deg)}
+.menu-btn[aria-expanded=true] i::after{transform:translateY(-6px) rotate(-45deg)}
+.mobile-menu{position:fixed;top:84px;left:16px;right:16px;z-index:49;padding:12px;border-radius:24px;background:rgba(23,28,61,.92);border:1px solid var(--glass-line);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:none}
+.mobile-menu.open{display:block}
+.mobile-menu a{display:flex;align-items:center;min-height:52px;padding:0 16px;border-radius:14px;text-decoration:none;font-size:18px}
+.mobile-menu a:hover{background:rgba(255,255,255,.07)}
+
+section{position:relative}
+.wrap{width:min(1120px,calc(100% - 40px));margin:0 auto}
+.kicker{display:inline-flex;align-items:center;gap:10px;font-size:15px;color:var(--muted)}
+.kicker::before{content:"";width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--mint),var(--lilac));box-shadow:0 0 12px var(--mint)}
+h1,h2,h3{font-weight:400;font-family:var(--serif);line-height:1.02;letter-spacing:-.01em}
+h2{font-size:clamp(44px,6.4vw,92px)}
+.lead{font-size:clamp(17px,1.5vw,20px);color:var(--muted);max-width:34em}
+.iridescent{background:linear-gradient(100deg,var(--mint) 0%,var(--lilac) 45%,var(--rose) 75%,var(--peach) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* hero */
+.hero{min-height:100svh;display:grid;place-items:center;text-align:center;padding:140px 0 90px;overflow:hidden}
+#orb{position:absolute;inset:0;width:100%;height:100%}
+.hero-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:26px;pointer-events:none}
+.hero-inner a,.hero-inner button{pointer-events:auto}
+.hero h1{font-size:clamp(64px,11vw,172px);line-height:.92}
+.hero h1 .line{display:block;overflow:hidden;padding:.08em .12em .12em}
+.hero h1 .w{display:inline-block}
+.hero h1 em{font-style:italic}
+.hero .lead{text-align:center;max-width:30em;text-shadow:0 2px 24px var(--night)}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.hero-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);font-size:14px;color:var(--muted);z-index:2;display:flex;gap:10px;align-items:center}
+.hero-hint b{display:inline-block;width:1px;height:28px;background:linear-gradient(var(--mint),transparent)}
+
+/* story (pinned) */
+.story{height:100vh;overflow:hidden}
+.story-grid{height:100%;display:grid;grid-template-columns:minmax(300px,.8fr) 1.2fr;align-items:center;gap:40px}
+.story-copy{position:relative;min-height:330px}
+.step{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:18px}
+.step .num{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--mint)}
+.step h2{font-size:clamp(42px,5vw,76px)}
+.step p{color:var(--muted);max-width:26em}
+.progress{display:flex;gap:8px;margin-top:8px;position:absolute;bottom:-40px;left:0}
+.progress i{width:44px;height:3px;border-radius:3px;background:rgba(255,255,255,.15);overflow:hidden;position:relative}
+.progress i b{position:absolute;inset:0;background:linear-gradient(90deg,var(--mint),var(--lilac));transform-origin:left;transform:scaleX(0)}
+.stage{position:relative;height:min(70vh,640px);border-radius:var(--r-lg)}
+.stage svg.links{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.stage .links line{stroke:rgba(169,200,255,.55);stroke-width:1.5}
+.core{position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9fff7,var(--lilac) 55%,#6b4cff);box-shadow:0 0 80px 10px rgba(169,155,255,.45),inset 0 0 30px rgba(255,255,255,.4)}
+.core::after{content:"";position:absolute;inset:-18px;border-radius:50%;border:1px solid rgba(255,255,255,.18)}
+.ncard{position:absolute;left:50%;top:50%;width:178px;margin:-46px 0 0 -89px;padding:14px 16px;border-radius:var(--r-md);background:rgba(255,255,255,.08);border:1px solid var(--glass-line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-size:14px;line-height:1.4;box-shadow:0 20px 40px -20px rgba(0,0,0,.6)}
+.ncard b{display:block;font-weight:600;font-size:14px;margin-bottom:4px}
+.ncard span{color:var(--muted);font-size:13px}
+.ncard .tag{display:inline-block;margin-top:8px;font-size:12px;padding:2px 8px;border-radius:999px;background:rgba(142,245,224,.14);color:var(--mint)}
+.answer-bubble{position:absolute;left:50%;top:50%;width:min(300px,80%);transform:translate(-50%,-50%);padding:18px 20px;border-radius:22px 22px 22px 6px;background:rgba(238,240,255,.94);color:var(--night);font-size:15px;line-height:1.45;box-shadow:0 30px 70px -20px rgba(169,155,255,.8);opacity:0;visibility:hidden}
+.answer-bubble small{display:block;margin-top:8px;color:#4b4f7a;font-size:12.5px}
+
+/* ask (chat demo) */
+.ask{padding:140px 0}
+.ask-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:56px;flex-wrap:wrap}
+.ask-head h2{max-width:9em}
+.ask-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:24px;align-items:start}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.note{padding:18px;border-radius:var(--r-md);background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s,border-color .5s,background .5s}
+.note h3{font-family:var(--sans);font-weight:600;font-size:16px;line-height:1.3;margin-bottom:8px;display:flex;gap:8px;align-items:baseline}
+.note h3 em{font-style:normal;font-size:12px;color:var(--night);background:var(--mint);border-radius:6px;padding:0 6px;font-weight:600}
+.note p{font-size:15px;color:var(--muted);line-height:1.5}
+.note time{display:block;margin-top:10px;font-size:13px;color:#8d93bf}
+.note.lit{transform:translateY(-4px);border-color:rgba(142,245,224,.7);background:rgba(142,245,224,.09);box-shadow:0 0 0 1px rgba(142,245,224,.4),0 20px 50px -20px rgba(142,245,224,.6)}
+.chat{border-radius:var(--r-lg);background:rgba(23,28,61,.6);border:1px solid var(--glass-line);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);display:flex;flex-direction:column;height:560px;overflow:hidden}
+.chat-top{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.08);font-size:15px}
+.chat-top .dot{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d9fff7,var(--lilac) 60%,#6b4cff)}
+.chat-top small{color:var(--muted);margin-left:auto;font-size:13px}
+.log{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
+.msg{max-width:88%;padding:12px 16px;border-radius:18px;font-size:16px;line-height:1.5}
+.msg.me{align-self:flex-end;background:linear-gradient(135deg,rgba(169,155,255,.35),rgba(255,179,207,.25));border:1px solid rgba(255,255,255,.14);border-bottom-right-radius:6px}
+.msg.ai{align-self:flex-start;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-bottom-left-radius:6px}
+.msg.ai.typing::after{content:"";display:inline-block;width:7px;height:16px;margin-left:2px;vertical-align:-2px;background:var(--mint);animation:blink .8s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.cite{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;margin:0 2px;padding:0 6px;border-radius:7px;background:var(--mint);color:var(--night);font-size:12px;font-weight:600;vertical-align:1px;cursor:pointer}
+.cite:hover{background:#fff}
+.cite{position:relative}
+.cite::after{content:"";position:absolute;inset:-11px -6px}
+.thinking{display:flex;gap:5px;padding:16px}
+.thinking i{width:7px;height:7px;border-radius:50%;background:var(--lilac);animation:bob 1s ease-in-out infinite}
+.thinking i:nth-child(2){animation-delay:.15s}.thinking i:nth-child(3){animation-delay:.3s}
+@keyframes bob{50%{transform:translateY(-5px);opacity:.5}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 12px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:44px;padding:0 14px;border-radius:999px;font-size:14px;border:1px solid var(--glass-line);background:rgba(255,255,255,.05);transition:background .25s,border-color .25s}
+.chip:hover{background:rgba(255,255,255,.12);border-color:rgba(142,245,224,.6)}
+.chip:disabled{opacity:.45;cursor:default}
+.ask-form{display:flex;gap:8px;padding:12px;border-top:1px solid rgba(255,255,255,.08)}
+.ask-form input{flex:1;min-width:0;min-height:48px;padding:0 18px;border-radius:999px;border:1px solid var(--glass-line);background:rgba(16,20,46,.6);color:var(--mist);font:inherit;font-size:16px}
+.ask-form input::placeholder{color:#8d93bf}
+.ask-form input:focus{outline:none;border-color:var(--mint)}
+.ask-form button{width:48px;height:48px;border-radius:50%;background:var(--mist);color:var(--night);display:grid;place-items:center;flex:none}
+.ask-form button:hover{background:var(--mint)}
+
+/* capture */
+.capture{padding:60px 0 140px}
+.cap-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:24px}
+.cap-panel{position:relative;padding:40px;border-radius:var(--r-lg);background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.03));border:1px solid var(--glass-line);overflow:hidden;min-height:480px;display:flex;flex-direction:column;justify-content:space-between}
+.cap-panel h2{font-size:clamp(40px,4.6vw,68px);max-width:8em}
+.inputs{position:relative;height:220px;margin-top:20px}
+.src{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 16px 10px 10px;border-radius:999px;background:rgba(16,20,46,.7);border:1px solid var(--glass-line);font-size:14px;white-space:nowrap;animation:float 6s ease-in-out infinite}
+.src i{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-style:normal}
+.src:nth-child(1){left:2%;top:8%}
+.src:nth-child(2){left:38%;top:0;animation-delay:-2s}
+.src:nth-child(3){left:12%;top:58%;animation-delay:-4s}
+.src:nth-child(4){left:52%;top:52%;animation-delay:-1s}
+@keyframes float{50%{transform:translateY(-10px)}}
+.cap-list{display:flex;flex-direction:column}
+.cap-list li{list-style:none;padding:28px 4px;border-top:1px solid rgba(255,255,255,.12)}
+.cap-list li:last-child{border-bottom:1px solid rgba(255,255,255,.12)}
+.cap-list h3{font-size:32px;margin-bottom:8px}
+.cap-list p{color:var(--muted)}
+
+/* privacy */
+.privacy{padding:120px 0;overflow:hidden}
+.priv-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.rings{position:relative;aspect-ratio:1;max-width:460px;width:100%;margin:0 auto}
+.rings span{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.14)}
+.rings span:nth-child(2){inset:12%;border:1px dashed rgba(142,245,224,.45)}
+.rings span:nth-child(3){inset:24%;border-color:rgba(169,155,255,.4)}
+.rings span:nth-child(4){inset:36%;background:radial-gradient(circle at 35% 30%,#d9fff7,var(--lilac) 55%,#5a3ff0);border:0;box-shadow:0 0 90px rgba(169,155,255,.5)}
+.rings em{position:absolute;padding:6px 12px;border-radius:999px;background:rgba(23,28,61,.85);border:1px solid var(--glass-line);font-style:normal;font-size:13px;white-space:nowrap}
+.priv-list{margin-top:28px;display:grid;gap:18px}
+.priv-list > div{display:grid;grid-template-columns:28px 1fr;gap:14px}
+.priv-list svg{width:22px;height:22px;margin-top:3px;color:var(--mint)}
+.priv-list b{display:block;font-weight:600}
+.priv-list p{color:var(--muted);font-size:16px}
+
+/* quote */
+.quote{padding:120px 0;text-align:center}
+.quote blockquote{font-family:var(--serif);font-size:clamp(34px,4.6vw,66px);line-height:1.12;max-width:17em;margin:0 auto}
+.quote figcaption{margin-top:32px;color:var(--muted);font-size:16px}
+.quote figcaption b{color:var(--mist);font-weight:600}
+
+/* pricing */
+.pricing{padding:120px 0 80px}
+.pricing h2{text-align:center;margin-bottom:56px}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:880px;margin:0 auto}
+.plan{position:relative;padding:36px;border-radius:var(--r-lg);background:var(--glass);border:1px solid var(--glass-line);display:flex;flex-direction:column;gap:18px}
+.plan.plus{background:linear-gradient(160deg,rgba(169,155,255,.22),rgba(142,245,224,.08));border-color:rgba(169,155,255,.5)}
+.plan h3{font-size:36px}
+.price{font-family:var(--serif);font-size:64px;line-height:1}
+.price small{font-family:var(--sans);font-size:16px;color:var(--muted)}
+.plan ul{list-style:none;display:grid;gap:10px;flex:1}
+.plan li{padding-left:26px;position:relative;font-size:16px}
+.plan li::before{content:"";position:absolute;left:0;top:.55em;width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--mint),var(--lilac))}
+
+/* footer cta */
+.final{padding:100px 0 40px;text-align:center}
+.final h2{font-size:clamp(56px,9vw,140px);margin-bottom:28px}
+footer{margin-top:100px;padding:28px 0;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+
+@media (max-width:900px){
+  .nav ul,.nav .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .story-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:10px;padding:96px 0 24px;align-content:start}
+  .story-copy{min-height:210px}
+  .step h2{font-size:40px}
+  .step p{font-size:16px}
+  .progress{bottom:-18px}
+  .stage{height:100%;min-height:0}
+  .ncard{width:132px;margin:-36px 0 0 -66px;padding:10px 12px;font-size:12px}
+  .ncard b{font-size:12.5px}
+  .ncard span{font-size:11.5px}
+  .ncard .tag{display:none}
+  .core{width:84px;height:84px;margin:-42px 0 0 -42px}
+  .ask{padding:100px 0}
+  .ask-grid,.cap-grid,.priv-grid{grid-template-columns:1fr}
+  .notes{grid-template-columns:1fr 1fr}
+  .chat{height:520px}
+  .cap-panel{padding:28px;min-height:420px}
+  .plans{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .notes{grid-template-columns:1fr}
+  .note p{font-size:15px}
+  .hero{place-items:end center;padding:0 0 96px}
+  .rings em{font-size:12px}
+  .src{font-size:13px}
+  .src:nth-child(2){left:30%}
+  .src:nth-child(4){left:36%;top:66%}
+  .src:nth-child(3){top:40%}
+  .plan{padding:28px}
+}
+@media (prefers-reduced-motion:reduce){
+  .aurora i,.src,.thinking i{animation:none!important}
+  .story{height:auto;overflow:visible;padding:110px 0 60px}
+  .story-grid{height:auto;grid-template-columns:1fr}
+  .story-copy{min-height:0;display:grid;gap:36px}
+  .step{position:static}
+  .progress{display:none}
+  .stage{height:520px}
+  .answer-bubble{opacity:1;visibility:visible}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor-glow" aria-hidden="true"></div>
+
+<header>
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="#top" aria-label="Nimbus home">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="bg1" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#c9fff2"/><stop offset=".5" stop-color="#a99bff"/><stop offset="1" stop-color="#ff9fc4"/></radialGradient></defs><circle cx="32" cy="32" r="26" fill="url(#bg1)"/></svg>
+      Nimbus
+    </a>
+    <ul>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#ask">Try it</a></li>
+      <li><a href="#privacy">Privacy</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+    </ul>
+    <a class="btn btn-light magnetic" href="#pricing"><span>Get Nimbus</span></a>
+    <button class="menu-btn" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><i></i></button>
+  </nav>
+  <div class="mobile-menu" id="mmenu">
+    <a href="#how">How it works</a>
+    <a href="#ask">Try it</a>
+    <a href="#privacy">Privacy</a>
+    <a href="#pricing">Pricing</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <canvas id="orb" aria-hidden="true"></canvas>
+    <div class="hero-inner wrap">
+      <h1 aria-label="Notes that think back.">
+        <span class="line" aria-hidden="true"><span class="w">Notes</span> <span class="w">that</span></span>
+        <span class="line" aria-hidden="true"><em class="w iridescent">think back.</em></span>
+      </h1>
+      <p class="lead hero-fade">Nimbus reads everything you've written down and answers your questions in your own words — with the note it came from, every time.</p>
+      <div class="hero-ctas hero-fade">
+        <a class="btn btn-light magnetic" href="#ask"><span>Ask the demo notebook</span></a>
+        <a class="btn btn-ghost magnetic" href="#pricing"><span>Start free</span></a>
+      </div>
+    </div>
+    <div class="hero-hint hero-fade" aria-hidden="true"><b></b><span id="hint">Move your cursor through the orb</span></div>
+  </section>
+
+  <section class="story" id="how" aria-label="How Nimbus works">
+    <div class="wrap story-grid">
+      <div class="story-copy">
+        <div class="step" data-step="0">
+          <span class="num">One</span>
+          <h2>You write it down, anywhere.</h2>
+          <p>Meeting scraps, trip bookings, a recipe you tweaked at midnight. Nimbus doesn't ask you to file anything.</p>
+        </div>
+        <div class="step" data-step="1">
+          <span class="num">Two</span>
+          <h2>Nimbus finds the threads.</h2>
+          <p>It quietly links people, dates and decisions across months of notes — so related ideas sit next to each other.</p>
+        </div>
+        <div class="step" data-step="2">
+          <span class="num">Three</span>
+          <h2>You ask. It remembers.</h2>
+          <p>Ask a plain question and get a short answer stitched from your own notes, each claim linked to its source.</p>
+        </div>
+        <div class="progress" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i></div>
+      </div>
+      <div class="stage" aria-hidden="true">
+        <svg class="links">
+                  </svg>
+        <div class="core"></div>
+        <div class="ncard"><b>Standup, Mon</b><span>Pricing page copy → Maya by Thu</span><em class="tag">#work</em></div>
+        <div class="ncard"><b>Kyoto, late March</b><span>Ryokan check-in from 3pm</span><em class="tag">#travel</em></div>
+        <div class="ncard"><b>Sourdough log #12</b><span>Flat again. Starter sluggish.</span><em class="tag">#kitchen</em></div>
+        <div class="ncard"><b>Voice memo, 7:42</b><span>"Ask Maya about the 14th"</span><em class="tag">#work</em></div>
+        <div class="ncard"><b>Reading: Slow Rivers</b><span>p.112 — attention as rent</span><em class="tag">#books</em></div>
+        <div class="ncard"><b>Gift ideas — Dad</b><span>A proper bread knife</span><em class="tag">#people</em></div>
+        <div class="answer-bubble">Maya owns the pricing copy and the email for the 14th launch.<small>From: Standup, Mon · Voice memo, 7:42</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="ask" id="ask" aria-labelledby="ask-title">
+    <div class="wrap">
+      <div class="ask-head">
+        <h2 id="ask-title">Ask four notes <em class="iridescent">anything.</em></h2>
+        <p class="lead">This is a real slice of a Nimbus notebook. Pick a question or type your own — answers only use what's written on the left, and the source lights up.</p>
+      </div>
+      <div class="ask-grid">
+        <div class="notes" aria-label="Sample notes">
+          <article class="note" data-note="1">
+            <h3><em>1</em>Kyoto, late March</h3>
+            <p>Ryokan Hanaoki, check-in from 3pm, last dinner seating 7:30. Two nights, Mar 27–29. Ask for the garden-side room — conf. KX-2291.</p>
+            <time>Feb 3</time>
+          </article>
+          <article class="note" data-note="2">
+            <h3><em>2</em>Onboarding launch sync</h3>
+            <p>Decided: new checklist goes to 20% of signups on the 14th, not the 7th. Maya owns the email copy. Tooltip tour on hold until we see completion rates.</p>
+            <time>Sep 9</time>
+          </article>
+          <article class="note" data-note="3">
+            <h3><em>3</em>Sourdough log #12</h3>
+            <p>Flat again. Starter only ~1.5× after 6h (kitchen 18°C). Bulk ran 9h — probably overproofed. Next: warmer spot, bulk 6–7h, poke test.</p>
+            <time>Oct 2</time>
+          </article>
+          <article class="note" data-note="4">
+            <h3><em>4</em>Gift ideas — Dad</h3>
+            <p>Wants a proper bread knife (ha). Also that record from the café in Lisbon — "Blue Tram, Live 1974"?</p>
+            <time>Oct 11</time>
+          </article>
+        </div>
+        <div class="chat">
+          <div class="chat-top"><span class="dot" aria-hidden="true"></span>Ask Nimbus<small>Answers from 4 notes</small></div>
+          <div class="log" id="log" aria-live="polite">
+            <div class="msg ai">Hi — I've read your four notes. What do you want to know?</div>
+          </div>
+          <div class="chips" id="chips">
+            <button class="chip" data-q="0">When can we check in at the ryokan?</button>
+            <button class="chip" data-q="1">What did we decide about the launch?</button>
+            <button class="chip" data-q="2">Why was my loaf flat?</button>
+            <button class="chip" data-q="3">Gift ideas for Dad?</button>
+          </div>
+          <form class="ask-form" id="askForm">
+            <label for="askInput" class="sr-only">Your question</label>
+            <input id="askInput" type="text" placeholder="Ask about your notes…" autocomplete="off">
+            <button type="submit" aria-label="Send question"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="capture" aria-labelledby="cap-title">
+    <div class="wrap cap-grid">
+      <div class="cap-panel">
+        <div>
+          <span class="kicker">Capture</span>
+          <h2 id="cap-title" style="margin-top:16px">Everything lands in one quiet place.</h2>
+        </div>
+        <div class="inputs" aria-hidden="true">
+          <span class="src"><i style="background:rgba(142,245,224,.2)">🎙</i>Voice memo · 0:42</span>
+          <span class="src"><i style="background:rgba(169,155,255,.25)">✂︎</i>Clipped from the web</span>
+          <span class="src"><i style="background:rgba(255,179,207,.25)">◐</i>Whiteboard photo</span>
+          <span class="src"><i style="background:rgba(255,214,165,.25)">✉︎</i>Forwarded email</span>
+        </div>
+      </div>
+      <ul class="cap-list">
+        <li><h3>Daily digest</h3><p>Every morning, three things you wrote that matter today — deadlines, follow-ups, the birthday you'd forget.</p></li>
+        <li><h3>Handwriting, read</h3><p>Snap a notebook page and it becomes searchable text, layout and arrows included.</p></li>
+        <li><h3>Works offline</h3><p>Write on the plane. Nimbus syncs and threads it the moment you land.</p></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="privacy" id="privacy" aria-labelledby="priv-title">
+    <div class="wrap priv-grid">
+      <div class="rings" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+        <em style="left:-2%;top:22%">Encrypted on device</em>
+        <em style="right:-2%;top:46%">Never used for training</em>
+        <em style="left:14%;bottom:6%">Export anytime</em>
+      </div>
+      <div>
+        <span class="kicker">Privacy</span>
+        <h2 id="priv-title" style="margin-top:16px">Your notes stay <em class="iridescent">yours.</em></h2>
+        <div class="priv-list">
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><div><b>End-to-end encrypted</b><p>Keys live on your devices. We can't read your notebook, and neither can anyone who asks us.</p></div></div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg><div><b>No training on your writing</b><p>Your notes answer your questions. They never become someone else's model.</p></div></div>
+          <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg><div><b>Plain-file export</b><p>Leave with Markdown and your attachments in one folder. No lock-in, no exit interview.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quote" aria-label="What people say">
+    <figure class="wrap">
+      <blockquote>“I stopped searching my notes. I just ask, and Nimbus hands me the exact line I wrote two winters ago.”</blockquote>
+      <figcaption><b>Ilse Marrow</b>, documentary researcher</figcaption>
+    </figure>
+  </section>
+
+  <section class="pricing" id="pricing" aria-labelledby="price-title">
+    <div class="wrap">
+      <h2 id="price-title">Two plans. <em class="iridescent">No ceilings.</em></h2>
+      <div class="plans">
+        <div class="plan">
+          <h3>Free</h3>
+          <div class="price">$0 <small>forever</small></div>
+          <ul><li>Unlimited notes on 2 devices</li><li>50 questions a month</li><li>Daily digest</li><li>Markdown export</li></ul>
+          <a class="btn btn-ghost magnetic" href="#top"><span>Start free</span></a>
+        </div>
+        <div class="plan plus">
+          <h3>Plus</h3>
+          <div class="price">$8 <small>/ month, billed yearly</small></div>
+          <ul><li>Unlimited questions and devices</li><li>Handwriting and audio transcription</li><li>Shared notebooks for up to 6 people</li><li>Priority answers, even on long notebooks</li></ul>
+          <a class="btn btn-light magnetic" href="#top"><span>Try Plus for 30 days</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="final" aria-labelledby="final-title">
+    <div class="wrap">
+      <h2 id="final-title">Write it once.<br><em class="iridescent">Ask it forever.</em></h2>
+      <a class="btn btn-light magnetic" href="#pricing"><span>Get Nimbus for Mac, iOS &amp; web</span></a>
+      <footer>
+        <span>© 2026 Nimbus Notes</span>
+        <span>Concept design — fictional brand.</span>
+      </footer>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const fine = matchMedia('(pointer: fine)').matches
+  gsap.registerPlugin(ScrollTrigger)
+
+  // smooth scroll
+  let lenis = null
+  if (!reduce) {
+    lenis = new Lenis({ lerp: 0.1 })
+    window.lenis = lenis
+    lenis.on('scroll', ScrollTrigger.update)
+    gsap.ticker.add((t) => lenis.raf(t * 1000))
+    gsap.ticker.lagSmoothing(0)
+  }
+  document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href')
+    const el = id === '#top' ? document.body : document.querySelector(id)
+    if (!el) return
+    e.preventDefault()
+    closeMenu()
+    if (lenis) lenis.scrollTo(el, { offset: 0 })
+    else el.scrollIntoView()
+  }))
+
+  // mobile menu
+  const menuBtn = document.querySelector('.menu-btn'), menu = document.getElementById('mmenu')
+  function closeMenu() { menu.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.setAttribute('aria-label', 'Open menu') }
+  menuBtn.addEventListener('click', () => {
+    const open = !menu.classList.contains('open')
+    menu.classList.toggle('open', open)
+    menuBtn.setAttribute('aria-expanded', String(open))
+    menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu')
+  })
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu() })
+
+  // cursor glow + magnetic buttons
+  if (!fine) document.getElementById('hint').textContent = 'Drag a finger across the orb'
+  const glow = document.querySelector('.cursor-glow')
+  if (fine && !reduce) {
+    const gx = gsap.quickTo(glow, 'x', { duration: 0.6, ease: 'power3' }), gy = gsap.quickTo(glow, 'y', { duration: 0.6, ease: 'power3' })
+    addEventListener('pointermove', (e) => { glow.style.opacity = 1; gx(e.clientX); gy(e.clientY) })
+    document.querySelectorAll('.magnetic').forEach((b) => {
+      const xTo = gsap.quickTo(b, 'x', { duration: 0.5, ease: 'elastic.out(1,0.4)' }), yTo = gsap.quickTo(b, 'y', { duration: 0.5, ease: 'elastic.out(1,0.4)' })
+      b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); xTo((e.clientX - r.left - r.width / 2) * 0.3); yTo((e.clientY - r.top - r.height / 2) * 0.4) })
+      b.addEventListener('pointerleave', () => { xTo(0); yTo(0) })
+    })
+  }
+
+  /* ---------- thought orb ---------- */
+  const cv = document.getElementById('orb'), ctx = cv.getContext('2d')
+  const N = innerWidth < 700 ? 1300 : 2600
+  const pts = []
+  for (let i = 0; i < N; i++) {
+    const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = i * 2.399963
+    pts.push({ x: Math.cos(th) * r, y, z: Math.sin(th) * r, ox: 0, oy: 0, s: Math.random() })
+  }
+  let W = 0, H = 0, dpr = 1, R = 200, OY = 0
+  const mouse = { x: -9999, y: -9999, tx: 0, ty: 0, sx: 0, sy: 0 }
+  function size() {
+    dpr = Math.min(devicePixelRatio || 1, 2)
+    W = cv.clientWidth; H = cv.clientHeight
+    cv.width = W * dpr; cv.height = H * dpr
+    R = Math.min(W, H) * (W < 700 ? 0.38 : 0.29)
+    OY = H * (W < 700 ? 0.27 : 0.42)
+  }
+  size(); addEventListener('resize', size)
+  const hero = document.querySelector('.hero')
+  hero.addEventListener('pointermove', (e) => {
+    const r = cv.getBoundingClientRect()
+    mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top
+    mouse.tx = (mouse.x / W - 0.5); mouse.ty = (mouse.y / H - 0.5)
+  })
+  hero.addEventListener('pointerleave', () => { mouse.x = mouse.y = -9999; mouse.tx = mouse.ty = 0 })
+  const cols = [[142, 245, 224], [169, 155, 255], [255, 179, 207], [255, 214, 165]]
+  function mix(t) {
+    const p = Math.max(0, Math.min(0.999, t)) * (cols.length - 1), i = Math.floor(p), f = p - i, a = cols[i], b = cols[i + 1]
+    return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]
+  }
+  let rot = 0, intro = reduce ? 1 : 0, running = false, raf = 0
+  function frame(t) {
+    raf = requestAnimationFrame(frame)
+    draw(t)
+  }
+  function draw(t) {
+    rot += 0.0022
+    mouse.sx += (mouse.tx - mouse.sx) * 0.06; mouse.sy += (mouse.ty - mouse.sy) * 0.06
+    const ay = rot + mouse.sx * 1.2, ax = 0.35 + mouse.sy * 0.9
+    const cy = Math.cos(ay), sy = Math.sin(ay), cx = Math.cos(ax), sx = Math.sin(ax)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.clearRect(0, 0, W, H)
+    const halo = ctx.createRadialGradient(W / 2, OY, 0, W / 2, OY, R * 1.25)
+    halo.addColorStop(0, 'rgba(169,155,255,' + 0.22 * intro + ')'); halo.addColorStop(1, 'rgba(169,155,255,0)')
+    ctx.fillStyle = halo; ctx.fillRect(0, 0, W, H)
+    ctx.globalCompositeOperation = 'lighter'
+    const ox = W / 2, oy = OY, breathe = 1 + Math.sin(t * 0.0012) * 0.025
+    for (let i = 0; i < N; i++) {
+      const p = pts[i]
+      let x = p.x * cy - p.z * sy, z = p.x * sy + p.z * cy, y = p.y * cx - z * sx
+      z = p.y * sx + z * cx
+      const rr = R * breathe * (0.6 + 0.4 * intro) * (1 + Math.sin(t * 0.002 + p.s * 12) * 0.015)
+      const persp = 1.6 / (2.2 - z)
+      let px = ox + x * rr * persp, py = oy + y * rr * persp
+      // cursor push
+      const dx = px - mouse.x, dy = py - mouse.y, d2 = dx * dx + dy * dy, rad = W < 700 ? 110 : 170
+      let tx = 0, ty = 0
+      if (d2 < rad * rad) { const d = Math.sqrt(d2) || 1, f = Math.pow(1 - d / rad, 1.4) * 80; tx = dx / d * f; ty = dy / d * f }
+      p.ox += (tx - p.ox) * 0.12; p.oy += (ty - p.oy) * 0.12
+      px += p.ox; py += p.oy
+      const depth = (z + 1) / 2
+      const c = mix((y + 1) / 2 * 0.85 + p.s * 0.15)
+      const near = Math.min(1, Math.hypot(p.ox, p.oy) / 40)
+      const a = Math.min(1, 0.18 + depth * 0.8 + near * 0.5) * intro
+      const sz = (0.9 + depth * 2.3 + near * 1.2) * (W < 700 ? 0.85 : 1)
+      ctx.fillStyle = `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`
+      ctx.fillRect(px - sz / 2, py - sz / 2, sz, sz)
+    }
+    ctx.globalCompositeOperation = 'source-over'
+  }
+  if (reduce) draw(0)
+  else {
+    new IntersectionObserver(([en]) => {
+      if (en.isIntersecting && !running) { running = true; raf = requestAnimationFrame(frame) }
+      else if (!en.isIntersecting && running) { running = false; cancelAnimationFrame(raf) }
+    }).observe(cv)
+    gsap.to({ v: 0 }, { v: 1, duration: 1.6, ease: 'power3.out', delay: 0.1, onUpdate() { intro = this.targets()[0].v } })
+  }
+
+  /* ---------- hero intro ---------- */
+  if (!reduce) {
+    gsap.set('.hero h1 .w', { yPercent: 110, opacity: 0 })
+    gsap.set('.hero-fade', { y: 20, opacity: 0 })
+    gsap.set('.nav', { y: -30, opacity: 0 })
+    const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
+    tl.to('.hero h1 .w', { yPercent: 0, opacity: 1, duration: 1.2, stagger: 0.09 }, 0.15)
+      .to('.hero-fade', { y: 0, opacity: 1, duration: 1, stagger: 0.08 }, 0.5)
+      .to('.nav', { y: 0, opacity: 1, duration: 1 }, 0.4)
+  }
+
+  /* ---------- story: pinned scrub ---------- */
+  const stage = document.querySelector('.stage')
+  const cards = gsap.utils.toArray('.ncard')
+  const scatter = [[-0.42, -0.4, -14], [0.38, -0.44, 10], [-0.46, 0.12, 8], [0.44, 0.06, -9], [-0.2, 0.46, 12], [0.26, 0.44, -6]]
+  const cluster = []
+  const svg = stage.querySelector('svg')
+  const lineState = cards.map(() => ({ v: 0 }))
+  cards.forEach((c, i) => {
+    const a = -Math.PI / 2 + i * (Math.PI * 2 / cards.length) + 0.3
+    cluster.push([Math.cos(a) * 0.38, Math.sin(a) * 0.37])
+    svg.appendChild(document.createElementNS('http://www.w3.org/2000/svg', 'line'))
+  })
+  function drawLines() {
+    const w = stage.clientWidth, h = stage.clientHeight
+    svg.querySelectorAll('line').forEach((ln, i) => {
+      const x2 = w / 2 + cluster[i][0] * w, y2 = h / 2 + cluster[i][1] * h, len = Math.hypot(x2 - w / 2, y2 - h / 2)
+      ln.setAttribute('x1', w / 2); ln.setAttribute('y1', h / 2); ln.setAttribute('x2', x2); ln.setAttribute('y2', y2)
+      ln.style.strokeDasharray = len
+      ln.style.strokeDashoffset = len * (1 - lineState[i].v)
+    })
+  }
+  addEventListener('resize', drawLines)
+  const lines = svg.querySelectorAll('line')
+  const steps = gsap.utils.toArray('.step'), bars = gsap.utils.toArray('.progress b')
+  const bubble = document.querySelector('.answer-bubble')
+  let active = -1
+  function setStep(i, instant) {
+    if (i === active) return
+    const prev = active; active = i
+    steps.forEach((s, k) => {
+      if (k === i) gsap.fromTo(s, { autoAlpha: 0, y: instant ? 0 : (k > prev ? 30 : -30) }, { autoAlpha: 1, y: 0, duration: instant ? 0 : 0.7, ease: 'power3.out', delay: instant ? 0 : 0.15, overwrite: true })
+      else gsap.to(s, { autoAlpha: 0, y: k < i ? -30 : 30, duration: instant ? 0 : 0.35, ease: 'power2.in', overwrite: true })
+    })
+    gsap.to(bubble, i === 2 ? { autoAlpha: 1, scale: 1, duration: 0.6, ease: 'back.out(1.6)', overwrite: true } : { autoAlpha: 0, scale: 0.85, duration: 0.3, overwrite: true })
+  }
+
+  if (!reduce) {
+    gsap.set(bubble, { scale: 0.85 })
+    cards.forEach((c, i) => gsap.set(c, { x: () => scatter[i][0] * stage.clientWidth, y: () => scatter[i][1] * stage.clientHeight, rotation: scatter[i][2] }))
+    gsap.set('.core', { scale: 0.3, opacity: 0.4 })
+    setStep(0, true)
+    const tl = gsap.timeline({
+      onUpdate: drawLines,
+      scrollTrigger: {
+        trigger: '.story', start: 'top top', end: '+=260%', pin: true, scrub: 0.8, invalidateOnRefresh: true, onRefresh: drawLines,
+        onUpdate(self) {
+          const p = self.progress
+          setStep(p < 0.3 ? 0 : p < 0.66 ? 1 : 2)
+          bars.forEach((b, k) => gsap.set(b, { scaleX: gsap.utils.clamp(0, 1, p * 3 - k) }))
+        },
+      },
+    })
+    tl.to(cards, { x: (i) => cluster[i][0] * stage.clientWidth, y: (i) => cluster[i][1] * stage.clientHeight, rotation: 0, duration: 1, ease: 'power2.inOut', stagger: 0.04 }, 0.15)
+      .to('.core', { scale: 1, opacity: 1, duration: 0.8, ease: 'power2.out' }, 0.5)
+      .to(lineState, { v: 1, duration: 0.6, stagger: 0.06 }, 0.9)
+      .to('.core', { scale: 1.12, duration: 0.6 }, 1.6)
+      .to(cards, { opacity: 0.55, duration: 0.4 }, 1.7)
+      .to({}, { duration: 0.3 })
+  } else {
+    cards.forEach((c, i) => gsap.set(c, { x: () => cluster[i][0] * stage.clientWidth, y: () => cluster[i][1] * stage.clientHeight }))
+    lineState.forEach((l) => (l.v = 1))
+    drawLines()
+  }
+
+  /* ---------- chat demo ---------- */
+  const QA = [
+    { q: 'When can we check in at the ryokan?', a: 'From 3pm on March 27. You booked two nights at Ryokan Hanaoki, and the last dinner seating is 7:30 — so arriving by 6 leaves time to settle in. Ask for the garden-side room, confirmation KX-2291. [1]' },
+    { q: 'What did we decide about the launch?', a: 'You pushed it one week: the new checklist goes to 20% of signups on the 14th instead of the 7th. Maya owns the email copy, and the tooltip tour waits until you see completion rates. [2]' },
+    { q: 'Why was my loaf flat?', a: 'Most likely overproofing. Your starter only rose about 1.5× in six hours in an 18°C kitchen, then bulk ran nine hours. Your own plan for next time: a warmer spot, a 6–7 hour bulk, and the poke test. [3]' },
+    { q: 'Gift ideas for Dad?', a: 'Two from your notes: a proper bread knife — fitting, given loaf #12 [3][4] — and the "Blue Tram, Live 1974" record from the café in Lisbon. [4]' },
+  ]
+  const keys = [/kyoto|ryokan|check.?in|trip|hotel|japan|travel|room|dinner|march|confirmation|stay/i, /launch|onboard|checklist|maya|decid|14th|tooltip|email|signup|ship|release|meeting/i, /bread|loaf|sourdough|starter|bak|flat|proof|bulk|ferment|dough|rise|oven|poke/i, /dad|gift|present|father|record|birthday|knife/i]
+  const log = document.getElementById('log'), chips = document.querySelectorAll('.chip'), form = document.getElementById('askForm'), input = document.getElementById('askInput')
+  const notes = document.querySelectorAll('.note')
+  let busy = false
+  function light(ids) { notes.forEach((n) => n.classList.toggle('lit', ids.includes(n.dataset.note))) }
+  function scrollLog() { log.scrollTop = log.scrollHeight }
+  function ask(q, a) {
+    if (busy) return
+    busy = true; chips.forEach((c) => (c.disabled = true))
+    light([])
+    const me = document.createElement('div'); me.className = 'msg me'; me.textContent = q; log.appendChild(me)
+    const th = document.createElement('div'); th.className = 'msg ai thinking'; th.innerHTML = '<i></i><i></i><i></i>'; th.setAttribute('aria-label', 'Nimbus is reading your notes'); log.appendChild(th)
+    scrollLog()
+    if (!reduce) gsap.from(me, { y: 14, opacity: 0, duration: 0.4, ease: 'power2.out' })
+    const cites = [...new Set((a.match(/\[(\d)\]/g) || []).map((s) => s[1]))]
+    setTimeout(() => {
+      th.remove()
+      const el = document.createElement('div'); el.className = 'msg ai typing'; log.appendChild(el)
+      light(cites)
+      const html = a.replace(/\[(\d)\]/g, '<button class="cite" data-n="$1" aria-label="Source note $1">$1</button>')
+      if (reduce) { el.innerHTML = html; done(); return }
+      const plain = a
+      let i = 0
+      const tick = setInterval(() => {
+        i += 2
+        el.textContent = plain.slice(0, i).replace(/\[\d?\]?$/, '')
+        scrollLog()
+        if (i >= plain.length) { clearInterval(tick); el.innerHTML = html; done() }
+      }, 18)
+      function done() { el.classList.remove('typing'); busy = false; chips.forEach((c) => (c.disabled = false)); scrollLog() }
+    }, reduce ? 200 : 700)
+  }
+  log.addEventListener('click', (e) => { const c = e.target.closest('.cite'); if (c) { light([c.dataset.n]); const n = document.querySelector(`.note[data-note="${c.dataset.n}"]`); if (innerWidth < 900 && n) n.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' }) } })
+  chips.forEach((c) => c.addEventListener('click', () => { const k = +c.dataset.q; ask(QA[k].q, QA[k].a) }))
+  form.addEventListener('submit', (e) => {
+    e.preventDefault()
+    const q = input.value.trim()
+    if (!q || busy) return
+    input.value = ''
+    const k = keys.findIndex((r) => r.test(q))
+    ask(q, k >= 0 ? QA[k].a : "None of these four notes cover that yet, so I won't guess. Try asking about the Kyoto trip, the onboarding launch, the sourdough log or gifts for Dad.")
+  })
+
+  /* ---------- reveals ---------- */
+  if (!reduce) {
+    const rv = gsap.utils.toArray('.ask-head > *, .note, .chat, .cap-panel, .cap-list li, .rings, .priv-list > div, .quote blockquote, .plan, .final h2')
+    gsap.set(rv, { y: 40, opacity: 0 })
+    rv.forEach((el) => ScrollTrigger.create({ trigger: el, start: 'top 90%', once: true, onEnter: () => gsap.to(el, { y: 0, opacity: 1, duration: 1, ease: 'expo.out' }) }))
+    gsap.to('.rings span', { rotation: (i) => (i % 2 ? -40 : 40), ease: 'none', scrollTrigger: { trigger: '.privacy', start: 'top bottom', end: 'bottom top', scrub: true } })
+    gsap.fromTo('.rings span:nth-child(4)', { scale: 0.8 }, { scale: 1.05, ease: 'none', scrollTrigger: { trigger: '.privacy', start: 'top bottom', end: 'bottom top', scrub: true } })
+  }
+  addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

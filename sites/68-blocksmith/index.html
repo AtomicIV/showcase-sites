@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blocksmith — Chunky blocks that click</title>
+<meta name="description" content="Blocksmith makes chunky, glossy building blocks for small hands. Throw them around, then build a robot from snap-together parts and watch it dance.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='18' width='52' height='38' rx='9' fill='%23E8352B' stroke='%231B1B2F' stroke-width='4'/%3E%3Crect x='14' y='8' width='14' height='12' rx='4' fill='%23E8352B' stroke='%231B1B2F' stroke-width='4'/%3E%3Crect x='36' y='8' width='14' height='12' rx='4' fill='%23E8352B' stroke='%231B1B2F' stroke-width='4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chango&family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F2E9; --white:#FFFDF8; --ink:#1B1B2F; --muted:#55556A; --line:rgba(27,27,47,.14);
+  --red:#E8352B; --blue:#2457D6; --yellow:#FFC21A; --green:#18A558; --red-d:#B21F17; --blue-d:#173A99; --green-d:#0E7A3E;
+  --sans:"Rubik", system-ui, sans-serif; --disp:"Chango", "Rubik", sans-serif;
+  --pop:cubic-bezier(.34,1.56,.64,1); --ease:cubic-bezier(.22,1,.36,1);
+  --chunk:0 6px 0 var(--ink);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:10px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:#fff;padding:10px 16px;z-index:300;border-radius:8px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1280px,100% - 64px);margin-inline:auto}
+h1,h2,h3{margin:0;line-height:1;letter-spacing:-.01em}
+h1,h2{font-family:var(--disp);font-weight:400}
+h2{font-size:clamp(40px,5vw,76px);line-height:1.02}
+h3{font-weight:800}
+p{margin:0}
+.tag{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--ink);color:#fff;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.tag i{width:10px;height:10px;border-radius:3px;background:var(--yellow)}
+.mask{display:block;overflow:hidden;padding:.1em .04em .14em;margin:-.1em -.04em -.14em}
+.mask>span{display:block}
+.c-red{color:var(--red)}.c-blue{color:var(--blue)}.c-green{color:var(--green-d)}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 26px;border-radius:16px;border:3px solid var(--ink);background:var(--yellow);color:var(--ink);font-weight:800;font-size:17px;text-decoration:none;cursor:pointer;box-shadow:var(--chunk);transform:translate(var(--mx),var(--my));transition:transform .4s var(--pop),box-shadow .15s,background .25s}
+.btn:hover{transform:translate(var(--mx),calc(var(--my) - 3px));box-shadow:0 9px 0 var(--ink)}
+.btn:active{transform:translate(var(--mx),calc(var(--my) + 4px));box-shadow:0 2px 0 var(--ink);transition-duration:.08s}
+.btn.blue{background:var(--blue);color:#fff}
+.btn.red{background:var(--red);color:#fff}
+.btn.white{background:var(--white)}
+.btn.sm{min-height:46px;padding:0 18px;font-size:15px;border-width:2.5px;box-shadow:0 4px 0 var(--ink)}
+.btn.sm:hover{box-shadow:0 6px 0 var(--ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:0 3px 0 var(--ink)}
+.btn svg{width:20px;height:20px}
+
+/* nav */
+.nav{position:fixed;top:12px;left:0;right:0;z-index:90;pointer-events:none}
+.nav .bar{pointer-events:auto;display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px;padding:0 10px 0 18px;border-radius:20px;border:3px solid var(--ink);background:var(--white);box-shadow:0 5px 0 var(--ink)}
+.logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--disp);font-size:22px;min-height:44px}
+.logo svg{width:34px;height:34px}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:12px;text-decoration:none;font-weight:600;font-size:15px;transition:background .25s}
+.nav ul a:hover{background:var(--bg)}
+.nav-r{display:flex;align-items:center;gap:8px}
+.cart{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 14px;border-radius:14px;border:2.5px solid var(--ink);background:var(--white);font-weight:700;cursor:pointer}
+.cart b{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 6px;border-radius:8px;background:var(--red);color:#fff;font-size:14px}
+.menu-btn{display:none;width:48px;height:48px;border-radius:14px;border:2.5px solid var(--ink);background:var(--yellow);cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:18px;height:3px;border-radius:2px;background:var(--ink);transition:transform .35s var(--pop)}
+.menu-btn i{position:relative;transform:translateY(-4px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:8px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-8px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:92px;z-index:89;background:var(--white);border:3px solid var(--ink);border-radius:20px;box-shadow:0 6px 0 var(--ink);padding:10px;display:grid;gap:4px;opacity:0;visibility:hidden;transform:translateY(-12px) scale(.98);transition:opacity .3s,visibility .3s,transform .4s var(--pop)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:56px;padding:0 14px;border-radius:12px;text-decoration:none;font-family:var(--disp);font-size:24px}
+.mmenu a:nth-child(4n+1):hover{background:#FFE1DE}.mmenu a:nth-child(4n+2):hover{background:#DDE7FF}.mmenu a:nth-child(4n+3):hover{background:#FFF1C2}.mmenu a:nth-child(4n+4):hover{background:#D5F3E2}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;overflow:hidden;padding:130px 0 40px;background:radial-gradient(70% 60% at 75% 40%,#FFFFFF 0%,var(--bg) 70%)}
+.hero .wrap{position:relative;z-index:2;pointer-events:none}
+.hero .copy{max-width:700px;pointer-events:auto}
+.hero h1{font-size:clamp(54px,6.4vw,104px);line-height:.98}
+.hero h1 .w{display:inline-block}
+.hero-lead{font-size:20px;color:var(--muted);max-width:36ch;margin:26px 0 32px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px}
+.hero-note{display:flex;align-items:center;gap:10px;margin-top:30px;font-size:15px;color:var(--muted);font-weight:500}
+.hero-note svg{width:30px;height:30px;flex:none}
+.pit{position:absolute;right:0;top:0;bottom:0;width:58%;z-index:1}
+.pit canvas{width:100%;height:100%;touch-action:none;cursor:grab}
+.pit canvas.grab{cursor:grabbing}
+.pit-ctl{position:absolute;right:32px;top:104px;display:flex;gap:8px;z-index:3}
+.floor-line{position:absolute;left:0;right:0;bottom:0;height:22px;background:repeating-linear-gradient(90deg,var(--ink) 0 24px,var(--yellow) 24px 48px);border-top:3px solid var(--ink)}
+
+/* pinned assembly */
+.asm{position:relative;background:var(--blue);color:#fff;overflow:hidden}
+.asm-pin{position:relative;height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;width:min(1280px,100% - 64px);margin-inline:auto;padding-top:70px}
+.asm-bg{position:absolute;top:0;bottom:0;left:calc(50% - 50vw);width:100vw;pointer-events:none;overflow:hidden}
+.asm-bg span{position:absolute;width:var(--s);height:calc(var(--s) * .62);border-radius:10px;border:3px solid rgba(27,27,47,.35);opacity:.55}
+.asm .tag{background:#fff;color:var(--ink)}
+.asm h2{margin:18px 0 26px}
+.steps{position:relative;height:220px}
+.step{position:absolute;inset:0}
+.step .n{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--yellow);color:var(--ink);border:3px solid var(--ink);font-weight:900;font-size:20px;margin-bottom:12px}
+.step h3{font-size:clamp(28px,2.6vw,38px);margin-bottom:10px}
+.step p{color:#E5ECFF;max-width:42ch;font-size:18px}
+.dots{display:flex;gap:8px;margin-top:20px}
+.dots i{width:14px;height:14px;border-radius:4px;background:rgba(255,255,255,.3);transition:background .3s,transform .4s var(--pop)}
+.dots i.on{background:var(--yellow);transform:scale(1.25)}
+.asm-pin>div:not(.asm-bg){position:relative;z-index:1}
+.asm-art{position:relative;height:min(76vh,640px);display:grid;place-items:center}
+.asm-art svg{height:100%;width:100%;overflow:visible}
+
+/* builder */
+.build{padding:140px 0 120px}
+.build-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:44px}
+.build-head p{color:var(--muted);max-width:40ch}
+.bench{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:28px;align-items:start}
+.stage{position:relative;border:3px solid var(--ink);border-radius:28px;background:radial-gradient(60% 50% at 50% 45%,#FFFFFF,#EAF0FF 80%);box-shadow:0 8px 0 var(--ink);overflow:hidden;aspect-ratio:1/1.08}
+.stage::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(36,87,214,.18) 2px,transparent 2.5px);background-size:26px 26px}
+.stage.over{background:radial-gradient(60% 50% at 50% 45%,#FFFFFF,#FFF3CC 80%)}
+.stage svg{position:relative;width:100%;height:100%}
+.stage .name{position:absolute;left:18px;top:16px;right:18px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700}
+.stage .name b{font-family:var(--disp);font-weight:400;font-size:22px}
+.stage .name span{font-size:14px;color:var(--muted);background:var(--white);border:2px solid var(--ink);border-radius:10px;padding:2px 10px}
+.stage .hint{position:absolute;left:0;right:0;bottom:16px;text-align:center;font-weight:600;color:var(--muted);font-size:15px;padding:0 16px}
+.ctrl{display:grid;gap:16px}
+.slot{background:var(--white);border:3px solid var(--ink);border-radius:22px;padding:16px 16px 14px;box-shadow:0 5px 0 var(--ink)}
+.slot-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.slot-h h3{font-size:18px;display:flex;align-items:center;gap:10px}
+.slot-h h3 i{width:14px;height:14px;border-radius:4px;border:2px solid var(--ink)}
+.slot-h .st{font-size:14px;color:var(--muted);font-weight:500}
+.slot-b{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.parts{display:flex;gap:8px}
+.part{width:76px;height:68px;border-radius:14px;border:2.5px solid var(--line);background:var(--bg);cursor:grab;padding:4px;touch-action:none;transition:border-color .2s,transform .35s var(--pop),background .2s}
+.part:hover{transform:translateY(-3px);border-color:var(--ink)}
+.part[aria-pressed="true"]{border-color:var(--ink);background:#FFF3CC;box-shadow:inset 0 0 0 2px var(--ink)}
+.part svg{width:100%;height:100%;pointer-events:none}
+.swatches{display:flex;gap:6px;margin-left:auto}
+.sw{width:44px;height:44px;border-radius:50%;border:0;background:transparent;cursor:pointer;display:grid;place-items:center;padding:0}
+.sw i{width:28px;height:28px;border-radius:8px;border:2.5px solid var(--ink);background:var(--c);transition:transform .3s var(--pop)}
+.sw:hover i{transform:rotate(-10deg) scale(1.1)}
+.sw[aria-pressed="true"] i{transform:scale(1.15);box-shadow:0 0 0 3px var(--white),0 0 0 5.5px var(--ink)}
+.done-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;background:var(--ink);color:#fff;border-radius:22px;padding:16px 16px 16px 22px}
+.done-bar p{font-weight:600}
+.done-bar p b{font-family:var(--disp);font-weight:400;font-size:24px;color:var(--yellow);margin-right:6px}
+.done-bar .acts{display:flex;gap:10px;flex-wrap:wrap}
+.done-bar .btn{box-shadow:0 4px 0 #000}
+.ghost{position:fixed;left:0;top:0;width:96px;height:86px;z-index:200;pointer-events:none;filter:drop-shadow(0 14px 10px rgba(27,27,47,.3))}
+.ghost svg{width:100%;height:100%}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-30px;width:18px;height:12px;border-radius:3px;border:2px solid var(--ink)}
+
+/* sets */
+.sets{padding:120px 0;background:var(--yellow);border-top:3px solid var(--ink);border-bottom:3px solid var(--ink)}
+.sets-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:44px}
+.sets-head p{max-width:36ch;font-weight:500}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.set{background:var(--white);border:3px solid var(--ink);border-radius:24px;padding:16px;box-shadow:0 7px 0 var(--ink);display:flex;flex-direction:column;gap:10px;transition:transform .45s var(--pop)}
+.set:nth-child(odd){transform:rotate(-1.2deg)}.set:nth-child(even){transform:rotate(1deg)}
+.set:hover{transform:rotate(0) translateY(-8px)}
+.set .art{aspect-ratio:1.1;border-radius:16px;border:2.5px solid var(--ink);display:grid;place-items:center;overflow:hidden}
+.set .art svg{width:86%;height:auto}
+.set h3{font-size:22px}
+.set p{font-size:15px;color:var(--muted)}
+.set .row{display:flex;justify-content:space-between;align-items:center;margin-top:auto;gap:10px}
+.set .price{font-family:var(--disp);font-size:24px}
+.set .age{font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;border:2px solid var(--ink);align-self:flex-start}
+
+/* drop test */
+.drop{padding:130px 0}
+.drop .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:60px;align-items:center}
+.drop-art{position:relative;height:460px;border:3px solid var(--ink);border-radius:28px;background:linear-gradient(180deg,#DDE7FF,#F6F2E9 80%);overflow:hidden;box-shadow:0 8px 0 var(--ink)}
+.drop-art .ruler{position:absolute;left:18px;top:20px;bottom:56px;width:44px;border-left:3px solid var(--ink)}
+.drop-art .ruler span{white-space:nowrap;position:absolute;left:16px;font-size:13px;font-weight:700;transform:translateY(-50%)}
+.drop-art .ruler span::before{content:"";position:absolute;left:-19px;top:50%;width:14px;height:3px;background:var(--ink)}
+.drop-art .ground{position:absolute;left:0;right:0;bottom:0;height:56px;background:repeating-linear-gradient(45deg,#E9DEC8 0 14px,#F1E8D6 14px 28px);border-top:3px solid var(--ink)}
+.drop-art .faller{position:absolute;left:50%;bottom:56px;width:120px;margin-left:-60px}
+.drop-art .shadow{position:absolute;left:50%;bottom:44px;width:120px;height:20px;margin-left:-60px;border-radius:50%;background:rgba(27,27,47,.25)}
+.drop-art .btn{position:absolute;right:16px;top:16px}
+.drop h2{margin:18px 0 22px}
+.drop .lead{color:var(--muted);max-width:44ch;margin-bottom:30px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tile{border:3px solid var(--ink);border-radius:20px;padding:18px;box-shadow:0 5px 0 var(--ink)}
+.tile b{display:block;font-family:var(--disp);font-weight:400;font-size:40px;line-height:1.05}
+.tile>span{font-weight:500;font-size:15px}
+.t1{background:var(--red);color:#fff}.t2{background:var(--white)}.t3{background:var(--white)}.t4{background:var(--green-d);color:#fff}
+
+/* reviews */
+.rev{padding:30px 0 130px}
+.rev h2{text-align:center;margin-bottom:56px}
+.bubbles{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;align-items:start}
+.bub{position:relative;background:var(--white);border:3px solid var(--ink);border-radius:26px;padding:26px;box-shadow:0 6px 0 var(--ink)}
+.bub:nth-child(1){transform:rotate(-2deg)}.bub:nth-child(2){transform:rotate(1.5deg) translateY(30px);background:#DDE7FF}.bub:nth-child(3){transform:rotate(-1deg);background:#FFF1C2}
+.bub::after{content:"";position:absolute;left:40px;bottom:-20px;width:30px;height:30px;background:inherit;border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:rotate(45deg) skew(10deg,10deg)}
+.bub p{font-size:19px;font-weight:500;line-height:1.45}
+.bub cite{display:block;margin-top:16px;font-style:normal;font-weight:800;font-size:15px}
+.stars{display:flex;gap:4px;margin-bottom:12px}
+.stars i{width:18px;height:18px;background:var(--yellow);border:2px solid var(--ink);border-radius:4px;transform:rotate(45deg) scale(.8)}
+
+footer{background:var(--ink);color:#fff;padding:70px 0 36px;border-top:3px solid var(--ink)}
+footer .top{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;padding-bottom:44px}
+footer .logo{color:#fff}
+footer .tl{color:#C8C8D8;max-width:36ch;margin-top:12px;font-size:16px}
+footer h4{margin:0 0 10px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--yellow)}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:38px;text-decoration:none;color:#E6E6F0}
+footer li a:hover{color:var(--yellow)}
+footer form{display:flex;gap:10px;margin-top:20px;max-width:420px}
+footer input{flex:1;min-width:0;min-height:52px;padding:0 16px;border-radius:14px;border:3px solid #fff;background:transparent;color:#fff}
+footer input::placeholder{color:#B8B8CC}
+footer .ok{min-height:24px;margin-top:10px;color:var(--yellow);font-size:15px}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:24px;border-top:2px solid rgba(255,255,255,.15);font-size:14px;color:#B8B8CC}
+
+.rm .asm-pin{height:auto;padding:120px 0 90px}
+.rm .steps{height:auto;display:grid;gap:28px}
+.rm .step{position:static}
+.rm .dots{display:none}
+
+@media (max-width:1100px){
+  .sgrid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .menu-btn{display:inline-flex}
+  .pit{width:100%;top:auto;height:440px}
+  .hero{padding-bottom:470px;min-height:0}
+  .pit-ctl{top:auto;bottom:378px;right:24px}
+  .asm-pin{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:20px}
+  .bench{grid-template-columns:1fr}
+  .stage{max-width:620px;width:100%;margin:0 auto}
+  .drop .wrap{grid-template-columns:1fr}
+  .bubbles{grid-template-columns:1fr;max-width:560px;margin:0 auto}
+  .bub:nth-child(2){transform:rotate(1.5deg)}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .wrap,.asm-pin{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav{top:8px}
+  .nav .bar{height:62px;padding:0 8px 0 12px;border-radius:16px}
+  .logo{font-size:19px}
+  .cart span{display:none}
+  .mmenu{top:80px}
+  .hero{padding-top:100px;padding-bottom:410px;min-height:0}
+  .hero h1{font-size:clamp(46px,13vw,64px)}
+  .hero-lead{font-size:17px;margin:18px 0 24px}
+  .hero-note{display:none}
+  .pit{height:380px}
+  .pit-ctl{bottom:318px;right:16px;top:auto}
+  .asm-pin{grid-template-columns:1fr;grid-template-rows:auto auto;gap:0;padding-top:80px;align-content:start}
+  .asm-art{height:38vh;order:-1;margin-bottom:18px}
+  .asm h2{font-size:34px;margin:10px 0 14px}
+  .asm .tag{display:none}
+  .steps{height:210px}
+  .step .n{width:36px;height:36px;font-size:17px;margin-bottom:6px}
+  .step h3{font-size:24px;margin-bottom:6px}
+  .step p{font-size:16px;line-height:1.5}
+  .dots{margin-top:8px}
+  .build{padding:100px 0 90px}
+  .build-head,.sets-head{flex-direction:column;align-items:flex-start;gap:18px;margin-bottom:30px}
+  .slot{padding:12px}
+  .slot-b{flex-direction:column;align-items:stretch}
+  .parts{justify-content:space-between}
+  .part{flex:1;width:auto;height:64px}
+  .swatches{margin-left:0;justify-content:space-between}
+  .done-bar{padding:16px}
+  .sets{padding:90px 0}
+  .sgrid{grid-template-columns:1fr;gap:18px}
+  .drop{padding:90px 0}
+  .drop-art{height:380px}
+  .tiles{grid-template-columns:1fr 1fr}
+  .tile b{font-size:30px}
+  .rev{padding:10px 0 100px}
+  footer form{flex-direction:column}
+  footer .top{gap:28px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="pl-red" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF6B5E"/><stop offset=".45" stop-color="#E8352B"/><stop offset="1" stop-color="#B21F17"/></linearGradient>
+    <linearGradient id="pl-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A86FF"/><stop offset=".45" stop-color="#2457D6"/><stop offset="1" stop-color="#173A99"/></linearGradient>
+    <linearGradient id="pl-yellow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE27A"/><stop offset=".45" stop-color="#FFC21A"/><stop offset="1" stop-color="#D99A00"/></linearGradient>
+    <linearGradient id="pl-green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4FD488"/><stop offset=".45" stop-color="#18A558"/><stop offset="1" stop-color="#0E7A3E"/></linearGradient>
+    <linearGradient id="pl-grey" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E6E8EF"/><stop offset="1" stop-color="#A9ADBC"/></linearGradient>
+  </defs>
+</svg>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav" id="nav">
+  <div class="wrap"><div class="bar">
+    <a class="logo" href="#top" aria-label="Blocksmith, home"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="20" width="52" height="36" rx="9" fill="url(#pl-red)" stroke="#1B1B2F" stroke-width="4"/><rect x="14" y="10" width="14" height="12" rx="4" fill="#E8352B" stroke="#1B1B2F" stroke-width="4"/><rect x="36" y="10" width="14" height="12" rx="4" fill="#E8352B" stroke="#1B1B2F" stroke-width="4"/><rect x="14" y="27" width="22" height="5" rx="2.5" fill="#fff" opacity=".45"/></svg>Blocksmith</a>
+    <nav aria-label="Main"><ul><li><a href="#snap">How it snaps</a></li><li><a href="#builder">Build a robot</a></li><li><a href="#sets">Sets</a></li><li><a href="#tough">Drop test</a></li></ul></nav>
+    <div class="nav-r">
+      <button class="cart" type="button" id="cartBtn" aria-label="Cart, 0 items"><span>Cart</span><b id="cartN">0</b></button>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><i></i></button>
+    </div>
+  </div></div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#snap">How it snaps</a><a href="#builder">Build a robot</a><a href="#sets">Sets</a><a href="#tough">Drop test</a>
+</div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="wrap">
+    <div class="copy">
+      <p class="tag hf"><i></i>Ages 3 to 99</p>
+      <h1 id="hero-h" style="margin-top:22px" aria-label="Build it. Drop it. Repeat."><span class="mask"><span>Build it.</span></span><span class="mask"><span class="c-red">Drop it.</span></span><span class="mask"><span class="c-blue">Repeat.</span></span></h1>
+      <p class="hero-lead hf">Chunky, glossy blocks sized for small hands, with pegs that click hard enough to hold a tower and soft enough for a three-year-old to pull apart.</p>
+      <div class="hero-cta hf"><a class="btn mag" href="#builder">Build a robot <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn white" href="#sets">Shop sets</a></div>
+      <p class="hero-note hf"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M8 4l14 12-6 1 4 8-4 2-4-8-4 4z" fill="#FFC21A" stroke="#1B1B2F" stroke-width="2.4" stroke-linejoin="round"/></svg>Go on, grab a block and throw it.</p>
+    </div>
+  </div>
+  <div class="pit" id="pit"><canvas id="pitCv" aria-label="A pile of toy blocks you can drag and throw"></canvas></div>
+  <div class="pit-ctl"><button class="btn sm white" type="button" id="dropBtn">Drop more</button><button class="btn sm white" type="button" id="shakeBtn">Shake</button></div>
+  <div class="floor-line" aria-hidden="true"></div>
+</section>
+
+<section class="asm" id="snap" aria-labelledby="asm-h">
+  <div class="asm-pin" id="asmPin">
+    <div class="asm-bg" id="asmBg" aria-hidden="true"></div>
+    <div>
+      <p class="tag">How it snaps</p>
+      <h2 id="asm-h">Five parts,<br>one click each</h2>
+      <div class="steps">
+        <article class="step"><span class="n">1</span><h3>Every part is a block</h3><p>Heads, arms and wheels share the same peg grid as every other Blocksmith block, so a robot can grow a tower for a hat.</p></article>
+        <article class="step"><span class="n">2</span><h3>Pegs click at 3 mm</h3><p>Each peg grips with a short, firm click you can hear. It takes 2.5 kg to pull straight apart, about what a small child can manage, and no more.</p></article>
+        <article class="step"><span class="n">3</span><h3>Ball joints twist, not snap</h3><p>Shoulders and necks turn on soft ball joints that pop out instead of breaking when a robot falls off the table. They will.</p></article>
+        <article class="step"><span class="n">4</span><h3>Then it's yours</h3><p>Every part comes in four colours. Mix them, swap them, lose one under the sofa and get a spare for free.</p></article>
+      </div>
+      <div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="asm-art" aria-hidden="true"><svg id="asmSvg" viewBox="-40 20 480 520"></svg></div>
+  </div>
+</section>
+
+<section class="build" id="builder" aria-labelledby="build-h">
+  <div class="wrap">
+    <div class="build-head"><div><p class="tag"><i></i>Robot workshop</p><h2 id="build-h" class="split" style="margin-top:18px">Snap together<br><span class="c-red">your own robot</span></h2></div><p class="reveal">Drag a part onto the bench, or tap it to snap it on. Pick colours for each part. Finish all four and it will show you its moves.</p></div>
+    <div class="bench">
+      <div class="stage" id="stage">
+        <svg id="robot" viewBox="0 30 400 500" role="img" aria-label="Your robot"></svg>
+        <div class="name"><b id="botName">New robot</b><span id="botCount">0 of 4 parts</span></div>
+        <p class="hint" id="stageHint">Drag parts here</p>
+        <div class="confetti" id="confetti" aria-hidden="true"></div>
+      </div>
+      <div class="ctrl" id="ctrl"></div>
+    </div>
+    <div class="done-bar reveal" style="margin-top:22px">
+      <p><b id="kitPrice">€0</b><span id="kitSum">Pick parts to price your kit</span></p>
+      <div class="acts"><button class="btn" type="button" id="danceBtn" disabled>Make it dance</button><button class="btn white" type="button" id="randBtn">Surprise me</button><button class="btn red" type="button" id="kitCart" disabled>Add kit to cart</button></div>
+    </div>
+    <p class="sr" id="live" aria-live="polite"></p>
+  </div>
+</section>
+
+<section class="sets" id="sets" aria-labelledby="sets-h">
+  <div class="wrap">
+    <div class="sets-head"><div><p class="tag"><i style="background:var(--red)"></i>Sets</p><h2 id="sets-h" class="split" style="margin-top:18px">Start a<br>collection</h2></div><p class="reveal">Every set works with every other set. Buy the robot, borrow the castle from a friend, build a robot castle.</p></div>
+    <div class="sgrid" id="sgrid"></div>
+  </div>
+</section>
+
+<section class="drop" id="tough" aria-labelledby="drop-h">
+  <div class="wrap">
+    <div class="drop-art" aria-hidden="false">
+      <div class="ruler" aria-hidden="true"><span style="top:0">1.8 m</span><span style="top:33%">1.2 m</span><span style="top:66%">0.6 m</span></div>
+      <div class="shadow" id="dShadow" aria-hidden="true"></div>
+      <div class="faller" id="faller" aria-hidden="true"></div>
+      <div class="ground" aria-hidden="true"></div>
+      <button class="btn sm white" type="button" id="dropAgain">Drop it again</button>
+    </div>
+    <div>
+      <p class="tag"><i style="background:var(--green)"></i>Built to be dropped</p>
+      <h2 id="drop-h" class="split">Tested by<br><span class="c-green">gravity</span></h2>
+      <p class="lead reveal">Every new mould is dropped 500 times from 1.8 m onto tiles, stood on by a grown-up and chewed by a machine with a very strong bite. Then we send it to a nursery for the real test.</p>
+      <div class="tiles">
+        <div class="tile t1 reveal"><b><span class="count" data-to="500">0</span></b><span>drops per new mould</span></div>
+        <div class="tile t2 reveal"><b><span class="count" data-to="72">0</span>%</b><span>plant-based plastic, from sugarcane</span></div>
+        <div class="tile t3 reveal"><b>0</b><span>small parts: every piece is bigger than a toddler's mouth</span></div>
+        <div class="tile t4 reveal"><b>Free</b><span>spare parts for life, posted in a day</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="rev" aria-labelledby="rev-h">
+  <div class="wrap">
+    <h2 id="rev-h" class="split">Reviewed by<br>small engineers</h2>
+    <div class="bubbles">
+      <figure class="bub reveal" style="margin:0"><div class="stars" aria-label="5 out of 5"><i></i><i></i><i></i><i></i><i></i></div><p>“The only blocks my twins can both pull apart and that still hold a tower overnight. The robot has been to nursery four times.”</p><cite>Noor Halvorsen, parent of two</cite></figure>
+      <figure class="bub reveal" style="margin:0"><div class="stars" aria-label="5 out of 5"><i></i><i></i><i></i><i></i><i></i></div><p>“My robot has spring arms and wheels and a dome head. It can't fly yet but I'm working on it.”</p><cite>Teodor, age 7 (dictated)</cite></figure>
+      <figure class="bub reveal" style="margin:0"><div class="stars" aria-label="5 out of 5"><i></i><i></i><i></i><i></i><i></i></div><p>“Thirty children, two years, one lost wheel, replaced in a day. They go in the dishwasher on a Friday.”</p><cite>Priya Okafor-Lind, nursery lead</cite></figure>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="6" y="20" width="52" height="36" rx="9" fill="#FFC21A" stroke="#fff" stroke-width="4"/><rect x="14" y="10" width="14" height="12" rx="4" fill="#FFC21A" stroke="#fff" stroke-width="4"/><rect x="36" y="10" width="14" height="12" rx="4" fill="#FFC21A" stroke="#fff" stroke-width="4"/></svg>Blocksmith</a><p class="tl">Chunky blocks, made to be thrown, chewed, stood on and built again. New sets every spring.</p>
+        <form id="nl" novalidate><label class="sr" for="nlE">Email address</label><input id="nlE" type="email" placeholder="Email for new sets" autocomplete="email"><button class="btn sm" type="submit">Sign up</button></form><p class="ok" id="nlOk" role="status"></p></div>
+      <div><h4>Play</h4><ul><li><a href="#builder">Robot workshop</a></li><li><a href="#sets">All sets</a></li><li><a href="#snap">How it snaps</a></li></ul></div>
+      <div><h4>Help</h4><ul><li><a href="#tough">Safety &amp; testing</a></li><li><a href="#tough">Spare parts</a></li><li><a href="#top">Contact</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Blocksmith Toys</span><span>Concept design — fictional brand.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+const lerp = (a, b, t) => a + (b - a) * t
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t) }
+$('#yr').textContent = new Date().getFullYear()
+const COL = { red: ['#E8352B', '#FF6B5E', '#B21F17'], blue: ['#2457D6', '#5A86FF', '#173A99'], yellow: ['#FFC21A', '#FFE27A', '#D99A00'], green: ['#18A558', '#4FD488', '#0E7A3E'] }
+const CNAMES = Object.keys(COL)
+const INK = '#1B1B2F'
+
+/* ================= cart ================= */
+let cartN = 0
+function addCart(n = 1) {
+  cartN += n; $('#cartN').textContent = cartN; $('#cartBtn').setAttribute('aria-label', `Cart, ${cartN} item${cartN === 1 ? '' : 's'}`)
+  if (anim) G.fromTo('#cartN', { scale: 1.8, rotation: -20 }, { scale: 1, rotation: 0, duration: .7, ease: 'elastic.out(1,.35)' })
+}
+
+/* ================= hero: block pit physics ================= */
+const pit = $('#pit'), cv = $('#pitCv'), ctx = cv.getContext('2d')
+let W = 0, H = 0, U = 48, bodies = [], running = false, visible = true, last = 0, drag = null
+const SIZES = [[2, 1], [1, 1], [3, 1], [2, 2], [2, 1], [1, 2], [4, 1]]
+function spawn(i, fromTop) {
+  const [cw, ch] = SIZES[i % SIZES.length], w = cw * U, h = ch * U * .72
+  return { x: clamp(W * (.08 + Math.random() * .8) - w / 2, 0, W - w), y: fromTop ? -h - Math.random() * H * .9 : H - h - Math.random() * H * .6, w, h, cw, vx: (Math.random() - .5) * 80, vy: 0, c: CNAMES[i % 4] }
+}
+function sizePit() {
+  const dpr = Math.min(devicePixelRatio || 1, 2), r = pit.getBoundingClientRect()
+  const oW = W; W = r.width; H = r.height - 22
+  U = W < 600 ? 40 : 60
+  cv.width = W * dpr; cv.height = r.height * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  if (!oW) bodies = Array.from({ length: W < 600 ? 13 : 24 }, (_, i) => spawn(i, anim))
+  else bodies.forEach((b) => { b.x = clamp(b.x * W / oW, 0, W - b.w); b.y = Math.min(b.y, H - b.h) })
+}
+function step(dt) {
+  for (const b of bodies) { if (b === drag) continue; b.vy += 2600 * dt; b.vx *= Math.pow(.6, dt); b.x += b.vx * dt; b.y += b.vy * dt }
+  for (let it = 0; it < 5; it++) {
+    for (const b of bodies) {
+      if (b.y + b.h > H) { b.y = H - b.h; if (b.vy > 0) b.vy = b.vy > 160 ? -b.vy * .32 : 0; b.vx *= .92 }
+      if (b.x < 0) { b.x = 0; b.vx = Math.abs(b.vx) * .4 } if (b.x + b.w > W) { b.x = W - b.w; b.vx = -Math.abs(b.vx) * .4 }
+    }
+    for (let i = 0; i < bodies.length; i++) for (let j = i + 1; j < bodies.length; j++) {
+      const a = bodies[i], b = bodies[j]
+      const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x), oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
+      if (ox <= 0 || oy <= 0) continue
+      if (oy < ox) {
+        const top = a.y < b.y ? a : b, bot = top === a ? b : a
+        if (top === drag) bot.y += oy; else top.y -= oy
+        if (top.vy > bot.vy) { const rel = top.vy - bot.vy; top.vy = bot.vy - (rel > 220 ? rel * .28 : 0); if (bot !== drag) bot.vy += rel * .15 }
+        top.vx += (bot.vx - top.vx) * .25
+      } else {
+        const l = a.x < b.x ? a : b, r = l === a ? b : a
+        if (l === drag) r.x += ox; else if (r === drag) l.x -= ox; else { l.x -= ox / 2; r.x += ox / 2 }
+        if (l.vx > r.vx) { const avg = (l.vx + r.vx) / 2, d = (l.vx - r.vx) * .35; if (l !== drag) l.vx = avg - d; if (r !== drag) r.vx = avg + d }
+      }
+    }
+  }
+}
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath() }
+function drawBlock(b) {
+  const [base, light, dark] = COL[b.c], r = Math.min(12, U * .2), sw = U * .5, sh = U * .2
+  // studs
+  for (let k = 0; k < b.cw; k++) {
+    const sx = b.x + k * U + (U - sw) / 2
+    rr(sx, b.y - sh + 2, sw, sh + 4, 5); ctx.fillStyle = base; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = INK; ctx.stroke()
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(sx + 5, b.y - sh + 5, sw * .35, 3)
+  }
+  const g = ctx.createLinearGradient(0, b.y, 0, b.y + b.h); g.addColorStop(0, light); g.addColorStop(.4, base); g.addColorStop(1, dark)
+  rr(b.x, b.y, b.w, b.h, r); ctx.fillStyle = g; ctx.fill(); ctx.lineWidth = 3.5; ctx.strokeStyle = INK; ctx.stroke()
+  rr(b.x + 8, b.y + 6, Math.min(b.w * .45, 90), 6, 3); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fill()
+}
+function render() {
+  ctx.clearRect(0, 0, W, H + 22)
+  for (const b of bodies) { ctx.fillStyle = 'rgba(27,27,47,.12)'; const d = clamp((H - b.y - b.h) / H); ctx.beginPath(); ctx.ellipse(b.x + b.w / 2, H + 2, b.w * .5 * (1 - d * .5), 5, 0, 0, 7); ctx.fill() }
+  for (const b of [...bodies].sort((p, q) => (p === drag) - (q === drag))) drawBlock(b)
+}
+function loop(now) {
+  if (!running) return
+  const dt = Math.min(.033, (now - last) / 1000 || .016); last = now
+  for (let s = 0; s < 3; s++) step(dt / 3)
+  render(); requestAnimationFrame(loop)
+}
+function startPit() { if (!running && visible) { running = true; last = performance.now(); requestAnimationFrame(loop) } }
+function settle() { for (let i = 0; i < 600; i++) step(1 / 120); render() }
+sizePit()
+if (anim) { new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? startPit() : (running = false) }).observe(pit) }
+else settle()
+// drag and throw: pointer + touch through pointer events
+let px = 0, py = 0, pvx = 0, pvy = 0, pt = 0, off = [0, 0]
+const local = (e) => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top] }
+cv.addEventListener('pointerdown', (e) => {
+  const [x, y] = local(e)
+  for (let i = bodies.length - 1; i >= 0; i--) { const b = bodies[i]; if (x >= b.x && x <= b.x + b.w && y >= b.y - 10 && y <= b.y + b.h) { drag = b; break } }
+  if (!drag) return
+  e.preventDefault(); cv.setPointerCapture(e.pointerId); cv.classList.add('grab')
+  off = [x - drag.x, y - drag.y]; px = x; py = y; pt = performance.now(); pvx = pvy = 0
+  if (!anim) startPit()
+})
+cv.addEventListener('pointermove', (e) => {
+  if (!drag) return
+  const [x, y] = local(e), now = performance.now(), dt = Math.max(1, now - pt) / 1000
+  pvx = lerp(pvx, (x - px) / dt, .5); pvy = lerp(pvy, (y - py) / dt, .5); px = x; py = y; pt = now
+  drag.x = clamp(x - off[0], 0, W - drag.w); drag.y = clamp(y - off[1], -H, H - drag.h); drag.vx = 0; drag.vy = 0
+})
+const drop = () => { if (!drag) return; drag.vx = clamp(pvx, -2200, 2200); drag.vy = clamp(pvy, -2600, 2600); drag = null; cv.classList.remove('grab'); if (!anim) { setTimeout(() => { running = false }, 2500) } }
+cv.addEventListener('pointerup', drop); cv.addEventListener('pointercancel', drop)
+$('#dropBtn').addEventListener('click', () => {
+  if (bodies.length > 44) bodies.splice(0, 6)
+  for (let i = 0; i < 6; i++) bodies.push(spawn(Math.floor(Math.random() * 20), true))
+  if (anim) startPit(); else settle()
+})
+$('#shakeBtn').addEventListener('click', () => {
+  bodies.forEach((b) => { b.vy = -900 - Math.random() * 700; b.vx = (Math.random() - .5) * 900 })
+  if (anim) startPit(); else settle()
+})
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { sizePit(); if (!anim) settle() }, 200) })
+
+/* ================= robot parts ================= */
+const F = (c) => `url(#pl-${c})`, S = `stroke="${INK}" stroke-width="5" stroke-linejoin="round"`
+const HL = (x, y, w) => `<rect x="${x}" y="${y}" width="${w}" height="9" rx="4.5" fill="#fff" opacity=".45"/>`
+const PARTS = {
+  head: [
+    { n: 'Boxy', p: 7, d: (c) => `<rect x="160" y="98" width="26" height="18" rx="6" fill="${F(c)}" ${S}/><rect x="214" y="98" width="26" height="18" rx="6" fill="${F(c)}" ${S}/><rect x="128" y="112" width="144" height="120" rx="28" fill="${F(c)}" ${S}/>${HL(144, 122, 60)}<rect x="146" y="142" width="108" height="46" rx="16" fill="${INK}"/><circle class="eye" cx="176" cy="165" r="10" fill="#7DF9FF"/><circle class="eye" cx="224" cy="165" r="10" fill="#7DF9FF"/><rect x="178" y="204" width="44" height="8" rx="4" fill="${INK}"/>` },
+    { n: 'Dome', p: 8, d: (c) => `<rect x="186" y="92" width="28" height="18" rx="6" fill="${F(c)}" ${S}/><path d="M126 232V180a74 74 0 0 1 148 0V232Z" fill="${F(c)}" ${S}/>${HL(150, 126, 50)}<circle cx="200" cy="182" r="28" fill="#fff" ${S}/><circle class="eye" cx="200" cy="184" r="13" fill="${INK}"/><circle cx="206" cy="177" r="5" fill="#fff"/><path d="M168 216h64" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>` },
+    { n: 'Beacon', p: 8, d: (c) => `<path d="M200 118V84" stroke="${INK}" stroke-width="6"/><circle class="blink" cx="200" cy="74" r="14" fill="#FF6B5E" ${S}/><path d="M140 232L154 118H246L260 232Z" fill="${F(c)}" ${S}/>${HL(162, 128, 46)}<circle class="eye" cx="178" cy="164" r="11" fill="#7DF9FF" ${S}/><circle class="eye" cx="222" cy="164" r="11" fill="#7DF9FF" ${S}/><path d="M172 200h56M176 214h48" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>` },
+  ],
+  body: [
+    { n: 'Panel', p: 9, d: (c) => `<rect x="184" y="226" width="32" height="16" fill="url(#pl-grey)" ${S}/><rect x="112" y="238" width="176" height="154" rx="26" fill="${F(c)}" ${S}/>${HL(128, 248, 70)}<rect x="138" y="266" width="124" height="62" rx="14" fill="${INK}"/><circle cx="166" cy="297" r="11" fill="#FF6B5E"/><circle cx="200" cy="297" r="11" fill="#FFE27A"/><circle cx="234" cy="297" r="11" fill="#4FD488"/><path d="M146 352h108M146 370h108" stroke="${INK}" stroke-width="5" stroke-linecap="round" opacity=".55"/>` },
+    { n: 'Barrel', p: 8, d: (c) => `<rect x="184" y="226" width="32" height="16" fill="url(#pl-grey)" ${S}/><rect x="118" y="238" width="164" height="154" rx="66" fill="${F(c)}" ${S}/>${HL(140, 252, 60)}<circle cx="200" cy="314" r="38" fill="#fff" ${S}/><path class="needle" d="M200 314L222 292" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><circle cx="200" cy="314" r="6" fill="${INK}"/>` },
+    { n: 'Hatch', p: 9, d: (c) => `<rect x="184" y="226" width="32" height="16" fill="url(#pl-grey)" ${S}/><rect x="112" y="238" width="176" height="154" rx="26" fill="${F(c)}" ${S}/>${HL(128, 248, 70)}<rect x="146" y="266" width="108" height="96" rx="20" fill="#fff" ${S}/><path class="heart" d="M200 344c-24-16-34-28-34-42 0-10 8-18 17-18 7 0 13 4 17 10 4-6 10-10 17-10 9 0 17 8 17 18 0 14-10 26-34 42z" fill="#FF5B7F" stroke="${INK}" stroke-width="4"/>` },
+  ],
+  arms: [
+    { n: 'Claws', p: 7, d: (c) => `<rect x="86" y="252" width="28" height="96" rx="14" fill="${F(c)}" ${S}/><path d="M86 344q-16 24 2 42M114 344q16 24 -2 42" stroke="${INK}" stroke-width="11" fill="none" stroke-linecap="round"/><path d="M86 344q-16 24 2 42M114 344q16 24 -2 42" stroke="#C9CCD6" stroke-width="5" fill="none" stroke-linecap="round"/>` },
+    { n: 'Mitts', p: 6, d: (c) => `<rect x="86" y="252" width="28" height="92" rx="14" fill="${F(c)}" ${S}/><circle cx="100" cy="360" r="25" fill="${F(c)}" ${S}/><path d="M88 352a12 12 0 0 1 12 -6" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".5"/>` },
+    { n: 'Springs', p: 7, d: (c) => `<path d="M100 252l-16 12 32 12 -32 12 32 12 -32 12 32 12 -16 12" stroke="${INK}" stroke-width="10" fill="none" stroke-linejoin="round"/><path d="M100 252l-16 12 32 12 -32 12 32 12 -32 12 32 12 -16 12" stroke="#C9CCD6" stroke-width="4" fill="none" stroke-linejoin="round"/><circle cx="100" cy="352" r="22" fill="${F(c)}" ${S}/>${HL(88, 340, 14)}` },
+  ],
+  legs: [
+    { n: 'Wheels', p: 9, d: (c) => `<rect x="138" y="386" width="124" height="40" rx="12" fill="url(#pl-grey)" ${S}/>${[150, 250].map((x) => `<g class="wheel" data-x="${x}"><circle cx="${x}" cy="456" r="38" fill="${INK}"/><circle cx="${x}" cy="456" r="20" fill="${F(c)}" stroke="#fff" stroke-width="3"/><path d="M${x - 30} 456h60M${x} 426v60" stroke="#55556A" stroke-width="4"/><circle cx="${x}" cy="456" r="7" fill="#fff"/></g>`).join('')}` },
+    { n: 'Stompers', p: 8, d: (c) => `<g class="legL"><rect x="148" y="386" width="36" height="74" rx="10" fill="url(#pl-grey)" ${S}/><rect x="128" y="450" width="70" height="38" rx="16" fill="${F(c)}" ${S}/>${HL(138, 457, 26)}</g><g class="legR"><rect x="216" y="386" width="36" height="74" rx="10" fill="url(#pl-grey)" ${S}/><rect x="202" y="450" width="70" height="38" rx="16" fill="${F(c)}" ${S}/>${HL(212, 457, 26)}</g>` },
+    { n: 'Hover', p: 9, d: (c) => `<ellipse class="flame" cx="168" cy="466" rx="15" ry="28" fill="#FFC21A" stroke="#E8352B" stroke-width="5"/><ellipse class="flame" cx="232" cy="466" rx="15" ry="28" fill="#FFC21A" stroke="#E8352B" stroke-width="5"/><path d="M132 386H268L250 444H150Z" fill="${F(c)}" ${S}/>${HL(150, 394, 56)}<rect x="154" y="436" width="28" height="16" rx="4" fill="url(#pl-grey)" ${S}/><rect x="218" y="436" width="28" height="16" rx="4" fill="url(#pl-grey)" ${S}/>` },
+  ],
+}
+const SLOTS = [['head', 'Head', '100 60 200 186'], ['body', 'Body', '100 220 200 186'], ['arms', 'Arms', '58 238 84 160'], ['legs', 'Legs', '112 372 176 130']]
+const GHOST = { head: [128, 98, 144, 134], body: [112, 238, 176, 154], arms: [62, 256, 40, 120], legs: [130, 386, 140, 110] }
+const sel = { head: null, body: null, arms: null, legs: null }, col = { head: 'red', body: 'blue', arms: 'yellow', legs: 'green' }
+function robotSVG(s, c, ghosts) {
+  const g = (k, x) => ghosts && s[k] == null ? `<g class="ghostslot"><rect x="${GHOST[k][0]}" y="${GHOST[k][1]}" width="${GHOST[k][2]}" height="${GHOST[k][3]}" rx="18" fill="rgba(36,87,214,.06)" stroke="#2457D6" stroke-width="3" stroke-dasharray="10 8"/>${x || ''}</g>` : ''
+  const lab = (k, t) => `<text x="${GHOST[k][0] + GHOST[k][2] / 2}" y="${GHOST[k][1] + GHOST[k][3] / 2 + 6}" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="700" font-size="17" fill="#2457D6">${t}</text>`
+  const arm = s.arms != null ? PARTS.arms[s.arms].d(c.arms) : ''
+  return `<ellipse cx="200" cy="506" rx="120" ry="14" fill="rgba(27,27,47,.14)"/>
+  <g class="bot">
+    <g class="p-legs">${s.legs != null ? PARTS.legs[s.legs].d(c.legs) : g('legs', lab('legs', 'Legs'))}</g>
+    <g class="p-armL">${arm || g('arms', '')}</g>
+    <g class="p-armR"><g transform="translate(400 0) scale(-1 1)">${arm || g('arms', '')}</g></g>
+    <g class="p-body">${s.body != null ? PARTS.body[s.body].d(c.body) : g('body', lab('body', 'Body'))}${s.body != null || !ghosts ? `<circle cx="112" cy="262" r="13" fill="url(#pl-grey)" ${S}/><circle cx="288" cy="262" r="13" fill="url(#pl-grey)" ${S}/>` : ''}</g>
+    <g class="p-head">${s.head != null ? PARTS.head[s.head].d(c.head) : g('head', lab('head', 'Head'))}</g>
+  </g>`
+}
+
+/* ================= pinned assembly ================= */
+$('#asmSvg').innerHTML = robotSVG({ head: 0, body: 0, arms: 0, legs: 0 }, { head: 'red', body: 'yellow', arms: 'green', legs: 'red' })
+const AP = { head: $('#asmSvg .p-head'), body: $('#asmSvg .p-body'), armL: $('#asmSvg .p-armL'), armR: $('#asmSvg .p-armR'), legs: $('#asmSvg .p-legs') }
+const EXP = { head: [20, -150, -24, '200 170'], body: [0, 0, 6, '200 310'], armL: [-170, -30, -70, '112 262'], armR: [170, -40, 70, '288 262'], legs: [-10, 150, 18, '200 440'] }
+const asmEyes = $$('#asmSvg .eye')
+function asmAt(p) {
+  const t = smooth(.04, .74, p), ex = innerWidth < 760 ? .45 : 1, exD = innerWidth < 760 ? .1 : 1
+  for (const k in AP) {
+    const [dx, dy, r, o] = EXP[k], kk = 1 - (k === 'body' ? t : smooth(.04 + (k === 'legs' ? 0 : k === 'head' ? .14 : .08), .74, p))
+    const wob = k.startsWith('arm') ? Math.sin(p * 14) * 18 * smooth(.45, .62, p) * (1 - smooth(.62, .74, p)) : 0
+    AP[k].setAttribute('transform', `translate(${(dx * kk * ex).toFixed(1)} ${(dy * kk * (dy > 0 ? exD : ex)).toFixed(1)}) rotate(${(r * kk + wob).toFixed(1)} ${o})`)
+  }
+  const on = smooth(.8, .9, p)
+  asmEyes.forEach((e) => { e.setAttribute('fill', on > .5 ? '#7DF9FF' : '#3A4A5A'); e.setAttribute('opacity', (.5 + on * .5).toFixed(2)) })
+  $$('.dots i').forEach((d, i) => d.classList.toggle('on', i === (p < .25 ? 0 : p < .5 ? 1 : p < .75 ? 2 : 3)))
+}
+{
+  const cols = ['#E8352B', '#FFC21A', '#18A558', '#FFFFFF']
+  $('#asmBg').innerHTML = Array.from({ length: 14 }, (_, i) => `<span data-sp="${(.3 + (i % 5) * .25).toFixed(2)}" style="--s:${40 + (i * 37) % 70}px;left:${(i * 71) % 96}%;top:${(i * 43) % 92}%;background:${cols[i % 4]};transform:rotate(${(i * 29) % 40 - 20}deg)"></span>`).join('')
+}
+
+/* ================= builder ================= */
+const robot = $('#robot'), stage = $('#stage')
+const thumb = (k, i, c) => `<svg viewBox="${SLOTS.find((s) => s[0] === k)[2]}" aria-hidden="true">${PARTS[k][i].d(c)}</svg>`
+$('#ctrl').innerHTML = SLOTS.map(([k, n]) => `<div class="slot reveal" data-k="${k}"><div class="slot-h"><h3><i style="background:var(--${col[k]})" class="chip"></i>${n}</h3><span class="st" id="st-${k}">Empty</span></div><div class="slot-b"><div class="parts" role="group" aria-label="${n} parts">${PARTS[k].map((p, i) => `<button type="button" class="part" data-k="${k}" data-i="${i}" aria-pressed="false" aria-label="${p.n} ${n.toLowerCase()}, €${p.p}">${thumb(k, i, col[k])}</button>`).join('')}</div><div class="swatches" role="group" aria-label="${n} colour">${CNAMES.map((c) => `<button type="button" class="sw" data-k="${k}" data-c="${c}" aria-pressed="${c === col[k]}" aria-label="${c[0].toUpperCase() + c.slice(1)}" style="--c:var(--${c})"><i></i></button>`).join('')}</div></div></div>`).join('')
+const HEADN = ['Bolt', 'Dot', 'Blip'], LEGN = ['Rolly', 'Stompa', 'Zippy']
+let danceTl = null
+function drawRobot(pop) {
+  robot.innerHTML = robotSVG(sel, col, true)
+  const n = Object.values(sel).filter((v) => v != null).length
+  $('#botCount').textContent = `${n} of 4 parts`
+  $('#stageHint').textContent = n === 4 ? 'All snapped. Press “Make it dance”.' : n ? 'Keep going: fill the dashed slots' : 'Drag parts here, or tap one'
+  const name = sel.head != null && sel.legs != null ? `${HEADN[sel.head]} ${LEGN[sel.legs]}` : 'New robot'
+  $('#botName').textContent = name
+  const price = Object.entries(sel).reduce((a, [k, v]) => a + (v == null ? 0 : PARTS[k][v].p), 0)
+  $('#kitPrice').textContent = `€${price}`
+  $('#kitSum').textContent = n ? Object.entries(sel).filter(([, v]) => v != null).map(([k, v]) => `${col[k]} ${PARTS[k][v].n.toLowerCase()}`).join(' · ') : 'Pick parts to price your kit'
+  $('#danceBtn').disabled = n < 4; $('#kitCart').disabled = n < 4
+  robot.setAttribute('aria-label', n ? `Robot with ${Object.entries(sel).filter(([, v]) => v != null).map(([k, v]) => `${col[k]} ${PARTS[k][v].n.toLowerCase()} ${k}`).join(', ')}` : 'Empty robot bench')
+  for (const [k] of SLOTS) $(`#st-${k}`).textContent = sel[k] == null ? 'Empty' : `${PARTS[k][sel[k]].n} · ${col[k]}`
+  if (pop && anim) {
+    const map = { head: '.p-head', body: '.p-body', arms: '.p-armL, .p-armR', legs: '.p-legs' }
+    G.fromTo($$(map[pop], robot), { y: -60, scale: 1.08, transformOrigin: '50% 100%' }, { y: 0, scale: 1, duration: .8, ease: 'bounce.out' })
+    G.fromTo('.bot', { scaleY: .96, transformOrigin: '50% 100%' }, { scaleY: 1, duration: .5, delay: .25, ease: 'elastic.out(1,.4)' })
+  }
+}
+function place(k, i, fromKey) {
+  if (danceTl) stopDance()
+  sel[k] = i
+  $$(`.part[data-k="${k}"]`).forEach((b) => b.setAttribute('aria-pressed', +b.dataset.i === i))
+  drawRobot(k)
+  $('#live').textContent = `${PARTS[k][i].n} ${k} snapped on.${Object.values(sel).every((v) => v != null) ? ' Robot complete.' : ''}`
+}
+function paint(k, c) {
+  if (danceTl) stopDance()
+  col[k] = c
+  $$(`.sw[data-k="${k}"]`).forEach((b) => b.setAttribute('aria-pressed', b.dataset.c === c))
+  $$(`.part[data-k="${k}"]`).forEach((b) => { b.innerHTML = thumb(k, +b.dataset.i, c) })
+  $(`.slot[data-k="${k}"] .chip`).style.background = `var(--${c})`
+  drawRobot(); $('#live').textContent = `${k} painted ${c}`
+  if (anim && sel[k] != null) G.fromTo($$({ head: '.p-head', body: '.p-body', arms: '.p-armL, .p-armR', legs: '.p-legs' }[k], robot), { scale: 1.06, transformOrigin: '50% 50%' }, { scale: 1, duration: .5, ease: 'elastic.out(1,.4)' })
+}
+// drag a part onto the bench (pointer + touch), or click / Enter to snap
+let pd = null
+$('#ctrl').addEventListener('pointerdown', (e) => {
+  const b = e.target.closest('.part'); if (!b) return
+  pd = { b, x: e.clientX, y: e.clientY, id: e.pointerId, on: false }
+})
+addEventListener('pointermove', (e) => {
+  if (!pd || e.pointerId !== pd.id) return
+  if (!pd.on && Math.hypot(e.clientX - pd.x, e.clientY - pd.y) > 8) {
+    pd.on = true
+    pd.g = document.createElement('div'); pd.g.className = 'ghost'; pd.g.innerHTML = pd.b.innerHTML; document.body.appendChild(pd.g)
+    try { pd.b.setPointerCapture(pd.id) } catch (_) {}
+  }
+  if (pd.on) {
+    pd.g.style.transform = `translate(${e.clientX - 48}px,${e.clientY - 43}px) rotate(${clamp((e.clientX - pd.x) / 20, -12, 12)}deg)`
+    const r = stage.getBoundingClientRect(); stage.classList.toggle('over', e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom)
+  }
+})
+function endPd(e, cancel) {
+  if (!pd || (e && e.pointerId !== pd.id)) return
+  const d = pd; pd = null
+  if (!d.on) return
+  d.drop = true; d.b.dataset.dragged = '1'; setTimeout(() => { delete d.b.dataset.dragged }, 50)
+  const over = stage.classList.contains('over'); stage.classList.remove('over')
+  if (over && !cancel) { d.g.remove(); place(d.b.dataset.k, +d.b.dataset.i) }
+  else if (anim) G.to(d.g, { opacity: 0, duration: .25, onComplete: () => d.g.remove() })
+  else d.g.remove()
+}
+addEventListener('pointerup', (e) => endPd(e)); addEventListener('pointercancel', (e) => endPd(e, true))
+$('#ctrl').addEventListener('click', (e) => {
+  const p = e.target.closest('.part')
+  if (p) { if (p.dataset.dragged) return; place(p.dataset.k, +p.dataset.i); return }
+  const s = e.target.closest('.sw'); if (s) paint(s.dataset.k, s.dataset.c)
+})
+$('#randBtn').addEventListener('click', () => {
+  for (const [k] of SLOTS) { col[k] = CNAMES[Math.floor(Math.random() * 4)]; sel[k] = Math.floor(Math.random() * 3) }
+  for (const [k] of SLOTS) { $$(`.sw[data-k="${k}"]`).forEach((b) => b.setAttribute('aria-pressed', b.dataset.c === col[k])); $$(`.part[data-k="${k}"]`).forEach((b) => { b.innerHTML = thumb(k, +b.dataset.i, col[k]); b.setAttribute('aria-pressed', +b.dataset.i === sel[k]) }); $(`.slot[data-k="${k}"] .chip`).style.background = `var(--${col[k]})` }
+  if (danceTl) stopDance()
+  drawRobot()
+  if (anim) G.from($$('.p-legs, .p-body, .p-armL, .p-armR, .p-head', robot), { y: -120, opacity: 0, duration: .9, stagger: .09, ease: 'bounce.out' })
+  $('#live').textContent = `Surprise robot: ${$('#botName').textContent}.`
+})
+function stopDance() { if (danceTl) { danceTl.progress(1).kill(); danceTl = null } G && G.set($$('.bot, .p-head, .p-armL, .p-armR, .p-legs, .legL, .legR, .wheel, .flame', robot), { clearProps: 'transform' }); $('#danceBtn').textContent = 'Make it dance' }
+function confetti() {
+  const box = $('#confetti'); box.innerHTML = Array.from({ length: 26 }, (_, i) => `<i style="left:${(i * 37) % 100}%;background:var(--${CNAMES[i % 4]})"></i>`).join('')
+  G.to('#confetti i', { y: () => stage.clientHeight + 60, rotation: () => Math.random() * 720 - 360, x: () => (Math.random() - .5) * 120, duration: () => 1.4 + Math.random() * 1.2, delay: () => Math.random() * .5, ease: 'power1.in', onComplete: () => { box.innerHTML = '' } })
+}
+$('#danceBtn').addEventListener('click', () => {
+  if (danceTl) { stopDance(); return }
+  const name = $('#botName').textContent
+  if (!anim) { $('#live').textContent = `${name} does a little dance. Ta-da!`; $('#stageHint').textContent = `${name} does a little dance. Ta-da!`; return }
+  $('#danceBtn').textContent = 'Stop dancing'
+  $('#live').textContent = `${name} is dancing.`
+  confetti()
+  const b = (s) => $$(s, robot)
+  danceTl = G.timeline({ repeat: 5, onComplete: () => { danceTl = null; stopDance() } })
+  danceTl.to(b('.bot'), { y: -18, duration: .25, ease: 'power2.out', yoyo: true, repeat: 1 }, 0)
+    .to(b('.p-head'), { rotation: 12, svgOrigin: '200 232', duration: .25, ease: 'sine.inOut', yoyo: true, repeat: 1 }, 0)
+    .to(b('.p-armL'), { rotation: 70, svgOrigin: '112 262', duration: .25, ease: 'back.out(2)', yoyo: true, repeat: 1 }, 0)
+    .to(b('.p-armR'), { rotation: -20, svgOrigin: '288 262', duration: .25, ease: 'back.out(2)', yoyo: true, repeat: 1 }, 0)
+    .to(b('.p-head'), { rotation: -12, svgOrigin: '200 232', duration: .25, ease: 'sine.inOut', yoyo: true, repeat: 1 }, .5)
+    .to(b('.p-armL'), { rotation: 20, svgOrigin: '112 262', duration: .25, ease: 'back.out(2)', yoyo: true, repeat: 1 }, .5)
+    .to(b('.p-armR'), { rotation: -70, svgOrigin: '288 262', duration: .25, ease: 'back.out(2)', yoyo: true, repeat: 1 }, .5)
+    .to(b('.bot'), { y: -18, duration: .25, ease: 'power2.out', yoyo: true, repeat: 1 }, .5)
+  if (sel.legs === 0) b('.wheel').forEach((w) => danceTl.to(w, { rotation: 360, svgOrigin: `${w.dataset.x} 456`, duration: 1, ease: 'none' }, 0))
+  if (sel.legs === 1) danceTl.to(b('.legL'), { y: -16, duration: .25, yoyo: true, repeat: 1 }, 0).to(b('.legR'), { y: -16, duration: .25, yoyo: true, repeat: 1 }, .5)
+  if (sel.legs === 2) danceTl.to(b('.flame'), { scaleY: 1.4, transformOrigin: '50% 0%', duration: .125, yoyo: true, repeat: 7 }, 0).to(b('.p-legs'), { y: -8, duration: .5, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 0)
+})
+$('#kitCart').addEventListener('click', () => { addCart(); $('#kitCart').textContent = 'In your cart ✓'; setTimeout(() => { $('#kitCart').textContent = 'Add kit to cart' }, 1800); $('#live').textContent = `${$('#botName').textContent} kit added to cart.` })
+drawRobot()
+
+/* ================= sets ================= */
+const SETS = [
+  { n: 'First Bricks', d: '60 big blocks in a tub that becomes a base plate.', p: 29, age: '18 months+', bg: '#FFE1DE', blocks: [['red', 2, 0, 3], ['blue', 1, 2, 2], ['yellow', 3, 1, 1], ['green', 2, 3, 0]] },
+  { n: 'Robot Workshop', d: 'Every head, body, arm and leg in all four colours.', p: 49, age: '3+', bg: '#DDE7FF', blocks: [['blue', 2, 1, 3], ['yellow', 2, 1, 2], ['red', 1, 1, 1], ['red', 1, 3, 1], ['green', 2, 1, 0]] },
+  { n: 'Rolling Rovers', d: 'Wheels, axles and a ramp you can build three ways.', p: 39, age: '3+', bg: '#FFF1C2', blocks: [['green', 4, 0, 3], ['yellow', 3, 0, 2], ['blue', 1, 3, 1], ['red', 2, 0, 1]] },
+  { n: 'Giant Base Plate', d: 'A 64 × 64 cm floor for very large ideas.', p: 24, age: 'All ages', bg: '#D5F3E2', blocks: [['blue', 4, 0, 3], ['green', 4, 0, 2], ['yellow', 1, 0, 1], ['red', 1, 3, 1]] },
+]
+const boxArt = (bl) => `<svg viewBox="0 0 200 170" aria-hidden="true">${bl.map(([c, w, x, row]) => { const X = 20 + x * 40, Y = 30 + row * 34, Wd = w * 40 - 4; return `${Array.from({ length: w }, (_, k) => `<rect x="${X + k * 40 + 10}" y="${Y - 8}" width="16" height="10" rx="3" fill="${F(c)}" stroke="${INK}" stroke-width="3"/>`).join('')}<rect x="${X}" y="${Y}" width="${Wd}" height="30" rx="7" fill="${F(c)}" stroke="${INK}" stroke-width="3.5"/><rect x="${X + 6}" y="${Y + 5}" width="${Math.min(30, Wd * .4)}" height="4" rx="2" fill="#fff" opacity=".5"/>` }).join('')}</svg>`
+$('#sgrid').innerHTML = SETS.map((s, i) => `<article class="set rv"><div class="art" style="background:${s.bg}">${boxArt(s.blocks)}</div><span class="age">${s.age}</span><h3>${s.n}</h3><p>${s.d}</p><div class="row"><span class="price">€${s.p}</span><button type="button" class="btn sm add" data-i="${i}">Add</button></div></article>`).join('')
+$('#sgrid').addEventListener('click', (e) => { const b = e.target.closest('.add'); if (!b) return; addCart(); b.textContent = 'Added ✓'; setTimeout(() => { b.textContent = 'Add' }, 1500) })
+
+/* ================= drop test ================= */
+$('#faller').innerHTML = `<svg viewBox="0 0 120 92" aria-hidden="true"><rect x="22" y="2" width="22" height="14" rx="4" fill="${F('red')}" stroke="${INK}" stroke-width="4"/><rect x="76" y="2" width="22" height="14" rx="4" fill="${F('red')}" stroke="${INK}" stroke-width="4"/><rect x="4" y="14" width="112" height="74" rx="14" fill="${F('red')}" stroke="${INK}" stroke-width="4.5"/><rect x="14" y="22" width="44" height="7" rx="3.5" fill="#fff" opacity=".5"/></svg>`
+function dropTest() {
+  if (!anim) return
+  const h = $('.drop-art').clientHeight - 56 - 90
+  G.killTweensOf(['#faller', '#dShadow'])
+  G.fromTo('#faller', { y: -h, rotation: -18 }, { y: 0, rotation: 0, duration: 1.3, ease: 'bounce.out' })
+  G.fromTo('#dShadow', { scale: .3, opacity: .3 }, { scale: 1, opacity: 1, duration: 1.3, ease: 'bounce.out' })
+}
+$('#dropAgain').addEventListener('click', dropTest)
+
+/* ================= nav, menu, forms ================= */
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Close menu' : 'Open menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+$('#nl').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#nlE').value.trim(); $('#nlOk').textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Signed up. One email per new set, that is it.' : 'Please enter a valid email address.' })
+$('#cartBtn').addEventListener('click', () => { $('#live').textContent = `Your cart has ${cartN} item${cartN === 1 ? '' : 's'}.`; if (anim) G.fromTo('#cartBtn', { rotation: -6 }, { rotation: 0, duration: .6, ease: 'elastic.out(1,.3)' }) })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .1 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t, { offset: 0 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .2}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .3}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+if (!anim) {
+  asmAt(1)
+  $$('.count').forEach((c) => { c.textContent = c.dataset.to })
+  return
+}
+
+/* ================= motion ================= */
+G.set('.hero h1 .mask>span', { yPercent: 120, rotation: 4 })
+G.set('.hf', { autoAlpha: 0, y: 20 })
+G.set('.pit-ctl', { autoAlpha: 0 })
+G.timeline({ delay: .1 })
+  .to('.hero h1 .mask>span', { yPercent: 0, rotation: 0, duration: 1, stagger: .14, ease: 'back.out(1.8)' }, 0)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .7, stagger: .07, ease: 'back.out(2)' }, .4)
+  .to('.pit-ctl', { autoAlpha: 1, duration: .5 }, 1.2)
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 120, rotation: 3 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, rotation: 0, duration: 1, stagger: .12, ease: 'back.out(1.7)' }) })
+})
+G.set('.reveal, .rv', { autoAlpha: 0, y: 50, scale: .96 })
+ScrollTrigger.batch('.reveal, .rv', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, scale: 1, duration: .9, stagger: .08, ease: 'back.out(1.6)', clearProps: 'transform' }) })
+G.set('.stage', { autoAlpha: 0, scale: .9 })
+ScrollTrigger.create({ trigger: '.stage', start: 'top 85%', once: true, onEnter: () => G.to('.stage', { autoAlpha: 1, scale: 1, duration: 1, ease: 'elastic.out(1,.6)', clearProps: 'transform' }) })
+$$('.count').forEach((c) => { const o = { v: 0 }; ScrollTrigger.create({ trigger: c, start: 'top 92%', once: true, onEnter: () => G.to(o, { v: +c.dataset.to, duration: 1.4, ease: 'power2.out', onUpdate: () => { c.textContent = Math.round(o.v) } }) }) })
+G.set('#faller', { y: -400 })
+ScrollTrigger.create({ trigger: '.drop-art', start: 'top 75%', once: true, onEnter: dropTest })
+
+// pinned assembly: parts scrub together, copy swaps on the clock
+const steps = $$('.step')
+let curS = -1, sTw = []
+function setStep(i) {
+  if (i === curS) return
+  const prev = curS; curS = i
+  sTw.forEach((t) => t.kill()); sTw = []
+  steps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) sTw.push(G.to(steps[prev], { autoAlpha: 0, y: -20, duration: .25, ease: 'power2.in' }))
+  sTw.push(G.fromTo(steps[i], { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: .7, delay: prev >= 0 ? .18 : 0, ease: 'back.out(1.7)' }))
+}
+G.set(steps, { autoAlpha: 0 })
+asmAt(0); setStep(0)
+const bgs = $$('#asmBg span')
+ScrollTrigger.create({
+  trigger: '.asm', start: 'top top', end: '+=260%', pin: '#asmPin', scrub: true,
+  onUpdate(self) {
+    const p = self.progress; asmAt(p); setStep(p < .25 ? 0 : p < .5 ? 1 : p < .75 ? 2 : 3)
+    bgs.forEach((s) => { s.style.translate = `0 ${(-p * 260 * +s.dataset.sp).toFixed(1)}px` })
+  },
+})
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

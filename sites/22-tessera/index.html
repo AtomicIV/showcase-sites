@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tessera — Ask your data. It answers in charts.</title>
+<meta name="description" content="Tessera lets anyone ask a business question in plain English and get back the right chart, the SQL behind it and a two-line explanation.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230b0c0b'/%3E%3Crect x='12' y='34' width='10' height='18' fill='%23c8ff2e'/%3E%3Crect x='27' y='22' width='10' height='30' fill='%23c8ff2e'/%3E%3Crect x='42' y='12' width='10' height='40' fill='%23c8ff2e'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0c0b;
+  --bg-2:#111311;
+  --surface:#161915;
+  --line:#232722;
+  --grid:rgba(200,255,46,.055);
+  --text:#e9ede4;
+  --muted:#9ba394;
+  --lime:#c8ff2e;
+  --lime-dim:#7d9e1c;
+  --coral:#ff7a5c;
+  --sans:'Geist',system-ui,sans-serif;
+  --mono:'Geist Mono',ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.9,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+svg{display:block}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+::selection{background:var(--lime);color:var(--bg)}
+.skip{position:absolute;left:-999px;top:8px;z-index:300;background:var(--lime);color:var(--bg);padding:10px 16px}
+.skip:focus{left:12px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1320px,calc(100% - 48px));margin:0 auto}
+.gridbg{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:88px 88px;background-position:-1px -1px}
+.mono{font-family:var(--mono)}
+.label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.label b{color:var(--lime);font-weight:500}
+h1,h2,h3{font-weight:300;letter-spacing:-.045em;line-height:.98}
+h2{font-size:clamp(40px,5.4vw,84px)}
+h2 strong,h1 strong{font-weight:500;color:var(--lime)}
+.lede{font-size:clamp(17px,1.35vw,20px);color:var(--muted);max-width:34em}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;font-weight:500;font-size:16px;text-decoration:none;white-space:nowrap;border:1px solid var(--line);transition:background .25s,color .25s,border-color .25s}
+.btn-lime{background:var(--lime);color:var(--bg);border-color:var(--lime)}
+.btn-lime:hover{background:#dcff73}
+.btn-ghost:hover{border-color:var(--lime);color:var(--lime)}
+.btn .arr{transition:transform .35s var(--ease)}
+.btn:hover .arr{transform:translateX(4px)}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(11,12,11,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:66px}
+.logo{display:flex;align-items:center;gap:12px;font-weight:500;font-size:19px;letter-spacing:-.02em;text-decoration:none;min-height:44px}
+.logo svg{width:24px;height:24px}
+.nav ul{display:flex;list-style:none}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;text-decoration:none;font-family:var(--mono);font-size:13px;color:var(--muted);transition:color .2s}
+.nav ul a:hover{color:var(--lime)}
+.nav ul a::before{content:"/";margin-right:6px;color:var(--line)}
+.nav .btn{min-height:44px;padding:0 18px;font-size:15px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);align-items:center;justify-content:center;font-family:var(--mono);font-size:13px}
+.mmenu{position:fixed;top:66px;left:0;right:0;z-index:99;background:var(--bg-2);border-bottom:1px solid var(--line);padding:8px 16px 16px;display:none}
+.mmenu.open{display:grid}
+.mmenu a{display:flex;align-items:center;min-height:56px;border-bottom:1px solid var(--line);text-decoration:none;font-size:22px;font-weight:300;letter-spacing:-.02em}
+
+/* hero */
+.hero{position:relative;min-height:100svh;padding:120px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.hero-top{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:clamp(28px,5vh,60px)}
+.hero h1{font-size:clamp(46px,6.6vw,116px)}
+.hero h1 .ln{display:block;overflow:hidden;padding:.06em 0 .12em;margin:-.06em 0 -.12em}
+.hero h1 .ln>span{display:inline-block}
+.hero-sub{display:grid;grid-template-columns:1fr auto;gap:24px 40px;align-items:end;margin-top:34px}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap}
+.hero-chart{position:relative;flex:1;min-height:220px;margin-top:20px;cursor:crosshair;touch-action:pan-y}
+.hero-chart svg{position:absolute;inset:0;width:100%;height:100%}
+.xh{position:absolute;top:0;bottom:0;width:1px;background:rgba(200,255,46,.4);pointer-events:none;opacity:0;transition:opacity .2s}
+.xdot{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 6px rgba(200,255,46,.18);pointer-events:none;opacity:0;transition:opacity .2s}
+.xtip{position:absolute;padding:8px 12px;background:var(--bg);border:1px solid var(--lime);font-family:var(--mono);font-size:13px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;transform:translate(-50%,-130%)}
+.hero-chart.on .xh,.hero-chart.on .xdot,.hero-chart.on .xtip{opacity:1}
+.ticker{position:absolute;left:0;top:12px}
+.ticker strong{display:block;font-family:var(--mono);font-weight:400;font-size:clamp(20px,2vw,28px);color:var(--lime);font-variant-numeric:tabular-nums}
+
+/* ask */
+.ask{padding:140px 0 120px;border-top:1px solid var(--line)}
+.ask-head{display:grid;grid-template-columns:1.3fr 1fr;gap:20px 60px;align-items:end;margin-bottom:46px}
+.console{border:1px solid var(--line);background:var(--bg-2)}
+.qbar{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}
+.qbar .pr{display:flex;align-items:center;padding:0 0 0 22px;font-family:var(--mono);color:var(--lime);font-size:18px}
+.qbar input{flex:1;min-width:0;min-height:76px;padding:0 18px;background:none;border:0;font-size:clamp(18px,1.8vw,24px);font-weight:300;letter-spacing:-.01em;outline:none}
+.qbar input::placeholder{color:#7f8879}
+.qbar .btn{min-height:auto;border:0;border-left:1px solid var(--line);padding:0 30px}
+.qbar:focus-within{box-shadow:inset 0 0 0 1px var(--lime)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;padding:16px 22px;border-bottom:1px solid var(--line)}
+.chips button{min-height:44px;padding:0 14px;border:1px solid var(--line);font-size:15px;color:var(--muted);transition:border-color .2s,color .2s,background .2s}
+.chips button:hover,.chips button[aria-pressed=true]{border-color:var(--lime);color:var(--text)}
+.chips button[aria-pressed=true]{background:rgba(200,255,46,.08)}
+.out{display:grid;grid-template-columns:1fr 360px;min-height:520px}
+.stage{position:relative;padding:26px 26px 22px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:16px;min-width:0}
+.stage-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:baseline}
+.stage-head h3{font-size:clamp(22px,2vw,30px);font-weight:400;letter-spacing:-.02em;line-height:1.2}
+.chart-box{position:relative;height:340px}
+.chart-box svg{width:100%;height:100%;overflow:visible}
+.chart-box .empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);font-family:var(--mono);font-size:14px}
+.explain{font-size:18px;line-height:1.55;min-height:84px;max-width:46em}
+.explain mark{background:none;color:var(--lime);font-weight:500}
+.explain .w{display:inline}
+.side{display:flex;flex-direction:column;min-width:0}
+.side section{padding:20px 22px;border-bottom:1px solid var(--line)}
+.side section:last-child{border-bottom:0;flex:1}
+.log{list-style:none;display:grid;gap:8px;font-family:var(--mono);font-size:13px;color:var(--muted);min-height:118px}
+.log li{display:flex;gap:10px;align-items:center}
+.log li::before{content:"";width:8px;height:8px;border:1px solid var(--muted);flex:none}
+.log li.done{color:var(--text)}
+.log li.done::before{background:var(--lime);border-color:var(--lime)}
+.sql{font-family:var(--mono);font-size:13px;line-height:1.7;white-space:pre-wrap;color:#cdd3c6;margin-top:10px;min-height:150px}
+.sql .k{color:var(--lime)}
+.sql .s{color:#ffb38a}
+.sql .c{color:#7f8879}
+.meta-row{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.meta-row span:first-child{color:var(--muted)}
+.conf{height:4px;background:var(--line);margin-top:12px}
+.conf i{display:block;height:100%;width:0;background:var(--lime);transition:width .9s var(--ease)}
+.tip{position:fixed;z-index:200;padding:7px 11px;background:var(--bg);border:1px solid var(--lime);font-family:var(--mono);font-size:13px;pointer-events:none;opacity:0;transition:opacity .15s;white-space:nowrap}
+.tip.on{opacity:1}
+.ax text{font-family:var(--mono);font-size:12px;fill:#8d9687}
+.ax line{stroke:var(--line)}
+.vlab{font-family:var(--mono);font-size:12px;fill:var(--text)}
+
+/* anatomy (pinned) */
+.anat{position:relative;height:100vh;overflow:hidden;border-top:1px solid var(--line)}
+.anat .wrap{height:100%;display:flex;flex-direction:column;justify-content:center;gap:clamp(30px,6vh,70px);padding-top:66px}
+.anat-q{font-size:clamp(34px,5.4vw,86px);font-weight:300;letter-spacing:-.04em;line-height:1.08}
+.anat-q .tok{position:relative;display:inline-block;color:#5e665a;transition:color .5s}
+.anat-q .tok::after{content:"";position:absolute;left:0;right:0;bottom:.02em;height:3px;background:var(--lime);transform:scaleX(0);transform-origin:left;transition:transform .6s var(--ease)}
+.anat-q .tok.on{color:var(--text)}
+.anat-q .tok.on::after{transform:scaleX(1)}
+.anat-q .tok.cur{color:var(--lime)}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;position:relative;z-index:2}
+.card{border:1px solid var(--line);background:var(--bg-2);padding:20px;display:flex;flex-direction:column;gap:10px;min-height:190px;transition:border-color .5s,background .5s}
+.card>*{opacity:.4;transition:opacity .5s}
+.card.on>*{opacity:1}
+.card.cur{border-color:var(--lime);background:#141a0c}
+.card code{font-family:var(--mono);font-size:13px;color:var(--lime);word-break:break-word}
+.card p{font-size:15px;color:var(--muted);line-height:1.5}
+.card h3{font-size:22px;font-weight:400;letter-spacing:-.02em;line-height:1.1}
+.links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;overflow:visible}
+.links path{fill:none;stroke:var(--lime);stroke-width:1.5}
+.links circle{fill:var(--lime)}
+.anat-foot{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.prog{flex:1;height:2px;background:var(--line);max-width:420px}
+.prog i{display:block;height:100%;background:var(--lime);transform-origin:left;transform:scaleX(0)}
+
+/* proof (receipt) */
+.proof{padding:140px 0}
+.proof-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:70px;align-items:center}
+.receipt{position:relative;background:#e9ede4;color:#0b0c0b;padding:30px 30px 38px;font-family:var(--mono);font-size:14px;transform:rotate(-1.5deg);box-shadow:0 40px 60px -30px rgba(0,0,0,.8)}
+.receipt::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:12px;background:radial-gradient(circle at 8px 0,transparent 7px,#e9ede4 7.5px) -8px 0/16px 12px repeat-x}
+.receipt h3{font-family:var(--sans);font-weight:500;font-size:20px;letter-spacing:-.02em;margin-bottom:4px}
+.receipt .rl{display:flex;justify-content:space-between;gap:12px;padding:8px 6px;border-bottom:1px dashed #9aa093;transition:background .3s}
+.receipt .rl span:last-child{text-align:right}
+.receipt .rl.hl{background:var(--lime)}
+.receipt .tot{display:flex;justify-content:space-between;font-size:16px;font-weight:500;padding:14px 6px 0}
+.principles{list-style:none;border-top:1px solid var(--line)}
+.principles li{border-bottom:1px solid var(--line)}
+.principles button{width:100%;display:grid;grid-template-columns:60px 1fr;gap:16px;text-align:left;padding:26px 8px;transition:background .3s}
+.principles button:hover,.principles button:focus-visible,.principles button.on{background:var(--bg-2)}
+.principles .n{font-family:var(--mono);font-size:13px;color:var(--lime);padding-top:6px}
+.principles b{display:block;font-weight:400;font-size:clamp(22px,2.2vw,30px);letter-spacing:-.02em;line-height:1.15}
+.principles p{color:var(--muted);margin-top:8px;font-size:16px}
+
+/* numbers */
+.nums{border-block:1px solid var(--line)}
+.nums .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.num{padding:40px 26px 34px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
+.num:first-child{border-left:1px solid var(--line)}
+.num strong{font-weight:300;font-size:clamp(48px,5vw,80px);letter-spacing:-.05em;line-height:1;font-variant-numeric:tabular-nums}
+.num strong em{font-style:normal;color:var(--lime)}
+.num p{color:var(--muted);font-size:16px}
+.num svg{width:100%;height:40px}
+.num svg path{fill:none;stroke:var(--lime);stroke-width:1.5}
+
+/* voices */
+.voices{padding:140px 0}
+.big-quote{font-size:clamp(30px,3.8vw,58px);font-weight:300;letter-spacing:-.035em;line-height:1.12;max-width:20em}
+.big-quote mark{background:none;color:var(--lime)}
+.cite{display:flex;align-items:center;gap:14px;margin-top:30px}
+.cite i{width:48px;height:48px;border:1px solid var(--lime);display:grid;place-items:center;font-style:normal;font-family:var(--mono);color:var(--lime)}
+.cite b{display:block;font-weight:500}
+.cite span{color:var(--muted);font-size:15px}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:70px}
+.mini figure{border:1px solid var(--line);padding:26px;display:flex;flex-direction:column;gap:16px}
+.mini blockquote{font-size:18px}
+.mini figcaption{font-size:15px;color:var(--muted)}
+
+/* cta */
+.cta{border-top:1px solid var(--line);padding:120px 0 30px;overflow:hidden}
+.cta-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:60px;align-items:start}
+.cta h2{font-size:clamp(46px,7vw,120px)}
+.feed{position:relative;height:360px;overflow:hidden;border:1px solid var(--line);background:var(--bg-2);mask-image:linear-gradient(transparent,#000 18%,#000 82%,transparent);-webkit-mask-image:linear-gradient(transparent,#000 18%,#000 82%,transparent)}
+.feed ul{list-style:none;animation:feed 40s linear infinite}
+.feed li{display:grid;grid-template-columns:62px 1fr;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);font-size:16px}
+.feed li span{font-family:var(--mono);font-size:13px;color:var(--lime);padding-top:3px}
+@keyframes feed{to{transform:translateY(-50%)}}
+footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-top:100px;padding-top:24px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;color:var(--muted)}
+
+@media (max-width:1000px){
+  .out{grid-template-columns:1fr}
+  .stage{border-right:0;border-bottom:1px solid var(--line)}
+  .side{display:grid;grid-template-columns:1fr 1fr}
+  .side section:nth-child(3){grid-column:1/-1}
+  .proof-grid{grid-template-columns:1fr;gap:60px}
+  .nums .wrap{grid-template-columns:1fr 1fr}
+  .num:nth-child(3){border-left:1px solid var(--line)}
+  .num:nth-child(-n+2){border-bottom:1px solid var(--line)}
+}
+@media (max-width:860px){
+  .wrap{width:calc(100% - 32px)}
+  .nav ul,.nav .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero{padding-top:100px}
+  .hero-sub{grid-template-columns:1fr}
+  .ticker{top:0}
+  .ask-head{grid-template-columns:1fr}
+  .qbar{flex-wrap:wrap}
+  .qbar .pr{display:none}
+  .qbar input{min-height:64px;flex-basis:100%}
+  .qbar .btn{flex:1;border-left:0;border-top:1px solid var(--line);min-height:54px}
+  .stage{padding:20px 16px}
+  .chips{padding:14px 16px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex:none}
+  .chart-box{height:290px}
+  .explain{font-size:17px;min-height:170px}
+  .side{grid-template-columns:1fr}
+  .side section:nth-child(3){grid-column:auto}
+  .anat .wrap{justify-content:flex-start;padding-top:100px;gap:26px}
+  .cards{grid-template-columns:1fr 1fr;gap:10px}
+  .card{min-height:0;padding:14px;gap:6px}
+  .card p{display:none}
+  .card h3{font-size:18px}
+  .card code{font-size:12px}
+  .anat-foot .label{font-size:11px}
+  .mini{grid-template-columns:1fr}
+  .cta-grid{grid-template-columns:1fr}
+  .receipt{padding:24px 20px 32px;font-size:13px}
+  .principles button{grid-template-columns:40px 1fr;padding:22px 4px}
+}
+@media (max-width:520px){
+  .nums .wrap{grid-template-columns:1fr}
+  .num{border-left:1px solid var(--line)}
+  .num:nth-child(-n+3){border-bottom:1px solid var(--line)}
+  .hero h1{font-size:clamp(42px,12vw,58px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .feed ul{animation:none}
+  .anat{height:auto;overflow:visible;padding:110px 0}
+  .anat .wrap{height:auto}
+  .card>*{opacity:1}
+  *{transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Tessera home">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="13" width="6" height="10" fill="#c8ff2e"/><rect x="9" y="7" width="6" height="16" fill="#c8ff2e"/><rect x="17" y="1" width="6" height="22" fill="#c8ff2e"/></svg>
+      Tessera
+    </a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="#ask">ask</a></li>
+        <li><a href="#anatomy">how-it-reads</a></li>
+        <li><a href="#proof">trust</a></li>
+        <li><a href="#voices">customers</a></li>
+      </ul>
+    </nav>
+    <a class="btn btn-lime" href="#cta">Get early access</a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu">menu</button>
+  </div>
+  <div class="mmenu" id="mmenu">
+    <a href="#ask">Ask a question</a>
+    <a href="#anatomy">How it reads</a>
+    <a href="#proof">Trust</a>
+    <a href="#voices">Customers</a>
+    <a href="#cta">Get early access</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero gridbg" id="top">
+    <div class="wrap">
+      <div class="hero-top hero-fade">
+        <span class="label">Fig. 00 — <b>Tessera</b> / analytics for people who don't write SQL</span>
+        <span class="label">Sample workspace · Copperline Bikes</span>
+      </div>
+      <h1 aria-label="Ask your data anything. It answers in charts.">
+        <span class="ln" aria-hidden="true"><span>Ask your data anything.</span></span>
+        <span class="ln" aria-hidden="true"><span><strong>It answers in charts.</strong></span></span>
+      </h1>
+      <div class="hero-sub">
+        <p class="lede hero-fade">Type the question you'd normally send to your data team. Tessera finds the right tables, writes the SQL, picks the chart and tells you what it means — in about the time it took you to ask.</p>
+        <div class="hero-ctas hero-fade">
+          <a class="btn btn-lime" href="#ask">Ask the sample data <span class="arr" aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="#anatomy">How it reads a question</a>
+        </div>
+      </div>
+    </div>
+    <div class="hero-chart" id="heroChart" aria-hidden="true">
+      <svg id="heroSvg" viewBox="0 0 1000 200" preserveAspectRatio="none">
+        <defs><clipPath id="hclip"><rect id="hclipR" x="0" y="0" width="1000" height="200"/></clipPath><linearGradient id="hfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8ff2e" stop-opacity=".22"/><stop offset="1" stop-color="#c8ff2e" stop-opacity="0"/></linearGradient></defs>
+        <g clip-path="url(#hclip)"><path id="heroArea" fill="url(#hfill)"/>
+        <path id="heroLine" fill="none" stroke="#c8ff2e" stroke-width="2" vector-effect="non-scaling-stroke"/></g>
+      </svg>
+      <div class="wrap" style="position:relative;height:100%"><div class="ticker hero-fade"><span class="label">Questions answered this week</span><strong id="tick">0</strong></div></div>
+      <div class="xh" id="xh"></div><div class="xdot" id="xdot"></div><div class="xtip" id="xtip"></div>
+    </div>
+  </section>
+
+  <section class="ask gridbg" id="ask" aria-labelledby="ask-title">
+    <div class="wrap">
+      <div class="ask-head">
+        <div><span class="label">Fig. 01 — Ask</span><h2 id="ask-title" style="margin-top:18px">Go on, <strong>ask it something.</strong></h2></div>
+        <p class="lede">This is a live demo on a sample warehouse for a fictional bike company. Pick a question or write your own — try "regions", "signups", "plans", "drop off" or "churn".</p>
+      </div>
+      <div class="console">
+        <form class="qbar" id="qform" autocomplete="off">
+          <span class="pr" aria-hidden="true">?</span>
+          <label class="sr-only" for="q">Ask a question about the sample data</label>
+          <input id="q" placeholder="Which region grew fastest last quarter?" maxlength="120">
+          <button class="btn btn-lime" type="submit">Ask <span class="arr" aria-hidden="true">→</span></button>
+        </form>
+        <div class="chips" role="group" aria-label="Suggested questions" id="chips"></div>
+        <div class="out">
+          <div class="stage">
+            <div class="stage-head"><h3 id="chartTitle">Your chart will build here.</h3><span class="label" id="chartKind">—</span></div>
+            <div class="chart-box" id="chartBox"><p class="empty">Waiting for a question…</p></div>
+            <p class="explain" id="explain" aria-live="polite"></p>
+          </div>
+          <div class="side">
+            <section aria-label="Steps"><p class="label">Working</p><ol class="log" id="log" style="margin-top:12px"><li>Parse the question</li><li>Match tables &amp; metrics</li><li>Write and run SQL</li><li>Choose the chart</li></ol></section>
+            <section aria-label="Generated SQL"><p class="label">Generated SQL</p><pre class="sql" id="sql"><span class="c">-- appears once you ask</span></pre></section>
+            <section aria-label="Answer details">
+              <div class="meta-row"><span>Rows scanned</span><span id="mRows">—</span></div>
+              <div class="meta-row"><span>Run time</span><span id="mTime">—</span></div>
+              <div class="meta-row"><span>Confidence</span><span id="mConf">—</span></div>
+              <div class="conf"><i id="confBar"></i></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="anat gridbg" id="anatomy" aria-labelledby="anat-title">
+    <div class="wrap" id="anatWrap">
+      <div>
+        <span class="label">Fig. 02 — How Tessera reads a question</span>
+        <h2 id="anat-title" class="sr-only">How Tessera reads a question</h2>
+        <p class="anat-q" id="anatQ" style="margin-top:18px"><span class="tok" data-i="3">Which</span> <span class="tok" data-i="0">region</span> <span class="tok" data-i="1">grew fastest</span> <span style="white-space:nowrap"><span class="tok" data-i="2">last quarter</span>?</span></p>
+      </div>
+      <div class="cards" id="cards">
+        <div class="card" data-i="3"><span class="label">Answer shape</span><h3>"Which…?"</h3><code>chart: ranked bars, top one lit</code><p>One winner out of many reads best as a sorted bar chart with the answer highlighted.</p></div>
+        <div class="card" data-i="0"><span class="label">Dimension</span><h3>"region"</h3><code>GROUP BY stores.region</code><p>Matched through the semantic layer, which also knows "market" and "territory" mean the same thing here.</p></div>
+        <div class="card" data-i="1"><span class="label">Metric</span><h3>"grew fastest"</h3><code>ORDER BY revenue_growth DESC</code><p>"Grew" means revenue growth by default. One click switches it to orders or customers.</p></div>
+        <div class="card" data-i="2"><span class="label">Time window</span><h3>"last quarter"</h3><code id="qRange">order_date in last full quarter</code><p>The last complete calendar quarter, not the last 90 days. Your fiscal calendar wins if you have one.</p></div>
+      </div>
+      <div class="anat-foot"><span class="label" id="anatCap">Step 1 of 4 — find what to group by</span><div class="prog" aria-hidden="true"><i id="anatProg"></i></div></div>
+    </div>
+    <svg class="links" id="links" aria-hidden="true"></svg>
+  </section>
+
+  <section class="proof" id="proof" aria-labelledby="proof-title">
+    <div class="wrap proof-grid">
+      <div class="receipt" aria-label="Example answer receipt">
+        <h3>Answer receipt #4471</h3>
+        <p style="color:#4a5244;margin-bottom:16px">"Which region grew fastest last quarter?"</p>
+        <div class="rl" data-r="0"><span>TABLES</span><span>orders (2.1M) · stores (48)</span></div>
+        <div class="rl" data-r="0"><span>JOIN</span><span>orders.store_id = stores.id</span></div>
+        <div class="rl" data-r="1"><span>METRIC</span><span>revenue_growth · def v12</span></div>
+        <div class="rl" data-r="1"><span>OWNER</span><span>Data team · approved</span></div>
+        <div class="rl" data-r="2"><span>FRESHNESS</span><span>synced 4 min ago</span></div>
+        <div class="rl" data-r="2"><span>ACCESS</span><span>row rules applied (EU only)</span></div>
+        <div class="tot"><span>CONFIDENCE</span><span>0.94 · HIGH</span></div>
+      </div>
+      <div>
+        <span class="label">Fig. 03 — Trust</span>
+        <h2 id="proof-title" style="margin:18px 0 34px">Every number <strong>shows its work.</strong></h2>
+        <ul class="principles">
+          <li><button type="button" data-r="0"><span class="n">01</span><span><b>You see the tables it touched.</b><p>Every answer carries the SQL, the joins and the row counts. Nothing is a black box, and nothing is a guess dressed up as a fact.</p></span></button></li>
+          <li><button type="button" data-r="1"><span class="n">02</span><span><b>Your definitions, not its own.</b><p>Metrics come from the semantic layer your data team approves. If "active customer" means something specific to you, that's what it uses.</p></span></button></li>
+          <li><button type="button" data-r="2"><span class="n">03</span><span><b>It knows what you're allowed to see.</b><p>Row-level rules follow each person, so the EU sales lead never sees US pipeline — even by asking cleverly.</p></span></button></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="nums" aria-label="Tessera in numbers">
+    <div class="wrap">
+      <div class="num"><strong><span data-to="0.8" data-dec="1">0</span><em>s</em></strong><p>median time from question to chart</p><svg viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 L25 28 L50 31 L75 22 L100 24 L125 16 L150 18 L175 9 L200 6"/></svg></div>
+      <div class="num"><strong><span data-to="83">0</span><em>%</em></strong><p>of questions answered with no analyst in the loop</p><svg viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34 L25 30 L50 30 L75 24 L100 20 L125 21 L150 13 L175 12 L200 8"/></svg></div>
+      <div class="num"><strong><span data-to="11">0</span><em>h</em></strong><p>saved per analyst, per week, on "quick questions"</p><svg viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 28 L25 30 L50 22 L75 25 L100 18 L125 14 L150 16 L175 10 L200 9"/></svg></div>
+      <div class="num"><strong><span data-to="0">0</span><em> rows</em></strong><p>copied out of your warehouse. Queries run where the data lives.</p><svg viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 20 L200 20"/></svg></div>
+    </div>
+  </section>
+
+  <section class="voices" id="voices" aria-labelledby="voices-title">
+    <div class="wrap">
+      <span class="label">Fig. 04 — Customers</span>
+      <h2 id="voices-title" class="sr-only">What customers say</h2>
+      <blockquote class="big-quote" style="margin-top:26px">"Our ops leads used to wait two days for a chart. Now they ask Tessera at standup and <mark>argue about the answer instead of the spreadsheet.</mark>"</blockquote>
+      <div class="cite"><i aria-hidden="true">RC</i><div><b>Rhea Castellano</b><span>Head of Operations, Copperline Bikes</span></div></div>
+      <div class="mini">
+        <figure><blockquote>"The receipt is what sold our CFO. She clicks it on every number in the board deck."</blockquote><figcaption>Jonah Whitfield — Analytics lead, Harrow &amp; Pine</figcaption></figure>
+        <figure><blockquote>"I stopped writing the same twelve queries every Monday. I write the definitions once and Tessera does the rest."</blockquote><figcaption>Sun-hee Park — Data engineer, Little Atlas Travel</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta gridbg" id="cta" aria-labelledby="cta-title">
+    <div class="wrap">
+      <div class="cta-grid">
+        <div>
+          <span class="label">Fig. 05 — Start</span>
+          <h2 id="cta-title" style="margin:18px 0 26px">Bring one question. <strong>Leave with the chart.</strong></h2>
+          <p class="lede">Connect a read-only warehouse user, add your metric definitions, and your team can start asking the same afternoon.</p>
+          <div class="hero-ctas" style="margin-top:30px"><a class="btn btn-lime" href="#top">Get early access <span class="arr" aria-hidden="true">→</span></a><a class="btn btn-ghost" href="#ask">Try the demo again</a></div>
+        </div>
+        <div>
+          <p class="label" style="margin-bottom:12px">Asked today, across Tessera</p>
+          <div class="feed" aria-label="Example questions customers asked"><ul id="feed"></ul></div>
+        </div>
+      </div>
+      <footer><span>© 2026 Tessera Analytics</span><span>Concept design — fictional brand.</span><span>Sample data is invented.</span></footer>
+    </div>
+  </section>
+</main>
+<div class="tip" id="tip" aria-hidden="true"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const $ = (s, r = document) => r.querySelector(s)
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+  const NS = 'http://www.w3.org/2000/svg'
+  gsap.registerPlugin(ScrollTrigger)
+  let lenis = null
+  if (!reduce) {
+    lenis = new Lenis({ lerp: 0.1 })
+    window.lenis = lenis
+    lenis.on('scroll', ScrollTrigger.update)
+    gsap.ticker.add((t) => lenis.raf(t * 1000))
+    gsap.ticker.lagSmoothing(0)
+  }
+
+  /* ---------- menu + anchors ---------- */
+  const menuBtn = $('.menu-btn'), mmenu = $('#mmenu')
+  function setMenu(open) {
+    mmenu.classList.toggle('open', open)
+    menuBtn.setAttribute('aria-expanded', String(open))
+    menuBtn.textContent = open ? 'close' : 'menu'
+    menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu')
+    if (open) mmenu.querySelector('a').focus()
+  }
+  menuBtn.addEventListener('click', () => setMenu(!mmenu.classList.contains('open')))
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && mmenu.classList.contains('open')) { setMenu(false); menuBtn.focus() } })
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href'), el = id === '#top' ? document.body : $(id)
+    if (!el) return
+    e.preventDefault(); setMenu(false)
+    lenis ? lenis.scrollTo(el, { offset: id === '#top' ? 0 : -66 }) : el.scrollIntoView()
+  }))
+
+  const fmt = (n) => n.toLocaleString('en-US')
+
+  /* ---------- hero chart + crosshair ---------- */
+  const heroPts = (() => { let v = 40, out = []; for (let i = 0; i < 90; i++) { v += 2.2 + Math.sin(i * 0.7) * 4 + Math.sin(i * 0.23) * 3 + (i > 60 ? 1.6 : 0); out.push(v) } return out })()
+  const hMax = Math.max(...heroPts), hMin = Math.min(...heroPts)
+  const hy = (v) => 190 - ((v - hMin) / (hMax - hMin)) * 165
+  const hx = (i) => (i / (heroPts.length - 1)) * 1000
+  const hd = heroPts.map((v, i) => `${i ? 'L' : 'M'}${hx(i).toFixed(1)} ${hy(v).toFixed(1)}`).join(' ')
+  $('#heroLine').setAttribute('d', hd)
+  $('#heroArea').setAttribute('d', hd + ' L1000 200 L0 200Z')
+  const hc = $('#heroChart'), xh = $('#xh'), xdot = $('#xdot'), xtip = $('#xtip')
+  const now = new Date()
+  function heroAt(clientX) {
+    const r = hc.getBoundingClientRect(), u = Math.max(0, Math.min(1, (clientX - r.left) / r.width))
+    const i = Math.round(u * (heroPts.length - 1)), x = (i / (heroPts.length - 1)) * r.width, y = (hy(heroPts[i]) / 200) * r.height
+    const d = new Date(now); d.setDate(d.getDate() - (heroPts.length - 1 - i))
+    xh.style.left = x + 'px'; xdot.style.left = x + 'px'; xdot.style.top = y + 'px'
+    xtip.style.left = Math.max(110, Math.min(r.width - 110, x)) + 'px'; xtip.style.top = y + 'px'
+    xtip.textContent = `${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} · ${fmt(Math.round(heroPts[i] * 31))} answers`
+  }
+  hc.addEventListener('pointermove', (e) => { hc.classList.add('on'); heroAt(e.clientX) })
+  hc.addEventListener('pointerleave', () => hc.classList.remove('on'))
+  const tickEl = $('#tick'), tickTarget = 48213
+  if (reduce) tickEl.textContent = fmt(tickTarget)
+
+  if (!reduce) {
+    gsap.set('#hclipR', { attr: { width: 0 } })
+    gsap.set('.hero h1 .ln > span', { yPercent: 112 })
+    gsap.set('.hero-fade', { opacity: 0, y: 18 })
+    gsap.set('.nav', { yPercent: -100 })
+    const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
+    tl.to('.nav', { yPercent: 0, duration: 0.9 }, 0)
+      .to('.hero h1 .ln > span', { yPercent: 0, duration: 1.1, stagger: 0.09 }, 0.1)
+      .to('.hero-fade', { opacity: 1, y: 0, duration: 0.8, stagger: 0.07 }, 0.5)
+      .to('#hclipR', { attr: { width: 1000 }, duration: 1.9, ease: 'power2.inOut' }, 0.3)
+    const o = { v: 0 }
+    tl.to(o, { v: tickTarget, duration: 2, ease: 'power2.out', onUpdate: () => (tickEl.textContent = fmt(Math.round(o.v))) }, 0.5)
+    setInterval(() => { if (o.v >= tickTarget) { o.v += 1 + Math.floor(Math.random() * 3); tickEl.textContent = fmt(Math.round(o.v)) } }, 1600)
+    gsap.to('#heroSvg', { scaleY: 0.55, transformOrigin: '50% 100%', ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+  }
+
+  /* =========================================================
+     Ask console
+     ========================================================= */
+  const weeksSoFar = (() => { const s = new Date(now.getFullYear(), 0, 1); return Math.max(8, Math.min(52, Math.ceil(((now - s) / 864e5 + 1) / 7))) })()
+  const spikeWeek = Math.round(weeksSoFar * 0.55)
+  const signups = Array.from({ length: weeksSoFar }, (_, i) => Math.round(820 + i * 9 + Math.sin(i * 0.9) * 60 + Math.sin(i * 0.31) * 45 + (i + 1 === spikeWeek ? 640 : i + 1 === spikeWeek + 1 ? 260 : 0)))
+  const sAvg = Math.round(signups.reduce((a, b) => a + b, 0) / signups.length)
+  const lastQ = (() => { const q = Math.floor(now.getMonth() / 3); const y = q === 0 ? now.getFullYear() - 1 : now.getFullYear(); const qq = q === 0 ? 3 : q - 1; return { y, q: qq + 1, start: new Date(y, qq * 3, 1), end: new Date(y, qq * 3 + 3, 0) } })()
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  $('#qRange').textContent = `order_date BETWEEN '${iso(lastQ.start)}' AND '${iso(lastQ.end)}'`
+  const cohorts = (() => { const out = []; let s = 17; const r = () => ((s = (s * 16807) % 2147483647) / 2147483647); for (let i = 0; i < 34; i++) { const x = 0.4 + r() * 5.4; out.push([x, Math.max(1.5, Math.min(24, 3 + x * 2.6 + (r() - 0.5) * 9))]) } return out })()
+
+  const corrR = (() => { const n = cohorts.length, mx = cohorts.reduce((a, p) => a + p[0], 0) / n, my = cohorts.reduce((a, p) => a + p[1], 0) / n; let sxy = 0, sxx = 0, syy = 0; cohorts.forEach(([x, y]) => { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; syy += (y - my) ** 2 }); return sxy / Math.sqrt(sxx * syy) })()
+  const DATA = [
+    { id: 'region', q: 'Which region grew fastest last quarter?', kw: ['region', 'regions', 'market', 'country', 'grew', 'growth', 'fastest', 'quarter', 'where', 'territory'],
+      title: `Revenue growth by region, Q${lastQ.q} ${lastQ.y} vs previous quarter`, kind: 'Ranked bars',
+      rows: '2,148,906', time: '0.62s', conf: 0.94,
+      sql: `<span class="k">SELECT</span> s.region,\n  <span class="k">SUM</span>(o.revenue) / <span class="k">LAG</span>(<span class="k">SUM</span>(o.revenue))\n    <span class="k">OVER</span> (<span class="k">PARTITION BY</span> s.region <span class="k">ORDER BY</span> qtr) - 1\n    <span class="k">AS</span> growth\n<span class="k">FROM</span> orders o <span class="k">JOIN</span> stores s <span class="k">ON</span> o.store_id = s.id\n<span class="k">WHERE</span> qtr <span class="k">IN</span> (<span class="s">'Q${lastQ.q - 1 || 4}'</span>, <span class="s">'Q${lastQ.q}'</span>)\n<span class="k">ORDER BY</span> growth <span class="k">DESC</span>;`,
+      explain: 'The <mark>Nordics grew fastest, up 31%</mark> on the previous quarter — most of it from the new Oslo store. <mark>France is the only region that shrank (−3%)</mark>, after two months of stock-outs on e-bikes.',
+      draw: (svg) => barsH(svg, [['Nordics', 31], ['Iberia', 24], ['Benelux', 18], ['UK & Ireland', 12], ['DACH', 9], ['France', -3]], '%') },
+    { id: 'signups', q: 'How did weekly signups trend this year?', kw: ['signup', 'signups', 'sign', 'trend', 'weekly', 'week', 'new', 'customers', 'users', 'year', 'over time'],
+      title: `Weekly signups, ${now.getFullYear()} to date`, kind: 'Line',
+      rows: '61,402', time: '0.41s', conf: 0.97,
+      sql: `<span class="k">SELECT</span> <span class="k">DATE_TRUNC</span>(<span class="s">'week'</span>, created_at) <span class="k">AS</span> wk,\n  <span class="k">COUNT</span>(*) <span class="k">AS</span> signups\n<span class="k">FROM</span> customers\n<span class="k">WHERE</span> created_at >= <span class="k">DATE_TRUNC</span>(<span class="s">'year'</span>, <span class="k">CURRENT_DATE</span>)\n<span class="k">GROUP BY</span> 1 <span class="k">ORDER BY</span> 1;`,
+      explain: `Signups are <mark>trending up about 1% a week</mark>, averaging ${fmt(sAvg)} a week. The <mark>spike in week ${spikeWeek}</mark> is the free-tier launch; it settled back to trend within two weeks, but at a higher baseline.`,
+      draw: (svg) => line(svg, signups) },
+    { id: 'plans', q: 'What share of revenue comes from each plan?', kw: ['share', 'plan', 'plans', 'revenue', 'tier', 'pricing', 'breakdown', 'split', 'mix', 'percentage'],
+      title: 'Revenue share by plan, last 12 months', kind: 'Donut',
+      rows: '412,880', time: '0.38s', conf: 0.92,
+      sql: `<span class="k">SELECT</span> plan,\n  <span class="k">SUM</span>(amount) / <span class="k">SUM</span>(<span class="k">SUM</span>(amount)) <span class="k">OVER</span> () <span class="k">AS</span> share\n<span class="k">FROM</span> invoices\n<span class="k">WHERE</span> paid_at >= <span class="k">CURRENT_DATE</span> - <span class="k">INTERVAL</span> <span class="s">'12 months'</span>\n<span class="k">GROUP BY</span> plan <span class="k">ORDER BY</span> share <span class="k">DESC</span>;`,
+      explain: '<mark>Pro brings in 46%</mark> of revenue and Team another 31%. Enterprise is only 8% — but that comes from <mark>just 14 accounts</mark>, so each one is worth about 40 Pro customers.',
+      draw: (svg) => donut(svg, [['Pro', 46], ['Team', 31], ['Starter', 15], ['Enterprise', 8]]) },
+    { id: 'funnel', q: 'Where do trial users drop off?', kw: ['drop', 'off', 'funnel', 'trial', 'conversion', 'convert', 'onboarding', 'activation', 'steps', 'lose'],
+      title: 'Trial funnel, last 90 days', kind: 'Funnel',
+      rows: '893,117', time: '0.84s', conf: 0.88,
+      sql: `<span class="k">SELECT</span> step, <span class="k">COUNT</span>(<span class="k">DISTINCT</span> user_id) <span class="k">AS</span> users\n<span class="k">FROM</span> trial_events\n<span class="k">WHERE</span> ts >= <span class="k">CURRENT_DATE</span> - 90\n<span class="k">GROUP BY</span> step\n<span class="k">ORDER BY</span> <span class="k">MIN</span>(step_order);`,
+      explain: 'The <mark>biggest leak is "Connected data": 47% of trials stop there</mark>. Fixing that one step is worth more than every other step combined — people who build a first chart convert at <mark>35%</mark>.',
+      draw: (svg) => funnel(svg, [['Visited', 48200], ['Started trial', 9640], ['Connected data', 5110], ['First chart', 3420], ['Invited teammate', 1530], ['Paid', 1180]]) },
+    { id: 'churn', q: 'Is churn related to support tickets?', kw: ['churn', 'churned', 'cancel', 'support', 'tickets', 'ticket', 'related', 'correlated', 'correlation', 'retention'],
+      title: 'Weekly cohorts: tickets per account vs 90-day churn', kind: 'Scatter + trend',
+      rows: '1,204,551', time: '1.12s', conf: 0.81,
+      sql: `<span class="k">SELECT</span> cohort_week,\n  <span class="k">AVG</span>(tickets_30d) <span class="k">AS</span> tickets,\n  <span class="k">AVG</span>(churned_90d::int) * 100 <span class="k">AS</span> churn_pct\n<span class="k">FROM</span> account_health\n<span class="k">GROUP BY</span> cohort_week;`,
+      explain: `Yes, a <mark>${corrR > 0.7 ? 'strong' : corrR > 0.4 ? 'moderate' : 'weak'} link (r = ${corrR.toFixed(2)})</mark>: cohorts that file more tickets churn more. Most of those tickets are about connecting data, so this points at <mark>onboarding, not the support team</mark>.`,
+      draw: (svg) => scatter(svg, cohorts) },
+  ]
+
+  /* ---------- chart helpers ---------- */
+  let W = 640, H = 340
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e }
+  const tip = $('#tip')
+  function tipOn(node, text) {
+    node.style.cursor = 'pointer'
+    node.addEventListener('pointerenter', () => { tip.textContent = text; tip.classList.add('on') })
+    node.addEventListener('pointermove', (e) => { tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY - 36 + 'px' })
+    node.addEventListener('pointerleave', () => tip.classList.remove('on'))
+  }
+  const D = (t) => (reduce ? 0 : t)
+  function barsH(svg, rows, unit) {
+    const l = W < 520 ? 100 : 120, r = 50, t = 10, b = 30, min = -5, max = 35, sx = (v) => l + ((v - min) / (max - min)) * (W - l - r)
+    const ax = el('g', { class: 'ax' }, svg)
+    for (let v = 0; v <= 30; v += 10) { el('line', { x1: sx(v), x2: sx(v), y1: t, y2: H - b }, ax); el('text', { x: sx(v), y: H - 8, 'text-anchor': 'middle' }, ax).textContent = v + unit }
+    const bh = (H - t - b) / rows.length
+    rows.forEach(([name, v], i) => {
+      const y = t + i * bh + bh * 0.18, h = bh * 0.64, x0 = sx(0), x1 = sx(v)
+      el('text', { x: l - 12, y: y + h / 2 + 4, 'text-anchor': 'end', class: 'vlab' }, svg).textContent = name
+      const rect = el('rect', { x: Math.min(x0, x1), y, width: Math.abs(x1 - x0), height: h, fill: i === 0 ? '#c8ff2e' : v < 0 ? '#ff7a5c' : '#3f4a2c' }, svg)
+      const lab = el('text', { x: v < 0 ? x0 + 8 : x1 + 8, y: y + h / 2 + 4, 'text-anchor': 'start', class: 'vlab' }, svg); lab.textContent = (v > 0 ? '+' : '−') + Math.abs(v) + unit
+      tipOn(rect, `${name}: ${v > 0 ? '+' : '−'}${Math.abs(v)}% QoQ`)
+      gsap.from(rect, { scaleX: 0, transformOrigin: v < 0 ? '100% 50%' : '0% 50%', duration: D(0.9), delay: D(0.08 * i), ease: 'expo.out' })
+      gsap.from(lab, { opacity: 0, duration: D(0.4), delay: D(0.5 + 0.08 * i) })
+    })
+    el('line', { x1: sx(0), x2: sx(0), y1: t, y2: H - b, stroke: '#9ba394' }, svg)
+  }
+  function line(svg, pts) {
+    const l = 50, r = 16, t = 16, b = 30, max = Math.ceil(Math.max(...pts) / 500) * 500, sx = (i) => l + (i / (pts.length - 1)) * (W - l - r), sy = (v) => H - b - (v / max) * (H - t - b)
+    const ax = el('g', { class: 'ax' }, svg)
+    for (let v = 0; v <= max; v += 500) { el('line', { x1: l, x2: W - r, y1: sy(v), y2: sy(v) }, ax); el('text', { x: l - 8, y: sy(v) + 4, 'text-anchor': 'end' }, ax).textContent = v ? (v / 1000).toFixed(1) + 'k' : '0' }
+    ;[1, Math.round(pts.length / 2), pts.length].forEach((w) => (el('text', { x: sx(w - 1), y: H - 8, 'text-anchor': 'middle' }, ax).textContent = 'wk ' + w))
+    const d = pts.map((v, i) => `${i ? 'L' : 'M'}${sx(i).toFixed(1)} ${sy(v).toFixed(1)}`).join(' ')
+    const area = el('path', { d: d + ` L${sx(pts.length - 1)} ${sy(0)} L${sx(0)} ${sy(0)}Z`, fill: 'rgba(200,255,46,.08)' }, svg)
+    const p = el('path', { d, fill: 'none', stroke: '#c8ff2e', 'stroke-width': 2.5, 'stroke-linejoin': 'round' }, svg)
+    const len = p.getTotalLength()
+    gsap.fromTo(p, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: D(1.6), ease: 'power2.inOut' })
+    gsap.from(area, { opacity: 0, duration: D(0.8), delay: D(1.2) })
+    // avg line + spike annotation
+    const avg = el('line', { x1: l, x2: W - r, y1: sy(sAvg), y2: sy(sAvg), stroke: '#9ba394', 'stroke-dasharray': '4 5' }, svg)
+    gsap.from(avg, { opacity: 0, duration: D(0.6), delay: D(1.3) })
+    const si = spikeWeek - 1, g = el('g', {}, svg)
+    el('circle', { cx: sx(si), cy: sy(pts[si]), r: 6, fill: '#c8ff2e' }, g)
+    const right = si > pts.length * (W < 520 ? 0.4 : 0.7), tx = el('text', { x: sx(si) + (right ? -12 : 12), y: sy(pts[si]) + 4, class: 'vlab', 'text-anchor': right ? 'end' : 'start' }, g); tx.textContent = W < 520 ? 'Free tier launch' : `Free tier launch · ${fmt(pts[si])}`
+    gsap.from(g, { opacity: 0, y: 8, duration: D(0.5), delay: D(1.5) })
+    pts.forEach((v, i) => { const hit = el('rect', { x: sx(i) - (W - l - r) / pts.length / 2, y: t, width: (W - l - r) / pts.length, height: H - t - b, fill: 'transparent' }, svg); tipOn(hit, `Week ${i + 1}: ${fmt(v)} signups`) })
+  }
+  function donut(svg, rows) {
+    const narrow = W < 520, cx = narrow ? W * 0.3 : W * 0.31, cy = H / 2, R = Math.min(narrow ? W * 0.21 : 120, H / 2 - 34), sw = R * 0.38, fs = narrow ? 13 : 15, lx = narrow ? W * 0.6 : W * 0.6, cols = ['#c8ff2e', '#8fb51f', '#55691b', '#e9ede4']
+    let acc = 0
+    rows.forEach(([name, v], i) => {
+      const c = el('circle', { cx, cy, r: R, fill: 'none', stroke: cols[i], 'stroke-width': sw, pathLength: 100, 'stroke-dasharray': `${v - 0.6} ${100.6 - v}`, 'stroke-dashoffset': 25 - acc }, svg)
+      tipOn(c, `${name}: ${v}% of revenue`)
+      gsap.from(c, { attr: { 'stroke-dasharray': `0 100` }, duration: D(0.8), delay: D(0.15 + i * 0.22), ease: 'power2.out' })
+      const ly = cy - 78 + i * 52 + 6, g = el('g', {}, svg)
+      el('rect', { x: lx, y: ly - 11, width: 12, height: 12, fill: cols[i] }, g)
+      el('text', { x: lx + 20, y: ly, class: 'vlab', style: 'font-size:' + fs + 'px' }, g).textContent = name
+      el('text', { x: W - 8, y: ly, class: 'vlab', 'text-anchor': 'end', style: 'font-size:' + fs + 'px' }, g).textContent = v + '%'
+      gsap.from(g, { opacity: 0, x: 10, duration: D(0.5), delay: D(0.3 + i * 0.22) })
+      acc += v
+    })
+    const t1 = el('text', { x: cx, y: cy - 2, 'text-anchor': 'middle', style: 'font-family:Geist;font-weight:300;font-size:' + Math.round(R * 0.36) + 'px;fill:#e9ede4' }, svg); t1.textContent = '$4.2M'
+    const t2 = el('text', { x: cx, y: cy + R * 0.22, 'text-anchor': 'middle', class: 'vlab', style: 'fill:#9ba394;font-size:' + (narrow ? 10 : 12) + 'px' }, svg); t2.textContent = '12 months'
+    gsap.from([t1, t2], { opacity: 0, duration: D(0.6), delay: D(0.9) })
+  }
+  function funnel(svg, rows) {
+    const l = 10, r = 10, t = 46, b = 30, max = rows[0][1], bw = (W - l - r) / rows.length
+    rows.forEach(([name, v], i) => {
+      const h = Math.max(4, (v / max) * (H - t - b)), x = l + i * bw + 6, y = H - b - h
+      const worst = i === 2
+      const rect = el('rect', { x, y, width: bw - 12, height: h, fill: i === rows.length - 1 ? '#c8ff2e' : worst ? '#ff7a5c' : '#3f4a2c' }, svg)
+      tipOn(rect, `${name}: ${fmt(v)} users`)
+      gsap.from(rect, { scaleY: 0, transformOrigin: '50% 100%', duration: D(0.8), delay: D(i * 0.1), ease: 'expo.out' })
+      const vt = el('text', { x: x + (bw - 12) / 2, y: y - 8, 'text-anchor': 'middle', class: 'vlab' }, svg); vt.textContent = v >= 10000 ? (v / 1000).toFixed(1) + 'k' : fmt(v)
+      const nt = el('text', { x: x + (bw - 12) / 2, y: H - 8, 'text-anchor': 'middle', class: 'vlab', style: 'fill:#9ba394;font-size:11px' }, svg); nt.textContent = ({ 'Started trial': 'Trial', 'Connected data': 'Connect', 'First chart': 'Chart', 'Invited teammate': 'Invite', Visited: 'Visit' })[name] || name
+      gsap.from([vt, nt], { opacity: 0, duration: D(0.4), delay: D(0.4 + i * 0.1) })
+      if (i > 0) {
+        const drop = Math.round((1 - v / rows[i - 1][1]) * 100)
+        const dt = el('text', { x: x - 6, y: t - 22, 'text-anchor': 'middle', class: 'vlab', style: `fill:${worst ? '#ff7a5c' : '#9ba394'};font-size:12px` }, svg); dt.textContent = `−${drop}%`
+        gsap.from(dt, { opacity: 0, y: 6, duration: D(0.4), delay: D(0.7 + i * 0.1) })
+      }
+    })
+  }
+  function scatter(svg, pts) {
+    const l = 44, r = 16, t = 14, b = 34, sx = (v) => l + (v / 6) * (W - l - r), sy = (v) => H - b - (v / 25) * (H - t - b)
+    const ax = el('g', { class: 'ax' }, svg)
+    for (let v = 0; v <= 25; v += 5) { el('line', { x1: l, x2: W - r, y1: sy(v), y2: sy(v) }, ax); el('text', { x: l - 8, y: sy(v) + 4, 'text-anchor': 'end' }, ax).textContent = v + '%' }
+    for (let v = 0; v <= 6; v += 2) el('text', { x: sx(v), y: H - 12, 'text-anchor': 'middle' }, ax).textContent = v
+    el('text', { x: W - r, y: H - b - 8, 'text-anchor': 'end' }, ax).textContent = 'tickets per account →'
+    const n = pts.length, mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n
+    const k = pts.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / pts.reduce((a, p) => a + (p[0] - mx) ** 2, 0)
+    const ln = el('line', { x1: sx(0.3), y1: sy(my + k * (0.3 - mx)), x2: sx(5.9), y2: sy(my + k * (5.9 - mx)), stroke: '#c8ff2e', 'stroke-width': 2, 'stroke-dasharray': '6 6' }, svg)
+    pts.forEach(([x, y], i) => {
+      const c = el('circle', { cx: sx(x), cy: sy(y), r: 7, fill: y > my + k * (x - mx) + 4 ? '#ff7a5c' : '#e9ede4', 'fill-opacity': 0.85 }, svg)
+      tipOn(c, `Cohort ${i + 1}: ${x.toFixed(1)} tickets · ${y.toFixed(1)}% churn`)
+      gsap.from(c, { scale: 0, transformOrigin: '50% 50%', duration: D(0.5), delay: D(i * 0.025), ease: 'back.out(3)' })
+    })
+    gsap.from(ln, { opacity: 0, duration: D(0.6), delay: D(1.1) })
+  }
+
+  /* ---------- ask flow ---------- */
+  const chipsEl = $('#chips'), qIn = $('#q'), box = $('#chartBox'), explain = $('#explain'), logItems = $$('#log li')
+  chipsEl.innerHTML = DATA.map((d) => `<button type="button" aria-pressed="false" data-id="${d.id}">${d.q}</button>`).join('')
+  let runId = 0
+  const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms))
+  function match(text) {
+    const words = text.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean)
+    let best = null, bs = 0
+    DATA.forEach((d) => { let s = 0; d.kw.forEach((k) => { if (k.includes(' ') ? text.toLowerCase().includes(k) : words.some((w) => w === k || (w.length > 4 && k.startsWith(w.slice(0, 5))))) s++ }); if (s > bs) { bs = s; best = d } })
+    return best
+  }
+  function wordsHTML(html) {
+    // wrap each word in a span while keeping <mark> intact
+    const tmp = document.createElement('div'); tmp.innerHTML = html
+    const out = []
+    tmp.childNodes.forEach((n) => {
+      if (n.nodeType === 3) n.textContent.split(/(\s+)/).forEach((p) => out.push(/^\s+$/.test(p) || !p ? p : `<span class="w">${p}</span>`))
+      else out.push(`<mark>${n.textContent.split(/(\s+)/).map((p) => (/^\s+$/.test(p) || !p ? p : `<span class="w">${p}</span>`)).join('')}</mark>`)
+    })
+    return out.join('')
+  }
+  async function ask(text) {
+    const id = ++runId, docH = document.documentElement.scrollHeight
+    const d = match(text)
+    $$('#chips button').forEach((b) => b.setAttribute('aria-pressed', String(!!d && b.dataset.id === d.id)))
+    logItems.forEach((li) => li.classList.remove('done'))
+    explain.innerHTML = ''
+    $('#confBar').style.width = '0'
+    ;['#mRows', '#mTime', '#mConf'].forEach((s) => ($(s).textContent = '…'))
+    box.innerHTML = '<p class="empty">Thinking…</p>'
+    $('#chartTitle').textContent = `"${text}"`
+    $('#chartKind').textContent = '—'
+    $('#sql').innerHTML = '<span class="c">-- writing…</span>'
+    for (let i = 0; i < 2; i++) { await wait(260); if (id !== runId) return; logItems[i].classList.add('done') }
+    if (!d) {
+      box.innerHTML = '<p class="empty">No matching tables in the sample warehouse.</p>'
+      $('#sql').innerHTML = '<span class="c">-- no query run</span>'
+      ;['#mRows', '#mTime', '#mConf'].forEach((s) => ($(s).textContent = '—'))
+      explain.innerHTML = 'I couldn\'t match that to the sample data. In this demo, try asking about <mark>regions</mark>, <mark>signups</mark>, <mark>plans</mark>, the <mark>trial funnel</mark> or <mark>churn</mark>.'
+      return
+    }
+    $('#sql').innerHTML = d.sql
+    if (!reduce) gsap.from('#sql', { opacity: 0, y: 8, duration: 0.4 })
+    await wait(320); if (id !== runId) return; logItems[2].classList.add('done')
+    await wait(240); if (id !== runId) return; logItems[3].classList.add('done')
+    $('#mRows').textContent = d.rows; $('#mTime').textContent = d.time
+    $('#mConf').textContent = d.conf.toFixed(2) + (d.conf > 0.9 ? ' · high' : ' · medium')
+    $('#confBar').style.width = d.conf * 100 + '%'
+    $('#chartTitle').textContent = d.title
+    $('#chartKind').textContent = d.kind
+    box.innerHTML = ''
+    W = Math.max(300, Math.round(box.clientWidth)); H = Math.round(box.clientHeight) || 300
+    const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': d.title + '. ' + d.explain.replace(/<[^>]+>/g, '') }, box)
+    d.draw(svg)
+    explain.innerHTML = wordsHTML(d.explain)
+    if (document.documentElement.scrollHeight !== docH) ScrollTrigger.refresh()
+    if (!reduce) gsap.from($$('.w', explain), { opacity: 0, y: 6, duration: 0.35, stagger: 0.025, delay: 0.5, ease: 'power2.out' })
+  }
+  $('#qform').addEventListener('submit', (e) => { e.preventDefault(); const t = qIn.value.trim() || qIn.placeholder; ask(t) })
+  chipsEl.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const d = DATA.find((x) => x.id === b.dataset.id); qIn.value = d.q; ask(d.q) })
+  // first answer builds itself when the console scrolls into view
+  let primed = false
+  ScrollTrigger.create({ trigger: '.console', start: 'top 75%', once: true, onEnter: () => { if (!primed) { primed = true; qIn.value = DATA[0].q; ask(DATA[0].q) } } })
+
+  /* =========================================================
+     Anatomy (pinned)
+     ========================================================= */
+  const toks = $$('#anatQ .tok'), cards = $$('#cards .card'), linksSvg = $('#links'), anat = $('#anatomy')
+  const CAPS = ['Step 1 of 4 — find what to group by', 'Step 2 of 4 — pick the metric and sort', 'Step 3 of 4 — pin down the time window', 'Step 4 of 4 — choose the answer shape']
+  let paths = []
+  function drawLinks() {
+    const base = anat.getBoundingClientRect()
+    linksSvg.setAttribute('viewBox', `0 0 ${base.width} ${base.height}`)
+    linksSvg.innerHTML = ''
+    paths = cards.map((c) => {
+      const i = c.dataset.i, tok = toks.find((t) => t.dataset.i === i)
+      const a = tok.getBoundingClientRect(), b = c.getBoundingClientRect()
+      const x1 = a.left + a.width / 2 - base.left, y1 = a.bottom - base.top + 6, x2 = b.left + b.width / 2 - base.left, y2 = b.top - base.top
+      const my = (y1 + y2) / 2
+      const p = el('path', { d: `M${x1} ${y1} C${x1} ${my} ${x2} ${my} ${x2} ${y2}`, pathLength: 1, 'stroke-dasharray': 1, 'stroke-dashoffset': reduce ? 0 : 1 }, linksSvg)
+      el('circle', { cx: x2, cy: y2, r: 3.5 }, linksSvg)
+      return p
+    })
+  }
+  let step = -1
+  function setStep(i) {
+    if (i === step) return
+    step = i
+    cards.forEach((c) => { const k = +c.dataset.i; c.classList.toggle('on', k <= i); c.classList.toggle('cur', k === i) })
+    toks.forEach((t) => { const k = +t.dataset.i; t.classList.toggle('on', k <= i); t.classList.toggle('cur', k === i) })
+    const cap = $('#anatCap')
+    if (reduce) { cap.textContent = CAPS[i]; return }
+    gsap.to(cap, { opacity: 0, y: -6, duration: 0.15, overwrite: true, onComplete: () => { cap.textContent = CAPS[i]; gsap.to(cap, { opacity: 1, y: 0, duration: 0.3 }) } })
+  }
+  if (!reduce) {
+    ScrollTrigger.create({
+      trigger: anat, start: 'top top', end: '+=320%', pin: true, scrub: true,
+      onRefresh: (self) => { drawLinks(); update(self) },
+      onUpdate: (s) => update(s),
+    })
+    function update(s) {
+      const p = s.progress
+      gsap.set('#anatProg', { scaleX: p })
+      setStep(Math.min(3, Math.floor(p * 4)))
+      paths.forEach((path, k) => {
+        const i = +cards[k].dataset.i, seg = Math.max(0, Math.min(1, (p * 4 - i) / 0.6))
+        path.setAttribute('stroke-dashoffset', String(1 - seg))
+      })
+    }
+    drawLinks()
+  } else {
+    setStep(3); drawLinks(); gsap.set('#anatProg', { scaleX: 1 }); $('#anatCap').textContent = 'Four steps, about 200 milliseconds'
+    addEventListener('resize', drawLinks)
+  }
+
+  /* ---------- receipt links ---------- */
+  $$('.principles button').forEach((b) => {
+    const on = () => { $$('.principles button').forEach((x) => x.classList.toggle('on', x === b)); $$('.receipt .rl').forEach((r) => r.classList.toggle('hl', r.dataset.r === b.dataset.r)) }
+    b.addEventListener('mouseenter', on); b.addEventListener('focus', on); b.addEventListener('click', on)
+  })
+
+  /* ---------- numbers ---------- */
+  $$('.num strong span[data-to]').forEach((s) => {
+    const to = +s.dataset.to, dec = +(s.dataset.dec || 0)
+    if (reduce) { s.textContent = to.toFixed(dec); return }
+    ScrollTrigger.create({ trigger: s, start: 'top 88%', once: true, onEnter: () => { const o = { v: 0 }; gsap.to(o, { v: to, duration: 1.6, ease: 'power3.out', onUpdate: () => (s.textContent = o.v.toFixed(dec)) }) } })
+  })
+
+  /* ---------- feed ---------- */
+  const FEED = ['Which stores missed target in September?', 'Top 10 products by return rate', 'How long until a new rider buys a second bike?', 'Average delivery time by courier this month', 'Revenue per sales rep vs last year', 'Which campaigns brought customers who stayed?', 'Stock we\'ll run out of before the holidays', 'Why did Tuesday\'s orders dip?', 'Margin by category, excluding discounts', 'Who are our 50 most loyal customers?', 'Refunds over $500 this quarter', 'Which features do paying teams use first?']
+  const times = FEED.map((_, i) => { const d = new Date(now.getTime() - i * 7 * 60000 - 3 * 60000); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` })
+  const items = FEED.map((q, i) => `<li><span>${times[i]}</span>${q}</li>`).join('')
+  $('#feed').innerHTML = items + items.replace(/<li>/g, '<li aria-hidden="true">')
+
+  /* ---------- reveals ---------- */
+  if (!reduce) {
+    const rv = $$('.ask-head > *, .console, .receipt, .proof-grid > div:last-child > *, .num, .big-quote, .cite, .mini figure, .cta-grid > div')
+    gsap.set(rv, { opacity: 0, y: 40 })
+    ScrollTrigger.batch(rv, { start: 'top 90%', once: true, onEnter: (els) => gsap.to(els, { opacity: 1, y: 0, duration: 0.9, stagger: 0.08, ease: 'expo.out', overwrite: true }) })
+    $$('.num svg path').forEach((p) => { const l = p.getTotalLength(); gsap.set(p, { strokeDasharray: l, strokeDashoffset: l }); ScrollTrigger.create({ trigger: p, start: 'top 92%', once: true, onEnter: () => gsap.to(p, { strokeDashoffset: 0, duration: 1.4, ease: 'power2.inOut' }) }) })
+    gsap.fromTo('.receipt', { rotation: 3 }, { rotation: -1.5, ease: 'none', scrollTrigger: { trigger: '.proof', start: 'top bottom', end: 'center center', scrub: true } })
+  }
+  addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

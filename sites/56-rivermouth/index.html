@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rivermouth FC — Up the Mudlarks</title>
+<meta name="description" content="Rivermouth FC, the Mudlarks, play at the Staithes by the estuary. Matchday tickets, last Saturday minute by minute, and a tactics board where you pick the XI.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M8 6h48v26c0 14-11 23-24 28C19 55 8 46 8 32z' fill='%230E4A34'/%3E%3Cpath d='M14 30q6-5 12 0t12 0 12 0M14 40q6-5 12 0t12 0 12 0' fill='none' stroke='%23F2A01E' stroke-width='4'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EFE6D2; --paper2:#E5D8BB; --ink:#13241D; --ink2:#2E3F37; --green:#0E4A34; --green2:#0A3527; --amber:#F2A01E; --amber-l:#F8C766; --red:#B23A26;
+  --muted:#4F5B52; --line:rgba(19,36,29,.18);
+  --slab:"Alfa Slab One", Rockwell, Georgia, serif; --cond:"Barlow Condensed", "Arial Narrow", sans-serif; --sans:"Barlow", system-ui, sans-serif;
+  --ease:cubic-bezier(.2,.9,.25,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--paper);padding:10px 16px;z-index:300}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 64px);margin-inline:auto}
+h1,h2,h3{font-family:var(--slab);font-weight:400;margin:0;line-height:.9;letter-spacing:-.01em;text-transform:uppercase}
+h2{font-size:clamp(46px,6.4vw,104px)}
+p{margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.label{font-family:var(--cond);font-weight:700;font-size:15px;letter-spacing:.16em;text-transform:uppercase}
+.mask{display:block;overflow:hidden;padding:.1em 0 .12em;margin:-.1em 0 -.12em}
+.mask>span{display:block}
+.paper-noise{position:fixed;inset:0;pointer-events:none;z-index:150;opacity:.18;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .3 0 0 0 0 .2 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E")}
+.dots{background-image:radial-gradient(circle,rgba(19,36,29,.16) 1.6px,transparent 2px);background-size:10px 10px}
+
+/* buttons */
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 26px;border:3px solid var(--ink);background:var(--ink);color:var(--paper);font-family:var(--cond);font-weight:800;font-size:19px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;cursor:pointer;box-shadow:5px 5px 0 var(--amber);transform:translate(var(--mx),var(--my));transition:transform .35s var(--ease),box-shadow .25s,background .25s,color .25s}
+.btn:hover{box-shadow:8px 8px 0 var(--amber);transform:translate(calc(var(--mx) - 3px),calc(var(--my) - 3px))}
+.btn:active{box-shadow:1px 1px 0 var(--amber);transform:translate(4px,4px)}
+.btn.alt{background:var(--paper);color:var(--ink);box-shadow:5px 5px 0 var(--ink)}
+.btn.alt:hover{box-shadow:8px 8px 0 var(--ink)}
+.btn.sm{min-height:46px;padding:0 18px;font-size:16px;box-shadow:4px 4px 0 var(--amber)}
+.btn svg{width:18px;height:18px}
+
+/* nav */
+.nav{position:fixed;left:0;right:0;top:0;z-index:90;transition:background .3s,box-shadow .3s}
+.nav.solid{background:var(--paper);box-shadow:0 3px 0 var(--ink)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:20px}
+.crest-link{display:flex;align-items:center;gap:12px;text-decoration:none;min-height:44px}
+.crest-link svg{width:40px;height:48px;transition:transform .5s var(--ease)}
+.crest-link:hover svg{transform:rotate(-8deg) scale(1.06)}
+.crest-link b{font-family:var(--slab);font-weight:400;font-size:22px;line-height:.95;text-transform:uppercase}
+.crest-link small{display:block;font-family:var(--cond);font-weight:700;font-size:12px;letter-spacing:.2em}
+.nav ul{display:flex;gap:2px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;font-family:var(--cond);font-weight:700;font-size:17px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;position:relative}
+.nav ul a::after{content:"";position:absolute;left:14px;right:14px;bottom:8px;height:3px;background:var(--amber);transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
+.nav ul a:hover::after{transform:none}
+.nav-r{display:flex;align-items:center;gap:12px}
+.basket{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:2px solid var(--ink);background:var(--paper);font-family:var(--cond);font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.basket b{display:inline-grid;place-items:center;min-width:24px;height:24px;background:var(--amber);color:var(--ink);font-size:14px}
+.menu-btn{display:none;width:48px;height:48px;border:2px solid var(--ink);background:var(--paper);cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:22px;height:3px;background:var(--ink);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-4px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:8px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-8px) rotate(-90deg)}
+.mmenu{position:fixed;inset:0;z-index:89;background:var(--green);color:var(--paper);padding:110px 20px 30px;display:flex;flex-direction:column;gap:2px;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
+.mmenu.open{opacity:1;visibility:visible}
+.mmenu a{font-family:var(--slab);font-size:44px;line-height:1.1;text-transform:uppercase;text-decoration:none;min-height:56px;display:flex;align-items:center}
+.mmenu a:hover{color:var(--amber-l)}
+.mmenu p{margin-top:auto;font-family:var(--cond);font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:15px;color:var(--amber-l)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;overflow:hidden;padding:110px 0 60px;display:flex;align-items:flex-end}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"text stub" "title title";gap:30px 40px;align-items:end}
+.hero-text{grid-area:text;max-width:560px}
+.stub{grid-area:stub}
+.kick{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.kick span{background:var(--ink);color:var(--paper);padding:5px 10px}
+.kick span.am{background:var(--amber);color:var(--ink)}
+.hero h1{grid-area:title;font-size:clamp(64px,11.1vw,180px);line-height:.8;letter-spacing:-.02em;color:var(--green);white-space:nowrap;margin-bottom:-.06em}
+.hero h1 .mask{display:inline-block;vertical-align:bottom}
+.hero h1 .l2{color:var(--ink)}
+.hero-lead{font-size:18px;color:var(--ink2);max-width:40ch;margin-bottom:26px;background:rgba(239,230,210,.82)}
+.vs{display:flex;align-items:center;gap:16px;margin:0 0 16px;font-family:var(--cond);font-weight:800;font-size:clamp(26px,2.6vw,40px);line-height:1;text-transform:uppercase}
+.vs em{font-family:var(--slab);font-style:normal;font-size:.8em;background:var(--red);color:var(--paper);padding:6px 10px 8px;transform:rotate(-4deg);display:inline-block}
+.hero-cta{display:flex;flex-wrap:wrap;gap:16px}
+.stub{justify-self:end;align-self:end;width:min(360px,100%);background:var(--paper);border:3px solid var(--ink);box-shadow:10px 10px 0 var(--green);display:grid;grid-template-columns:1fr auto;transform:rotate(2deg)}
+.stub .main{padding:18px 20px;border-right:3px dashed var(--ink)}
+.stub .main .label{color:var(--red)}
+.stub .when{font-family:var(--slab);font-size:34px;line-height:1;margin:8px 0 6px;text-transform:uppercase}
+.stub .where{font-family:var(--cond);font-weight:600;font-size:18px;letter-spacing:.04em}
+.stub .tear{writing-mode:vertical-rl;transform:rotate(180deg);padding:12px 10px;font-family:var(--cond);font-weight:800;font-size:16px;letter-spacing:.2em;text-transform:uppercase;background:var(--amber);display:flex;align-items:center;justify-content:center}
+.stamp{position:absolute;z-index:3;right:5%;top:120px;width:132px;height:132px;border-radius:50%;border:3px solid var(--red);color:var(--red);display:grid;place-items:center;text-align:center;font-family:var(--cond);font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:14px;line-height:1.15;transform:rotate(12deg)}
+.stamp b{display:block;font-family:var(--slab);font-weight:400;font-size:34px;letter-spacing:0}
+
+/* ticker */
+.ticker{background:var(--ink);color:var(--paper);overflow:hidden;border-block:3px solid var(--ink);position:relative;z-index:3}
+.ticker-track{display:flex;width:max-content;animation:tick 38s linear infinite}
+.ticker p{display:flex;gap:30px;align-items:center;padding:16px 15px;white-space:nowrap;font-family:var(--slab);font-size:26px;text-transform:uppercase}
+.ticker p i{display:inline-block;width:14px;height:14px;background:var(--amber);transform:rotate(45deg)}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ninety (pinned) */
+.ninety{position:relative;background:var(--green);color:var(--paper)}
+.ninety-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-rows:auto minmax(0,1fr);padding:96px 0 34px}
+.ninety-pin::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(239,230,210,.08) 1.6px,transparent 2px);background-size:12px 12px;pointer-events:none}
+.n-top{position:relative;width:min(1280px,100% - 64px);margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;gap:30px}
+.n-top h2{font-size:clamp(40px,5vw,78px);color:var(--paper)}
+.n-top h2 span{color:var(--amber)}
+.board{display:grid;grid-template-columns:auto auto auto;align-items:stretch;background:var(--ink);border:3px solid var(--paper);font-family:var(--cond);font-weight:800;text-transform:uppercase}
+.board .tm{padding:10px 14px;font-size:20px;letter-spacing:.1em;display:flex;align-items:center;gap:12px}
+.board .tm b{font-family:var(--slab);font-weight:400;font-size:44px;line-height:1;color:var(--amber);min-width:30px;text-align:center}
+.board .clk{background:var(--amber);color:var(--ink);padding:6px 14px;display:grid;place-items:center;font-family:var(--slab);font-weight:400;font-size:32px;min-width:110px;font-variant-numeric:tabular-nums}
+.n-mid{position:relative;width:min(1280px,100% - 64px);margin:24px auto 0;display:grid;grid-template-columns:340px minmax(0,1fr);gap:40px;align-items:center;min-height:0}
+.moments{position:relative;height:300px}
+.moment{position:absolute;inset:0}
+.moment .min{display:inline-block;font-family:var(--slab);font-size:64px;line-height:1;color:var(--amber)}
+.moment h3{font-size:clamp(30px,2.6vw,42px);line-height:.95;margin:10px 0 14px}
+.moment p{color:#D9E3D9;font-size:17px}
+.pitchwrap{position:relative;min-height:0;height:100%;display:flex;flex-direction:column;justify-content:center}
+.pitch-svg{width:100%;height:auto;max-height:calc(100svh - 300px)}
+.noise{display:flex;align-items:center;gap:14px;margin-top:16px}
+.noise .label{color:var(--amber-l);white-space:nowrap}
+.noise .bar{flex:1;height:14px;border:2px solid var(--paper);position:relative;overflow:hidden}
+.noise .bar i{position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--amber) 0 10px,transparent 10px 13px);transform-origin:left;transform:scaleX(.2)}
+.noise output{font-family:var(--cond);font-weight:800;font-size:20px;min-width:62px;text-align:right}
+.goalflash{opacity:0}
+
+/* tactics */
+.tactics{padding:140px 0 120px;position:relative}
+.sec-head{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:50px;align-items:end;margin-bottom:50px}
+.sec-head p{color:var(--ink2);max-width:46ch}
+.sec-head .label{display:block;color:var(--red);margin-bottom:14px}
+.forms{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:26px}
+.forms button{min-height:52px;min-width:96px;padding:0 16px;border:3px solid var(--ink);background:var(--paper);font-family:var(--slab);font-size:22px;cursor:pointer;transition:background .2s,color .2s,transform .3s var(--ease)}
+.forms button:hover{transform:translateY(-3px)}
+.forms button[aria-pressed="true"]{background:var(--ink);color:var(--amber)}
+.tboard{display:grid;grid-template-columns:minmax(0,460px) minmax(0,1fr);gap:48px;align-items:start}
+.pitch{position:sticky;top:96px;width:100%;aspect-ratio:68/105;background:#2F7A4E;border:4px solid var(--ink);box-shadow:10px 10px 0 var(--ink);touch-action:pan-y;user-select:none;overflow:hidden}
+.pitch .stripes{position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.06) 0 10%,transparent 10% 20%)}
+.pitch svg.lines{position:absolute;inset:0;width:100%;height:100%}
+.pitch svg.links{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.tok{position:absolute;left:0;top:0;width:56px;height:56px;margin:-28px 0 0 -28px;padding:0;border:0;background:none;cursor:grab;touch-action:none;display:grid;justify-items:center;z-index:2}
+.tok .disc{width:40px;height:40px;border-radius:50%;background:var(--paper);border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--slab);font-size:17px;color:var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.35);transition:transform .25s var(--ease),background .2s}
+.tok.gk .disc{background:var(--amber)}
+.tok .nm{margin-top:2px;padding:0 5px;background:var(--ink);color:var(--paper);font-family:var(--cond);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;line-height:1.35}
+.tok:hover .disc{transform:scale(1.1)}
+.tok.sel .disc{background:var(--red);color:var(--paper);transform:scale(1.15)}
+.tok.drag{cursor:grabbing;z-index:5}
+.tok.drag .disc{transform:scale(1.2);box-shadow:0 10px 0 rgba(0,0,0,.25)}
+.tok:focus-visible{outline:none}
+.tok:focus-visible .disc{outline:3px solid var(--amber);outline-offset:3px}
+.tside h3{font-size:34px;margin-bottom:8px}
+.readout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:3px solid var(--ink);margin-bottom:22px;background:var(--paper)}
+.readout div{padding:14px 16px;border-right:3px solid var(--ink)}
+.readout div:last-child{border-right:0}
+.readout b{display:block;font-family:var(--slab);font-weight:400;font-size:38px;line-height:1}
+.readout span{font-family:var(--cond);font-weight:700;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.verdict{font-family:var(--cond);font-weight:700;font-size:22px;line-height:1.25;min-height:58px;margin-bottom:20px}
+.verdict mark{background:var(--amber);color:var(--ink);padding:0 6px}
+.thint{font-size:15px;color:var(--ink2);margin-bottom:24px}
+.tbar{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.squad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.card{position:relative;perspective:900px}
+.card .flip{position:relative;display:block;width:100%;aspect-ratio:1/1.08;border:0;padding:0;background:none;cursor:pointer;text-align:left}
+.card .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .7s var(--ease)}
+.card .flip[aria-pressed="true"] .in{transform:rotateY(180deg)}
+.card .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border:3px solid var(--ink);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:10px}
+.card .front{background:var(--paper2)}
+.card .front::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,var(--green) 2.4px,transparent 2.8px);background-size:9px 9px;-webkit-mask-image:radial-gradient(70% 60% at 70% 30%,#000 10%,transparent 75%);mask-image:radial-gradient(70% 60% at 70% 30%,#000 10%,transparent 75%);opacity:.75}
+.card .num{position:relative;font-family:var(--slab);font-size:56px;line-height:.85;color:var(--ink)}
+.card .who{position:relative}
+.card .who b{display:block;font-family:var(--cond);font-weight:800;font-size:21px;line-height:1;text-transform:uppercase}
+.card .who span{font-family:var(--cond);font-weight:600;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.card .xi{position:absolute;right:8px;top:8px;background:var(--ink);color:var(--amber);font-family:var(--cond);font-weight:800;font-size:13px;letter-spacing:.1em;padding:2px 6px}
+.card .back{transform:rotateY(180deg);background:var(--ink);color:var(--paper)}
+.card .back dl{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 8px}
+.card .back dt{font-family:var(--cond);font-weight:600;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#B9C6BD}
+.card .back dd{margin:0;font-family:var(--slab);font-size:24px;line-height:1;color:var(--amber)}
+.card .back p{font-size:15px;line-height:1.35}
+.card.on .front{background:var(--amber)}
+.subon{margin-top:8px;width:100%;min-height:44px;border:2px solid var(--ink);background:var(--paper);font-family:var(--cond);font-weight:800;font-size:15px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.subon:hover{background:var(--amber)}
+.subon[disabled]{opacity:.45;cursor:default;background:var(--paper)}
+.live{min-height:26px;font-family:var(--cond);font-weight:700;font-size:17px;letter-spacing:.04em;margin-top:14px}
+
+/* fixtures */
+.fixtures{padding:130px 0;background:var(--paper2);border-block:3px solid var(--ink)}
+.fx-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:50px;align-items:start}
+.fx{list-style:none;margin:0;padding:0;border-top:3px solid var(--ink)}
+.fx li{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:20px;align-items:center;padding:18px 0;border-bottom:3px solid var(--ink);transition:background .25s,padding .3s var(--ease)}
+.fx li:hover{background:var(--paper);padding-left:12px}
+.fx .d{font-family:var(--cond);font-weight:800;font-size:18px;line-height:1.1;text-transform:uppercase}
+.fx .d span{display:block;color:var(--red);font-size:15px;letter-spacing:.1em}
+.fx .opp{font-family:var(--slab);font-size:clamp(24px,2.4vw,34px);line-height:1;text-transform:uppercase}
+.fx .opp small{display:block;font-family:var(--cond);font-weight:600;font-size:15px;letter-spacing:.1em;color:var(--ink2);margin-top:4px}
+.fx .ha{font-family:var(--cond);font-weight:800;font-size:16px;letter-spacing:.12em;padding:6px 10px;border:2px solid var(--ink)}
+.fx .ha.h{background:var(--green);color:var(--paper);border-color:var(--green)}
+.table{width:100%;border-collapse:collapse;font-family:var(--cond);font-weight:600;font-size:18px;background:var(--paper);border:3px solid var(--ink)}
+.table caption{text-align:left;font-family:var(--slab);font-size:30px;text-transform:uppercase;padding-bottom:12px}
+.table th,.table td{padding:10px 12px;text-align:right;border-bottom:2px solid var(--line)}
+.table th:nth-child(2),.table td:nth-child(2){text-align:left}
+.table thead th{font-weight:800;font-size:14px;letter-spacing:.14em;text-transform:uppercase;background:var(--ink);color:var(--paper)}
+.table tr.us td{background:var(--amber);font-weight:800}
+.form{display:flex;gap:6px;margin-top:20px;align-items:center}
+.form .label{margin-right:8px}
+.form i{display:grid;place-items:center;width:34px;height:34px;font-style:normal;font-family:var(--slab);font-size:16px;color:var(--paper)}
+.form i.w{background:var(--green)}.form i.d{background:var(--ink2)}.form i.l{background:var(--red)}
+
+/* terrace */
+.terrace{padding:150px 0;position:relative;overflow:hidden;background:var(--ink);color:var(--paper)}
+.terrace .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:70px;align-items:center}
+.terrace h2{color:var(--paper);font-size:clamp(42px,5.2vw,84px)}
+.terrace h2 span{color:var(--amber)}
+.terrace .lead{font-size:19px;color:#D3DBD5;margin:26px 0 36px;max-width:44ch}
+.stand{position:relative;aspect-ratio:1/1;border:3px solid var(--paper)}
+.stand canvas{position:absolute;inset:0;width:100%;height:100%}
+.stand .cap{position:absolute;left:-3px;bottom:-3px;background:var(--amber);color:var(--ink);padding:10px 14px;font-family:var(--cond);font-weight:800;letter-spacing:.1em;text-transform:uppercase;font-size:15px}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:3px solid var(--paper)}
+.facts div{padding:18px 16px 0 0}
+.facts b{display:block;font-family:var(--slab);font-weight:400;font-size:clamp(36px,3.6vw,54px);line-height:1;color:var(--amber)}
+.facts span{font-family:var(--cond);font-weight:600;font-size:16px;letter-spacing:.06em;text-transform:uppercase;color:#D3DBD5}
+.chant{margin-top:40px;padding:22px 24px;border:3px dashed var(--amber);font-family:var(--slab);font-size:clamp(22px,2vw,28px);line-height:1.15;text-transform:uppercase}
+.chant small{display:block;font-family:var(--cond);font-weight:700;font-size:14px;letter-spacing:.16em;color:var(--amber-l);margin-top:10px}
+
+/* tickets */
+.tickets{padding:140px 0 130px}
+.stubs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.tk{position:relative;background:var(--paper);border:3px solid var(--ink);display:flex;flex-direction:column;transition:transform .4s var(--ease),box-shadow .4s}
+.tk:hover{transform:translate(-4px,-4px) rotate(-.6deg);box-shadow:10px 10px 0 var(--ink)}
+.tk .top{padding:22px 22px 18px;border-bottom:3px dashed var(--ink);position:relative}
+.tk .top::before,.tk .top::after{content:"";position:absolute;bottom:-14px;width:24px;height:24px;border-radius:50%;background:var(--paper);border:3px solid var(--ink)}
+.tk .top::before{left:-14px;clip-path:inset(0 0 0 50%)}
+.tk .top::after{right:-14px;clip-path:inset(0 50% 0 0)}
+.tk .top .label{color:var(--red)}
+.tk h3{font-size:36px;margin:10px 0 8px}
+.tk .price{font-family:var(--slab);font-size:54px;line-height:1}
+.tk .price small{font-family:var(--cond);font-weight:700;font-size:17px;letter-spacing:.08em;text-transform:uppercase}
+.tk ul{list-style:none;margin:0;padding:18px 22px;display:grid;gap:8px;flex:1}
+.tk li{display:flex;gap:10px;font-size:16px}
+.tk li::before{content:"";flex:none;width:10px;height:10px;margin-top:8px;background:var(--amber);transform:rotate(45deg)}
+.tk .act{padding:0 22px 24px}
+.tk .act .btn{width:100%}
+.tk.feat{background:var(--green);color:var(--paper)}
+.tk.feat .top::before,.tk.feat .top::after{background:var(--paper)}
+.tk.feat .top .label{color:var(--amber-l)}
+.tk.feat .btn{background:var(--amber);color:var(--ink);box-shadow:5px 5px 0 var(--paper)}
+.tickmsg{min-height:28px;margin-top:26px;font-family:var(--cond);font-weight:700;font-size:19px}
+
+footer{background:var(--green2);color:var(--paper);padding:70px 0 34px}
+footer .top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:40px;border-bottom:2px solid rgba(239,230,210,.2)}
+footer h4{margin:0 0 12px;font-family:var(--cond);font-weight:800;font-size:15px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber-l)}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:40px;text-decoration:none;font-size:16px}
+footer li a:hover{color:var(--amber-l)}
+footer .big{font-family:var(--slab);font-size:clamp(30px,3vw,44px);line-height:.95;text-transform:uppercase;margin:16px 0 10px}
+footer .tl{color:#C9D3CC;font-size:16px;max-width:34ch}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:24px;font-family:var(--cond);font-weight:600;letter-spacing:.08em;font-size:15px;color:#C9D3CC}
+
+/* reduced motion */
+.rm .ticker-track{animation:none}
+.rm .ninety-pin{height:auto;padding:110px 0 80px;display:block}
+.rm .n-mid{grid-template-columns:1fr;margin-top:40px}
+.rm .moments{height:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px;order:2}
+.rm .moment{position:static}
+.rm .pitch-svg{max-height:none}
+.rm .card .in{transition:none}
+
+@media (max-width:1100px){
+  .tboard{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .squad{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:1000px){
+  .nav ul,.nav .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero .wrap,.sec-head,.fx-grid,.terrace .wrap{grid-template-columns:minmax(0,1fr)}
+  .stub{justify-self:start}
+  .hero{padding-top:80px;min-height:0}
+  .hero .wrap{grid-template-columns:minmax(0,1fr);grid-template-areas:"title" "text" "stub";gap:26px}
+  .hero h1{padding-top:min(80vw,680px);font-size:15vw;white-space:normal}
+  .n-mid{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto;gap:18px;align-content:start}
+  .moments{order:2;height:200px}
+  .pitch-svg{max-height:42svh}
+  .tboard{grid-template-columns:minmax(0,1fr)}
+  .tboard .pitch{max-width:460px;margin-inline:auto;position:relative;top:0}
+  .stubs{grid-template-columns:minmax(0,1fr);max-width:560px}
+  .rm .moments{grid-template-columns:1fr}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .wrap,.n-top,.n-mid{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav .wrap{height:66px}
+  .crest-link b{font-size:19px}
+  .basket span{display:none}
+  .hero{padding:84px 0 40px;min-height:0}
+
+  .hero h1{font-size:20.5vw}
+  .hero h1 .mask{display:block}
+
+  .vs{margin:18px 0 22px;flex-wrap:wrap;gap:10px}
+  .stamp{width:92px;height:92px;font-size:11px;top:auto;bottom:auto;right:auto;left:16px;top:96px}
+  .stamp b{font-size:24px}
+  .stub{transform:rotate(-1.5deg);box-shadow:7px 7px 0 var(--green)}
+  .stub .when{font-size:28px}
+  .ticker p{font-size:20px;padding:12px 10px;gap:20px}
+  .ninety-pin{padding:80px 0 16px}
+  .n-top{flex-direction:column;align-items:flex-start;gap:12px}
+  .n-top h2{font-size:34px}
+  .board .tm{padding:6px 10px;font-size:15px;gap:8px}
+  .board .tm b{font-size:30px}
+  .board .clk{font-size:24px;min-width:80px}
+  .n-mid{margin-top:14px;align-self:center}
+  .moments{height:220px}
+  .moment .min{font-size:40px}
+  .moment h3{font-size:27px;margin:6px 0 8px}
+  .moment p{font-size:16px;line-height:1.5}
+  .noise{margin-top:10px}
+  .tactics{padding:100px 0 90px}
+  .forms{gap:8px}
+  .forms button{min-width:0;flex:1;font-size:15px;padding:0 2px}
+  .pitch{box-shadow:6px 6px 0 var(--ink)}
+  .tok{width:48px;height:48px;margin:-24px 0 0 -24px}
+  .tok .disc{width:34px;height:34px;font-size:15px;border-width:2px}
+  .tok .nm{font-size:11px;padding:0 3px}
+  .readout b{font-size:28px}
+  .readout div{padding:10px}
+  .readout span{font-size:12px}
+  .squad{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;margin-inline:-16px;padding:4px 16px 10px;scrollbar-width:none}
+  .squad::-webkit-scrollbar{display:none}
+  .card{flex:0 0 46%;scroll-snap-align:start}
+  .card .num{font-size:46px}
+  .fixtures{padding:90px 0}
+  .fx li{grid-template-columns:78px minmax(0,1fr) auto;gap:12px}
+  .fx .d{font-size:16px}
+  .table{font-size:16px}
+  .table th,.table td{padding:8px 7px}
+  .terrace{padding:100px 0}
+  .facts span{font-size:13px}
+  .tickets{padding:100px 0 90px}
+  footer .top{gap:28px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="paper-noise" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="crest-link" href="#top" aria-label="Rivermouth FC, home">
+      <svg viewBox="0 0 40 48" aria-hidden="true"><path d="M3 3h34v19c0 11-8 18-17 23C11 40 3 33 3 22z" fill="#0E4A34" stroke="#13241D" stroke-width="2"/><path d="M8 22q3-3 6 0t6 0 6 0 6 0M8 29q3-3 6 0t6 0 6 0 6 0" fill="none" stroke="#F2A01E" stroke-width="2.4"/><text x="20" y="15" text-anchor="middle" font-family="Alfa Slab One, serif" font-size="9" fill="#EFE6D2">RFC</text></svg>
+      <span><b>Rivermouth</b><small>Football Club · 1893</small></span>
+    </a>
+    <nav aria-label="Main"><ul><li><a href="#ninety">The 90</a></li><li><a href="#tactics">Tactics board</a></li><li><a href="#fixtures">Fixtures</a></li><li><a href="#club">The club</a></li></ul></nav>
+    <div class="nav-r">
+      <button class="basket" id="basketBtn" type="button" aria-label="Basket, 0 tickets"><span>Basket</span><b id="basketN">0</b></button>
+      <a class="btn sm mag" href="#tickets">Tickets</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#ninety">The 90</a><a href="#tactics">Tactics board</a><a href="#fixtures">Fixtures</a><a href="#club">The club</a><a href="#tickets">Tickets</a>
+  <p>The Staithes · Wharf Road · Rivermouth</p>
+</div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <canvas id="ht" aria-hidden="true"></canvas>
+  <div class="stamp hf" aria-hidden="true"><span><b>131</b>years by<br>the river</span></div>
+  <div class="wrap">
+    <h1 id="hero-h" aria-label="Rivermouth"><span class="mask"><span class="l1">River</span></span><span class="mask"><span class="l2">mouth</span></span></h1>
+    <div class="hero-text">
+      <p class="kick label hf"><span>Matchday 14</span><span class="am">Northern Combination</span></p>
+      <p class="vs hf">Rivermouth <em>v</em> Harrowgate Athletic</p>
+      <p class="hero-lead hf">Three o'clock by the estuary. The tide is in, the pies are hot and the floodlights come on at half-time.</p>
+      <div class="hero-cta hf"><a class="btn mag" href="#tickets">Get on the terrace <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn alt" href="#tactics">Pick your XI</a></div>
+    </div>
+    <div class="stub hf">
+      <div class="main"><p class="label">Kick-off 15:00</p><p class="when" id="nextDate">Sat 18 Oct</p><p class="where">The Staithes · Wharf Road<br>Tickets from £18 · Juniors £5</p></div>
+      <p class="tear" aria-hidden="true">Admit one</p>
+    </div>
+  </div>
+</section>
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track">
+    <p>Up the Mudlarks <i></i> Tide's in at the Staithes <i></i> 4,212 on Saturday <i></i> Nobody leaves early <i></i> Rivermouth till the river runs dry <i></i></p>
+    <p>Up the Mudlarks <i></i> Tide's in at the Staithes <i></i> 4,212 on Saturday <i></i> Nobody leaves early <i></i> Rivermouth till the river runs dry <i></i></p>
+  </div>
+</div>
+
+<section class="ninety" id="ninety" aria-labelledby="ninety-h">
+  <div class="ninety-pin" id="ninetyPin">
+    <div class="n-top">
+      <h2 id="ninety-h">Last Saturday,<br><span>minute by minute</span></h2>
+      <div class="board" role="img" aria-label="Final score: Rivermouth 2, Harrowgate Athletic 1">
+        <div class="tm">Riv <b id="sH">0</b></div>
+        <div class="clk" id="clk">0'</div>
+        <div class="tm"><b id="sA">0</b> Har</div>
+      </div>
+    </div>
+    <div class="n-mid">
+      <div class="moments" id="moments">
+        <article class="moment"><span class="min">1'</span><h3>The tide's in</h3><p>4,212 inside the Staithes and a wind straight off the estuary. Harrowgate win the toss and make us kick into it.</p></article>
+        <article class="moment"><span class="min">23'</span><h3>One shot, one goal</h3><p>Their only effort on target all half, and it clips Ure's heel on the way in. The away end gets a moment. The North Bank gets louder.</p></article>
+        <article class="moment"><span class="min">51'</span><h3>Quayle from the edge</h3><p>Fairweather wins it back on halfway, Quayle takes one touch and hits it before anyone can close him down. Top corner. 1–1.</p></article>
+        <article class="moment"><span class="min">74'</span><h3>Wind at our backs</h3><p>Tolland on for Mudge and we go two up top. Eleven corners in the last twenty minutes. The ball barely leaves their half.</p></article>
+        <article class="moment"><span class="min">88'</span><h3>Back post, Adebisi</h3><p>Mensah-Lyle's cross hangs in the wind long enough for Adebisi to arrive late and head it down through the keeper's legs. 2–1.</p></article>
+        <article class="moment"><span class="min">FT</span><h3>Nobody left early</h3><p>Four minutes of added time, all of it in our own box. Halloran heads the last one out of the ground and into the river.</p></article>
+      </div>
+      <div class="pitchwrap">
+        <svg class="pitch-svg" viewBox="0 0 1050 680" aria-hidden="true">
+          <defs><pattern id="mow" width="140" height="680" patternUnits="userSpaceOnUse"><rect width="70" height="680" fill="#165E42"/><rect x="70" width="70" height="680" fill="#13553B"/></pattern></defs>
+          <rect width="1050" height="680" fill="url(#mow)"/>
+          <g fill="none" stroke="rgba(239,230,210,.75)" stroke-width="3">
+            <rect x="10" y="10" width="1030" height="660"/><path d="M525 10V670"/><circle cx="525" cy="340" r="91"/>
+            <rect x="10" y="138" width="165" height="404"/><rect x="10" y="248" width="55" height="184"/><rect x="875" y="138" width="165" height="404"/><rect x="985" y="248" width="55" height="184"/>
+            <path d="M175 267a91 91 0 0 1 0 146M875 267a91 91 0 0 0 0 146"/>
+          </g>
+          <rect id="netL" class="goalflash" x="0" y="300" width="12" height="80" fill="#F2A01E"/>
+          <rect id="netR" class="goalflash" x="1038" y="300" width="12" height="80" fill="#F2A01E"/>
+          <g id="route"></g>
+          <g id="marks"></g>
+          <g id="ball"><circle r="13" fill="#EFE6D2" stroke="#13241D" stroke-width="3"/><path d="M-5-4l5-4 5 4-2 6h-6z" fill="#13241D"/></g>
+        </svg>
+        <div class="noise"><span class="label">Terrace noise</span><span class="bar"><i id="noiseBar"></i></span><output id="noiseOut">71 dB</output></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tactics" id="tactics" aria-labelledby="tac-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="label">Tactics board</span><h2 id="tac-h" class="split">You pick<br>the XI</h2></div>
+      <p class="reveal">Every Friday the gaffer pins the team sheet to the clubhouse door and the whole town argues about it. Your turn: choose a shape, drag players where you want them, bring someone off the bench.</p>
+    </div>
+    <div class="forms" role="group" aria-label="Formation" id="forms">
+      <button type="button" data-f="442" aria-pressed="true">4-4-2</button><button type="button" data-f="433" aria-pressed="false">4-3-3</button><button type="button" data-f="352" aria-pressed="false">3-5-2</button><button type="button" data-f="4231" aria-pressed="false">4-2-3-1</button>
+    </div>
+    <div class="tboard">
+      <div class="pitch" id="pitch" aria-label="Pitch, Rivermouth attacking upwards">
+        <div class="stripes"></div>
+        <svg class="lines" viewBox="0 0 68 105" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="rgba(255,255,255,.7)" stroke-width=".35"><rect x="1" y="1" width="66" height="103"/><path d="M1 52.5H67"/><circle cx="34" cy="52.5" r="9.15"/><rect x="13.85" y="1" width="40.3" height="16.5"/><rect x="24.85" y="1" width="18.3" height="5.5"/><rect x="13.85" y="87.5" width="40.3" height="16.5"/><rect x="24.85" y="98.5" width="18.3" height="5.5"/></g></svg>
+        <svg class="links" id="links" aria-hidden="true"></svg>
+      </div>
+      <div class="tside">
+        <h3>The shape</h3>
+        <p class="thint" id="thint">Drag a player to move him. Or tap one, then use the arrow keys. Tap a bench card's button to bring him on for the selected player.</p>
+        <div class="readout"><div><b id="rW">0</b><span>Width, m</span></div><div><b id="rD">0</b><span>Depth, m</span></div><div><b id="rL">0</b><span>Back line, m</span></div></div>
+        <p class="verdict" id="verdict" aria-live="polite"></p>
+        <div class="squad" id="squad"></div>
+        <p class="live" id="tlive" aria-live="polite"></p>
+        <div class="tbar"><button type="button" class="btn sm alt" id="resetBtn">Reset the shape</button><button type="button" class="btn sm" id="sheetBtn">Pin the team sheet</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="fixtures" id="fixtures" aria-labelledby="fx-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="label">Fixtures &amp; table</span><h2 id="fx-h" class="split">Next five,<br>then the table</h2></div>
+      <p class="reveal">Home games kick off at three on a Saturday and half seven on a Tuesday, under lights. Away coaches leave the Staithes car park two and a half hours before kick-off.</p>
+    </div>
+    <div class="fx-grid">
+      <ol class="fx" id="fxList"></ol>
+      <div class="reveal">
+        <table class="table">
+          <caption>Northern Combination</caption>
+          <thead><tr><th scope="col">Pos</th><th scope="col">Club</th><th scope="col">P</th><th scope="col">GD</th><th scope="col">Pts</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Saltmarsh Town</td><td>13</td><td>+14</td><td>31</td></tr>
+            <tr class="us"><td>2</td><td>Rivermouth</td><td>13</td><td>+11</td><td>28</td></tr>
+            <tr><td>3</td><td>Corbridge Rovers</td><td>13</td><td>+7</td><td>25</td></tr>
+            <tr><td>4</td><td>Harrowgate Athletic</td><td>13</td><td>+6</td><td>24</td></tr>
+            <tr><td>5</td><td>Fellside United</td><td>13</td><td>+2</td><td>21</td></tr>
+          </tbody>
+        </table>
+        <div class="form" aria-label="Last five results: win, win, draw, loss, win"><span class="label">Form</span><i class="w" aria-hidden="true">W</i><i class="w" aria-hidden="true">W</i><i class="d" aria-hidden="true">D</i><i class="l" aria-hidden="true">L</i><i class="w" aria-hidden="true">W</i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="terrace" id="club" aria-labelledby="club-h">
+  <div class="wrap">
+    <div class="stand reveal" aria-hidden="true"><canvas id="standCv"></canvas><p class="cap">The North Bank, 4,212 standing</p></div>
+    <div>
+      <span class="label" style="color:var(--amber-l)">The club</span>
+      <h2 id="club-h" class="split" style="margin-top:14px">Dockers built it.<br><span>We keep it.</span></h2>
+      <p class="lead reveal">Founded in 1893 by men who unloaded timber ships on Wharf Road, Rivermouth FC is still owned by its supporters: 3,100 members, one vote each. The pie stall is run by the same family that ran it in 1961.</p>
+      <div class="facts reveal"><div><b class="count" data-to="1893">1893</b><span>Founded on the quay</span></div><div><b class="count" data-to="3100">3,100</b><span>Member-owners</span></div><div><b>£3</b><span>Pie and a tea, still</span></div></div>
+      <p class="chant reveal">“Mud on our boots and the tide at our backs, we're Rivermouth, we never go back.”<small>Sung in the 88th minute, every match</small></p>
+    </div>
+  </div>
+</section>
+
+<section class="tickets" id="tickets" aria-labelledby="tk-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><span class="label">Tickets</span><h2 id="tk-h" class="split">Stand with<br>the North Bank</h2></div>
+      <p class="reveal">Pay on the gate if you like, but members get in first and the season ticket pays for itself by the seventh home game.</p>
+    </div>
+    <div class="stubs" id="stubs">
+      <article class="tk reveal"><div class="top"><p class="label" id="tkDate">Sat 18 Oct · 15:00</p><h3>Matchday</h3><p class="price">£18 <small>adult · juniors £5</small></p></div><ul><li>North Bank terrace or Wharf Stand seat</li><li>Free bus from Rivermouth station</li><li>Kids under 8 free with an adult</li></ul><div class="act"><button type="button" class="btn" data-t="Matchday ticket">Add a ticket</button></div></article>
+      <article class="tk feat reveal"><div class="top"><p class="label">Season 2026/27</p><h3>Season ticket</h3><p class="price">£215 <small>23 home games</small></p></div><ul><li>Your own spot on the North Bank, same step every week</li><li>A member's vote at the AGM</li><li>10% off in the club shop and the Quayside bar</li></ul><div class="act"><button type="button" class="btn" data-t="Season ticket">Become a member</button></div></article>
+      <article class="tk reveal"><div class="top"><p class="label">Under 16s</p><h3>Junior Mudlark</h3><p class="price">£40 <small>a season</small></p></div><ul><li>Every home league game</li><li>A birthday card signed by the squad</li><li>A go as matchday mascot, drawn each month</li></ul><div class="act"><button type="button" class="btn" data-t="Junior Mudlark">Sign them up</button></div></article>
+    </div>
+    <p class="tickmsg" id="tickMsg" role="status"></p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><p class="big">Up the<br>Mudlarks</p><p class="tl">Rivermouth FC, the Staithes, Wharf Road. Supporter-owned since 1984.</p></div>
+      <div><h4>Matchday</h4><ul><li><a href="#tickets">Tickets</a></li><li><a href="#fixtures">Fixtures</a></li><li><a href="#ninety">Last result</a></li></ul></div>
+      <div><h4>Club</h4><ul><li><a href="#club">History</a></li><li><a href="#tactics">The squad</a></li><li><a href="#tickets">Membership</a></li></ul></div>
+      <div><h4>Find us</h4><ul><li><a href="#top">The Staithes</a></li><li><a href="#top">Quayside bar</a></li><li><a href="#top">Club shop</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Rivermouth FC</span><span>Concept design — fictional brand.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+$('#yr').textContent = new Date().getFullYear()
+
+/* ---------- dates (always relative to today) ---------- */
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const fmt = (d) => `${DAYS[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`
+const today = new Date(); today.setHours(12, 0, 0, 0)
+const nextSat = new Date(today); nextSat.setDate(today.getDate() + ((6 - today.getDay() + 7) % 7 || 7))
+const plus = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x }
+$('#nextDate').textContent = fmt(nextSat)
+$('#tkDate').textContent = `${fmt(nextSat)} · 15:00`
+const FIX = [
+  [nextSat, 'Harrowgate Athletic', 'League · The Staithes', 'H', '15:00'],
+  [plus(nextSat, 3), 'Fellside United', 'League · Brackenfield Park', 'A', '19:45'],
+  [plus(nextSat, 7), 'Corbridge Rovers', 'County Cup, round two', 'H', '15:00'],
+  [plus(nextSat, 14), 'Saltmarsh Town', 'League · The Marsh Lane ground', 'A', '15:00'],
+  [plus(nextSat, 17), 'Kelderby Wanderers', 'League · under lights', 'H', '19:45'],
+]
+$('#fxList').innerHTML = FIX.map(([d, o, c, ha, t]) => `<li class="rv"><p class="d">${fmt(d)}<span>${t}</span></p><p class="opp">${o}<small>${c}</small></p><span class="ha ${ha === 'H' ? 'h' : ''}" aria-label="${ha === 'H' ? 'Home' : 'Away'}">${ha === 'H' ? 'Home' : 'Away'}</span></li>`).join('')
+
+/* ---------- basket ---------- */
+let basket = 0
+$('#stubs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-t]'); if (!b) return
+  basket++; $('#basketN').textContent = basket; $('#basketBtn').setAttribute('aria-label', `Basket, ${basket} ticket${basket > 1 ? 's' : ''}`)
+  $('#tickMsg').textContent = `${b.dataset.t} added. ${b.dataset.t === 'Matchday ticket' ? `See you at the Staithes on ${fmt(nextSat)}.` : 'Welcome to the club.'}`
+  if (anim) G.fromTo('#basketN', { scale: 1.6, rotation: -12 }, { scale: 1, rotation: 0, duration: .6, ease: 'back.out(3)' })
+})
+$('#basketBtn').addEventListener('click', () => { $('#tickMsg').textContent = basket ? `${basket} ticket${basket > 1 ? 's' : ''} in your basket. Checkout opens on matchday minus seven.` : 'Your basket is empty. Pick a ticket below.' })
+
+/* ---------- hero halftone ---------- */
+const hero = $('.hero'), cv = $('#ht'), ctx = cv.getContext('2d')
+let HW = 0, HH = 0, cell = 10, grid = [], introT = anim ? 0 : 1, px = -999, py = -999, lens = 0, heroVisible = true, raf = 0
+const off = document.createElement('canvas'), octx = off.getContext('2d', { willReadFrequently: true })
+function drawPlayer(c, s) {
+  // a striker mid-volley: thick rounded limbs, later blurred into halftone tone
+  c.save(); c.scale(s, s)
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = c.fillStyle = '#000'
+  const limb = (pts, w) => { c.lineWidth = w; c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.stroke() }
+  c.globalAlpha = .6; limb([292, 250, 205, 290, 140, 236], 40) // back arm, lighter (further away)
+  c.globalAlpha = .9; limb([268, 390, 236, 530, 222, 676, 268, 690], 56) // standing leg
+  c.globalAlpha = 1
+  limb([290, 262, 268, 382], 108) // torso
+  c.beginPath(); c.ellipse(312, 142, 40, 46, -.2, 0, 7); c.fill() // head
+  limb([292, 382, 392, 452, 486, 404], 60) // kicking leg
+  limb([505, 395, 520, 390], 36) // boot
+  limb([302, 250, 392, 288, 452, 256], 40) // front arm
+  c.globalAlpha = .85; c.fillRect(226, 360, 110, 70) // shorts
+  c.globalAlpha = 1; c.beginPath(); c.arc(574, 368, 38, 0, 7); c.fill() // ball
+  c.restore()
+}
+function sizeHero() {
+  const dpr = Math.min(devicePixelRatio || 1, 2)
+  HW = hero.clientWidth; HH = hero.clientHeight
+  cv.width = HW * dpr; cv.height = HH * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  const mobile = HW < 1000
+  cell = HW < 600 ? 6 : HW < 1100 ? 8 : 10
+  const cols = Math.ceil(HW / cell), rows = Math.ceil(HH / cell)
+  off.width = cols; off.height = rows
+  octx.clearRect(0, 0, cols, rows)
+  // figure placement in sample space
+  const figH = mobile ? HW * .82 : HH * .96, s = figH / 760 / cell
+  const fx = mobile ? HW * .14 : HW * .44, fy = mobile ? 78 : HH * .03
+  octx.save(); octx.translate(fx / cell, fy / cell)
+  octx.filter = `blur(${Math.max(.5, s * 9).toFixed(2)}px)`
+  drawPlayer(octx, s)
+  octx.restore(); octx.filter = 'none'
+  const data = octx.getImageData(0, 0, cols, rows).data
+  // the floodlight sun behind the striker
+  const sx = mobile ? HW * .7 : HW * .76, sy = mobile ? HW * .42 : HH * .38, sr = mobile ? HW * .46 : HH * .44
+  grid = []
+  const cx0 = fx + 300 * s * cell, cy0 = fy + 380 * s * cell
+  let maxD = 1
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+    const x = i * cell + cell / 2, y = j * cell + cell / 2
+    const a = data[(j * cols + i) * 4 + 3] / 255
+    const dS = Math.hypot(x - sx, y - sy) / sr
+    let k = 0, t = 0
+    if (a > .06) { k = 1; t = a } else if (dS < 1) { k = 2; t = (1 - dS) ** .7 * .9 + .08 }
+    else if (dS < 1.6 && (i + j) % 2 === 0) { k = 2; t = .1 * (1.6 - dS) }
+    if (!k) continue
+    const d = Math.hypot(x - cx0, y - cy0); maxD = Math.max(maxD, d)
+    grid.push({ x, y, k, t, d })
+  }
+  grid.forEach((g) => { g.d /= maxD })
+  paint()
+}
+const easeBack = (t) => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * (t - 1) ** 3 + c1 * (t - 1) ** 2 }
+function paint() {
+  ctx.clearRect(0, 0, HW, HH)
+  const maxR = cell * .62
+  const ink = new Path2D(), sun = new Path2D()
+  for (const g of grid) {
+    let r = g.t * maxR
+    if (introT < 1) { const p = clamp((introT * 1.6 - g.d * .6) / .6, 0, 1); r *= p > 0 ? easeBack(p) : 0 }
+    if (lens > 0) { const dd = (g.x - px) ** 2 + (g.y - py) ** 2; r *= 1 + lens * .75 * Math.exp(-dd / 9000) }
+    if (r < .35) continue
+    const P = g.k === 1 ? ink : sun
+    P.moveTo(g.x + r, g.y); P.arc(g.x, g.y, r, 0, 6.2832)
+  }
+  ctx.fillStyle = '#F2A01E'; ctx.fill(sun)
+  ctx.fillStyle = '#0E4A34'; ctx.fill(ink)
+}
+function loop() {
+  raf = 0
+  if (!heroVisible) return
+  let more = false
+  if (introT < 1) { introT = Math.min(1, introT + 1 / 80); more = true }
+  const target = px > -999 ? 1 : 0
+  if (Math.abs(lens - target) > .01) { lens += (target - lens) * .12; more = true } else lens = target
+  paint()
+  if (more) raf = requestAnimationFrame(loop)
+}
+const kick = () => { if (!raf && anim) raf = requestAnimationFrame(loop) }
+sizeHero()
+if (anim) {
+  kick()
+  new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; if (heroVisible) kick() }).observe(hero)
+  hero.addEventListener('pointermove', (e) => { if (e.pointerType !== 'mouse') return; const r = hero.getBoundingClientRect(); px = e.clientX - r.left; py = e.clientY - r.top; kick() })
+  hero.addEventListener('pointerleave', () => { px = py = -999; kick() })
+}
+let rsT; addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (Math.abs(hero.clientWidth - HW) > 30 || Math.abs(hero.clientHeight - HH) > 120) sizeHero(); layoutTokens(); sizeStand() }, 200) })
+
+/* ---------- the North Bank (halftone crowd) ---------- */
+const st = $('#standCv'), sctx = st.getContext('2d')
+function sizeStand() {
+  const box = st.parentElement, w = box.clientWidth, h = box.clientHeight, dpr = Math.min(devicePixelRatio || 1, 2)
+  if (!w) return
+  st.width = w * dpr; st.height = h * dpr; sctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  sctx.fillStyle = '#0E4A34'; sctx.fillRect(0, 0, w, h)
+  const c = Math.max(6, Math.round(w / 72)), cols = Math.ceil(w / c), rows = Math.ceil(h / c)
+  const o = document.createElement('canvas'); o.width = cols; o.height = rows
+  const x = o.getContext('2d', { willReadFrequently: true })
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+  x.filter = 'blur(.6px)'; x.fillStyle = x.strokeStyle = '#000'; x.lineCap = 'round'
+  // terraced rows of supporters, smaller and fainter towards the back
+  for (let r = 0; r < 6; r++) {
+    const depth = r / 5, y0 = rows * (.12 + depth * .78), size = cols * (.055 + depth * .06)
+    x.globalAlpha = .4 + depth * .6
+    for (let p = -size; p < cols + size; p += size * (1.55 + rnd() * .5)) {
+      const hx = p + rnd() * size * .4, hy = y0 + rnd() * size * .3
+      x.beginPath(); x.ellipse(hx, hy + size * 1.3, size * .95, size * .75, 0, Math.PI, 0); x.fill()
+      x.beginPath(); x.arc(hx, hy, size * .5, 0, 7); x.fill()
+      if (depth > .35 && rnd() < .3) { x.lineWidth = size * .32; x.beginPath(); x.moveTo(hx + size * .6, hy + size); x.lineTo(hx + size * .95, hy - size * 1.1); x.stroke() }
+    }
+  }
+  const d = x.getImageData(0, 0, cols, rows).data
+  const cream = new Path2D(), amber = new Path2D()
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+    const a = d[(j * cols + i) * 4 + 3] / 255, X = i * c + c / 2, Y = j * c + c / 2
+    const fl = Math.max(0, 1 - Math.hypot(X - w * .88, Y - h * .02) / (w * .45))
+    if (a > .05) { const r = a * c * .56; cream.moveTo(X + r, Y); cream.arc(X, Y, r, 0, 6.2832) }
+    else if (fl > .06) { const r = fl * c * .5; amber.moveTo(X + r, Y); amber.arc(X, Y, r, 0, 6.2832) }
+  }
+  sctx.fillStyle = '#F2A01E'; sctx.fill(amber)
+  sctx.fillStyle = '#EFE6D2'; sctx.fill(cream)
+  // the banner hung across the front of the stand
+  sctx.save(); sctx.translate(w / 2, h * .6); sctx.rotate(-.035)
+  const bw = w * 1.1, bh = h * .13
+  sctx.fillStyle = '#F2A01E'; sctx.fillRect(-bw / 2, -bh / 2, bw, bh)
+  sctx.fillStyle = '#13241D'; sctx.font = `${Math.round(bh * .6)}px "Alfa Slab One", serif`; sctx.textAlign = 'center'; sctx.textBaseline = 'middle'
+  sctx.fillText('UP THE MUDLARKS', 0, bh * .05)
+  sctx.restore()
+}
+sizeStand()
+if (document.fonts) document.fonts.ready.then(sizeStand)
+
+/* ---------- tactics board ---------- */
+const SQUAD = [
+  { n: 1, s: 'Penrose', f: 'Sam Penrose', p: 'Goalkeeper', a: 13, g: 0, x: '5 clean sheets', q: 'Kicks it further than anyone in the league, mostly on purpose.' },
+  { n: 2, s: 'Mensah-Lyle', f: 'Kofi Mensah-Lyle', p: 'Right back', a: 13, g: 1, x: '6 assists', q: 'Delivered the cross for Saturday\'s winner. Will tell you about it.' },
+  { n: 5, s: 'Ure', f: 'Declan Ure', p: 'Centre back', a: 12, g: 2, x: '61 clearances', q: 'Local lad, works at the boatyard Monday to Friday.' },
+  { n: 6, s: 'Halloran', f: 'Marek Halloran', p: 'Centre back · Captain', a: 13, g: 1, x: '9 years here', q: 'Has headed more balls into the river than anyone alive.' },
+  { n: 3, s: 'Strand', f: 'Jody Strand', p: 'Left back', a: 11, g: 0, x: '4 assists', q: 'Quickest player at the club over ten yards, by his own count.' },
+  { n: 4, s: 'Fairweather', f: 'Ollie Fairweather', p: 'Central midfield', a: 13, g: 1, x: '88 tackles', q: 'Wins it back. Gives it simple. Does it again.' },
+  { n: 8, s: 'Benedetti', f: 'Luca Benedetti', p: 'Central midfield', a: 12, g: 3, x: '91% passing', q: 'Grandad ran the chip shop opposite the ground.' },
+  { n: 10, s: 'Quayle', f: 'Rafa Quayle', p: 'Attacking midfield', a: 13, g: 6, x: '5 assists', q: 'Scores from outside the box roughly once a month. Always the top corner.' },
+  { n: 7, s: 'Adebisi', f: 'Tayo Adebisi', p: 'Right wing', a: 13, g: 5, x: '3 assists', q: 'Arrives at the back post like he was invited.' },
+  { n: 11, s: 'Mudge', f: 'Niall Mudge', p: 'Left wing', a: 12, g: 3, x: '4 assists', q: 'Two good feet and no fear of a full back.' },
+  { n: 9, s: 'Tolland', f: 'Gareth Tolland', p: 'Centre forward', a: 13, g: 8, x: 'League top scorer', q: 'Six foot four and the North Bank\'s favourite son.' },
+  { sub: 0, n: 12, s: 'Pryce', f: 'Ash Pryce', p: 'Goalkeeper', a: 1, g: 0, x: '1 clean sheet', q: 'Back-up keeper and the club\'s unofficial DJ.' },
+  { sub: 2, n: 14, s: 'Calloway', f: 'Ruben Calloway', p: 'Defender', a: 7, g: 0, x: '3 starts', q: 'Plays anywhere across the back four. Has, this season.' },
+  { sub: 6, n: 16, s: 'Kettle', f: 'Ezra Kettle', p: 'Midfield', a: 9, g: 1, x: '19 years old', q: 'Came through the academy. The next one, they say.' },
+  { sub: 10, n: 17, s: 'Sayer', f: 'Mo Sayer', p: 'Forward', a: 10, g: 2, x: '2 off the bench', q: 'Twenty minutes of chaos, whenever he\'s needed.' },
+  { sub: 9, n: 19, s: 'Doherty', f: 'Cian Doherty', p: 'Winger', a: 6, g: 1, x: 'On loan', q: 'On loan from Saltmarsh, which nobody mentions.' },
+]
+// slot positions per formation, in starter order (GK, RB, CB, CB, LB, then six more): x across 0–100, y from our goal 0–100
+const FORM = {
+  442: { pos: [[50, 6], [84, 27], [62, 21], [38, 21], [16, 27], [40, 49], [60, 49], [40, 77], [84, 54], [16, 54], [60, 79]], role: ['GK', 'RB', 'CB', 'CB', 'LB', 'CM', 'CM', 'ST', 'RM', 'LM', 'ST'] },
+  433: { pos: [[50, 6], [84, 28], [62, 21], [38, 21], [16, 28], [50, 40], [68, 53], [32, 53], [82, 76], [18, 76], [50, 82]], role: ['GK', 'RB', 'CB', 'CB', 'LB', 'DM', 'CM', 'CM', 'RW', 'LW', 'ST'] },
+  352: { pos: [[50, 6], [88, 52], [70, 21], [50, 18], [12, 52], [30, 21], [50, 40], [36, 56], [64, 56], [40, 80], [60, 80]], role: ['GK', 'RWB', 'CB', 'CB', 'LWB', 'CB', 'DM', 'CM', 'CM', 'ST', 'ST'] },
+  4231: { pos: [[50, 6], [84, 28], [62, 21], [38, 21], [16, 28], [38, 41], [60, 41], [50, 63], [80, 64], [20, 64], [50, 84]], role: ['GK', 'RB', 'CB', 'CB', 'LB', 'DM', 'DM', 'AM', 'RAM', 'LAM', 'ST'] },
+}
+const pitch = $('#pitch'), linksSvg = $('#links')
+let form = '442', XI = SQUAD.slice(0, 11).map((p, i) => ({ pl: p, x: FORM[form].pos[i][0], y: FORM[form].pos[i][1], slot: i })), sel = null
+let PW = 0, PH = 0
+function tokHtml(t) { return `<span class="disc">${t.pl.n}</span><span class="nm">${t.pl.s}</span>` }
+XI.forEach((t, i) => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'tok' + (i === 0 ? ' gk' : ''); b.innerHTML = tokHtml(t); t.el = b
+  pitch.appendChild(b); wireTok(t)
+})
+function px2(t) { return [t.x / 100 * PW, (1 - t.y / 100) * PH] }
+function layoutTokens() {
+  PW = pitch.clientWidth; PH = pitch.clientHeight
+  linksSvg.setAttribute('viewBox', `0 0 ${PW} ${PH}`)
+  XI.forEach((t) => { const [x, y] = px2(t); if (G) G.set(t.el, { x, y }); else t.el.style.transform = `translate(${x}px,${y}px)` })
+  drawLinks()
+}
+function tokLabel(t) { return `${t.pl.n} ${t.pl.f}, ${FORM[form].role[t.slot]}. ${Math.round(t.y * 1.05)} metres up the pitch. Arrow keys move him.` }
+function drawLinks() {
+  // each outfield player passes to his two nearest team-mates
+  const out = XI.slice(1), seen = new Set(); let d = ''
+  out.forEach((a) => {
+    out.filter((b) => b !== a).map((b) => [b, Math.hypot((a.x - b.x) * .68, (a.y - b.y) * 1.05)]).sort((m, n) => m[1] - n[1]).slice(0, 2).forEach(([b]) => {
+      const k = [a.pl.n, b.pl.n].sort().join('-'); if (seen.has(k)) return; seen.add(k)
+      const [x1, y1] = px2(a), [x2, y2] = px2(b); d += `M${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}`
+    })
+  })
+  linksSvg.innerHTML = `<path d="${d}" fill="none" stroke="rgba(242,160,30,.85)" stroke-width="2.5" stroke-dasharray="7 6"/>`
+  const xs = out.map((t) => t.x), ys = out.map((t) => t.y)
+  const w = Math.round((Math.max(...xs) - Math.min(...xs)) * .68), dep = Math.round((Math.max(...ys) - Math.min(...ys)) * 1.05)
+  const back = Math.round([...ys].sort((a, b) => a - b).slice(0, 4).reduce((s, v) => s + v, 0) / 4 * 1.05)
+  $('#rW').textContent = w; $('#rD').textContent = dep; $('#rL').textContent = back
+  let v
+  if (dep > 70) v = 'Stretched. <mark>The midfield will be overrun.</mark> Pull the forwards back or push the line up.'
+  else if (back > 36) v = 'High line. <mark>Brave, and quick at the back.</mark> Watch the ball over the top.'
+  else if (back < 16) v = 'Parked bus. <mark>Hard to break down</mark>, harder to score from.'
+  else if (w < 40) v = 'Narrow. <mark>Strong through the middle</mark>, but the full backs will be lonely.'
+  else if (dep < 50) v = 'Compact. <mark>Short distances between the lines.</mark> The gaffer would sign off on this.'
+  else v = 'Balanced. <mark>A proper Saturday shape</mark>, wide enough and compact enough.'
+  $('#verdict').innerHTML = v
+  XI.forEach((t) => t.el.setAttribute('aria-label', tokLabel(t)))
+}
+function select(t) {
+  sel = t
+  XI.forEach((u) => u.el.classList.toggle('sel', u === t))
+  $$('.card').forEach((c) => c.classList.toggle('on', !!t && +c.dataset.n === t.pl.n))
+  $$('.subon').forEach((b) => { b.textContent = t ? `On for ${t.pl.s}` : 'Bring on' })
+}
+function wireTok(t) {
+  const el = t.el
+  let drag = null
+  el.addEventListener('pointerdown', (e) => {
+    if (e.button > 0) return
+    e.preventDefault(); el.focus({ preventScroll: true }); select(t)
+    const r = pitch.getBoundingClientRect(); const [x, y] = px2(t)
+    drag = { ox: e.clientX - r.left - x, oy: e.clientY - r.top - y, moved: false }
+    el.setPointerCapture(e.pointerId)
+  })
+  el.addEventListener('pointermove', (e) => {
+    if (!drag) return
+    const r = pitch.getBoundingClientRect()
+    const nx = clamp((e.clientX - r.left - drag.ox) / PW * 100, 3, 97), ny = clamp(100 - (e.clientY - r.top - drag.oy) / PH * 100, 2, 98)
+    if (!drag.moved && Math.hypot(nx - t.x, ny - t.y) < 1) return
+    drag.moved = true; el.classList.add('drag'); t.x = nx; t.y = ny
+    const [x, y] = px2(t); G ? G.set(el, { x, y }) : (el.style.transform = `translate(${x}px,${y}px)`); drawLinks()
+  })
+  const end = () => { if (!drag) return; drag = null; el.classList.remove('drag'); $('#tlive').textContent = `${t.pl.s} moved to ${Math.round(t.y * 1.05)} metres up the pitch.` }
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end)
+  el.addEventListener('focus', () => { if (sel !== t) select(t) })
+  el.addEventListener('keydown', (e) => {
+    const mv = { ArrowLeft: [-3, 0], ArrowRight: [3, 0], ArrowUp: [0, 3], ArrowDown: [0, -3] }[e.key]
+    if (!mv) return
+    e.preventDefault(); t.x = clamp(t.x + mv[0], 3, 97); t.y = clamp(t.y + mv[1], 2, 98)
+    const [x, y] = px2(t); G ? G.set(el, { x, y }) : (el.style.transform = `translate(${x}px,${y}px)`); drawLinks()
+  })
+}
+pitch.addEventListener('pointerdown', (e) => { if (!e.target.closest('.tok')) select(null) })
+function setForm(f, quiet) {
+  form = f
+  $$('#forms button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.f === f))
+  XI.forEach((t) => {
+    const [x, y] = FORM[f].pos[t.slot]; t.x = x; t.y = y
+    const [X, Y] = px2(t)
+    if (anim && !quiet) G.to(t.el, { x: X, y: Y, duration: .9, delay: t.slot * .03, ease: 'back.out(1.3)', overwrite: true })
+    else if (G) G.set(t.el, { x: X, y: Y }); else t.el.style.transform = `translate(${X}px,${Y}px)`
+  })
+  drawLinks()
+  if (!quiet) $('#tlive').textContent = `Formation set to ${f.split('').join('-')}.`
+}
+$('#forms').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setForm(b.dataset.f) })
+$('#resetBtn').addEventListener('click', () => setForm(form))
+$('#sheetBtn').addEventListener('click', () => { $('#tlive').textContent = `Team sheet pinned: ${form.split('').join('-')}, ${XI.map((t) => t.pl.s).join(', ')}.` })
+
+function renderSquad() {
+  const starters = new Set(XI.map((t) => t.pl.n))
+  $('#squad').innerHTML = SQUAD.map((p) => `<div class="card${sel && sel.pl.n === p.n ? ' on' : ''}" data-n="${p.n}"><button type="button" class="flip" aria-pressed="false" aria-label="${p.f}, number ${p.n}, ${p.p}. Flip for stats"><span class="in"><span class="face front"><span class="num">${p.n}</span>${starters.has(p.n) ? '<span class="xi">XI</span>' : ''}<span class="who"><b>${p.s}</b><span>${p.p.split(' · ')[0]}</span></span></span><span class="face back"><dl><dt>Apps</dt><dd>${p.a}</dd><dt>Goals</dt><dd>${p.g}</dd></dl><span class="who"><span>${p.x}</span></span><p>${p.q}</p></span></span></button>${starters.has(p.n) ? '' : `<button type="button" class="subon" data-n="${p.n}">${sel ? `On for ${sel.pl.s}` : 'Bring on'}</button>`}</div>`).join('')
+}
+$('#squad').addEventListener('click', (e) => {
+  const f = e.target.closest('.flip')
+  if (f) { f.setAttribute('aria-pressed', f.getAttribute('aria-pressed') !== 'true'); return }
+  const s = e.target.closest('.subon'); if (!s) return
+  const inP = SQUAD.find((p) => p.n === +s.dataset.n)
+  // replace the selected player, or the starter whose role matches best
+  let t = sel
+  // keepers only swap with the keeper
+  if (!t || (inP.p === 'Goalkeeper') !== (t.slot === 0)) t = XI.find((u) => u.slot === inP.sub)
+  const outP = t.pl; t.pl = inP; t.el.innerHTML = tokHtml(t)
+  if (anim) G.fromTo(t.el.firstElementChild, { scale: .3, rotation: -180 }, { scale: 1, rotation: 0, duration: .7, ease: 'back.out(2)' })
+  $('#tlive').textContent = `Substitution: ${inP.f} on, ${outP.f} off.`
+  renderSquad(); select(t); drawLinks()
+})
+renderSquad()
+layoutTokens(); setForm('442', true)
+
+/* ---------- nav, menu ---------- */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 40); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Close menu' : 'Open menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+  if (window.lenis) open ? window.lenis.stop() : window.lenis.start()
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .1 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  if (lenis) { lenis.start(); lenis.scrollTo(t, { offset: 0 }) } else t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .2}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .3}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+/* ---------- the ninety ---------- */
+// the ball's afternoon as a pass map: straight passes, one phase per goal (x 0–1050, y 0–680)
+const PHASES = [
+  { m: [0, 23], pts: [[525, 340], [470, 300], [600, 200], [760, 250], [700, 420], [560, 520], [420, 560], [300, 470], [230, 400], [120, 360], [20, 345]] },
+  { m: [23, 51], pts: [[525, 340], [620, 280], [540, 170], [430, 260], [520, 330], [640, 330], [760, 300], [880, 330], [1030, 322]] },
+  { m: [51, 88], pts: [[525, 340], [690, 520], [820, 600], [900, 470], [780, 250], [870, 120], [960, 250], [890, 420], [960, 600], [880, 640], [940, 610], [1000, 640], [1032, 352]] },
+  { m: [88, 94], pts: [[525, 340], [420, 230], [250, 300], [150, 420], [240, 600], [180, 676]] },
+]
+const ball = $('#ball'), route = $('#route')
+PHASES.forEach((ph) => {
+  ph.seg = []; let L = 0
+  for (let i = 1; i < ph.pts.length; i++) { const d = Math.hypot(ph.pts[i][0] - ph.pts[i - 1][0], ph.pts[i][1] - ph.pts[i - 1][1]); ph.seg.push([L, d]); L += d }
+  ph.L = L
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+  const dpath = 'M' + ph.pts.map((p) => p.join(' ')).join('L')
+  g.innerHTML = `<path d="${dpath}" fill="none" stroke="#EFE6D2" stroke-width="2" opacity=".18"/><path class="drawn" d="${dpath}" fill="none" stroke="#F2A01E" stroke-width="4" stroke-linejoin="round" stroke-dasharray="${L.toFixed(1)}" stroke-dashoffset="${L.toFixed(1)}"/>${ph.pts.slice(1).map((p) => `<circle class="touch" cx="${p[0]}" cy="${p[1]}" r="6" fill="#F2A01E" opacity="0"/>`).join('')}`
+  route.appendChild(g); ph.drawn = g.querySelector('.drawn'); ph.touches = [...g.querySelectorAll('.touch')]
+})
+const GOALS = [{ m: 23, side: 'L', x: 20, y: 345 }, { m: 51, side: 'R', x: 1030, y: 322 }, { m: 88, side: 'R', x: 1032, y: 352 }]
+$('#marks').innerHTML = GOALS.map((g, i) => `<g class="mk" data-i="${i}" opacity="0"><circle cx="${g.x < 525 ? g.x + 60 : g.x - 60}" cy="${g.y - 70 - i * 40}" r="24" fill="${g.side === 'L' ? '#B23A26' : '#F2A01E'}"/><text x="${g.x < 525 ? g.x + 60 : g.x - 60}" y="${g.y - 62 - i * 40}" text-anchor="middle" font-family="Alfa Slab One, serif" font-size="20" fill="${g.side === 'L' ? '#EFE6D2' : '#13241D'}">${g.m}'</text></g>`).join('')
+function drawRoute(min) {
+  let bx = 525, by = 340
+  PHASES.forEach((ph, k) => {
+    const t = clamp((min - ph.m[0]) / (ph.m[1] - ph.m[0]), 0, 1), l = t * ph.L
+    // finished phases fade back so the live one reads clearly
+    const live = min >= ph.m[0] && (min < ph.m[1] || k === PHASES.length - 1)
+    ph.drawn.setAttribute('stroke-dashoffset', (ph.L - l).toFixed(1))
+    ph.drawn.setAttribute('opacity', live ? 1 : .35)
+    ph.touches.forEach((c, i) => c.setAttribute('opacity', ph.seg[i][0] + ph.seg[i][1] <= l + .5 ? (live ? 1 : .35) : 0))
+    if (live) {
+      const s = ph.seg.find(([a, d]) => l <= a + d) || ph.seg[ph.seg.length - 1], i = ph.seg.indexOf(s), f = s[1] ? clamp((l - s[0]) / s[1], 0, 1) : 1
+      bx = ph.pts[i][0] + (ph.pts[i + 1][0] - ph.pts[i][0]) * f; by = ph.pts[i][1] + (ph.pts[i + 1][1] - ph.pts[i][1]) * f
+    }
+  })
+  ball.setAttribute('transform', `translate(${bx.toFixed(1)} ${by.toFixed(1)})`)
+}
+const noiseAt = (m) => 64 + 10 * Math.sin(m / 9) + GOALS.reduce((s, g) => s + (g.side === 'R' ? 32 : 8) * Math.exp(-((m - g.m) ** 2) / 10), 0) + (m > 74 ? 8 : 0)
+const moments = $$('.moment'), MIN = [0, 23, 51, 74, 88, 92]
+function matchAt(p) {
+  const min = p * 94
+  $('#clk').textContent = min >= 90 ? (p >= .999 ? 'FT' : `90+${Math.ceil(min - 90)}'`) : `${Math.max(1, Math.floor(min))}'`
+  drawRoute(min)
+  const n = clamp(noiseAt(min), 55, 112)
+  $('#noiseBar').style.transform = `scaleX(${((n - 50) / 65).toFixed(3)})`
+  $('#noiseOut').textContent = `${Math.round(n)} dB`
+}
+let curM = -1, mTw = []
+function setMoment(i) {
+  if (i === curM) return
+  const prev = curM; curM = i
+  const min = MIN[i]
+  const h = GOALS.filter((g) => g.side === 'R' && g.m <= min).length, a = GOALS.filter((g) => g.side === 'L' && g.m <= min).length
+  $('#sH').textContent = h; $('#sA').textContent = a
+  $$('#marks .mk').forEach((m) => { const on = GOALS[+m.dataset.i].m <= min; anim ? G.to(m, { opacity: on ? 1 : 0, duration: .5 }) : m.setAttribute('opacity', on ? 1 : 0) })
+  if (!anim) return
+  mTw.forEach((t) => t.kill()); mTw = []
+  moments.forEach((m, k) => { if (k !== i && k !== prev) G.set(m, { autoAlpha: 0 }) })
+  if (prev >= 0) mTw.push(G.to(moments[prev], { autoAlpha: 0, x: -24, duration: .3, ease: 'power2.in' }))
+  mTw.push(G.fromTo(moments[i], { autoAlpha: 0, x: 30 }, { autoAlpha: 1, x: 0, duration: .7, delay: prev >= 0 ? .2 : 0, ease: 'back.out(1.4)' }))
+  const g = GOALS.find((q) => q.m === min)
+  if (g && i > prev) mTw.push(G.fromTo(g.side === 'L' ? '#netL' : '#netR', { opacity: 0 }, { opacity: 1, duration: .2, repeat: 5, yoyo: true, ease: 'none' }))
+}
+
+if (!anim) {
+  matchAt(1); setMoment(5)
+  return
+}
+
+/* ---------- motion ---------- */
+G.set('.hero h1 .mask>span', { yPercent: 115, rotation: 4 })
+G.set('.hf', { autoAlpha: 0, y: 24 })
+G.set('.stub', { autoAlpha: 0, y: 60, rotation: 10 })
+G.set('.stamp', { autoAlpha: 0, scale: 2.2, rotation: -30 })
+G.timeline({ delay: .1 })
+  .to('.hero h1 .mask>span', { yPercent: 0, rotation: 0, duration: .9, stagger: .12, ease: 'power4.out' }, .15)
+  .to('.hf:not(.stub):not(.stamp)', { autoAlpha: 1, y: 0, duration: .6, stagger: .08, ease: 'power3.out' }, .45)
+  .to('.stub', { autoAlpha: 1, y: 0, rotation: 2, duration: .9, ease: 'back.out(1.6)' }, .6)
+  .to('.stamp', { autoAlpha: 1, scale: 1, rotation: 12, duration: .45, ease: 'power4.in' }, 1)
+  .fromTo('.hero .wrap', { x: 0 }, { x: 5, duration: .05, repeat: 3, yoyo: true, ease: 'none', clearProps: 'transform' }, 1.45)
+G.to('.hero h1', { yPercent: -18, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 110 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, duration: .9, stagger: .1, ease: 'power4.out' }) })
+})
+G.set('.reveal, .rv', { autoAlpha: 0, y: 36 })
+ScrollTrigger.batch('.reveal, .rv', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: .8, stagger: .08, ease: 'power3.out', clearProps: 'transform' }) })
+$$('.count').forEach((c) => { const o = { v: 0 }, to = +c.dataset.to, from = to > 1800 && to < 2100 ? 1800 : 0; o.v = from; ScrollTrigger.create({ trigger: c, start: 'top 92%', once: true, onEnter: () => G.to(o, { v: to, duration: 1.6, ease: 'power2.out', onUpdate: () => { c.textContent = to > 1800 && to < 2100 ? Math.round(o.v) : Math.round(o.v).toLocaleString('en-GB') } }) }) })
+// team sheet: players run out to their spots
+G.set(XI.map((t) => t.el.firstElementChild), { scale: 0 })
+ScrollTrigger.create({ trigger: '#pitch', start: 'top 75%', once: true, onEnter: () => G.to(XI.map((t) => t.el.firstElementChild), { scale: 1, duration: .6, stagger: { each: .05, from: 'start' }, ease: 'back.out(2.2)' }) })
+
+G.set(moments, { autoAlpha: 0 })
+matchAt(0); setMoment(0)
+ScrollTrigger.create({
+  trigger: '.ninety', start: 'top top', end: '+=300%', pin: '#ninetyPin', scrub: true,
+  onUpdate(self) { const p = self.progress, m = p * 94; matchAt(p); setMoment(m < 20 ? 0 : m < 48 ? 1 : m < 70 ? 2 : m < 85 ? 3 : m < 92 ? 4 : 5) },
+})
+addEventListener('load', () => { ScrollTrigger.refresh(); layoutTokens() })
+})()
+</script>
+</body>
+</html>

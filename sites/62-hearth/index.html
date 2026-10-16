@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hearth — The home hub that keeps the lamps warm</title>
+<meta name="description" content="Hearth is a smart home hub that runs your lights, heating and blinds locally, without a subscription. Toggle every room in our interactive cutaway and watch the energy graph respond.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='20' fill='%231A1630'/%3E%3Cpath d='M14 34L32 16l18 18v16H14z' fill='%232B2347' stroke='%23FFB45E' stroke-width='3' stroke-linejoin='round'/%3E%3Crect x='27' y='34' width='10' height='10' rx='2' fill='%23FFB45E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Rethink+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#1A1630; --dusk:#241E3E; --plum:#3A3157; --plum-l:#4A4070; --line:rgba(255,230,200,.12);
+  --text:#F6EBDD; --muted:#BDB2CC; --amber:#FFB45E; --amber-l:#FFD9A3; --ember:#F27B50;
+  --cream:#FFF3E2; --sand:#F4E4CC; --ink:#2A2140; --ink-m:#5E536F; --terra:#A8441F;
+  --disp:"Gloock", Georgia, serif; --sans:"Rethink Sans", system-ui, sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1); --spring:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--night);color:var(--text);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:10px}
+.light :focus-visible{outline-color:var(--terra)}
+.skip{position:absolute;left:-999px;top:8px;background:var(--amber);color:var(--night);padding:10px 16px;z-index:300;border-radius:10px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1240px,100% - 64px);margin-inline:auto}
+h1,h2,h3{font-family:var(--disp);font-weight:400;margin:0;line-height:1.02;letter-spacing:-.01em}
+h2{font-size:clamp(42px,5.2vw,80px)}
+h1 em,h2 em{font-style:italic;color:var(--amber)}
+.light h2 em{color:var(--terra)}
+p{margin:0}
+.kick{display:inline-flex;align-items:center;gap:10px;font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
+.kick::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px 2px rgba(255,180,94,.7)}
+.light .kick{color:var(--terra)}
+.light .kick::before{background:var(--terra);box-shadow:none}
+.mask{display:block;overflow:hidden;padding:.1em 0 .16em;margin:-.1em 0 -.16em}
+.mask>span{display:block}
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 26px;border-radius:999px;border:0;background:var(--amber);color:#2A1A08;font-weight:600;font-size:16px;text-decoration:none;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .5s var(--spring),background .3s,box-shadow .4s;box-shadow:0 10px 30px -10px rgba(255,180,94,.6)}
+.btn:hover{background:var(--amber-l);box-shadow:0 14px 40px -8px rgba(255,180,94,.8)}
+.btn.ghost{background:rgba(255,255,255,.06);color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.ghost:hover{background:rgba(255,255,255,.12)}
+.light .btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px rgba(42,33,64,.25)}
+.btn.sm{min-height:44px;padding:0 18px;font-size:15px}
+.btn svg{width:18px;height:18px}
+
+/* nav */
+.nav{position:fixed;top:12px;left:0;right:0;z-index:90;pointer-events:none}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;padding:0 10px 0 18px;border-radius:999px;transition:background .4s,box-shadow .4s;pointer-events:auto}
+.nav.solid .wrap{background:rgba(26,22,48,.78);backdrop-filter:blur(16px);box-shadow:inset 0 0 0 1px var(--line)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--disp);font-size:26px;min-height:44px}
+.logo svg{width:30px;height:30px}
+.nav ul{display:flex;gap:2px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;text-decoration:none;font-weight:500;font-size:15px;color:var(--muted);transition:color .3s,background .3s}
+.nav ul a:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.nav-r{display:flex;gap:8px;align-items:center}
+.menu-btn{display:none;width:46px;height:46px;border-radius:50%;border:0;background:rgba(255,255,255,.08);cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:18px;height:2px;border-radius:2px;background:var(--text);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:12px;right:12px;top:86px;z-index:89;background:var(--dusk);border-radius:28px;padding:14px;display:grid;gap:4px;opacity:0;visibility:hidden;transform:translateY(-10px) scale(.98);transition:all .4s var(--ease);box-shadow:0 30px 60px -20px rgba(0,0,0,.6),inset 0 0 0 1px var(--line)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:56px;padding:0 16px;border-radius:18px;text-decoration:none;font-family:var(--disp);font-size:28px}
+.mmenu a:hover{background:rgba(255,255,255,.06)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:130px 0 70px;display:flex;align-items:center;overflow:hidden;background:radial-gradient(70% 60% at 75% 70%,rgba(242,123,80,.28),transparent 70%),radial-gradient(60% 50% at 20% 100%,rgba(255,180,94,.12),transparent 70%),linear-gradient(180deg,#141029,#241E3E 60%,#3A2A48)}
+.stars{position:absolute;inset:0 0 40% 0;pointer-events:none}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#FFF3E2;animation:tw 4s ease-in-out infinite}
+@keyframes tw{50%{opacity:.25}}
+.hero .wrap{position:relative;display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(58px,7.4vw,120px)}
+.hero-lead{font-size:19px;color:var(--muted);max-width:42ch;margin:28px 0 36px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.hero-note{display:flex;gap:26px;flex-wrap:wrap;margin-top:44px;font-size:15px;color:var(--muted)}
+.hero-note span{display:inline-flex;align-items:center;gap:8px}
+.hero-note svg{width:18px;height:18px;color:var(--amber)}
+.stone-wrap{position:relative;aspect-ratio:1;max-width:560px;justify-self:center;width:100%}
+.stone-wrap>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.chip{position:absolute;display:flex;align-items:center;gap:12px;padding:12px 16px 12px 12px;border-radius:22px;background:rgba(36,30,62,.72);backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px var(--line),0 20px 40px -20px rgba(0,0,0,.6);font-size:14px;line-height:1.3;white-space:nowrap}
+.chip b{display:block;font-weight:600;font-size:15px;color:var(--text)}
+.chip span{color:var(--muted)}
+.chip .ic{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:rgba(255,180,94,.16);color:var(--amber);flex:none}
+.chip .ic svg{width:20px;height:20px}
+.ch1{left:-4%;top:12%}.ch2{right:-6%;top:30%}.ch3{left:2%;bottom:14%}.ch4{right:2%;bottom:4%}
+
+/* evening (pinned) */
+.eve{position:relative}
+.eve-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);align-items:center;gap:20px;padding:100px max(32px,calc((100% - 1240px)/2)) 30px;background:var(--night)}
+.eve-sky{position:absolute;inset:0;width:100%;height:100%}
+.eve-pin::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(18,14,36,.78),rgba(18,14,36,.5) 38%,rgba(18,14,36,0) 62%);pointer-events:none;z-index:1}
+.eve-copy{position:relative;z-index:2}
+.eve-clock{display:flex;align-items:baseline;gap:14px}
+.eve-clock b{font-family:var(--disp);font-weight:400;font-size:clamp(72px,8vw,128px);line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.eve-clock span{font-size:14px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
+.moments{position:relative;min-height:220px;margin-top:20px}
+.moment{position:absolute;inset:0}
+.moment h3{font-size:clamp(30px,2.8vw,42px);margin-bottom:12px}
+.moment p{color:#EDE3F0;max-width:40ch}
+.thermo{display:flex;align-items:center;gap:16px;margin-top:20px;padding:14px 18px;border-radius:24px;background:rgba(26,22,48,.55);backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px var(--line);width:max-content;max-width:100%}
+.thermo svg{width:62px;height:62px;flex:none}
+.thermo b{font-family:var(--disp);font-weight:400;font-size:34px;line-height:1}
+.thermo small{display:block;font-size:13px;color:var(--muted)}
+.eve-house{position:relative;z-index:1;height:100%;max-height:78vh;align-self:center}
+.eve-house svg{width:100%;height:100%;overflow:visible}
+
+/* cutaway */
+.cut{position:relative;padding:140px 0 120px;background:linear-gradient(180deg,var(--night),var(--dusk))}
+.cut-head{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:end;margin-bottom:46px}
+.cut-head p:not(.kick){color:var(--muted);max-width:44ch}
+.cut-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:26px;align-items:start}
+.house{position:relative;border-radius:36px;background:radial-gradient(80% 70% at 50% 100%,rgba(242,123,80,.18),transparent 70%),#15112A;padding:22px;box-shadow:inset 0 0 0 1px var(--line)}
+.house svg{width:100%;height:auto;overflow:visible}
+.house .rm{cursor:pointer}
+.house .rm .sel{opacity:0;transition:opacity .3s}
+.house .rm.on .sel{opacity:1}
+.house .rm:hover .hov{opacity:.08}
+.house .hov{opacity:0;transition:opacity .3s}
+.warm,.lglow,.dark,.rad,.waves,.blind,.smoke,.tbadge{transition:opacity .7s var(--ease),fill .6s,transform .8s var(--ease)}
+.blind{transform-box:fill-box;transform-origin:50% 0}
+.waves path{animation:rise 2.4s ease-in-out infinite}
+.waves path:nth-child(2){animation-delay:.8s}.waves path:nth-child(3){animation-delay:1.6s}
+@keyframes rise{0%{transform:translateY(6px);opacity:0}40%{opacity:1}100%{transform:translateY(-14px);opacity:0}}
+.smoke circle{animation:puff 3.6s ease-out infinite;transform-box:fill-box;transform-origin:center}
+.smoke circle:nth-child(2){animation-delay:1.2s}.smoke circle:nth-child(3){animation-delay:2.4s}
+@keyframes puff{0%{transform:translate(0,0) scale(.6);opacity:0}20%{opacity:.6}100%{transform:translate(18px,-60px) scale(1.8);opacity:0}}
+.house-hint{position:absolute;left:30px;bottom:24px;font-size:14px;color:var(--muted)}
+.ctrl{display:grid;gap:16px}
+.card{border-radius:28px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px var(--line);padding:20px}
+.card h3{font-family:var(--sans);font-weight:600;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.scenes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.scenes button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:78px;padding:10px 6px;border-radius:20px;border:0;background:rgba(255,255,255,.05);cursor:pointer;font-weight:500;font-size:14px;transition:background .3s,transform .4s var(--spring),box-shadow .3s}
+.scenes button svg{width:24px;height:24px;color:var(--amber)}
+.scenes button:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
+.scenes button[aria-pressed="true"]{background:var(--amber);color:#2A1A08;box-shadow:0 10px 30px -10px rgba(255,180,94,.7)}
+.scenes button[aria-pressed="true"] svg{color:#2A1A08}
+.rooms{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:5px;border-radius:20px;background:rgba(0,0,0,.2);margin-bottom:16px}
+.rooms button{min-height:44px;border:0;border-radius:15px;background:transparent;cursor:pointer;font-weight:500;font-size:14px;color:var(--muted);transition:background .3s,color .3s}
+.rooms button[aria-selected="true"]{background:var(--plum-l);color:var(--text)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:6px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row .l{display:flex;align-items:center;gap:12px}
+.row .l svg{width:22px;height:22px;color:var(--amber)}
+.row .l b{display:block;font-weight:500;font-size:16px}
+.row .l small{display:block;font-size:13px;color:var(--muted)}
+.sw{position:relative;width:60px;height:36px;border-radius:18px;border:0;background:var(--plum);cursor:pointer;flex:none;transition:background .3s;padding:0}
+.sw::after{content:"";position:absolute;left:4px;top:4px;width:28px;height:28px;border-radius:50%;background:#E7DCEB;transition:transform .45s var(--spring),background .3s;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.sw[aria-checked="true"]{background:var(--amber)}
+.sw[aria-checked="true"]::after{transform:translateX(24px);background:#fff}
+.slider{display:flex;align-items:center;gap:12px;padding:0 0 12px 34px}
+.slider input{flex:1;accent-color:var(--amber);height:44px;min-width:0}
+.slider output{min-width:44px;text-align:right;font-variant-numeric:tabular-nums;font-size:15px;color:var(--muted)}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.08);cursor:pointer;font-size:20px;line-height:1;transition:background .3s}
+.step button:hover{background:rgba(255,255,255,.16)}
+.step output{min-width:46px;text-align:center;font-family:var(--disp);font-size:26px}
+.energy .top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:8px}
+.energy .now{font-family:var(--disp);font-size:46px;line-height:1}
+.energy .now small{font-family:var(--sans);font-size:15px;color:var(--muted);margin-left:6px}
+.energy .side{text-align:right;font-size:14px;color:var(--muted)}
+.energy .side b{display:block;font-size:20px;color:var(--text);font-weight:600}
+.energy canvas{width:100%;height:130px}
+.energy .verdict{font-size:14px;color:var(--muted);margin-top:8px;min-height:22px}
+.energy .verdict b{color:var(--amber);font-weight:600}
+
+/* quiet (light) */
+.light{background:var(--cream);color:var(--ink)}
+.quiet{padding:140px 0 120px}
+.quiet-head{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:end;margin-bottom:56px}
+.quiet-head p:not(.kick){color:var(--ink-m);max-width:44ch}
+.feats{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+.feat{grid-column:span 4;border-radius:32px;background:#fff;padding:30px;box-shadow:0 30px 60px -40px rgba(42,33,64,.35);transition:transform .6s var(--spring)}
+.feat:hover{transform:translateY(-6px) rotate(-.4deg)}
+.feat .ico{width:58px;height:58px;border-radius:20px;background:var(--sand);display:grid;place-items:center;color:var(--terra);margin-bottom:20px}
+.feat .ico svg{width:28px;height:28px}
+.feat h3{font-size:30px;margin-bottom:10px}
+.feat p{color:var(--ink-m);font-size:16px}
+.feat.wide{grid-column:span 8;display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;background:var(--ink);color:var(--cream)}
+.feat.wide p{color:#D8CCE0}
+.feat.wide .ico{background:rgba(255,180,94,.16);color:var(--amber)}
+.offline{position:relative;aspect-ratio:1.3;border-radius:24px;background:#221B38;overflow:hidden}
+.offline svg{width:100%;height:100%}
+.feat p.big{font-family:var(--disp);font-size:clamp(60px,6vw,96px);line-height:1;color:var(--terra);margin-bottom:6px}
+.box .kick{color:var(--amber)}
+.box .kick::before{background:var(--amber);box-shadow:0 0 12px 2px rgba(255,180,94,.7)}
+
+/* pricing */
+.price{padding:20px 0 130px}
+.price-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:26px;align-items:stretch}
+.box{position:relative;border-radius:36px;background:var(--ink);color:var(--cream);padding:44px;overflow:hidden}
+.box .amt{font-family:var(--disp);font-size:clamp(70px,7vw,112px);line-height:1;margin:20px 0 6px}
+.box .amt small{font-family:var(--sans);font-size:18px;color:#D8CCE0;margin-left:8px}
+.box ul{list-style:none;margin:24px 0 30px;padding:0;display:grid;gap:10px}
+.box li{display:flex;gap:10px;align-items:flex-start;color:#E8DDEE}
+.box li svg{width:20px;height:20px;color:var(--amber);flex:none;margin-top:3px}
+.box .glow{position:absolute;right:-120px;top:-120px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(255,180,94,.35),transparent 65%);pointer-events:none}
+.quote{border-radius:36px;background:var(--sand);padding:44px;display:flex;flex-direction:column;justify-content:space-between;gap:30px}
+.quote blockquote{margin:0;font-family:var(--disp);font-size:clamp(28px,2.6vw,38px);line-height:1.2}
+.quote cite{display:flex;align-items:center;gap:14px;font-style:normal;font-size:15px;color:var(--ink-m)}
+.quote cite b{display:block;color:var(--ink);font-size:16px}
+.ava{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFD9A3,#F27B50);flex:none}
+
+/* faq */
+.faq{padding:130px 0;background:var(--night)}
+.faq .wrap{display:grid;grid-template-columns:1fr 1.3fr;gap:60px}
+.qa{border-top:1px solid var(--line)}
+.qa:last-child{border-bottom:1px solid var(--line)}
+.qa button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:76px;padding:12px 0;border:0;background:transparent;cursor:pointer;text-align:left;font-family:var(--disp);font-size:24px}
+.qa button i{position:relative;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.07);flex:none;transition:transform .5s var(--spring),background .3s}
+.qa button i::before,.qa button i::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:2px;margin:-1px 0 0 -7px;background:var(--amber);border-radius:2px}
+.qa button i::after{transform:rotate(90deg);transition:transform .4s}
+.qa button[aria-expanded="true"] i{transform:rotate(180deg);background:rgba(255,180,94,.18)}
+.qa button[aria-expanded="true"] i::after{transform:rotate(0)}
+.ans{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s var(--ease)}
+.ans>div{overflow:hidden}
+.ans p{padding:0 50px 24px 0;color:var(--muted)}
+.qa.open .ans{grid-template-rows:1fr}
+
+footer{padding:70px 0 40px;background:var(--night);border-top:1px solid var(--line)}
+footer .top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;padding-bottom:44px}
+footer h4{margin:0 0 10px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:36px;text-decoration:none;color:var(--text)}
+footer li a:hover{color:var(--amber)}
+footer form{display:flex;gap:8px;margin-top:16px;max-width:380px}
+footer input{flex:1;min-width:0;min-height:50px;padding:0 18px;border-radius:999px;border:0;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px var(--line)}
+footer input::placeholder{color:#A99DBA}
+footer .ok{min-height:22px;font-size:14px;color:var(--muted);margin-top:8px}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--muted);padding-top:24px;border-top:1px solid var(--line)}
+
+.rmo .eve-pin{height:auto;padding-top:110px;padding-bottom:80px}
+.rmo .moments{min-height:0;display:grid;gap:28px}
+.rmo .moment{position:static}
+.rmo .eve-house{height:auto;aspect-ratio:1000/700}
+@media (prefers-reduced-motion:reduce){.stars i,.waves path,.smoke circle{animation:none}.waves path{opacity:.8}.smoke circle{opacity:.4}}
+
+@media (max-width:1100px){
+  .cut-grid{grid-template-columns:1fr}
+  .ctrl{grid-template-columns:1fr 1fr}
+  .ctrl .scenes-card{grid-column:1/-1}
+}
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .menu-btn{display:inline-flex}
+  .nav .btn{display:none}
+  .hero .wrap,.cut-head,.quiet-head,.price-grid,.faq .wrap{grid-template-columns:1fr;gap:34px}
+  .stone-wrap{max-width:460px}
+  .eve-pin{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:6px;padding:86px 32px 24px}
+  .eve-house{order:1;max-height:none;height:100%;min-height:0}
+  .eve-copy{order:2}
+  .eve-pin::after{background:linear-gradient(0deg,rgba(18,14,36,.7),rgba(18,14,36,0) 50%)}
+  .feat,.feat.wide{grid-column:span 12}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .wrap{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav{top:8px}
+  .nav .wrap{width:calc(100% - 16px);padding:0 6px 0 14px}
+  .mmenu{top:78px}
+  .hero{padding:100px 0 50px;min-height:0}
+  .hero h1{font-size:clamp(50px,14vw,66px)}
+  .hero-lead{font-size:17px;margin:20px 0 26px}
+  .hero-note{gap:14px;margin-top:30px;font-size:14px}
+  .stone-wrap{max-width:none;margin-top:10px}
+  .chip{padding:8px 12px 8px 8px;font-size:12px;border-radius:18px;gap:8px}
+  .chip b{font-size:13px}
+  .chip .ic{width:32px;height:32px;border-radius:11px}
+  .ch1{left:0;top:4%}.ch2{right:0;top:30%}.ch3{display:none}.ch4{right:4%;bottom:0}
+  .eve-pin{padding:78px 16px 16px}
+  .eve-clock b{font-size:56px}
+  .moments{min-height:180px;margin-top:8px}
+  .moment h3{font-size:26px;margin-bottom:6px}
+  .moment p{font-size:15px;line-height:1.5}
+  .thermo{display:none}
+  .cut{padding:100px 0 80px}
+  .cut-head{margin-bottom:30px}
+  .house{padding:10px;border-radius:24px}
+  .house-hint{display:none}
+  .ctrl{grid-template-columns:1fr}
+  .scenes{grid-template-columns:repeat(2,1fr)}
+  .card{padding:16px;border-radius:24px}
+  .quiet{padding:100px 0 80px}
+  .feat{padding:24px;border-radius:26px}
+  .feat.wide{grid-template-columns:1fr}
+  .price{padding:0 0 90px}
+  .box,.quote{padding:28px 22px;border-radius:28px}
+  .faq{padding:90px 0}
+  .qa button{font-size:20px}
+  .ans p{padding-right:0}
+  footer .top{grid-template-columns:1fr 1fr;gap:28px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Hearth, home"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 34L32 13l22 21v19H10z" fill="#2B2347" stroke="#FFB45E" stroke-width="3.5" stroke-linejoin="round"/><rect x="26" y="34" width="12" height="12" rx="3" fill="#FFB45E"/></svg>Hearth</a>
+    <nav aria-label="Main"><ul><li><a href="#evening">An evening</a></li><li><a href="#rooms">Every room</a></li><li><a href="#quiet">Privacy</a></li><li><a href="#price">Price</a></li><li><a href="#faq">FAQ</a></li></ul></nav>
+    <div class="nav-r">
+      <a class="btn sm mag" href="#price">Get Hearth</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#evening">An evening</a><a href="#rooms">Every room</a><a href="#quiet">Privacy</a><a href="#price">Price</a><a href="#faq">FAQ</a>
+</div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="stars" id="stars" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <p class="kick hf">The home hub, made warm</p>
+      <h1 id="hero-h" style="margin-top:22px"><span class="mask"><span>Come home</span></span><span class="mask"><span>to a house</span></span><span class="mask"><span><em>already lit.</em></span></span></h1>
+      <p class="hero-lead hf">Hearth runs your lamps, heating and blinds from one small stone on the shelf. It learns your evenings, works without the internet and never asks for a subscription.</p>
+      <div class="hero-cta hf"><a class="btn mag" href="#rooms">Try the house <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn ghost" href="#evening">See an evening</a></div>
+      <div class="hero-note hf"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Runs locally</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v18M3 12h18"/></svg>No monthly fee</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>Set up in 10 minutes</span></div>
+    </div>
+    <div class="stone-wrap" id="stoneWrap" aria-hidden="true">
+      <svg viewBox="0 0 500 500">
+        <defs>
+          <radialGradient id="hStone" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#F7EEE2"/><stop offset=".55" stop-color="#D9C9B4"/><stop offset="1" stop-color="#9D8B78"/></radialGradient>
+          <radialGradient id="hHalo" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFB45E" stop-opacity=".55"/><stop offset=".6" stop-color="#F27B50" stop-opacity=".12"/><stop offset="1" stop-color="#F27B50" stop-opacity="0"/></radialGradient>
+          <linearGradient id="hShelf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A4466"/><stop offset="1" stop-color="#2E2444"/></linearGradient>
+          <filter id="hBlur"><feGaussianBlur stdDeviation="10"/></filter>
+          <filter id="hSoft"><feGaussianBlur stdDeviation="3"/></filter>
+        </defs>
+        <circle id="halo" cx="250" cy="250" r="230" fill="url(#hHalo)"/>
+        <rect x="60" y="356" width="380" height="26" rx="10" fill="url(#hShelf)"/>
+        <ellipse cx="250" cy="356" rx="150" ry="16" fill="#0E0B1E" opacity=".55" filter="url(#hBlur)"/>
+        <g id="stone">
+          <path d="M112 300c0-78 62-130 138-130s138 52 138 130c0 34-28 56-138 56S112 334 112 300z" fill="url(#hStone)"/>
+          <path d="M140 250c22-40 64-58 110-58" stroke="#fff" stroke-opacity=".6" stroke-width="8" stroke-linecap="round" fill="none" filter="url(#hSoft)"/>
+          <ellipse cx="250" cy="300" rx="104" ry="22" fill="none" stroke="#B8A58F" stroke-width="2"/>
+          <ellipse id="ringGlow" cx="250" cy="300" rx="104" ry="22" fill="none" stroke="#FFB45E" stroke-width="10" opacity=".7" filter="url(#hBlur)"/>
+          <ellipse id="ring" cx="250" cy="300" rx="104" ry="22" fill="none" stroke="#FFD9A3" stroke-width="3.5" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="0"/>
+          <circle cx="250" cy="246" r="5" fill="#8E7C69"/>
+        </g>
+        <g fill="#F7EEE2" opacity=".85"><rect x="380" y="276" width="26" height="80" rx="6" fill="#7B5E8A"/><rect x="408" y="290" width="22" height="66" rx="6" fill="#A8441F"/><path d="M92 356c-6-40 6-70 20-84M100 356c4-34 18-52 30-58M86 356c-14-24-12-48-2-64" stroke="#7FA07A" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="74" y="330" width="44" height="28" rx="8" fill="#C67B4E"/></g>
+      </svg>
+      <div class="chip ch1 hc"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg></span><span><b>Living room lamp</b><span>Warm white · 70%</span></span></div>
+      <div class="chip ch2 hc"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/></svg></span><span><b>Heating · 21°</b><span>Warm by 18:30</span></span></div>
+      <div class="chip ch3 hc"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><span><b>Front door</b><span>Locked at 23:02</span></span></div>
+      <div class="chip ch4 hc"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span><span><b>Blinds</b><span>Closed at sunset</span></span></div>
+    </div>
+  </div>
+</section>
+
+<section class="eve" id="evening" aria-labelledby="eve-h">
+  <div class="eve-pin" id="evePin">
+    <svg class="eve-sky" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="eSky" x1="0" y1="0" x2="0" y2="1"><stop id="es1" offset="0" stop-color="#4A5C8C"/><stop id="es2" offset=".6" stop-color="#E79A7A"/><stop id="es3" offset="1" stop-color="#F6C08A"/></linearGradient></defs><rect width="100" height="100" fill="url(#eSky)"/></svg>
+    <div class="eve-copy">
+      <h2 id="eve-h" class="sr">An evening with Hearth</h2>
+      <div class="eve-clock"><b id="eClock">17:30</b><span id="eLbl">Sunset</span></div>
+      <div class="moments" id="moments">
+        <article class="moment"><h3>On your way <em>home</em></h3><p>Hearth sees your phone leave the office and starts warming the living room to 21°. It needs twenty minutes; your train takes twenty-five.</p></article>
+        <article class="moment"><h3>The porch <em>knows you</em></h3><p>The porch light comes on as you reach the gate, and the hall lamp follows you in. No app, no fumbling for a switch in the dark.</p></article>
+        <article class="moment"><h3>Lamps soften <em>by themselves</em></h3><p>As the evening goes on, every lamp drifts warmer and dimmer, so the house winds down when you do.</p></article>
+        <article class="moment"><h3>Goodnight, <em>in one tap</em></h3><p>Touch the stone on your way upstairs: downstairs goes dark, the door locks and the heating settles at 17° until morning.</p></article>
+      </div>
+      <div class="thermo" aria-hidden="true"><svg viewBox="0 0 62 62"><circle cx="31" cy="31" r="26" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6"/><circle id="tArc" cx="31" cy="31" r="26" fill="none" stroke="#FFB45E" stroke-width="6" stroke-linecap="round" pathLength="1" stroke-dasharray="1 1" stroke-dashoffset=".6" transform="rotate(-90 31 31)"/></svg><div><b><span id="tNum">18</span>°</b><small>Living room</small></div></div>
+    </div>
+    <div class="eve-house" aria-hidden="true">
+      <svg viewBox="0 0 1000 700" id="eveSvg">
+        <defs>
+          <radialGradient id="eWin" cx="50%" cy="60%" r="70%"><stop offset="0" stop-color="#FFE2B0"/><stop offset="1" stop-color="#FFA24E"/></radialGradient>
+          <radialGradient id="eHalo" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFB45E" stop-opacity=".7"/><stop offset="1" stop-color="#FFB45E" stop-opacity="0"/></radialGradient>
+          <filter id="eBlur"><feGaussianBlur stdDeviation="2"/></filter>
+        </defs>
+        <g id="eStars" opacity="0" fill="#FFF3E2"></g>
+        <circle id="eSun" cx="180" cy="300" r="46" fill="#FFD9A3"/>
+        <g id="eMoon" opacity="0"><circle cx="820" cy="120" r="60" fill="#FFF3E2" opacity=".08"/><path d="M820 86A34 34 0 1 0 820 154A40 40 0 0 1 820 86z" fill="#FFF3E2"/></g>
+        <path d="M-2400 560H0C140 500 260 520 380 540S640 500 760 520 920 560 1000 540H2400V1400H-2400z" fill="#2E2848" id="eHill"/>
+        <path d="M-2400 615H0C200 580 380 600 520 610S820 590 1000 600H2400V1400H-2400z" fill="#1F1A36"/>
+        <g fill="#191430"><path d="M120 620V500"/><ellipse cx="120" cy="480" rx="46" ry="80"/><rect x="114" y="540" width="12" height="80"/><ellipse cx="880" cy="500" rx="40" ry="70"/><rect x="874" y="550" width="12" height="70"/><ellipse cx="190" cy="530" rx="30" ry="50"/></g>
+        <g id="house">
+          <rect x="560" y="140" width="40" height="90" fill="#2A2340"/>
+          <path d="M290 300L500 150 710 300z" fill="#2E2645"/>
+          <path d="M270 310L500 140 730 310" fill="none" stroke="#3E3460" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M270 300L500 130 730 300" fill="none" stroke="#B9B4E0" stroke-width="3" stroke-linecap="round" id="eRim" opacity="0"/>
+          <rect x="310" y="300" width="380" height="320" fill="#3A3157"/>
+          <rect x="310" y="300" width="380" height="320" fill="#1A1630" id="eShade" opacity=".2"/>
+          <path d="M310 455H690" stroke="#2E2645" stroke-width="6"/>
+        </g>
+        <g id="eWins"></g>
+        <rect x="470" y="520" width="60" height="100" rx="30" fill="#241E3E"/>
+        <rect x="474" y="524" width="52" height="96" rx="26" fill="url(#eWin)" id="eDoor" opacity="0"/>
+        <circle cx="545" cy="500" r="7" fill="#FFE2B0" id="ePorch" opacity="0"/>
+        <ellipse cx="545" cy="520" rx="70" ry="60" fill="url(#eHalo)" id="ePorchHalo" opacity="0"/>
+        <path d="M470 620L380 760H620L530 620z" fill="#2A2340"/>
+        <path d="M470 620L380 760H620L530 620z" fill="#FFB45E" opacity="0" id="ePath"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="cut" id="rooms" aria-labelledby="cut-h">
+  <div class="wrap">
+    <div class="cut-head"><div><p class="kick">Every room, one tap</p><h2 id="cut-h" class="split" style="margin-top:16px">Open up the house<br><em>and play</em></h2></div><p class="reveal">This is the Hearth app, minus the app. Pick a room in the house or the list, then switch its lamp, heating and blinds. Scenes set the whole house at once, and the meter shows what it costs to run.</p></div>
+    <div class="cut-grid">
+      <div class="house" id="houseBox">
+        <svg viewBox="24 30 772 612" id="houseSvg" aria-hidden="true"></svg>
+        <p class="house-hint" id="hint">Tap a room to select it</p>
+      </div>
+      <div class="ctrl">
+        <div class="card scenes-card"><h3 id="scH">Scenes</h3><div class="scenes" role="group" aria-labelledby="scH" id="scenes"></div></div>
+        <div class="card">
+          <div class="rooms" role="tablist" aria-label="Room" id="roomTabs"></div>
+          <div id="roomPanel" role="tabpanel">
+            <div class="row"><div class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg><div><b id="lblLight">Lamp</b><small id="lightSub">Off</small></div></div><button type="button" class="sw" role="switch" id="swLight" aria-checked="false" aria-labelledby="lblLight"></button></div>
+            <div class="slider"><label class="sr" for="bri">Brightness</label><input type="range" id="bri" min="10" max="100" step="5" value="70"><output id="briOut" for="bri">70%</output></div>
+            <div class="row"><div class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/></svg><div><b id="lblHeat">Heating</b><small id="heatSub">Off</small></div></div><button type="button" class="sw" role="switch" id="swHeat" aria-checked="false" aria-labelledby="lblHeat"></button></div>
+            <div class="slider" style="justify-content:flex-end"><div class="step"><button type="button" id="tDown" aria-label="Lower target temperature">−</button><output id="tOut" aria-live="polite">20°</output><button type="button" id="tUp" aria-label="Raise target temperature">+</button></div></div>
+            <div class="row"><div class="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16M5 4v12M19 4v12M5 8h14M5 12h14M5 16h14M12 16v4"/></svg><div><b id="lblBlind">Blinds closed</b><small id="blindSub">Open</small></div></div><button type="button" class="sw" role="switch" id="swBlind" aria-checked="false" aria-labelledby="lblBlind"></button></div>
+          </div>
+        </div>
+        <div class="card energy">
+          <h3>Energy, live</h3>
+          <div class="top"><p class="now"><span id="kw">0.00</span><small>kW now</small></p><p class="side">Today so far<b><span id="kwh">0.0</span> kWh</b></p></div>
+          <canvas id="chart" aria-label="Live graph of the house's power use over the last few minutes" role="img"></canvas>
+          <p class="verdict" id="verdict" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="quiet light" id="quiet" aria-labelledby="quiet-h">
+  <div class="wrap">
+    <div class="quiet-head"><div><p class="kick">Quiet by design</p><h2 id="quiet-h" class="split" style="margin-top:16px">Your house,<br><em>not our cloud</em></h2></div><p class="reveal">Everything Hearth decides, it decides on the stone itself. Your routines, voices and comings and goings stay inside your four walls unless you choose otherwise.</p></div>
+    <div class="feats">
+      <article class="feat wide rv"><div><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><path d="M3 3l18 18"/></svg></div><h3>Works when the internet doesn't</h3><p>Lamps, heating schedules and the goodnight scene all keep running through a broadband outage. Only remote access waits for the connection to come back.</p></div>
+        <div class="offline" aria-hidden="true"><svg viewBox="0 0 260 200"><rect width="260" height="200" fill="#221B38"/><path d="M60 120L130 66l70 54v60H60z" fill="#3A3157"/><rect x="84" y="128" width="28" height="24" rx="4" fill="#FFB45E" class="blink"/><rect x="148" y="128" width="28" height="24" rx="4" fill="#FFB45E"/><rect x="116" y="150" width="28" height="30" rx="14" fill="#241E3E"/><g stroke="#BDB2CC" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"><path d="M188 40a30 30 0 0 1 42 0M196 50a18 18 0 0 1 26 0"/><circle cx="209" cy="62" r="3" fill="#BDB2CC"/><path d="M186 30l46 46" stroke="#F27B50"/></g></svg></div></article>
+      <article class="feat rv"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div><h3>No cameras, no microphones</h3><p>The stone has a touch ring and a light. That's it. Voice control is optional and runs through a speaker you already trust.</p></article>
+      <article class="feat rv"><p class="big"><span class="count" data-to="7">0</span> yrs</p><h3>of updates, promised</h3><p>Security and feature updates for at least seven years from the day you plug it in.</p></article>
+      <article class="feat rv"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><h3>Learns slowly, on purpose</h3><p>Hearth suggests a routine only after it has seen it for two weeks, and never changes one without asking.</p></article>
+      <article class="feat rv"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h4l3-7 4 14 3-7h2"/></svg></div><h3>Talks to what you own</h3><p>Works with most lamps, radiator valves and blinds that speak open smart-home standards, old and new.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="price light" id="price" aria-labelledby="price-h">
+  <div class="wrap">
+    <div class="price-grid">
+      <div class="box rv"><span class="glow" aria-hidden="true"></span><p class="kick">One price, once</p><h2 id="price-h" style="margin-top:14px;font-size:clamp(36px,3.6vw,54px)">The Hearth stone</h2><p class="amt">€189<small>no subscription</small></p><ul><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Hub, wall plate and a warm-white starter bulb</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>Every feature on this page, today and later</li><li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>100-night trial, free returns</li></ul><button type="button" class="btn" id="buyBtn">Reserve yours</button><p class="sr" id="buyMsg" role="status"></p></div>
+      <div class="quote rv"><blockquote>“I stopped thinking about the house. The lamps come on, the radiators know when we're out, and our bill went down the first winter.”</blockquote><cite><span class="ava" aria-hidden="true"></span><span><b>Ingrid Vahl</b>Terraced house, two kids, one very old boiler</span></cite></div>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="faq" aria-labelledby="faq-h">
+  <div class="wrap">
+    <div><p class="kick">Questions</p><h2 id="faq-h" class="split" style="margin-top:16px">Asked by people<br><em>with dimmer switches</em></h2></div>
+    <div id="faqList">
+      <div class="qa"><button type="button" aria-expanded="false" aria-controls="a1">Do I need new lamps or radiators?<i aria-hidden="true"></i></button><div class="ans" id="a1"><div><p>Usually not. Hearth controls most smart bulbs, plugs and radiator valves that follow open standards. For ordinary lamps, a smart plug is enough to get started.</p></div></div></div>
+      <div class="qa"><button type="button" aria-expanded="false" aria-controls="a2">What happens if your company disappears?<i aria-hidden="true"></i></button><div class="ans" id="a2"><div><p>Your stone keeps working. Everything runs locally, and we've committed to publishing the tools you need to keep it running without us.</p></div></div></div>
+      <div class="qa"><button type="button" aria-expanded="false" aria-controls="a3">Can I still use the wall switches?<i aria-hidden="true"></i></button><div class="ans" id="a3"><div><p>Yes. Hearth notices when someone uses a switch and works around it, so guests never need an app to turn on a light.</p></div></div></div>
+      <div class="qa"><button type="button" aria-expanded="false" aria-controls="a4">How much energy will it save?<i aria-hidden="true"></i></button><div class="ans" id="a4"><div><p>It depends on your home and habits. Most of the saving comes from not heating empty rooms, and the energy view shows you exactly where it goes.</p></div></div></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 34L32 13l22 21v19H10z" fill="#2B2347" stroke="#FFB45E" stroke-width="3.5" stroke-linejoin="round"/><rect x="26" y="34" width="12" height="12" rx="3" fill="#FFB45E"/></svg>Hearth</a>
+        <form id="nlForm" novalidate><label class="sr" for="nl">Email for the Hearth letter</label><input id="nl" type="email" placeholder="Email, for one letter a season" autocomplete="email"><button class="btn sm" type="submit">Join</button></form><p class="ok" id="nlOk" role="status"></p></div>
+      <div><h4>Product</h4><ul><li><a href="#rooms">Rooms &amp; scenes</a></li><li><a href="#evening">Routines</a></li><li><a href="#price">Price</a></li></ul></div>
+      <div><h4>Trust</h4><ul><li><a href="#quiet">Privacy</a></li><li><a href="#quiet">Updates</a></li><li><a href="#faq">FAQ</a></li></ul></div>
+      <div><h4>Hearth</h4><ul><li><a href="#top">Our story</a></li><li><a href="#faq">Support</a></li><li><a href="#top">Press</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Hearth Home</span><span>Concept design — fictional brand.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rmo')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+const seg = (p, a, b) => clamp((p - a) / (b - a), 0, 1)
+$('#yr').textContent = new Date().getFullYear()
+
+/* ---------- stars ---------- */
+const rnd = (i, k = 1) => { const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v) }
+$('#stars').innerHTML = Array.from({ length: 70 }, (_, i) => `<i style="left:${(rnd(i) * 100).toFixed(2)}%;top:${(rnd(i, 2) * 100).toFixed(2)}%;opacity:${.3 + (i % 5) * .14};animation-delay:${(i % 9) * .45}s;transform:scale(${1 + (i % 3) * .4})"></i>`).join('')
+$('#eStars').innerHTML = Array.from({ length: 60 }, (_, i) => `<circle cx="${(rnd(i, 3) * 1000).toFixed(1)}" cy="${(rnd(i, 4) * 430).toFixed(1)}" r="${1 + (i % 3) * .6}" opacity="${.4 + (i % 4) * .15}"/>`).join('')
+
+/* ---------- cutaway house ---------- */
+const ROOMS = [
+  { id: 'bed', n: 'Bedroom', x: 90, y: 260, w: 315, h: 150, base: '#3A3157',
+    furn: `<rect x="160" y="96" width="140" height="40" rx="8" fill="#5E4E80"/><rect x="286" y="66" width="18" height="70" rx="6" fill="#4A3D68"/><rect x="250" y="84" width="34" height="16" rx="7" fill="#E9DDEE"/><path d="M160 104h110v32H160z" fill="#7A6AA0"/><rect x="132" y="104" width="22" height="32" rx="4" fill="#4A3D68"/><path d="M143 104v-14" stroke="#C9B9DA" stroke-width="3"/><path d="M134 90h18l-4-12h-10z" fill="#E9DDEE"/>`, lamp: [143, 84] },
+  { id: 'study', n: 'Study', x: 415, y: 260, w: 315, h: 150, base: '#33405E',
+    furn: `<rect x="150" y="92" width="150" height="7" rx="3" fill="#8A6A55"/><path d="M160 99v44M290 99v44" stroke="#6E5444" stroke-width="5"/><rect x="200" y="58" width="58" height="36" rx="4" fill="#1B1830"/><rect x="204" y="62" width="50" height="28" rx="2" fill="#4E6A9A" class="screen"/><path d="M229 94v-2" stroke="#1B1830" stroke-width="4"/><rect x="170" y="108" width="36" height="34" rx="8" fill="#4A3D68"/><g fill="#C67B4E"><rect x="246" y="18" width="10" height="30"/><rect x="258" y="22" width="8" height="26" fill="#7FA07A"/><rect x="268" y="16" width="12" height="32" fill="#E9DDEE"/></g><path d="M240 48h60" stroke="#8A6A55" stroke-width="4"/>`, lamp: [195, 40] },
+  { id: 'kit', n: 'Kitchen', x: 90, y: 420, w: 315, h: 160, base: '#3E3658',
+    furn: `<rect x="140" y="18" width="160" height="34" rx="4" fill="#4E4570"/><path d="M180 18v34M220 18v34M260 18v34" stroke="#3A3157" stroke-width="2"/><rect x="140" y="98" width="160" height="62" fill="#5A4E7C"/><rect x="134" y="92" width="172" height="8" rx="3" fill="#C9B9DA"/><rect x="160" y="110" width="40" height="34" rx="4" fill="#3A3157"/><circle cx="240" cy="96" r="2" fill="#C9B9DA"/><path d="M236 92c0-10 10-10 10-20" stroke="#C9B9DA" stroke-width="2" fill="none" opacity=".6"/><rect x="250" y="76" width="22" height="16" rx="3" fill="#C67B4E"/><rect x="214" y="80" width="18" height="12" rx="6" fill="#7FA07A"/>`, lamp: [215, 62] },
+  { id: 'liv', n: 'Living room', x: 415, y: 420, w: 315, h: 160, base: '#463A5E',
+    furn: `<ellipse cx="200" cy="150" rx="110" ry="9" fill="#5E4E80" opacity=".7"/><path d="M130 112c0-12 8-18 20-18h96c12 0 20 6 20 18v10H130z" fill="#B45F43"/><rect x="122" y="116" width="152" height="28" rx="10" fill="#C86E4F"/><rect x="140" y="106" width="56" height="16" rx="6" fill="#D88866"/><rect x="200" y="106" width="56" height="16" rx="6" fill="#D88866"/><path d="M132 144v8M264 144v8" stroke="#6E5444" stroke-width="5" stroke-linecap="round"/><path d="M296 152V70" stroke="#C9B9DA" stroke-width="3"/><path d="M282 72h28l-6-20h-16z" fill="#E9DDEE"/><ellipse cx="296" cy="153" rx="12" ry="3" fill="#C9B9DA"/><rect x="132" y="56" width="16" height="22" rx="4" fill="#7FA07A"/><path d="M140 56c-4-14 6-22 10-26M140 56c6-12 16-14 20-12" stroke="#7FA07A" stroke-width="3" fill="none"/>`, lamp: [296, 86] },
+]
+function roomSvg(r) {
+  const W = r.w, H = r.h, id = r.id
+  return `<g class="rm" id="rm-${id}" data-r="${id}" transform="translate(${r.x} ${r.y})">
+    <defs><radialGradient id="warm-${id}" cx="${r.lamp[0] / W * 100}%" cy="${r.lamp[1] / H * 100}%" r="85%"><stop offset="0" stop-color="#FFD9A3" stop-opacity=".95"/><stop offset=".45" stop-color="#FFB45E" stop-opacity=".45"/><stop offset="1" stop-color="#F27B50" stop-opacity=".12"/></radialGradient>
+    <linearGradient id="win-${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B3866"/><stop offset="1" stop-color="#4A4A7A"/></linearGradient>
+    <clipPath id="clip-${id}"><rect width="${W}" height="${H}"/></clipPath></defs>
+    <g clip-path="url(#clip-${id})">
+    <rect width="${W}" height="${H}" fill="${r.base}"/>
+    <rect x="0" y="${H - 8}" width="${W}" height="8" fill="#2A2340"/>
+    <rect class="warm" width="${W}" height="${H}" fill="url(#warm-${id})" opacity="0"/>
+    <g transform="translate(26 ${H * .2})"><rect width="84" height="64" rx="4" fill="url(#win-${id})"/><circle cx="62" cy="16" r="6" fill="#FFF3E2" opacity=".8"/><g fill="#FFF3E2" opacity=".6"><circle cx="16" cy="12" r="1.2"/><circle cx="34" cy="26" r="1"/><circle cx="48" cy="10" r="1"/></g><path d="M42 0v64M0 32h84" stroke="#2A2340" stroke-width="4"/><rect x="0" y="0" width="84" height="64" rx="4" fill="none" stroke="#2A2340" stroke-width="5"/>
+      <g class="blind"><rect x="2" y="0" width="80" height="64" fill="#E9DDEE"/><path d="M2 8h80M2 16h80M2 24h80M2 32h80M2 40h80M2 48h80M2 56h80" stroke="#BFAFD0" stroke-width="1.5"/><rect x="2" y="60" width="80" height="4" fill="#A897BC"/></g>
+      <rect y="-6" width="84" height="7" rx="2" fill="#2A2340"/></g>
+    <g transform="translate(30 ${H * .2 + 80})"><rect class="rad" width="76" height="22" rx="4" fill="#5A5078"/><path d="M12 2v18M24 2v18M36 2v18M48 2v18M60 2v18" stroke="#2A2340" stroke-width="2" opacity=".5"/>
+      <g class="waves" opacity="0" fill="none" stroke="#F27B50" stroke-width="2" stroke-linecap="round"><path d="M14 -4c-4-6 4-10 0-16"/><path d="M38 -4c-4-6 4-10 0-16"/><path d="M62 -4c-4-6 4-10 0-16"/></g></g>
+    ${r.furn}
+    ${id === 'liv' || id === 'bed' ? '' : `<path d="M${r.lamp[0]} 0V${r.lamp[1] - 16}" stroke="#C9B9DA" stroke-width="2"/><path d="M${r.lamp[0] - 14} ${r.lamp[1]}h28l-6-16h-16z" fill="#E9DDEE"/>`}
+    <circle class="lglow" cx="${r.lamp[0]}" cy="${r.lamp[1] + 4}" r="36" fill="#FFE2B0" opacity="0" style="filter:blur(8px)"/>
+    <rect class="dark" width="${W}" height="${H}" fill="#0E0B1E" opacity=".55"/>
+    <rect class="hov" width="${W}" height="${H}" fill="#FFF3E2"/>
+    </g>
+    <rect class="sel" x="1.5" y="1.5" width="${W - 3}" height="${H - 3}" rx="6" fill="none" stroke="#FFB45E" stroke-width="3"/>
+    <g class="tbadge" transform="translate(${W - 74} 12)"><rect width="62" height="26" rx="13" fill="#1A1630" opacity=".8"/><text x="31" y="17.5" text-anchor="middle" font-family="Rethink Sans, sans-serif" font-size="13" font-weight="600" fill="#FFB45E" class="tt">off</text></g>
+    <text x="14" y="${H - 16}" font-family="Rethink Sans, sans-serif" font-size="14" font-weight="600" fill="#F6EBDD">${r.n}</text>
+  </g>`
+}
+$('#houseSvg').innerHTML = `
+  <defs><linearGradient id="roofG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E3460"/><stop offset="1" stop-color="#2B2347"/></linearGradient></defs>
+  <g fill="#FFF3E2" opacity=".5">${Array.from({ length: 26 }, (_, i) => `<circle cx="${(rnd(i, 5) * 820).toFixed(1)}" cy="${(30 + rnd(i, 6) * 200).toFixed(1)}" r="${1 + (i % 3) * .5}"/>`).join('')}</g>
+  <g class="smoke" opacity="0" id="smoke"><circle cx="642" cy="110" r="10" fill="#BDB2CC"/><circle cx="642" cy="110" r="10" fill="#BDB2CC"/><circle cx="642" cy="110" r="10" fill="#BDB2CC"/></g>
+  <rect x="620" y="110" width="44" height="90" fill="#2B2347"/><rect x="614" y="104" width="56" height="12" rx="3" fill="#3E3460"/>
+  <path d="M40 255L410 50 780 255z" fill="url(#roofG)"/>
+  <path d="M40 255L410 50 780 255" fill="none" stroke="#4A4070" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="410" cy="180" r="30" fill="#1A1630" stroke="#4A4070" stroke-width="6"/><path d="M410 150v60M380 180h60" stroke="#4A4070" stroke-width="4"/>
+  <rect x="80" y="250" width="660" height="340" fill="#2A2340"/>
+  ${ROOMS.map(roomSvg).join('')}
+  <rect x="0" y="588" width="820" height="52" rx="10" fill="#211B38"/>
+  <path d="M0 592h820" stroke="#4A4070" stroke-width="4"/>
+  <g fill="#7FA07A" opacity=".8"><ellipse cx="40" cy="586" rx="34" ry="18"/><ellipse cx="782" cy="586" rx="30" ry="16"/></g>`
+
+const S = {}
+ROOMS.forEach((r) => { S[r.id] = { light: false, b: 70, heat: false, t: 20, blind: false } })
+let cur = 'liv', scene = null
+const SCENES = [
+  { id: 'morning', n: 'Morning', ic: '<path d="M12 4v2M4.9 7.9l1.4 1.4M19.1 7.9l-1.4 1.4M3 16h18M7 16a5 5 0 0 1 10 0"/>', s: { bed: [1, 40, 1, 21, 0], study: [0, 70, 0, 20, 0], kit: [1, 85, 1, 21, 0], liv: [0, 70, 0, 20, 0] } },
+  { id: 'evening', n: 'Evening', ic: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/>', s: { bed: [0, 40, 0, 19, 1], study: [1, 55, 0, 20, 1], kit: [1, 60, 0, 20, 1], liv: [1, 75, 1, 21, 1] } },
+  { id: 'night', n: 'Night', ic: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>', s: { bed: [1, 15, 1, 18, 1], study: [0, 40, 0, 17, 1], kit: [0, 40, 0, 17, 1], liv: [0, 40, 0, 17, 1] } },
+  { id: 'away', n: 'Away', ic: '<path d="M3 11l9-7 9 7v9H3z"/><path d="M15 15l3 3M18 15l-3 3"/>', s: { bed: [0, 40, 0, 16, 1], study: [0, 40, 0, 16, 1], kit: [0, 40, 0, 16, 1], liv: [0, 40, 0, 16, 1] } },
+]
+$('#scenes').innerHTML = SCENES.map((s) => `<button type="button" aria-pressed="false" data-s="${s.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">${s.ic}</svg>${s.n}</button>`).join('')
+$('#roomTabs').innerHTML = ROOMS.map((r) => `<button type="button" role="tab" id="tab-${r.id}" aria-selected="${r.id === cur}" aria-controls="roomPanel" tabindex="${r.id === cur ? 0 : -1}" data-r="${r.id}">${r.n.replace(' room', '')}</button>`).join('')
+
+function paintRoom(id) {
+  const st = S[id], g = $(`#rm-${id}`), on = st.light, b = st.b / 100
+  $('.warm', g).style.opacity = on ? (.25 + .7 * b).toFixed(2) : 0
+  $('.lglow', g).style.opacity = on ? (.4 + .6 * b).toFixed(2) : 0
+  $('.dark', g).style.opacity = on ? (.3 * (1 - b)).toFixed(2) : .58
+  $('.rad', g).style.fill = st.heat ? '#F27B50' : '#5A5078'
+  $('.waves', g).style.opacity = st.heat ? 1 : 0
+  $('.blind', g).style.transform = `scaleY(${st.blind ? 1 : .1})`
+  $('.tt', g).textContent = st.heat ? `${st.t}°` : 'off'
+  const scr = $('.screen', g); if (scr) scr.style.fill = on ? '#9FC2F0' : '#4E6A9A'
+}
+function paintAll() { ROOMS.forEach((r) => paintRoom(r.id)); $('#smoke').style.opacity = ROOMS.some((r) => S[r.id].heat) ? 1 : 0 }
+function syncPanel() {
+  const st = S[cur], R = ROOMS.find((r) => r.id === cur)
+  $$('#roomTabs button').forEach((b) => { const on = b.dataset.r === cur; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1 })
+  $$('.rm').forEach((g) => g.classList.toggle('on', g.dataset.r === cur))
+  $('#roomPanel').setAttribute('aria-labelledby', `tab-${cur}`)
+  $('#swLight').setAttribute('aria-checked', st.light); $('#swHeat').setAttribute('aria-checked', st.heat); $('#swBlind').setAttribute('aria-checked', st.blind)
+  $('#lblLight').textContent = `${R.n} lamp`
+  $('#lightSub').textContent = st.light ? `On · ${st.b}%` : 'Off'
+  $('#heatSub').textContent = st.heat ? `Heating to ${st.t}°` : `Off · eco ${Math.min(st.t, 16)}°`
+  $('#blindSub').textContent = st.blind ? 'Closed' : 'Open'
+  $('#bri').value = st.b; $('#briOut').textContent = `${st.b}%`;
+  $('#tOut').textContent = `${st.t}°`
+  verdict()
+}
+function setScene(id) {
+  scene = id
+  $$('#scenes button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.s === id))
+}
+function apply(id, sc) {
+  // each room changes a beat after the last, like someone walking through the house
+  const order = ['kit', 'liv', 'study', 'bed']
+  order.forEach((rid, k) => {
+    const [l, b, h, t, bl] = sc.s[rid]
+    const go = () => { Object.assign(S[rid], { light: !!l, b, heat: !!h, t, blind: !!bl }); paintRoom(rid); $('#smoke').style.opacity = ROOMS.some((r) => S[r.id].heat) ? 1 : 0; if (rid === cur) syncPanel() }
+    anim ? setTimeout(go, k * 160) : go()
+  })
+  setScene(id)
+  $('#verdict').innerHTML = `<b>${sc.n}</b> scene on. ${{ morning: 'Kitchen and bedroom warm, blinds up.', evening: 'Living room lamps and heat, blinds down.', night: 'One dim lamp upstairs, heating at 18°.', away: 'Everything off, frost guard at 16°.' }[id]}`
+}
+$('#scenes').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) apply(b.dataset.s, SCENES.find((s) => s.id === b.dataset.s)) })
+function selectRoom(id, focus) { cur = id; syncPanel(); if (focus) $(`#tab-${id}`).focus() }
+$('#roomTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) selectRoom(b.dataset.r) })
+$('#roomTabs').addEventListener('keydown', (e) => {
+  const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!d) return
+  e.preventDefault(); const i = ROOMS.findIndex((r) => r.id === cur); selectRoom(ROOMS[(i + d + ROOMS.length) % ROOMS.length].id, true)
+})
+$('#houseSvg').addEventListener('click', (e) => { const g = e.target.closest('.rm'); if (g) selectRoom(g.dataset.r) })
+$('#houseSvg').addEventListener('dblclick', (e) => { const g = e.target.closest('.rm'); if (g) { S[g.dataset.r].light = !S[g.dataset.r].light; changed() } })
+function changed() { setScene(null); paintAll(); syncPanel() }
+$('#swLight').addEventListener('click', () => { S[cur].light = !S[cur].light; changed() })
+$('#swHeat').addEventListener('click', () => { S[cur].heat = !S[cur].heat; changed() })
+$('#swBlind').addEventListener('click', () => { S[cur].blind = !S[cur].blind; changed() })
+$('#bri').addEventListener('input', () => { S[cur].b = +$('#bri').value; if (!S[cur].light) S[cur].light = true; changed() })
+$('#tUp').addEventListener('click', () => { S[cur].t = Math.min(24, S[cur].t + 1); S[cur].heat = true; changed() })
+$('#tDown').addEventListener('click', () => { S[cur].t = Math.max(15, S[cur].t - 1); changed() })
+if (!matchMedia('(hover:hover)').matches) $('#hint').textContent = 'Tap a room to select it'
+else $('#hint').textContent = 'Click a room to select it · double-click to switch its lamp'
+
+/* ---------- energy ---------- */
+function load() {
+  let kw = .14
+  ROOMS.forEach((r) => { const s = S[r.id]; if (s.light) kw += .01 + .05 * s.b / 100; if (s.heat) kw += .28 + .11 * (s.t - 16) })
+  return kw
+}
+function verdict() {
+  if (scene) return
+  const kw = load(), heats = ROOMS.filter((r) => S[r.id].heat).length
+  $('#verdict').innerHTML = heats === 0 ? 'No rooms heating. <b>Coolest it gets.</b>' : heats >= 3 ? `${heats} rooms heating at once. <b>Try heating only where you are.</b>` : `${heats} room${heats > 1 ? 's' : ''} heating. <b>${kw < 1.2 ? 'A gentle evening.' : 'Cosy, and it shows.'}</b>`
+}
+const cv = $('#chart'), cx = cv.getContext('2d')
+let CW = 0, CH = 0
+const pts = []
+const hour = new Date().getHours() + new Date().getMinutes() / 60
+let kwh = Math.max(.4, hour * .42)
+function sizeChart() { const d = Math.min(devicePixelRatio || 1, 2); CW = cv.clientWidth; CH = cv.clientHeight; cv.width = CW * d; cv.height = CH * d; cx.setTransform(d, 0, 0, d, 0, 0); drawChart() }
+let shown = 0
+function drawChart() {
+  if (!CW) return
+  cx.clearRect(0, 0, CW, CH)
+  const max = 3.2, n = 60, step = CW / (n - 1)
+  cx.strokeStyle = 'rgba(255,230,200,.1)'; cx.lineWidth = 1
+  for (let k = 1; k < 4; k++) { const y = CH - k / 4 * CH; cx.beginPath(); cx.moveTo(0, y); cx.lineTo(CW, y); cx.stroke() }
+  const data = pts.slice(-n)
+  if (data.length < 2) return
+  const off = n - data.length
+  const X = (i) => (i + off) * step, Y = (v) => CH - 6 - v / max * (CH - 12)
+  const grad = cx.createLinearGradient(0, 0, 0, CH); grad.addColorStop(0, 'rgba(255,180,94,.55)'); grad.addColorStop(1, 'rgba(242,123,80,0)')
+  cx.beginPath(); cx.moveTo(X(0), CH)
+  data.forEach((v, i) => cx.lineTo(X(i), Y(v)))
+  cx.lineTo(X(data.length - 1), CH); cx.closePath(); cx.fillStyle = grad; cx.fill()
+  cx.beginPath(); data.forEach((v, i) => (i ? cx.lineTo(X(i), Y(v)) : cx.moveTo(X(i), Y(v)))); cx.strokeStyle = '#FFB45E'; cx.lineWidth = 2.5; cx.lineJoin = 'round'; cx.stroke()
+  const lx = X(data.length - 1), ly = Y(data[data.length - 1])
+  cx.beginPath(); cx.arc(lx - 2, ly, 5, 0, Math.PI * 2); cx.fillStyle = '#FFD9A3'; cx.fill()
+}
+let seed = 1
+const noise = () => { seed = (seed * 16807) % 2147483647; return (seed / 2147483647 - .5) }
+function tick() {
+  const target = load()
+  shown += (target - shown) * .35
+  pts.push(Math.max(.05, shown + noise() * .04 * (shown + .2)))
+  if (pts.length > 80) pts.shift()
+  kwh += shown / 60
+  $('#kw').textContent = shown.toFixed(2); $('#kwh').textContent = kwh.toFixed(1)
+  drawChart()
+}
+let chartOn = false, chartTimer = null
+function chartLoop(on) {
+  if (on && !chartTimer) chartTimer = setInterval(tick, anim ? 450 : 1500)
+  if (!on && chartTimer) { clearInterval(chartTimer); chartTimer = null }
+}
+
+/* ---------- initial state: a warm evening ---------- */
+apply('evening', SCENES[1])
+// apply() staggers with timeouts; paint immediately for first render
+SCENES[1] && Object.entries(SCENES[1].s).forEach(([rid, [l, b, h, t, bl]]) => Object.assign(S[rid], { light: !!l, b, heat: !!h, t, blind: !!bl }))
+paintAll(); syncPanel(); setScene('evening')
+$('#verdict').innerHTML = '<b>Evening</b> scene on. Living room lamps and heat, blinds down.'
+shown = load(); for (let k = 0; k < 60; k++) { pts.push(Math.max(.05, shown + noise() * .05)); }
+sizeChart(); addEventListener('resize', sizeChart)
+$('#kw').textContent = shown.toFixed(2); $('#kwh').textContent = kwh.toFixed(1)
+new IntersectionObserver(([e]) => { chartOn = e.isIntersecting; chartLoop(chartOn) }).observe(cv)
+
+/* ---------- evening exterior ---------- */
+const WINS = [
+  { id: 'wBed', x: 345, y: 340, w: 90, h: 78, on: (p) => seg(p, .78, .82) * (1 - seg(p, .95, .99)) * .7 },
+  { id: 'wStudy', x: 565, y: 340, w: 90, h: 78, on: (p) => seg(p, .22, .27) * (1 - seg(p, .5, .55)) },
+  { id: 'wKit', x: 340, y: 488, w: 100, h: 84, on: (p) => seg(p, .2, .25) * (1 - seg(p, .66, .7)) },
+  { id: 'wLiv', x: 560, y: 488, w: 100, h: 84, on: (p) => seg(p, .06, .14) * (1 - seg(p, .58, .78) * .45) * (1 - seg(p, .86, .9)) },
+  { id: 'wAttic', x: 480, y: 222, w: 40, h: 40, round: 1, on: (p) => seg(p, .4, .44) * (1 - seg(p, .6, .64)) * .6 },
+]
+$('#eWins').innerHTML = WINS.map((w) => `<g><ellipse cx="${w.x + w.w / 2}" cy="${w.y + w.h / 2}" rx="${w.w * 1.1}" ry="${w.h}" fill="url(#eHalo)" class="halo" opacity="0"/>${w.round ? `<circle cx="${w.x + 20}" cy="${w.y + 20}" r="20" fill="#1E1934"/><circle cx="${w.x + 20}" cy="${w.y + 20}" r="20" fill="url(#eWin)" class="lit" opacity="0"/>` : `<rect x="${w.x}" y="${w.y}" width="${w.w}" height="${w.h}" rx="6" fill="#1E1934"/><rect x="${w.x}" y="${w.y}" width="${w.w}" height="${w.h}" rx="6" fill="url(#eWin)" class="lit" opacity="0"/><path d="M${w.x + w.w / 2} ${w.y}v${w.h}M${w.x} ${w.y + w.h / 2}h${w.w}" stroke="#2E2645" stroke-width="5"/><rect x="${w.x - 6}" y="${w.y + w.h}" width="${w.w + 12}" height="8" rx="3" fill="#2E2645"/>`}</g>`).join('')
+const winEls = [...$('#eWins').children]
+// phones: frame the house tighter so it doesn't shrink to a postage stamp
+const eveVB = () => $('#eveSvg').setAttribute('viewBox', innerWidth < 760 ? '170 70 680 600' : '0 0 1000 700')
+eveVB(); addEventListener('resize', eveVB)
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+const mixc = (a, b, t) => `rgb(${hex(a).map((v, i) => Math.round(v + (hex(b)[i] - v) * t)).join(',')})`
+const SKY = [['#4A5C8C', '#E79A7A', '#F6C08A'], ['#2B2F5E', '#8A5C86', '#D98A6E'], ['#1A1A40', '#2E2850', '#4A3560'], ['#0E0C22', '#1A1630', '#241E3E']]
+function eveAt(p) {
+  const s = Math.min(2.999, p * 3), i = Math.floor(s), t = s - i
+  ;['es1', 'es2', 'es3'].forEach((id, k) => $('#' + id).setAttribute('stop-color', mixc(SKY[i][k], SKY[i + 1][k], t)))
+  $('#eSun').setAttribute('cy', 300 + p * 520); $('#eSun').setAttribute('opacity', (1 - seg(p, .2, .4)).toFixed(2))
+  $('#eMoon').setAttribute('opacity', seg(p, .35, .6).toFixed(2)); $('#eMoon').setAttribute('transform', `translate(0 ${(1 - p) * 80})`)
+  $('#eStars').setAttribute('opacity', seg(p, .3, .7).toFixed(2))
+  $('#eShade').setAttribute('opacity', (.2 + seg(p, 0, .6) * .3).toFixed(2)); $('#eRim').setAttribute('opacity', (seg(p, .5, .8) * .55).toFixed(2))
+  $('#eHill').setAttribute('fill', mixc('#3E3460', '#1F1A36', seg(p, 0, .7)))
+  WINS.forEach((w, k) => { const v = w.on(p); $('.lit', winEls[k]).setAttribute('opacity', v.toFixed(2)); $('.halo', winEls[k]).setAttribute('opacity', (v * .7).toFixed(2)) })
+  const porch = seg(p, .26, .3) * (1 - seg(p, .52, .56)), door = seg(p, .28, .31) * (1 - seg(p, .4, .45))
+  $('#ePorch').setAttribute('opacity', porch.toFixed(2)); $('#ePorchHalo').setAttribute('opacity', porch.toFixed(2)); $('#eDoor').setAttribute('opacity', (door * .9).toFixed(2)); $('#ePath').setAttribute('opacity', (porch * .25).toFixed(2))
+  const mins = 17 * 60 + 30 + Math.round(p * 6 * 60 / 5) * 5, hh = Math.floor(mins / 60) % 24
+  $('#eClock').textContent = `${String(hh).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`
+  $('#eLbl').textContent = p < .2 ? 'Sunset' : p < .5 ? 'Dusk' : p < .8 ? 'Evening' : 'Night'
+  const temp = 18 + 3 * seg(p, .02, .3) - 4 * seg(p, .86, 1)
+  $('#tNum').textContent = Math.round(temp); $('#tArc').setAttribute('stroke-dashoffset', (1 - (temp - 14) / 10).toFixed(3))
+}
+const moments = $$('.moment')
+let curM = -1, mTw = []
+function setMoment(i) {
+  if (i === curM) return
+  const prev = curM; curM = i
+  mTw.forEach((t) => t.kill()); mTw = []
+  moments.forEach((m, k) => { if (k !== i && k !== prev) G.set(m, { autoAlpha: 0 }) })
+  if (prev >= 0) mTw.push(G.to(moments[prev], { autoAlpha: 0, y: -14, duration: .3, ease: 'power2.in' }))
+  mTw.push(G.fromTo(moments[i], { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: .75, delay: prev >= 0 ? .22 : 0, ease: 'power3.out' }))
+}
+
+/* ---------- nav, menu, faq, forms ---------- */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Close menu' : 'Open menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+$('#faqList').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const open = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', open); b.parentElement.classList.toggle('open', open) })
+$('#buyBtn').addEventListener('click', () => { const b = $('#buyBtn'); b.textContent = 'Reserved · ships in 2 weeks'; $('#buyMsg').textContent = 'Your Hearth stone is reserved.' })
+$('#nlForm').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#nl').value.trim(); $('#nlOk').textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Lovely. See you at the next solstice.' : 'Please enter a valid email address.' })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .085 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .22}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .32}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+if (!anim) {
+  eveAt(.55)
+  $$('.count').forEach((c) => { c.textContent = c.dataset.to })
+  return
+}
+
+/* ---------- motion ---------- */
+G.set('.hero h1 .mask>span', { yPercent: 112 })
+G.set('.hf', { autoAlpha: 0, y: 18 })
+G.set('.hc', { autoAlpha: 0, scale: .8, y: 20 })
+G.set('#ring', { attr: { 'stroke-dashoffset': 1 } })
+G.set(['#ringGlow', '#halo'], { opacity: 0 })
+G.set('#stone', { y: 30, opacity: 0 })
+G.timeline({ delay: .1 })
+  .to('#stone', { y: 0, opacity: 1, duration: 1, ease: 'expo.out' }, 0)
+  .to('.hero h1 .mask>span', { yPercent: 0, duration: 1.1, stagger: .1, ease: 'expo.out' }, .1)
+  .to('#ring', { attr: { 'stroke-dashoffset': 0 }, duration: 1.1, ease: 'power2.inOut' }, .35)
+  .to('#ringGlow', { opacity: .7, duration: .8 }, .9)
+  .to('#halo', { opacity: 1, duration: 1.2, ease: 'power2.out' }, .9)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .8, stagger: .07, ease: 'power3.out' }, .5)
+  .to('.hc', { autoAlpha: 1, scale: 1, y: 0, duration: .8, stagger: .12, ease: 'back.out(1.8)' }, .9)
+G.to('#ringGlow', { opacity: .35, duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 2.2 })
+const sw = $('#stoneWrap')
+$('.hero').addEventListener('pointermove', (e) => {
+  const dx = e.clientX / innerWidth - .5, dy = e.clientY / innerHeight - .5
+  $$('.hc').forEach((c, i) => G.to(c, { x: dx * (18 + i * 10), y: dy * (14 + i * 8), duration: 1, ease: 'power3.out', overwrite: 'auto' }))
+  G.to('#stone', { x: dx * 10, duration: 1.2, ease: 'power3.out', overwrite: 'auto' })
+})
+// tapping the stone toggles its ring, as on the real thing
+sw.addEventListener('click', () => { const on = +G.getProperty('#halo', 'opacity') > .5; G.to('#halo', { opacity: on ? .15 : 1, duration: .6 }); G.to('#ringGlow', { opacity: on ? .1 : .7, duration: .6 }) })
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 112 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, duration: 1.1, stagger: .1, ease: 'expo.out' }) })
+})
+G.set('.reveal, .rv', { autoAlpha: 0, y: 36 })
+ScrollTrigger.batch('.reveal, .rv', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: 1, stagger: .08, ease: 'expo.out', clearProps: 'transform' }) })
+G.set('.house, .ctrl>.card', { opacity: 0, y: 30 })
+ScrollTrigger.batch('.house, .ctrl>.card', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { opacity: 1, y: 0, duration: 1, stagger: .1, ease: 'expo.out', clearProps: 'transform' }) })
+$$('.count').forEach((c) => { const o = { v: 0 }; ScrollTrigger.create({ trigger: c, start: 'top 92%', once: true, onEnter: () => G.to(o, { v: +c.dataset.to, duration: 1.4, ease: 'power2.out', onUpdate: () => { c.textContent = Math.round(o.v) } }) }) })
+
+G.set(moments, { autoAlpha: 0 })
+eveAt(0); setMoment(0)
+ScrollTrigger.create({
+  trigger: '.eve', start: 'top top', end: '+=280%', pin: '#evePin', scrub: true,
+  onUpdate(self) { const p = self.progress; eveAt(p); setMoment(p < .22 ? 0 : p < .5 ? 1 : p < .8 ? 2 : 3) },
+})
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

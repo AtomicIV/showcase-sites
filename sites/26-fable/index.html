@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fable — A brand-new bedtime story, every night</title>
+<meta name="description" content="Fable writes a gentle, illustrated bedtime story for your child every night. Pick a hero, a place and a mood, and turn the pages together.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231B2140'/%3E%3Cpath d='M20 6a10 10 0 1 0 6 16A8 8 0 0 1 20 6z' fill='%23F9E7B5'/%3E%3Ccircle cx='9' cy='9' r='1.4' fill='%23F9E7B5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..600&family=Shantell+Sans:ital,wght,BNCE,INFM@0,300..800,-100..100,0..100;1,300..800,-100..100,0..100&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F0E1; --paper-2:#EFE4CC; --ink:#23263F; --ink-2:#4A4B63; --night:#1B2140; --night-2:#2B3262;
+  --sky:#8FB3D9; --peach:#F4A97F; --moss:#8DB88A; --butter:#F5D58A; --berry:#B4485F; --moon:#F9E7B5;
+  --hand:'Shantell Sans',ui-rounded,'Comic Sans MS',cursive; --book:'Literata',Georgia,serif;
+  --gut:clamp(18px,4vw,64px); --bouncy:cubic-bezier(.34,1.56,.64,1);
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .15 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper) var(--grain);color:var(--ink);font-family:var(--book);font-size:18px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+svg{display:block}
+img{max-width:100%}
+:focus-visible{outline:3px dashed var(--berry);outline-offset:4px;border-radius:10px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:12px;z-index:200;font-family:var(--hand)}
+.skip:focus{left:8px}
+[hidden]{display:none!important}
+.hand{font-family:var(--hand);font-variation-settings:"BNCE" 40,"INFM" 80}
+.eyebrow{font-family:var(--hand);font-weight:600;font-size:16px;letter-spacing:.04em;color:var(--berry);display:inline-flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:26px;height:2px;background:currentColor;border-radius:2px;transform:rotate(-6deg)}
+.h2{font-family:var(--hand);font-variation-settings:"BNCE" 40,"INFM" 70;font-weight:700;font-size:clamp(40px,5.2vw,78px);line-height:1.02;letter-spacing:-.02em;margin:14px 0 18px}
+.h2 em{font-style:italic;color:var(--berry)}
+.lede{color:var(--ink-2);max-width:40ch;font-size:clamp(18px,1.4vw,20px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 26px;border-radius:18px 22px 16px 24px;font-family:var(--hand);font-weight:700;font-size:18px;text-decoration:none;transition:transform .5s var(--bouncy),box-shadow .5s,background .3s;will-change:transform}
+.btn-ink{background:var(--ink);color:var(--paper);box-shadow:4px 5px 0 var(--berry)}
+.btn-ink:hover{box-shadow:7px 8px 0 var(--berry)}
+.btn-line{border:2px solid var(--ink);background:rgba(255,255,255,.35)}
+.btn-line:hover{background:#fff}
+.btn svg{width:20px;height:20px}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:60;padding:12px var(--gut);display:flex;align-items:center;justify-content:space-between;transition:background .5s,box-shadow .5s}
+.nav.open{background:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+.nav.solid{background:rgba(247,240,225,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 rgba(35,38,63,.1)}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--hand);font-weight:800;font-size:30px;text-decoration:none;min-height:48px;font-variation-settings:"BNCE" 80,"INFM" 100;letter-spacing:-.02em}
+.logo svg{width:34px;height:34px;transition:transform .8s var(--bouncy)}
+.logo:hover svg{transform:rotate(-18deg) scale(1.08)}
+.nav ul{display:flex;list-style:none;gap:2px}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;font-family:var(--hand);font-weight:600;font-size:17px;text-decoration:none;border-radius:12px;position:relative}
+.nav ul a::after{content:'';position:absolute;left:14px;right:14px;bottom:8px;height:3px;border-radius:3px;background:var(--peach);transform:scaleX(0) rotate(-2deg);transform-origin:left;transition:transform .4s var(--bouncy)}
+.nav ul a:hover::after{transform:scaleX(1) rotate(-2deg)}
+.nav-cta{min-height:48px;padding:0 20px;font-size:17px}
+.menu-btn{display:none;width:48px;height:48px;border-radius:14px;border:2px solid var(--ink);align-items:center;justify-content:center;background:var(--paper);color:var(--ink)}
+.menu-btn svg{width:22px;height:22px}
+.mmenu{position:fixed;inset:0;z-index:59;background:var(--night) var(--grain);color:var(--paper);display:none;flex-direction:column;justify-content:center;padding:90px var(--gut) 40px;gap:6px}
+.mmenu.open{display:flex}
+.mmenu a{font-family:var(--hand);font-weight:700;font-size:42px;text-decoration:none;min-height:56px;display:flex;align-items:center;font-variation-settings:"BNCE" 60,"INFM" 100}
+.mmenu a:nth-child(odd){transform:rotate(-1.5deg)}
+.mmenu .btn{font-size:18px;margin-top:22px;align-self:flex-start;background:var(--moon);color:var(--ink);min-height:54px}
+
+/* shared art */
+.wc{filter:url(#wc)}
+.twinkle{animation:tw 3.2s ease-in-out infinite}
+@keyframes tw{50%{opacity:.25}}
+
+/* hero */
+.hero{position:relative;min-height:100vh;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:center;gap:2vw;padding:110px var(--gut) 60px;overflow:hidden}
+.hero h1{font-family:var(--hand);font-weight:800;font-size:clamp(52px,6.6vw,112px);line-height:.98;letter-spacing:-.03em;font-variation-settings:"BNCE" 60,"INFM" 100}
+.hero h1 .w{display:inline-block;transform-origin:50% 90%}
+.hero h1 .yet{position:relative;color:var(--berry)}
+.hero h1 .yet svg{position:absolute;left:-4%;bottom:-.16em;width:108%;height:.34em;overflow:visible}
+.hero .lede{margin:28px 0 34px;max-width:44ch}
+.hero .ctas{display:flex;gap:14px;flex-wrap:wrap}
+.hero .note{margin-top:26px;font-family:var(--hand);font-size:16px;color:var(--ink-2);display:flex;align-items:center;gap:10px}
+.hero .note b{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--butter);font-size:14px}
+.hero-art{position:relative;width:100%;max-width:640px;justify-self:center;aspect-ratio:600/640}
+.hero-art svg{width:100%;height:100%;overflow:visible}
+.sparkle{position:fixed;left:0;top:0;width:10px;height:10px;pointer-events:none;z-index:70;color:var(--butter)}
+
+/* journey (pinned) */
+.journey{position:relative;height:100vh;overflow:hidden;background:#F4C9A0}
+.journey .sky{position:absolute;inset:0}
+.journey .scene{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-end}
+.journey .scene svg{width:min(78vw,1100px);height:auto;max-height:100%;margin-right:-2vw}
+.j-card{position:absolute;left:var(--gut);top:50%;transform:translateY(-50%) rotate(-1.2deg);width:min(460px,40vw);background:var(--paper) var(--grain);padding:36px 36px 30px;border-radius:6px;box-shadow:0 30px 60px -30px rgba(10,12,30,.6);z-index:2}
+.j-card::before{content:'';position:absolute;top:-14px;left:50%;width:110px;height:28px;margin-left:-55px;background:rgba(245,213,138,.75);transform:rotate(3deg)}
+.j-step{font-family:var(--hand);font-weight:600;color:var(--berry);font-size:16px}
+.j-card h2{font-family:var(--hand);font-weight:800;font-size:clamp(32px,3.2vw,48px);line-height:1.05;margin:8px 0 12px;font-variation-settings:"BNCE" 50,"INFM" 90}
+.j-card p{color:var(--ink-2)}
+.j-dots{display:flex;gap:10px;margin-top:22px}
+.j-dots i{width:34px;height:6px;border-radius:6px;background:rgba(35,38,63,.15);overflow:hidden;position:relative}
+.j-dots i b{position:absolute;inset:0;background:var(--ink);transform:scaleX(0);transform-origin:left}
+.j-intro{position:absolute;right:var(--gut);top:100px;color:var(--ink);background:var(--paper) var(--grain);padding:10px 18px;border-radius:14px 18px 12px 20px;font-family:var(--hand);font-weight:700;font-size:clamp(18px,1.6vw,24px);z-index:2;line-height:1.2;transform:rotate(1.5deg);box-shadow:0 14px 30px -20px rgba(10,12,30,.6)}
+.j-static .j-card{position:relative;left:auto;top:auto;transform:none;margin:0 0 18px;width:100%}
+
+/* maker */
+.maker{padding:16vh var(--gut) 14vh;position:relative}
+.maker-head{display:grid;grid-template-columns:1.1fr 1fr;gap:5vw;align-items:end;margin-bottom:48px}
+.maker-head .lede{justify-self:end}
+.maker-grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:clamp(28px,4vw,64px);align-items:start}
+.picks{display:flex;flex-direction:column;gap:26px}
+.picks fieldset{border:0}
+.picks legend{font-family:var(--hand);font-weight:700;font-size:20px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.picks legend span{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--paper);font-size:15px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.opt label{display:flex;align-items:center;gap:10px;min-height:60px;padding:8px 12px;border-radius:16px 12px 18px 14px;border:2px solid rgba(35,38,63,.18);background:rgba(255,255,255,.45);font-family:var(--hand);font-weight:600;font-size:16px;line-height:1.15;transition:transform .45s var(--bouncy),border-color .3s,background .3s,box-shadow .3s;cursor:pointer}
+.opt label svg{width:38px;height:38px;flex:none}
+.opt label small{display:block;font-weight:400;font-size:14px;color:var(--ink-2)}
+.opt input:hover+label{transform:translateY(-3px) rotate(-.8deg);border-color:var(--ink)}
+.opt input:checked+label{border-color:var(--ink);background:#fff;box-shadow:3px 4px 0 var(--ink)}
+.opt input:focus-visible+label{outline:3px dashed var(--berry);outline-offset:3px}
+.mood-dot{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:20px}
+.make{width:100%;min-height:62px;font-size:20px}
+.stage{position:relative;min-height:560px}
+.book-wrap{perspective:2400px}
+.book{position:relative;display:grid;grid-template-columns:1fr 1fr;height:560px;border-radius:10px;box-shadow:0 40px 70px -40px rgba(27,33,64,.65),0 0 0 10px #6E3A3F,0 0 0 12px #4F2A2F;background:#6E3A3F}
+.half{position:relative;overflow:hidden;background:#FBF6EA var(--grain)}
+.half.a{border-radius:6px 0 0 6px;box-shadow:inset -18px 0 24px -18px rgba(60,40,20,.35)}
+.half.b{border-radius:0 6px 6px 0;box-shadow:inset 18px 0 24px -18px rgba(60,40,20,.35)}
+.illus{position:absolute;inset:14px;border-radius:4px;overflow:hidden}
+.illus svg{width:100%;height:100%}
+.ptext{position:absolute;inset:0;padding:clamp(24px,3vw,44px);display:flex;flex-direction:column}
+.ptext .pnum{font-family:var(--hand);font-size:15px;color:var(--ink-2);display:flex;justify-content:space-between}
+.ptext h3{font-family:var(--hand);font-weight:800;font-size:clamp(26px,2.3vw,34px);line-height:1.08;margin:14px 0 6px;font-variation-settings:"BNCE" 50,"INFM" 90}
+.ptext p{font-size:clamp(18px,1.5vw,22px);line-height:1.62;margin-top:14px}
+.ptext p.st::first-letter{font-family:var(--hand);font-weight:800;color:var(--berry)}
+.ptext .orn{margin-top:auto;display:flex;align-items:center;gap:10px;font-family:var(--hand);font-size:15px;color:var(--ink-2)}
+.ptext .orn svg{width:46px;height:46px;opacity:.85}
+.ptext .orn::after{content:"";flex:1;border-top:2px dotted rgba(35,38,63,.25)}
+.ptext .end{margin-top:auto;font-family:var(--hand);color:var(--berry);font-size:17px}
+.leaf{position:absolute;top:0;left:50%;width:50%;height:100%;transform-style:preserve-3d;transform-origin:left center;z-index:5;pointer-events:none;display:none}
+.leaf .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;background:#FBF6EA var(--grain)}
+.leaf .face.back{transform:rotateY(180deg)}
+.leaf .shade{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(40,25,10,.28),rgba(40,25,10,0) 40%);opacity:0}
+.book-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:40px;background:#FBF6EA var(--grain);border-radius:6px;z-index:6}
+.book-empty p{font-family:var(--hand);font-size:22px;max-width:22ch;margin:12px auto 0;font-weight:600}
+.book-empty svg{width:120px;height:120px;margin:0 auto}
+.writing{position:absolute;inset:0;z-index:7;display:none;place-items:center;background:rgba(251,246,234,.94);border-radius:6px;text-align:center;font-family:var(--hand);font-size:22px;font-weight:600}
+.writing.on{display:grid}
+.writing .quill{width:90px;height:90px;margin:0 auto 10px}
+.book-ctrls{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:30px;flex-wrap:wrap}
+.turns{display:flex;gap:10px;align-items:center}
+.turn{width:54px;height:54px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;background:var(--paper);transition:transform .4s var(--bouncy),background .3s}
+.turn:hover:not(:disabled){transform:scale(1.08);background:#fff}
+.turn:disabled{opacity:.35;cursor:not-allowed}
+.turn svg{width:22px;height:22px}
+.pdots{display:flex;gap:8px;padding:0 6px}
+.pdots i{width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);transition:background .3s,transform .3s}
+.pdots i.on{background:var(--ink);transform:scale(1.2)}
+.extra{display:flex;gap:10px;flex-wrap:wrap}
+.extra .btn{min-height:48px;font-size:16px;padding:0 18px}
+.book-hint{margin-top:14px;font-family:var(--hand);font-size:15px;color:var(--ink-2)}
+
+/* parents */
+.parents{padding:14vh var(--gut);background:var(--paper-2) var(--grain);position:relative}
+.parents-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:22px;margin-top:50px}
+.note-card{position:relative;background:#FFFDF6;padding:30px 28px 26px;border-radius:4px;box-shadow:0 18px 40px -26px rgba(35,38,63,.5);transition:transform .6s var(--bouncy)}
+.note-card:hover{transform:rotate(0deg) translateY(-6px)!important}
+.note-card .tape{position:absolute;top:-12px;width:90px;height:24px;background:rgba(143,179,217,.6)}
+.note-card h3{font-family:var(--hand);font-weight:800;font-size:26px;line-height:1.1;margin:14px 0 8px}
+.note-card p{color:var(--ink-2);font-size:17px}
+.note-card svg.ic{width:64px;height:64px}
+.n1{grid-column:1/6;transform:rotate(-1.6deg)} .n1 .tape{left:30px;transform:rotate(-4deg)}
+.n2{grid-column:6/10;transform:rotate(1.2deg);margin-top:60px} .n2 .tape{right:30px;transform:rotate(5deg);background:rgba(244,169,127,.6)}
+.n3{grid-column:10/13;transform:rotate(-.8deg);margin-top:16px} .n3 .tape{left:40%;transform:rotate(-2deg);background:rgba(141,184,138,.6)}
+.n4{grid-column:2/7;transform:rotate(1deg);background:var(--night);color:var(--paper)} .n4 p{color:#D9D6E8} .n4 .tape{left:44%;background:rgba(245,213,138,.7)}
+.n5{grid-column:7/12;transform:rotate(-1.2deg);margin-top:-30px} .n5 .tape{right:60px;transform:rotate(-6deg)}
+.lined{background-image:repeating-linear-gradient(transparent 0 31px,rgba(143,179,217,.45) 31px 32px);background-position:0 18px}
+
+/* shelf */
+.shelf-sec{padding:14vh 0 12vh;background:var(--night) var(--grain);color:var(--paper);position:relative;overflow:hidden}
+.shelf-sec .eyebrow{color:var(--butter)}
+.shelf-head{padding:0 var(--gut);display:flex;justify-content:space-between;align-items:end;gap:30px;flex-wrap:wrap}
+.shelf-head .lede{color:#D9D6E8}
+.counter{font-family:var(--hand);font-weight:800;font-size:clamp(56px,7vw,110px);line-height:1;color:var(--moon);font-variant-numeric:tabular-nums}
+.counter small{display:block;font-size:17px;font-weight:500;color:#D9D6E8;margin-top:8px}
+.shelf{margin-top:60px;padding:0 var(--gut);overflow-x:auto;scrollbar-width:none}
+.shelf::-webkit-scrollbar{display:none}
+.books{display:flex;align-items:flex-end;gap:6px;min-width:max-content;border-bottom:16px solid #6E3A3F;padding:0 10px;position:relative}
+.spine{position:relative;flex:none;width:var(--w,58px);height:var(--h,300px);border-radius:4px 4px 2px 2px;background:var(--c);color:var(--t,#1B2140);font-family:var(--hand);font-weight:700;font-size:16px;line-height:1.1;transition:transform .5s var(--bouncy);box-shadow:inset -6px 0 0 rgba(0,0,0,.12),inset 6px 0 0 rgba(255,255,255,.12)}
+.spine span{position:absolute;left:50%;top:50%;width:calc(var(--h,300px) - 52px);text-align:center;transform:translate(-50%,-50%) rotate(-90deg)}
+.spine::before,.spine::after{content:'';position:absolute;left:0;right:0;height:5px;background:rgba(0,0,0,.18)}
+.spine::before{top:18px} .spine::after{bottom:18px}
+.spine:hover{transform:translateY(-18px)}
+.spine.lean{transform:rotate(6deg);margin:0 14px 0 10px;transform-origin:bottom right}
+.spine.lean:hover{transform:rotate(6deg) translateY(-18px)}
+.shelf-note{padding:24px var(--gut) 0;font-family:var(--hand);color:#D9D6E8;font-size:16px}
+
+/* letters */
+.letters{padding:16vh var(--gut) 12vh;display:grid;grid-template-columns:1fr 1.4fr;gap:6vw;align-items:start}
+.letters .sticky{position:sticky;top:120px}
+.letter{background:#FFFDF6;padding:34px 34px 28px 64px;margin-bottom:28px;border-radius:3px;position:relative;box-shadow:0 18px 40px -28px rgba(35,38,63,.55)}
+.letter::before{content:'';position:absolute;left:40px;top:0;bottom:0;width:2px;background:rgba(180,72,95,.35)}
+.letter blockquote{font-family:var(--hand);font-size:clamp(20px,1.7vw,24px);line-height:1.45;font-weight:500}
+.letter cite{display:block;margin-top:14px;font-style:normal;color:var(--ink-2);font-size:16px}
+.letter:nth-child(2){transform:rotate(.8deg);margin-left:6%}
+.letter:nth-child(3){transform:rotate(-.6deg);margin-left:2%}
+
+/* pricing */
+.pricing{padding:12vh var(--gut) 16vh;position:relative;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr);gap:5vw;align-items:start}
+.pricing .owl{width:150px;margin-top:30px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+.lib{position:relative;background:#FFFDF6;border:2px solid var(--ink);border-radius:8px;padding:30px;box-shadow:6px 7px 0 var(--ink);transition:transform .6s var(--bouncy),box-shadow .6s}
+.lib:hover{transform:translate(-3px,-3px);box-shadow:10px 11px 0 var(--ink)}
+.lib.fam{background:var(--butter)}
+.lib header{display:flex;justify-content:space-between;align-items:start;border-bottom:2px solid var(--ink);padding-bottom:16px}
+.lib h3{font-family:var(--hand);font-weight:800;font-size:30px;line-height:1}
+.lib .kind{font-family:var(--hand);font-size:15px;color:var(--ink-2);margin-top:4px}
+.lib .price{font-family:var(--hand);font-weight:800;font-size:44px;line-height:1;text-align:right}
+.lib .price small{display:block;font-size:14px;font-weight:500;color:var(--ink-2)}
+.lib ul{list-style:none;margin:18px 0 22px}
+.lib li{padding:9px 0 9px 32px;border-bottom:1px dashed rgba(35,38,63,.25);position:relative;font-size:17px}
+.lib li::before{content:'';position:absolute;left:4px;top:15px;width:14px;height:8px;border-left:3px solid var(--berry);border-bottom:3px solid var(--berry);transform:rotate(-45deg)}
+.stamps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:22px}
+.stamps span{font-family:var(--hand);font-size:13px;text-align:center;padding:6px 2px;border:1.5px solid rgba(35,38,63,.3);border-radius:4px;color:var(--ink-2)}
+.stamps span.st{color:var(--berry);border-color:var(--berry);transform:rotate(-4deg);font-weight:700}
+.lib .btn{width:100%}
+
+/* footer */
+.foot{background:var(--night) var(--grain);color:var(--paper);padding:14vh var(--gut) 40px;position:relative;overflow:hidden}
+.foot .gn{position:relative;z-index:1;font-family:var(--hand);font-weight:800;font-size:clamp(72px,12.5vw,220px);line-height:.9;letter-spacing:-.04em;color:var(--moon);font-variation-settings:"BNCE" 100,"INFM" 100}
+.foot .row{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;margin-top:60px;border-top:1px solid rgba(249,231,181,.25);padding-top:26px;font-size:16px;color:#D9D6E8}
+.foot .row a{min-height:44px;display:inline-flex;align-items:center;margin-right:18px;font-family:var(--hand)}
+.foot-moon{position:absolute;right:5vw;top:6vh;width:clamp(110px,15vw,230px)}
+
+@media (max-width:1200px) and (min-width:768px){
+  .maker-grid{grid-template-columns:1fr}
+  .picks{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .picks .opts{grid-template-columns:1fr}
+  .picks .make{grid-column:1/-1;max-width:420px}
+}
+@media (max-width:767px){ .maker-grid{grid-template-columns:1fr} .ptext .orn{display:none} }
+@media (max-width:1000px){
+  .nav ul,.nav .nav-cta{display:none}
+  .menu-btn{display:inline-flex}
+  .hero{grid-template-columns:1fr;padding-top:100px;gap:10px}
+  .hero-art{max-width:460px;order:-1;margin-bottom:-20px}
+  .maker-head{grid-template-columns:1fr}
+  .maker-head .lede{justify-self:start}
+  .parents-grid{grid-template-columns:1fr 1fr}
+  .n1,.n2,.n3,.n4,.n5{grid-column:auto;margin-top:0}
+  .letters{grid-template-columns:1fr}
+  .letters .sticky{position:static}
+  .pricing{grid-template-columns:1fr}
+  .j-card{width:min(440px,calc(100% - 2*var(--gut)))}
+}
+@media (max-width:767px){
+  body{font-size:17px}
+  .hero{min-height:auto;padding-bottom:70px}
+  .hero-art{max-width:330px;margin:0 auto -10px}
+  .journey .scene{align-items:flex-start;justify-content:flex-start;padding-top:120px}
+  .journey .scene svg{width:170vw;max-height:none;margin:0 0 0 -50vw;flex:none}
+  .journey::after{content:"";position:absolute;left:0;right:0;bottom:0;top:calc(120px + 170vw * .6);background:#3F5E4A}
+  .j-card{top:auto;bottom:22px;transform:rotate(-1deg);padding:26px 22px 22px}
+  .j-intro{top:86px;left:var(--gut);right:auto}
+  .book{grid-template-columns:1fr;grid-template-rows:1fr 1fr;height:740px}
+  .half.a{border-radius:6px 6px 0 0;box-shadow:inset 0 -18px 24px -18px rgba(60,40,20,.35)}
+  .half.b{border-radius:0 0 6px 6px;box-shadow:inset 0 18px 24px -18px rgba(60,40,20,.35)}
+  .leaf{left:0;top:50%;width:100%;height:50%;transform-origin:center top}
+  .leaf .face.back{transform:rotateX(180deg)}
+  .leaf .shade{background:linear-gradient(180deg,rgba(40,25,10,.28),rgba(40,25,10,0) 40%)}
+  .ptext{padding:20px 22px}
+  .ptext h3{font-size:24px;margin-top:8px}
+  .ptext p{font-size:17px;line-height:1.55;margin-top:8px}
+  .stage{min-height:740px}
+  .opts{grid-template-columns:1fr 1fr}
+  .opt label{font-size:15px;padding:8px 10px}
+  .opt label svg,.mood-dot{width:32px;height:32px}
+  .parents-grid{grid-template-columns:1fr;gap:30px}
+  .cards{grid-template-columns:1fr}
+  .pricing .owl{display:none}
+  .foot{padding-top:150px}
+  .foot .gn{font-size:16vw}
+  .foot-moon{width:96px;top:36px;right:var(--gut)}
+  .spine{font-size:15px}
+  .letter{padding:28px 22px 24px 46px}
+  .letter::before{left:28px}
+  .letter:nth-child(2),.letter:nth-child(3){margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#maker">Skip to the story maker</a>
+
+<!-- shared defs: watercolour filter + characters -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="wc" x="-25%" y="-25%" width="150%" height="150%">
+      <feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="3" seed="4" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="22" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feGaussianBlur in="d" stdDeviation="1.4"/>
+    </filter>
+    <radialGradient id="glow"><stop offset="0" stop-color="#FFF1B8" stop-opacity=".95"/><stop offset=".4" stop-color="#F5D58A" stop-opacity=".5"/><stop offset="1" stop-color="#F5D58A" stop-opacity="0"/></radialGradient>
+    <symbol id="h-fox" viewBox="0 0 100 100">
+      <path d="M68 80c16-1 27-12 25-26-6 9-15 12-25 10z" fill="#E9894F"/><path d="M84 66c4-2 7-5 9-12-3 5-6 7-10 8z" fill="#FFF6E8"/>
+      <ellipse cx="50" cy="72" rx="22" ry="17" fill="#E9894F"/><path d="M50 62c-7 0-10 7-10 14h20c0-7-3-14-10-14z" fill="#FFF6E8"/>
+      <path d="M29 33 35 12l10 17zM55 29l10-17 6 21z" fill="#D9743C"/><path d="M33 28l3-9 4 7zM60 26l4-8 3 9z" fill="#3B2A2A"/>
+      <path d="M27 34c0-9 10-13 23-13s23 4 23 13c0 11-13 19-23 23-10-4-23-12-23-23z" fill="#E9894F"/>
+      <path d="M37 43c4 6 9 10 13 12 4-2 9-6 13-12-4 2-9 3-13 3s-9-1-13-3z" fill="#FFF6E8"/>
+      <circle class="eye" cx="41" cy="37" r="2.8" fill="#23263F"/><circle class="eye" cx="59" cy="37" r="2.8" fill="#23263F"/><circle cx="50" cy="51" r="2.6" fill="#23263F"/>
+      <circle cx="35" cy="45" r="3" fill="#F4A97F" opacity=".8"/><circle cx="65" cy="45" r="3" fill="#F4A97F" opacity=".8"/>
+    </symbol>
+    <symbol id="h-robot" viewBox="0 0 100 100">
+      <path d="M50 20V9" stroke="#23263F" stroke-width="3"/><circle cx="50" cy="8" r="4.5" fill="#F5C451"/>
+      <rect x="29" y="19" width="42" height="31" rx="9" fill="#9FB4C7"/><rect x="33" y="24" width="34" height="20" rx="6" fill="#DCE6EE"/>
+      <circle cx="42" cy="34" r="3" fill="#23263F"/><circle cx="58" cy="34" r="3" fill="#23263F"/><path d="M45 40q5 3 10 0" stroke="#23263F" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <rect x="44" y="50" width="12" height="5" fill="#7D93A8"/>
+      <path d="M26 64q-10 4-10 14" stroke="#7D93A8" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M74 64q10 4 10 14" stroke="#7D93A8" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <rect x="25" y="55" width="50" height="31" rx="11" fill="#9FB4C7"/><circle cx="50" cy="70" r="6.5" fill="#F5C451"/><circle cx="50" cy="70" r="3" fill="#FFF6E8"/>
+      <rect x="33" y="85" width="11" height="9" rx="3" fill="#7D93A8"/><rect x="56" y="85" width="11" height="9" rx="3" fill="#7D93A8"/>
+    </symbol>
+    <symbol id="h-whale" viewBox="0 0 100 100">
+      <path d="M40 34c-3-8-1-15 4-19M41 34c3-8 9-12 14-12" stroke="#8FB3D9" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M8 62c0-18 19-29 41-29 20 0 33 10 36 23 4-6 8-10 13-10-2 8-4 14-10 18 2 4 4 8 4 12-6-2-10-4-14-8-6 10-18 14-30 14C21 82 8 76 8 62z" fill="#5F8FC9"/>
+      <path d="M12 67c6 8 17 12 31 12 10 0 18-3 24-8-14 2-35 2-55-4z" fill="#CFE0F1"/>
+      <circle class="eye" cx="29" cy="54" r="3" fill="#23263F"/><circle cx="22" cy="61" r="3.2" fill="#F4A97F" opacity=".8"/>
+    </symbol>
+    <symbol id="h-dragon" viewBox="0 0 100 100">
+      <path d="M64 78c15 3 24-4 28-13l-7 1" stroke="#7DB07A" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M56 52c8-15 23-19 31-17-4 6-3 13-10 17-7 2-15 2-21 0z" fill="#B7D9A8"/>
+      <ellipse cx="50" cy="71" rx="21" ry="17" fill="#7DB07A"/><ellipse cx="46" cy="73" rx="10" ry="11" fill="#E9F0C9"/>
+      <path d="M33 26l-3-11 9 8zM45 25l4-11 3 12z" fill="#F5C451"/>
+      <circle cx="39" cy="40" r="17" fill="#7DB07A"/><ellipse cx="26" cy="46" rx="11" ry="8.5" fill="#7DB07A"/>
+      <circle cx="20" cy="44" r="1.5" fill="#23263F"/><circle class="eye" cx="41" cy="37" r="3" fill="#23263F"/><circle cx="34" cy="48" r="3" fill="#F4A97F" opacity=".8"/>
+      <circle cx="10" cy="40" r="3" fill="#F5C451"/><circle cx="6" cy="34" r="1.6" fill="#F5C451"/>
+    </symbol>
+    <symbol id="f-tortoise" viewBox="0 0 100 100"><ellipse cx="22" cy="66" rx="10" ry="8" fill="#B9A06A"/><circle cx="18" cy="64" r="1.8" fill="#23263F"/><path d="M26 76c0-22 14-34 32-34s32 12 32 34z" fill="#8C7A4B"/><path d="M40 76c2-12 8-20 18-20s16 8 18 20M58 44v32" stroke="#B9A06A" stroke-width="3" fill="none"/><rect x="34" y="74" width="10" height="10" rx="3" fill="#B9A06A"/><rect x="72" y="74" width="10" height="10" rx="3" fill="#B9A06A"/></symbol>
+    <symbol id="f-crab" viewBox="0 0 100 100"><path d="M30 46l-6-14M70 46l6-14" stroke="#D9614C" stroke-width="4"/><circle cx="24" cy="30" r="6" fill="#D9614C"/><circle cx="76" cy="30" r="6" fill="#D9614C"/><path d="M42 54v-8M58 54v-8" stroke="#D9614C" stroke-width="3"/><circle cx="42" cy="44" r="4" fill="#FFF6E8"/><circle cx="58" cy="44" r="4" fill="#FFF6E8"/><circle cx="42" cy="44" r="2" fill="#23263F"/><circle cx="58" cy="44" r="2" fill="#23263F"/><ellipse cx="50" cy="66" rx="26" ry="15" fill="#E87A5D"/><path d="M26 72l-10 8M74 72l10 8M30 78l-6 10M70 78l6 10" stroke="#D9614C" stroke-width="3.5" stroke-linecap="round"/></symbol>
+    <symbol id="f-baker" viewBox="0 0 100 100"><path d="M34 26c-6-12 8-20 16-14 8-6 22 2 16 14v8H34z" fill="#FFFDF6" stroke="#E6D9BF" stroke-width="2"/><circle cx="50" cy="44" r="13" fill="#F2C9A0"/><circle cx="45" cy="43" r="1.8" fill="#23263F"/><circle cx="55" cy="43" r="1.8" fill="#23263F"/><path d="M46 49q4 3 8 0" stroke="#23263F" stroke-width="1.6" fill="none"/><path d="M28 92c0-20 10-34 22-34s22 14 22 34z" fill="#C9765A"/><path d="M38 92c0-14 5-24 12-24s12 10 12 24z" fill="#FFFDF6"/></symbol>
+    <symbol id="f-badger" viewBox="0 0 100 100"><ellipse cx="50" cy="74" rx="24" ry="18" fill="#6B6F7E"/><circle cx="50" cy="44" r="17" fill="#EDE9E0"/><path d="M44 28c-6 6-8 16-6 28M56 28c6 6 8 16 6 28" stroke="#2F3240" stroke-width="7" fill="none"/><rect x="34" y="22" width="32" height="9" rx="3" fill="#2B3262"/><rect x="38" y="16" width="24" height="9" rx="3" fill="#2B3262"/><circle cx="50" cy="20" r="2" fill="#F5C451"/><circle cx="50" cy="53" r="3" fill="#23263F"/></symbol>
+  </defs>
+</svg>
+
+<header class="nav" id="nav">
+  <a class="logo" href="#top" aria-label="Fable, home">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#1B2140"/><path d="M24 8a12 12 0 1 0 8 19A10 10 0 0 1 24 8z" fill="#F9E7B5"/><circle cx="11" cy="12" r="1.6" fill="#F9E7B5"/><circle cx="15" cy="30" r="1.1" fill="#F9E7B5"/></svg>
+    Fable
+  </a>
+  <nav aria-label="Main"><ul>
+    <li><a href="#journey">How it works</a></li>
+    <li><a href="#maker">Story maker</a></li>
+    <li><a href="#parents">For parents</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul></nav>
+  <a class="btn btn-ink nav-cta magnet" href="#pricing">Start free</a>
+  <button class="menu-btn" aria-expanded="false" aria-controls="mmenu" aria-label="Open menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7c5-1 11 1 16 0M4 12c6 1 10-1 16 0M4 17c5-1 11 1 16 0"/></svg>
+  </button>
+</header>
+<div class="mmenu" id="mmenu" role="dialog" aria-modal="true" aria-label="Menu">
+  <a href="#journey">How it works</a>
+  <a href="#maker">Story maker</a>
+  <a href="#parents">For parents</a>
+  <a href="#pricing">Pricing</a>
+  <a class="btn" href="#pricing">Start free</a>
+</div>
+
+<main id="top">
+<!-- HERO -->
+<section class="hero" aria-labelledby="h1">
+  <div class="hero-copy">
+    <p class="eyebrow">Bedtime stories, written fresh</p>
+    <h1 id="h1" style="margin-top:14px"><span class="w">Tonight’s</span> <span class="w">story</span> <span class="w">hasn’t</span> <span class="w">been</span> <span class="w">written</span> <span class="w yet">yet.<svg viewBox="0 0 200 30" preserveAspectRatio="none" aria-hidden="true"><path id="yet-line" d="M4 18C40 8 90 26 130 14s54-4 66 2" fill="none" stroke="#F4A97F" stroke-width="7" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/></svg></span></h1>
+    <p class="lede">Fable writes a gentle, illustrated story for your child every night — starring the hero they pick, in a world they choose, told in the mood they need. Calm by design, and over in about eight minutes.</p>
+    <div class="ctas">
+      <a class="btn btn-ink magnet" href="#maker">Make tonight’s story
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a>
+      <a class="btn btn-line magnet" href="#journey">How bedtime works</a>
+    </div>
+    <p class="note"><b aria-hidden="true">3+</b> For ages 3 to 8. No ads, no streaks, no autoplay.</p>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <svg viewBox="0 0 600 640">
+      <defs><mask id="trail-m"><path id="trail-draw" d="M300 470C220 420 170 360 230 300s170-40 200-120S430 110 440 100" fill="none" stroke="#fff" stroke-width="16" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/></mask></defs>
+      <g class="wash">
+        <path class="blob" d="M90 210c20-120 170-170 290-140s170 120 150 230-130 170-260 150S70 330 90 210z" fill="#8FB3D9" opacity=".75" filter="url(#wc)"/>
+        <path class="blob" d="M330 60c60-30 150 0 170 60s-30 110-90 110-120-40-120-90 0-60 40-80z" fill="#F4A97F" opacity=".55" filter="url(#wc)"/>
+        <path class="blob" d="M60 420c40-60 160-70 260-50s220 30 230 100-120 120-260 110S30 500 60 420z" fill="#8DB88A" opacity=".7" filter="url(#wc)"/>
+        <path class="blob" d="M120 120c30-30 80-20 90 20s-30 60-60 50-50-40-30-70z" fill="#F5D58A" opacity=".6" filter="url(#wc)"/>
+      </g>
+      <g class="moon">
+        <circle cx="440" cy="130" r="58" fill="url(#glow)"/>
+        <circle cx="440" cy="130" r="40" fill="#F9E7B5"/>
+        <circle cx="428" cy="118" r="7" fill="#EBD394"/><circle cx="452" cy="146" r="5" fill="#EBD394"/><circle cx="455" cy="114" r="3.5" fill="#EBD394"/>
+      </g>
+      <g fill="#FFF6D6" class="stars">
+        <path class="twinkle" d="M150 90l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/>
+        <path class="twinkle" style="animation-delay:-1.2s" d="M540 260l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+        <path class="twinkle" style="animation-delay:-2s" d="M330 40l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+        <circle class="twinkle" style="animation-delay:-.6s" cx="250" cy="150" r="3"/>
+        <circle class="twinkle" style="animation-delay:-1.8s" cx="520" cy="60" r="2.5"/>
+      </g>
+      <path d="M300 470C220 420 170 360 230 300s170-40 200-120S430 110 440 100" fill="none" stroke="#FFF6D6" stroke-width="5" stroke-linecap="round" stroke-dasharray="0 16" mask="url(#trail-m)"/>
+      <!-- book -->
+      <g class="book-art">
+        <path d="M120 520c60-30 120-34 180-10 60-24 120-20 180 10v40c-60-28-120-30-180-6-60-24-120-22-180 6z" fill="#B4485F"/>
+        <path d="M128 512c58-26 114-28 172-6v40c-58-22-114-20-172 6z" fill="#FFFDF6"/>
+        <path d="M300 506c58-22 114-20 172 6v40c-58-26-114-28-172-6z" fill="#FBF3E2"/>
+        <path d="M150 522c40-14 80-16 120-4M150 534c40-14 80-16 120-4M330 518c40-12 80-10 120 4M330 530c40-12 80-10 120 4" stroke="#C9BFA9" stroke-width="2" fill="none"/>
+      </g>
+      <use class="fox" href="#h-fox" x="340" y="368" width="150" height="150"/>
+      <text x="470" y="400" font-family="Shantell Sans, cursive" font-size="26" font-weight="700" fill="#23263F" class="zz">z</text>
+      <text x="492" y="376" font-family="Shantell Sans, cursive" font-size="20" font-weight="700" fill="#23263F" class="zz">z</text>
+    </svg>
+  </div>
+</section>
+
+<!-- JOURNEY (pinned) -->
+<section class="journey" id="journey" aria-labelledby="j-title">
+  <div class="sky" aria-hidden="true"></div>
+  <p class="j-intro">From bath to bed in three small steps.</p>
+  <div class="scene" aria-hidden="true">
+    <svg viewBox="0 0 1100 700" preserveAspectRatio="xMaxYMax meet">
+      <g class="j-stars" fill="#FFF6D6" opacity="0">
+        <circle cx="120" cy="80" r="2.5"/><circle cx="300" cy="140" r="2"/><circle cx="480" cy="60" r="3"/><circle cx="620" cy="170" r="2"/><circle cx="760" cy="40" r="2.5"/><circle cx="960" cy="120" r="2"/><circle cx="1040" cy="60" r="3"/><circle cx="860" cy="220" r="2"/><circle cx="220" cy="230" r="2"/>
+        <path d="M560 110l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/><path d="M900 300l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/>
+      </g>
+      <g class="j-moon"><circle cx="880" cy="200" r="90" fill="url(#glow)"/><circle cx="880" cy="200" r="50" fill="#F9E7B5"/><circle cx="866" cy="186" r="8" fill="#EBD394"/><circle cx="896" cy="214" r="6" fill="#EBD394"/></g>
+      <path d="M0 560c160-80 320-90 500-50s380 10 600-60v250H0z" fill="#5E7F64" filter="url(#wc)"/>
+      <path d="M0 620c200-50 420-40 640-10s320-10 460-30v120H0z" fill="#3F5E4A"/>
+      <!-- house -->
+      <g transform="translate(470 250)">
+        <path d="M30 140 160 30l130 110v190H30z" fill="#E8D9BC"/>
+        <path d="M10 150 160 18l150 132" fill="none" stroke="#6E3A3F" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+        <rect x="220" y="10" width="34" height="70" fill="#6E3A3F"/>
+        <rect class="win" data-i="0" x="62" y="180" width="62" height="58" rx="6" fill="#3A3F5C"/>
+        <rect class="win" data-i="1" x="196" y="180" width="62" height="58" rx="6" fill="#3A3F5C"/>
+        <rect class="win" data-i="2" x="128" y="70" width="64" height="64" rx="32" fill="#3A3F5C"/>
+        <path d="M93 180v58M62 209h62M227 180v58M196 209h62M160 70v64M128 102h64" stroke="#6E3A3F" stroke-width="5"/>
+        <rect x="128" y="260" width="58" height="70" rx="29" fill="#6E3A3F"/>
+      </g>
+      <path class="j-path" d="M150 640C260 600 330 520 440 470s170 0 190-10 30-60 60-60 60 30 100 20 0-120 0-120" fill="none" stroke="#FFF6D6" stroke-width="5" stroke-linecap="round" stroke-dasharray="2 14" opacity=".9"/>
+    </svg>
+  </div>
+  <div class="j-card" role="group" aria-live="polite">
+    <p class="j-step" id="j-step">Step 1 of 3 · 7:15 pm</p>
+    <h2 id="j-title">Pick it together</h2>
+    <p id="j-text">After the bath, choose a hero, a place and a mood — three taps, no menus, no feed. It takes about as long as finding the right pyjamas.</p>
+    <div class="j-dots" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i></div>
+  </div>
+</section>
+
+<!-- MAKER -->
+<section class="maker" id="maker" aria-labelledby="maker-title">
+  <div class="maker-head">
+    <div>
+      <p class="eyebrow">Try it now</p>
+      <h2 class="h2" id="maker-title">Make a story for <em>tonight</em>.</h2>
+    </div>
+    <p class="lede">Choose one of each, then turn the pages. Every story is new, four pages long, and always ends with somebody falling gently asleep.</p>
+  </div>
+  <div class="maker-grid">
+    <form class="picks" id="picks" onsubmit="return false">
+      <fieldset>
+        <legend><span>1</span> Who’s the hero?</legend>
+        <div class="opts">
+          <div class="opt"><input type="radio" name="hero" id="hr-fox" value="fox" checked><label for="hr-fox"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#h-fox"/></svg><span>Juniper<small>a small fox</small></span></label></div>
+          <div class="opt"><input type="radio" name="hero" id="hr-robot" value="robot"><label for="hr-robot"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#h-robot"/></svg><span>Otto<small>a tin robot</small></span></label></div>
+          <div class="opt"><input type="radio" name="hero" id="hr-whale" value="whale"><label for="hr-whale"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#h-whale"/></svg><span>Mo<small>a young whale</small></span></label></div>
+          <div class="opt"><input type="radio" name="hero" id="hr-dragon" value="dragon"><label for="hr-dragon"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#h-dragon"/></svg><span>Ember<small>a baby dragon</small></span></label></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><span>2</span> Where does it happen?</legend>
+        <div class="opts">
+          <div class="opt"><input type="radio" name="place" id="pl-orchard" value="orchard" checked><label for="pl-orchard"><span class="mood-dot" style="background:#2E3768;color:#F9E7B5" aria-hidden="true">◐</span><span>Moon Orchard</span></label></div>
+          <div class="opt"><input type="radio" name="place" id="pl-sea" value="sea"><label for="pl-sea"><span class="mood-dot" style="background:#1E4E73;color:#F4A9C0" aria-hidden="true">≈</span><span>City under the sea</span></label></div>
+          <div class="opt"><input type="radio" name="place" id="pl-bakery" value="bakery"><label for="pl-bakery"><span class="mood-dot" style="background:#F6D7B8;color:#C9765A" aria-hidden="true">☁</span><span>Cloud Bakery</span></label></div>
+          <div class="opt"><input type="radio" name="place" id="pl-train" value="train"><label for="pl-train"><span class="mood-dot" style="background:#B8564F;color:#F5D58A" aria-hidden="true">✦</span><span>Sleepy Night Train</span></label></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><span>3</span> What’s the mood?</legend>
+        <div class="opts">
+          <div class="opt"><input type="radio" name="mood" id="md-cosy" value="cosy" checked><label for="md-cosy"><span class="mood-dot" style="background:#F4A97F" aria-hidden="true">♥</span><span>Cosy<small>warm and slow</small></span></label></div>
+          <div class="opt"><input type="radio" name="mood" id="md-silly" value="silly"><label for="md-silly"><span class="mood-dot" style="background:#F5D58A" aria-hidden="true">☺</span><span>Silly<small>giggles first</small></span></label></div>
+          <div class="opt"><input type="radio" name="mood" id="md-brave" value="brave"><label for="md-brave"><span class="mood-dot" style="background:#8DB88A" aria-hidden="true">★</span><span>Brave<small>a little bold</small></span></label></div>
+          <div class="opt"><input type="radio" name="mood" id="md-dreamy" value="dreamy"><label for="md-dreamy"><span class="mood-dot" style="background:#C9BDEB" aria-hidden="true">☾</span><span>Dreamy<small>drifty and soft</small></span></label></div>
+        </div>
+      </fieldset>
+      <button class="btn btn-ink make magnet" id="make" type="button">Write our story
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20c4-1 8-5 12-11l3-5-5 3C8 11 5 15 4 20z"/><path d="M4 20l7-7"/></svg></button>
+    </form>
+
+    <div class="stage" id="stage">
+      <div class="book-wrap">
+        <div class="book" id="book" tabindex="-1" aria-roledescription="storybook" aria-label="Your story">
+          <div class="half a" id="half-a"></div>
+          <div class="half b" id="half-b"></div>
+          <div class="leaf" id="leaf" aria-hidden="true"><div class="face front"></div><div class="face back"></div><div class="shade"></div></div>
+          <div class="book-empty" id="book-empty">
+            <div>
+              <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" fill="#8FB3D9" opacity=".5" filter="url(#wc)"/><path d="M68 28a32 32 0 1 0 22 50A27 27 0 0 1 68 28z" fill="#F9E7B5"/><circle cx="32" cy="36" r="3" fill="#F5D58A"/><circle cx="92" cy="40" r="2" fill="#F5D58A"/></svg>
+              <p>Pick a hero, a place and a mood, then press “Write our story”.</p>
+            </div>
+          </div>
+          <div class="writing" id="writing" aria-hidden="true">
+            <div><svg class="quill" viewBox="0 0 90 90"><path d="M20 76c8-2 20-12 34-34l12-24-20 12C30 44 22 58 20 76z" fill="#F4A97F"/><path d="M20 76l20-22" stroke="#23263F" stroke-width="3" stroke-linecap="round"/><path class="ink" d="M14 82h60" stroke="#23263F" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 8"/></svg>Writing your story…</div>
+          </div>
+        </div>
+      </div>
+      <div class="book-ctrls" id="book-ctrls" hidden>
+        <div class="turns">
+          <button class="turn" id="prev" aria-label="Previous page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <div class="pdots" id="pdots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <button class="turn" id="next" aria-label="Next page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+        <div class="extra">
+          <button class="btn btn-line" id="read" type="button" aria-pressed="false">Read it to me</button>
+          <button class="btn btn-line" id="again" type="button">Another story</button>
+        </div>
+      </div>
+      <p class="book-hint" id="book-hint" hidden>Tip: use the arrow keys, or swipe the page.</p>
+      <p class="sr-only" id="book-live" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)"></p>
+    </div>
+  </div>
+</section>
+
+<!-- PARENTS -->
+<section class="parents" id="parents" aria-labelledby="parents-title">
+  <p class="eyebrow">For grown-ups</p>
+  <h2 class="h2" id="parents-title">Built for the last <em>ten minutes</em> of the day.</h2>
+  <p class="lede">We tested Fable with 240 families over a winter of bedtimes. Here’s what stayed in, and what we threw out.</p>
+  <div class="parents-grid">
+    <article class="note-card n1 lined">
+      <span class="tape" aria-hidden="true"></span>
+      <svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="#8FB3D9" opacity=".55" filter="url(#wc)"/><path d="M22 26h20v18a6 6 0 0 1-6 6h-8a6 6 0 0 1-6-6z" fill="none" stroke="#23263F" stroke-width="3"/><path d="M28 18c0-4 4-4 4-8M36 18c0-4 4-4 4-8" stroke="#23263F" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+      <h3>Screens off, ears on</h3>
+      <p>Tap “lights out” and the screen fades to black while a warm voice reads on. The pictures are for choosing; the story is for listening.</p>
+    </article>
+    <article class="note-card n2">
+      <span class="tape" aria-hidden="true"></span>
+      <svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="#F4A97F" opacity=".55" filter="url(#wc)"/><circle cx="32" cy="34" r="16" fill="none" stroke="#23263F" stroke-width="3"/><path d="M32 24v10l7 4" stroke="#23263F" stroke-width="3" stroke-linecap="round" fill="none"/></svg>
+      <h3>Eight minutes, then quiet</h3>
+      <p>Every story slows down on its last page — shorter sentences, softer words, a yawn or two. No cliffhangers, no “one more”.</p>
+    </article>
+    <article class="note-card n3">
+      <span class="tape" aria-hidden="true"></span>
+      <svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="#8DB88A" opacity=".55" filter="url(#wc)"/><path d="M32 46s-14-8-14-18a7 7 0 0 1 14-2 7 7 0 0 1 14 2c0 10-14 18-14 18z" fill="none" stroke="#23263F" stroke-width="3" stroke-linejoin="round"/></svg>
+      <h3>Your values, gently</h3>
+      <p>Pick a theme for the week — sharing, trying again, being kind to yourself — and it threads quietly through the stories.</p>
+    </article>
+    <article class="note-card n4">
+      <span class="tape" aria-hidden="true"></span>
+      <svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="#2B3262"/><path d="M38 16a16 16 0 1 0 12 26 13 13 0 0 1-12-26z" fill="#F9E7B5"/></svg>
+      <h3>Nothing scary after 7 pm</h3>
+      <p>“Brave” stories stay small and kind: a sound that turns out to be a lost firefly, never a monster. Every draft is checked against our bedtime guidelines before your child hears it.</p>
+    </article>
+    <article class="note-card n5 lined">
+      <span class="tape" aria-hidden="true"></span>
+      <svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="#F5D58A" opacity=".65" filter="url(#wc)"/><rect x="20" y="18" width="24" height="30" rx="3" fill="none" stroke="#23263F" stroke-width="3"/><path d="M26 28h12M26 35h12M26 42h7" stroke="#23263F" stroke-width="2.5" stroke-linecap="round"/></svg>
+      <h3>Keep the good ones</h3>
+      <p>Favourite a story and it joins your family shelf. Twelve favourites? We’ll print them as a real hardback, with your child’s name on the spine.</p>
+    </article>
+  </div>
+</section>
+
+<!-- SHELF -->
+<section class="shelf-sec" aria-labelledby="shelf-title">
+  <div class="shelf-head">
+    <div>
+      <p class="eyebrow">Last night on Fable</p>
+      <h2 class="h2" id="shelf-title" style="color:var(--paper)">A whole library, <em style="color:var(--butter)">one night</em> at a time.</h2>
+    </div>
+    <p class="counter" aria-live="off"><span id="count">41,208</span><small>new stories went to bed last night</small></p>
+  </div>
+  <div class="shelf" tabindex="0" aria-label="Story titles from last night (scrolls sideways)">
+    <div class="books" id="books"></div>
+  </div>
+  <p class="shelf-note">Titles shared, with permission, by families on the Family Shelf plan.</p>
+</section>
+
+<!-- LETTERS -->
+<section class="letters" aria-labelledby="letters-title">
+  <div class="sticky">
+    <p class="eyebrow">Notes from the nightstand</p>
+    <h2 class="h2" id="letters-title">Bedtime used to be a <em>negotiation</em>.</h2>
+    <p class="lede">Some of the notes parents have sent us. We keep them pinned above the writers’ desk.</p>
+  </div>
+  <div>
+    <figure class="letter lined"><blockquote>“My son asks for ‘Otto and the bakery’ every night, and every night it’s a different story. He hasn’t noticed. I have — and I’m grateful.”</blockquote><cite>— Marisol, parent of a five-year-old</cite></figure>
+    <figure class="letter lined"><blockquote>“The brave stories are the right size of brave. My daughter is scared of the hallway at night. Juniper went down a dark hallway too. Now so does she.”</blockquote><cite>— Tomasz, parent of a four-year-old</cite></figure>
+    <figure class="letter lined"><blockquote>“Lights-out mode is the whole thing for us. Phone face down, voice on low, both twins asleep before the last page.”</blockquote><cite>— Adaeze, parent of twin six-year-olds</cite></figure>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing" aria-labelledby="pricing-title">
+  <div>
+    <p class="eyebrow">Library cards</p>
+    <h2 class="h2" id="pricing-title">Start free. <em>Stay</em> if it helps.</h2>
+    <p class="lede">No trial countdown, no card needed for the free plan. Cancel the Family Shelf any time from the app.</p>
+    <svg class="owl" viewBox="0 0 150 150" aria-hidden="true"><circle cx="75" cy="80" r="62" fill="#C9BDEB" opacity=".55" filter="url(#wc)"/><path d="M40 128c-6-44 6-80 35-80s41 36 35 80z" fill="#8E7CC3"/><path d="M54 128c-2-30 6-52 21-52s23 22 21 52z" fill="#E7DFF6"/><path d="M42 58l6-18 14 12zM108 58l-6-18-14 12z" fill="#8E7CC3"/><circle cx="60" cy="68" r="13" fill="#FFFDF6"/><circle cx="90" cy="68" r="13" fill="#FFFDF6"/><path d="M53 69q7 5 14 0M83 69q7 5 14 0" stroke="#23263F" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M71 78l4 7 4-7z" fill="#F5C451"/><path d="M28 130h94" stroke="#6E3A3F" stroke-width="6" stroke-linecap="round"/></svg>
+  </div>
+  <div class="cards">
+    <article class="lib">
+      <header><div><h3>Night Owl</h3><p class="kind">Free library card</p></div><p class="price">$0<small>forever</small></p></header>
+      <ul><li>3 new stories a week</li><li>All heroes, places and moods</li><li>Read-aloud voice</li><li>One child profile</li></ul>
+      <div class="stamps" aria-label="Recent check-outs" id="stamps-a"></div>
+      <a class="btn btn-line magnet" href="#maker">Get a free card</a>
+    </article>
+    <article class="lib fam">
+      <header><div><h3>Family Shelf</h3><p class="kind">Everything, every night</p></div><p class="price">$6<small>a month, or $54 a year</small></p></header>
+      <ul><li>A new story every night</li><li>Up to 4 child profiles</li><li>Lights-out mode and weekly themes</li><li>Printed hardback of your favourites</li></ul>
+      <div class="stamps" aria-label="Recent check-outs" id="stamps-b"></div>
+      <a class="btn btn-ink magnet" href="#maker">Start the Family Shelf</a>
+    </article>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <svg class="foot-moon" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="96" fill="url(#glow)"/><path d="M112 40a62 62 0 1 0 44 94A52 52 0 0 1 112 40z" fill="#F9E7B5"/><circle cx="60" cy="70" r="3" fill="#F9E7B5" class="twinkle"/><circle cx="170" cy="60" r="2.4" fill="#F9E7B5" class="twinkle" style="animation-delay:-1.4s"/></svg>
+  <p class="gn">Goodnight.</p>
+  <div class="row">
+    <div><a href="#maker">Story maker</a><a href="#parents">For parents</a><a href="#pricing">Pricing</a></div>
+    <p>Concept design — fictional brand. Fable is not a real product.</p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const hasGsap = typeof gsap !== 'undefined'
+  const $ = (s, r = document) => r.querySelector(s)
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1)
+
+  /* ---------- nav + mobile menu ---------- */
+  const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+  const mb = $('.menu-btn'), mm = $('#mmenu')
+  const setMenu = (o) => {
+    mb.setAttribute('aria-expanded', o); mb.setAttribute('aria-label', o ? 'Close menu' : 'Open menu'); mm.classList.toggle('open', o)
+    nav.style.color = o ? 'var(--paper)' : ''; nav.classList.toggle('open', o)
+    $('.menu-btn path').setAttribute('d', o ? 'M6 6l12 12M18 6L6 18' : 'M4 7c5-1 11 1 16 0M4 12c6 1 10-1 16 0M4 17c5-1 11 1 16 0')
+    if (window.lenis) o ? lenis.stop() : lenis.start()
+    if (o) $('a', mm).focus()
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'))
+  $$('a', mm).forEach((a) => a.addEventListener('click', () => setMenu(false)))
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { setMenu(false); mb.focus() } })
+
+  /* ---------- story data ---------- */
+  const HEROES = {
+    fox: { id: 'fox', name: 'Juniper', kind: 'a small red fox', trait: 'who kept a pocketful of smooth, round pebbles', he: 'she', his: 'her', him: 'her', gift: 'laid her pebbles in a careful, glowing line' },
+    robot: { id: 'robot', name: 'Otto', kind: 'a little tin robot', trait: 'who hummed whenever he was thinking', he: 'he', his: 'his', him: 'him', gift: 'hummed his lowest, steadiest hum' },
+    whale: { id: 'whale', name: 'Mo', kind: 'a young blue whale', trait: 'who sang a little louder than she meant to', he: 'she', his: 'her', him: 'her', gift: 'sang one soft, round note' },
+    dragon: { id: 'dragon', name: 'Ember', kind: 'a baby dragon', trait: 'whose sneezes came out as tiny sparks', he: 'he', his: 'his', him: 'him', gift: 'sneezed the smallest, kindest spark' },
+  }
+  const PLACES = {
+    orchard: { name: 'the Moon Orchard', short: 'the orchard', T: 'the Orchard', at: 'in', look: 'silver apples glowed on every branch', feel: 'The grass was cool and smelled faintly of mint.', sound: 'the branches creaked a slow lullaby', friend: 'Bramble, a very old tortoise', fs: 'Bramble', fsym: 'f-tortoise', treat: 'warm apple tea', bed: 'a hammock strung between two moon trees', bouncy: 'apples', landmark: 'the tallest moon tree' },
+    sea: { name: 'the city under the sea', short: 'the sea city', T: 'the Sea City', at: 'in', look: 'jellyfish lanterns bobbed above every street', feel: 'The sand there was soft as flour.', sound: 'the bubbles popped like tiny bells', friend: 'Pim, the crab who ran the post office', fs: 'Pim', fsym: 'f-crab', treat: 'seaweed toast with honey', bed: 'a scallop shell lined with moss', bouncy: 'lanterns', landmark: 'the old coral clock tower' },
+    bakery: { name: 'the Cloud Bakery', short: 'the bakery', T: 'the Bakery', at: 'in', look: 'the loaves rose so high they drifted off the shelves', feel: 'Everything smelled of cinnamon and warm butter.', sound: 'the big ovens ticked and sighed', friend: 'Mrs Crumb, the baker', fs: 'Mrs Crumb', fsym: 'f-baker', treat: 'a cinnamon bun still warm in the middle', bed: 'a basket of clean, soft tea towels', bouncy: 'loaves', landmark: 'the biggest oven' },
+    train: { name: 'the Sleepy Night Train', short: 'the train', T: 'the Train', at: 'aboard', look: 'every carriage had a different kind of pillow', feel: 'Outside, the sky was crowded with stars.', sound: 'the wheels went clickety-hush, clickety-hush', friend: 'Mr Thistle, the badger who punched the tickets', fs: 'Mr Thistle', fsym: 'f-badger', treat: 'cocoa in a cup that never spilled', bed: 'the top bunk by the starry window', bouncy: 'pillows', landmark: 'the very last carriage' },
+  }
+  const intro = (h, p) => `Once, ${p.at} ${p.name}, where ${p.look}, there lived ${h.kind} called ${h.name}, ${h.trait}. ${p.feel}`
+  const MOODS = {
+    cosy: { title: (h) => `${h.name} and the Warmest Night`, pages: [
+      intro,
+      (h, p) => `One chilly evening, ${p.friend}, came by with a shiver. “The cold has crept into my favourite blanket,” said ${p.fs}, “and it simply won’t get warm.” ${h.name} thought for a moment. Then ${h.he} had an idea.`,
+      (h, p) => `${cap(h.he)} ${h.gift}. Slowly, slowly, the blanket grew warm again — as warm as ${p.treat}. ${p.fs} wrapped up tight and smiled the sleepiest smile.`,
+      (h, p) => `They shared ${p.treat} while ${p.sound}. Then ${h.name} curled up in ${p.bed}, warm right down to ${h.his} toes. Goodnight, ${h.name}. Goodnight, ${p.short}.`,
+    ] },
+    silly: { title: (h, p) => `The Night ${p.T} Got the Hiccups`, pages: [
+      intro,
+      (h, p) => `Then, one night — HIC! — ${p.short} got the hiccups. HIC! The ${p.bouncy} bounced. HIC! The floor wobbled like jelly. Even ${p.fs} hiccuped, which nobody had ever seen before.`,
+      (h, p) => `${h.name} tried holding ${h.his} breath. ${cap(h.he)} tried standing on one leg. At last ${h.he} ${h.gift}, and the hiccups stopped with one last, very small “hic.”`,
+      (h, p) => `Everyone laughed so much they had to lie down. And once they were lying down, they felt rather sleepy. ${h.name} gave the biggest yawn ${p.at} ${p.name}, and drifted off in ${p.bed}.`,
+    ] },
+    brave: { title: (h) => `${h.name} and the Sound in the Dark`, pages: [
+      intro,
+      (h, p) => `That night, from the far side of ${p.short}, came a sound. Tap… tap… tap. ${h.name} felt ${h.his} heart go thump. It would be easier to stay in bed. But what if someone needed help?`,
+      (h, p) => `So ${h.name} went, one careful step at a time. Behind ${p.landmark} sat a tiny firefly whose light had gone out. ${cap(h.he)} ${h.gift}, and the firefly began to shine again.`,
+      (h, p) => `The firefly lit the way home. Being brave, ${h.name} decided, is just being a little scared and going anyway. Then ${h.he} snuggled into ${p.bed} and slept, very proud and very cosy.`,
+    ] },
+    dreamy: { title: (h) => `${h.name} Counts the Stars`, pages: [
+      intro,
+      (h, p) => `When the lights went low, ${h.name} couldn’t quite fall asleep. So ${h.he} tiptoed to the quietest corner of ${p.short}, where ${p.sound}, and looked up.`,
+      (h, p) => `There were so many stars. ${h.name} began to count: one for ${p.fs}, one for ${p.treat}, one for tomorrow. Then ${h.he} ${h.gift}, and a brand-new star blinked awake.`,
+      (h, p) => `By seven, ${h.name}’s eyes were heavy. By eight, they were closed. And somewhere high above ${p.name}, one little star kept watch all night long.`,
+    ] },
+  }
+
+  /* ---------- illustration builder ---------- */
+  const SCENES = {
+    orchard: () => `<rect width="400" height="300" fill="#2E3768"/>
+      <circle cx="90" cy="70" r="100" fill="#3B4579" opacity=".8" filter="url(#wc)"/><circle cx="330" cy="70" r="70" fill="url(#glow)"/><circle cx="330" cy="70" r="28" fill="#F9E7B5"/>
+      <g fill="#FFF6D6"><circle cx="40" cy="40" r="2"/><circle cx="150" cy="30" r="1.6"/><circle cx="220" cy="80" r="2"/><circle cx="260" cy="24" r="1.4"/><circle cx="380" cy="150" r="1.6"/></g>
+      <path d="M0 210Q100 160 200 200T400 190V300H0Z" fill="#5E8A62" filter="url(#wc)"/>
+      <g><rect x="52" y="150" width="10" height="60" fill="#5A4636"/><circle cx="57" cy="140" r="34" fill="#4C7A57" filter="url(#wc)"/><g fill="#E8EEF5"><circle cx="44" cy="134" r="5"/><circle cx="66" cy="126" r="5"/><circle cx="62" cy="152" r="5"/></g></g>
+      <g><rect x="300" y="160" width="9" height="50" fill="#5A4636"/><circle cx="305" cy="150" r="28" fill="#4C7A57" filter="url(#wc)"/><g fill="#E8EEF5"><circle cx="296" cy="146" r="4.5"/><circle cx="315" cy="156" r="4.5"/></g></g>
+      <path d="M0 250Q120 222 240 250T400 238V300H0Z" fill="#3F6B4A"/>`,
+    sea: () => `<rect width="400" height="300" fill="#1E4E73"/>
+      <path d="M60 0l40 0-60 300h-30zM230 0h30l-10 300h-40z" fill="#fff" opacity=".06"/>
+      <g fill="#2C6A8E" filter="url(#wc)"><path d="M250 230v-80a40 40 0 0 1 80 0v80z"/><path d="M40 230v-60a30 30 0 0 1 60 0v60z"/></g>
+      <g fill="#F5D58A"><rect x="276" y="168" width="10" height="16" rx="5"/><rect x="296" y="168" width="10" height="16" rx="5"/><rect x="64" y="190" width="10" height="14" rx="5"/></g>
+      <path d="M0 250Q200 228 400 254V300H0Z" fill="#D9C38F"/>
+      <g stroke="#4E9A7A" stroke-width="6" fill="none" stroke-linecap="round"><path d="M130 260q-10-30 4-50t-4-40"/><path d="M360 262q10-30-4-50"/></g>
+      <g transform="translate(200 70)"><circle r="40" fill="url(#glow)"/><path d="M-16 0a16 16 0 0 1 32 0z" fill="#F4A9C0"/><path d="M-10 0q-4 14 2 26M0 0q4 14-2 28M10 0q-2 12 4 22" stroke="#F4A9C0" stroke-width="2.5" fill="none"/></g>
+      <g transform="translate(340 40) scale(.7)"><circle r="36" fill="url(#glow)"/><path d="M-16 0a16 16 0 0 1 32 0z" fill="#C9BDEB"/><path d="M-10 0q-4 14 2 26M0 0q4 14-2 28M10 0q-2 12 4 22" stroke="#C9BDEB" stroke-width="2.5" fill="none"/></g>
+      <g fill="none" stroke="#CFE0F1" stroke-width="2"><circle cx="90" cy="60" r="6"/><circle cx="104" cy="40" r="4"/><circle cx="96" cy="22" r="3"/></g>`,
+    bakery: () => `<rect width="400" height="300" fill="#F6D7B8"/>
+      <g fill="#FFFDF6" filter="url(#wc)" opacity=".95"><circle cx="70" cy="60" r="34"/><circle cx="110" cy="54" r="28"/><circle cx="40" cy="70" r="22"/><circle cx="300" cy="40" r="26"/><circle cx="336" cy="48" r="22"/></g>
+      <path d="M250 300V190a60 60 0 0 1 120 0V300z" fill="#C9765A"/><path d="M270 300v-90a40 40 0 0 1 80 0v90z" fill="#5A2E25"/>
+      <path d="M290 300c0-30 10-40 20-56 10 16 20 26 20 56z" fill="#F5C451"/><path d="M302 300c0-16 4-22 8-30 4 8 8 14 8 30z" fill="#FFF1B8"/>
+      <rect x="0" y="236" width="230" height="10" fill="#9B5B43"/>
+      <g fill="#D9954F"><ellipse cx="160" cy="110" rx="30" ry="16" transform="rotate(-10 160 110)"/><ellipse cx="220" cy="80" rx="24" ry="13" transform="rotate(8 220 80)"/><ellipse cx="60" cy="220" rx="26" ry="14"/></g>
+      <g stroke="#B9763A" stroke-width="3" stroke-linecap="round"><path d="M148 106l8-8M162 108l8-8M212 80l7-6M224 82l7-6M50 220l8-7M64 220l8-7"/></g>
+      <path d="M0 300V280Q200 262 400 282V300Z" fill="#E6BE96"/>`,
+    train: () => `<rect width="400" height="300" fill="#232A55"/>
+      <g fill="#FFF6D6"><circle cx="30" cy="30" r="2"/><circle cx="90" cy="70" r="1.5"/><circle cx="160" cy="24" r="2.2"/><circle cx="220" cy="60" r="1.4"/><circle cx="380" cy="90" r="2"/><circle cx="250" cy="110" r="1.6"/></g>
+      <path d="M330 30a30 30 0 1 0 22 50 24 24 0 0 1-22-50z" fill="#F9E7B5"/>
+      <path d="M0 200Q120 150 240 190T400 170V300H0Z" fill="#2F3A6B" filter="url(#wc)"/>
+      <path d="M0 262h400" stroke="#8B8FA8" stroke-width="4"/><path d="M0 270h400" stroke="#5A5E78" stroke-width="2" stroke-dasharray="6 10"/>
+      <g><rect x="20" y="200" width="150" height="54" rx="10" fill="#B8564F"/><rect x="180" y="200" width="150" height="54" rx="10" fill="#B8564F"/>
+        <g fill="#F5D58A"><rect x="34" y="212" width="26" height="20" rx="5"/><rect x="70" y="212" width="26" height="20" rx="5"/><rect x="106" y="212" width="26" height="20" rx="5"/><rect x="194" y="212" width="26" height="20" rx="5"/><rect x="230" y="212" width="26" height="20" rx="5"/><rect x="266" y="212" width="26" height="20" rx="5"/></g>
+        <g fill="#2F3240"><circle cx="50" cy="258" r="8"/><circle cx="140" cy="258" r="8"/><circle cx="210" cy="258" r="8"/><circle cx="300" cy="258" r="8"/></g></g>`,
+  }
+  const MOOD_PROPS = {
+    cosy: `<g transform="translate(150 200)"><path d="M0 0q50-16 100 0l-4 36q-46 10-92 0z" fill="#E39A8B" filter="url(#wc)"/><path d="M10 10q40-10 80 0M8 22q42-10 84 0" stroke="#FFF6E8" stroke-width="3" stroke-dasharray="6 6" fill="none"/></g><g transform="translate(300 214)"><rect width="30" height="26" rx="6" fill="#FFFDF6"/><path d="M30 6h6a6 6 0 0 1 0 12h-6" stroke="#FFFDF6" stroke-width="4" fill="none"/><path d="M8-6c0-6 6-6 6-12M18-6c0-6 6-6 6-12" stroke="#FFFDF6" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>`,
+    silly: `<text x="40" y="70" font-family="Shantell Sans,cursive" font-weight="800" font-size="40" fill="#F5D58A" transform="rotate(-12 40 70)">HIC!</text><text x="290" y="120" font-family="Shantell Sans,cursive" font-weight="800" font-size="28" fill="#F4A97F" transform="rotate(10 290 120)">hic!</text><g fill="#F4A97F" opacity=".9"><circle cx="160" cy="60" r="7"/><circle cx="250" cy="40" r="6"/></g>`,
+    brave: `<rect width="400" height="300" fill="#0B1030" opacity=".45"/><circle cx="300" cy="150" r="56" fill="url(#glow)"/><g transform="translate(300 150)"><ellipse rx="7" ry="5" fill="#F5D58A"/><path d="M-2-4q-8-10-14-4M2-4q8-10 14-4" stroke="#CFE0F1" stroke-width="2" fill="none"/></g>`,
+    dreamy: `<g fill="#FFF6D6"><path d="M200 30l6 15 15 6-15 6-6 15-6-15-15-6 15-6z"/><circle cx="120" cy="50" r="2.5"/><circle cx="280" cy="40" r="2.5"/><circle cx="340" cy="110" r="2"/><circle cx="60" cy="110" r="2"/><circle cx="170" cy="100" r="1.8"/><circle cx="240" cy="96" r="1.8"/></g><circle cx="200" cy="51" r="34" fill="url(#glow)"/>`,
+  }
+  function illus(h, p, mood, i) {
+    const H = `#h-${h.id}`
+    let fig = ''
+    if (i === 0) fig = `<use href="${H}" x="150" y="150" width="110" height="110"/>`
+    if (i === 1) fig = `<use href="${H}" x="90" y="150" width="110" height="110"/><use href="#${p.fsym}" x="220" y="160" width="100" height="100"/>`
+    if (i === 2) fig = `${MOOD_PROPS[mood]}<use href="${H}" x="120" y="132" width="120" height="120"/>`
+    if (i === 3) fig = `<rect width="400" height="300" fill="#0B1030" opacity=".42"/><circle cx="210" cy="226" r="90" fill="url(#glow)" opacity=".6"/><g transform="rotate(-8 200 220)"><use href="${H}" x="150" y="160" width="110" height="110"/></g><text x="262" y="160" font-family="Shantell Sans,cursive" font-weight="800" font-size="30" fill="#F9E7B5">z</text><text x="290" y="128" font-family="Shantell Sans,cursive" font-weight="800" font-size="22" fill="#F9E7B5">z</text><text x="310" y="104" font-family="Shantell Sans,cursive" font-weight="800" font-size="16" fill="#F9E7B5">z</text>`
+    return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration for page ${i + 1}">${SCENES[p.id]()}${fig}</svg>`
+  }
+  Object.keys(PLACES).forEach((k) => (PLACES[k].id = k))
+
+  /* ---------- book ---------- */
+  const halfA = $('#half-a'), halfB = $('#half-b'), leaf = $('#leaf'), front = $('.face.front', leaf), back = $('.face.back', leaf), shade = $('.shade', leaf)
+  const prevB = $('#prev'), nextB = $('#next'), dots = $$('#pdots i'), live = $('#book-live'), bookEl = $('#book')
+  let story = null, page = 0, turning = false, reading = false
+  const mobile = () => matchMedia('(max-width:767px)').matches
+  const aHTML = (i) => `<div class="illus">${illus(story.h, story.p, story.mood, i)}</div>`
+  const bHTML = (i) => `<div class="ptext"><div class="pnum"><span>${i === 0 ? 'Tonight’s story' : story.title}</span><span>${i + 1} / 4</span></div>${i === 0 ? `<h3>${story.title}</h3>` : ''}<p class="st">${story.pages[i]}</p>${i === 3 ? '<p class="end">The end. Sleep tight.</p>' : `<div class="orn" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#h-${story.h.id}"/></svg><span>turn the page</span></div>`}</div>`
+  function sync() {
+    prevB.disabled = page === 0 || turning; nextB.disabled = page === 3 || turning
+    dots.forEach((d, k) => d.classList.toggle('on', k === page))
+    live.textContent = `Page ${page + 1} of 4. ${story.pages[page]}`
+  }
+  function show(i) { halfA.innerHTML = aHTML(i); halfB.innerHTML = bHTML(i) }
+  function turn(dir) {
+    const to = page + dir
+    if (!story || turning || to < 0 || to > 3) return
+    if (reduced || !hasGsap) { page = to; show(page); sync(); if (reading) speak(); return }
+    turning = true
+    const axis = mobile() ? 'rotationX' : 'rotationY', end = mobile() ? 180 : -180
+    leaf.style.display = 'block'
+    if (dir > 0) {
+      front.innerHTML = bHTML(page); back.innerHTML = aHTML(to); halfB.innerHTML = bHTML(to)
+      gsap.set(leaf, { [axis]: 0, transformPerspective: 2400 })
+      gsap.fromTo(shade, { opacity: 0 }, { opacity: 1, duration: .45, yoyo: true, repeat: 1, ease: 'sine.inOut' })
+      gsap.to(leaf, { [axis]: end, duration: .95, ease: 'power2.inOut', onComplete: () => { halfA.innerHTML = aHTML(to); done(to) } })
+    } else {
+      front.innerHTML = bHTML(to); back.innerHTML = aHTML(page); halfA.innerHTML = aHTML(to)
+      gsap.set(leaf, { [axis]: end, transformPerspective: 2400 })
+      gsap.fromTo(shade, { opacity: 0 }, { opacity: 1, duration: .45, yoyo: true, repeat: 1, ease: 'sine.inOut' })
+      gsap.to(leaf, { [axis]: 0, duration: .95, ease: 'power2.inOut', onComplete: () => { halfB.innerHTML = bHTML(to); done(to) } })
+    }
+    page = to; sync()
+  }
+  function done(to) { leaf.style.display = 'none'; gsap.set(leaf, { clearProps: 'transform' }); turning = false; sync(); if (reading) speak() }
+  prevB.addEventListener('click', () => turn(-1)); nextB.addEventListener('click', () => turn(1))
+  $('#stage').addEventListener('keydown', (e) => { if (!story) return; if (e.key === 'ArrowRight') { e.preventDefault(); turn(1) } if (e.key === 'ArrowLeft') { e.preventDefault(); turn(-1) } })
+  let sx = null, sy = null
+  bookEl.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY })
+  bookEl.addEventListener('pointerup', (e) => {
+    if (sx === null || !story) return
+    const dx = e.clientX - sx, dy = e.clientY - sy; sx = null
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) turn(dx < 0 ? 1 : -1)
+  })
+
+  const pick = (n) => $(`input[name="${n}"]:checked`).value
+  let writeTimer = 0
+  function makeStory(sample) {
+    if (turning) return
+    const h = HEROES[pick('hero')], p = PLACES[pick('place')], mood = pick('mood'), M = MOODS[mood]
+    story = { h, p, mood, title: M.title(h, p), pages: M.pages.map((f) => f(h, p)) }
+    page = 0
+    const w = $('#writing')
+    const finish = () => {
+      show(0); $('#book-empty').style.display = 'none'; w.classList.remove('on')
+      $('#book-ctrls').hidden = false; $('#book-hint').hidden = false; sync()
+      if (sample) return
+      if (hasGsap && !reduced) gsap.fromTo(bookEl, { rotation: -2, y: 30, opacity: .2 }, { rotation: 0, y: 0, opacity: 1, duration: .9, ease: 'back.out(1.6)' })
+      nextB.focus({ preventScroll: true })
+      if (reading) speak()
+    }
+    if (sample) return finish()
+    w.classList.add('on'); clearTimeout(writeTimer)
+    if (hasGsap && !reduced) gsap.fromTo('#writing .ink', { strokeDashoffset: 60 }, { strokeDashoffset: 0, duration: 1.1, ease: 'none' })
+    if (reduced) finish(); else writeTimer = setTimeout(finish, 1100)
+    const r = $('#stage').getBoundingClientRect()
+    if (r.top < 60 || r.top > innerHeight * .5) { const y = scrollY + r.top - 110; window.lenis ? lenis.scrollTo(y, { duration: 1.2 }) : scrollTo({ top: y, behavior: reduced ? 'auto' : 'smooth' }) }
+  }
+  $('#make').addEventListener('click', () => makeStory())
+  // open on a ready-made sample so the book is never empty; "Write our story" makes a new one
+  makeStory(true)
+  $('#again').addEventListener('click', () => {
+    // nudge to a different combination so "another story" is visibly new
+    const groups = ['hero', 'place', 'mood']; const g = groups[Math.floor(Math.random() * 3)]
+    const opts = $$(`input[name="${g}"]`), cur = opts.findIndex((o) => o.checked)
+    opts[(cur + 1 + Math.floor(Math.random() * (opts.length - 1))) % opts.length].checked = true
+    makeStory()
+  })
+  const synth = window.speechSynthesis
+  function speak() {
+    if (!synth || !story) return
+    try { synth.cancel(); const u = new SpeechSynthesisUtterance((page === 0 ? story.title + '. ' : '') + story.pages[page]); u.rate = .88; u.pitch = 1.05; synth.speak(u) } catch (e) { /* speech is optional */ }
+  }
+  const readB = $('#read')
+  if (!synth) readB.hidden = true
+  readB.addEventListener('click', () => { reading = !reading; readB.setAttribute('aria-pressed', reading); readB.textContent = reading ? 'Stop reading' : 'Read it to me'; if (reading) speak(); else synth && synth.cancel() })
+  window.__fable = { state: () => ({ page, turning, title: story && story.title, text: story && story.pages[page], a: halfA.textContent.length, b: halfB.querySelector('p') && halfB.querySelector('p').textContent }) }
+
+  /* ---------- shelf ---------- */
+  const TITLES = ['Otto and the Lost Hum', 'Mo Sings to the Moon', 'The Night the Train Got the Hiccups', 'Ember’s Tiny Spark', 'Juniper’s Pebble Path', 'The Warmest Night', 'A Firefly for Pim', 'Mrs Crumb’s Floating Loaf', 'Counting Stars with Bramble', 'The Quiet Carriage', 'Ember and the Big Oven', 'Otto Counts the Stars', 'The Sound Behind the Clock Tower', 'Mo and the Sleepy Lanterns', 'Juniper Is Brave', 'Cocoa That Never Spills']
+  const COLS = ['#F4A97F', '#8FB3D9', '#F5D58A', '#8DB88A', '#C9BDEB', '#E39A8B', '#F9E7B5', '#B4485F']
+  $('#books').innerHTML = TITLES.map((t, i) => {
+    const c = COLS[i % COLS.length], dark = c === '#B4485F'
+    return `<div class="spine${i === 6 ? ' lean' : ''}" style="--c:${c};--t:${dark ? '#FFF6E8' : '#1B2140'};--h:${250 + ((i * 47) % 90)}px;--w:${52 + ((i * 13) % 22)}px"><span>${t}</span></div>`
+  }).join('')
+  // stamped dates on the library cards, always the last few nights
+  const fmt = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  const nights = (n, skip) => Array.from({ length: 6 }, (_, k) => { const d = new Date(); d.setDate(d.getDate() - (5 - k) * skip); return k >= 6 - n ? `<span class="st">${fmt(d)}</span>` : `<span>—</span>` }).join('')
+  $('#stamps-a').innerHTML = nights(3, 2); $('#stamps-b').innerHTML = nights(6, 1)
+
+  /* ---------- micro: magnetic buttons + sparkle cursor ---------- */
+  if (!reduced && matchMedia('(pointer:fine)').matches) {
+    $$('.magnet').forEach((b) => {
+      b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .18}px,${(e.clientY - r.top - r.height / 2) * .25}px)` })
+      b.addEventListener('pointerleave', () => { b.style.transform = '' })
+    })
+    const hero = $('.hero'); let last = 0
+    hero.addEventListener('pointermove', (e) => {
+      const now = performance.now(); if (now - last < 70) return; last = now
+      const s = document.createElement('div'); s.className = 'sparkle'; s.setAttribute('aria-hidden', 'true')
+      s.innerHTML = '<svg viewBox="0 0 10 10"><path d="M5 0l1.3 3.7L10 5 6.3 6.3 5 10 3.7 6.3 0 5l3.7-1.3z" fill="currentColor"/></svg>'
+      s.style.color = ['#F5D58A', '#F4A97F', '#8FB3D9'][Math.floor(Math.random() * 3)]
+      document.body.appendChild(s)
+      if (hasGsap) gsap.fromTo(s, { x: e.clientX - 5, y: e.clientY - 5, scale: 1.4, rotation: 0, opacity: 1 }, { y: e.clientY + 30 + Math.random() * 20, x: e.clientX - 5 + (Math.random() - .5) * 30, scale: 0, rotation: 180, opacity: 0, duration: 1.1, ease: 'sine.out', onComplete: () => s.remove() })
+      else s.remove()
+    })
+  }
+
+  /* ---------- journey copy ---------- */
+  const STEPS = [
+    ['Step 1 of 3 · 7:15 pm', 'Pick it together', 'After the bath, choose a hero, a place and a mood — three taps, no menus, no feed. It takes about as long as finding the right pyjamas.'],
+    ['Step 2 of 3 · 7:25 pm', 'Listen in the dark', 'Lights out, phone face down. A warm voice reads four short pages. Sentences get shorter and softer as the story goes on.'],
+    ['Step 3 of 3 · 7:33 pm', 'Drift off', 'The last page always ends with someone falling asleep. Then Fable goes quiet — no next episode, no autoplay. Just the night.'],
+  ]
+  const jStep = $('#j-step'), jTitle = $('#j-title'), jText = $('#j-text'), wins = $$('.win'), jBars = $$('.j-dots b')
+  let jIdx = 0, jTween = null
+  function setStep(i, instant) {
+    if (i === jIdx && !instant) return
+    jIdx = i
+    wins.forEach((w) => w.setAttribute('fill', +w.dataset.i <= i ? '#F5D58A' : '#3A3F5C'))
+    const apply = () => { jStep.textContent = STEPS[i][0]; jTitle.textContent = STEPS[i][1]; jText.textContent = STEPS[i][2] }
+    if (instant || reduced || !hasGsap) { apply(); return }
+    if (jTween) jTween.kill()
+    const els = [jStep, jTitle, jText]
+    jTween = gsap.timeline().to(els, { opacity: 0, y: -12, duration: .25, stagger: .04, ease: 'sine.in' }).add(apply).fromTo(els, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: .45, stagger: .06, ease: 'back.out(1.6)' })
+  }
+
+  /* ---------- motion ---------- */
+  if (!hasGsap) return
+  gsap.registerPlugin(ScrollTrigger)
+  if (!reduced) {
+    const lenis = new Lenis({ duration: 1.25, smoothWheel: true })
+    window.lenis = lenis
+    lenis.on('scroll', ScrollTrigger.update)
+    gsap.ticker.add((t) => lenis.raf(t * 1000)); gsap.ticker.lagSmoothing(0)
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const el = $(a.getAttribute('href')); if (!el) return
+    e.preventDefault()
+    if (window.lenis) lenis.scrollTo(el, { offset: a.getAttribute('href') === '#top' ? 0 : -20, duration: 1.6 }); else el.scrollIntoView()
+  }))
+
+  if (reduced) {
+    // everything visible, no pin: show the night scene and all three steps
+    gsap.set('.j-stars', { opacity: 1 }); $('.journey .sky').style.background = '#2B3262'
+    wins.forEach((w) => w.setAttribute('fill', '#F5D58A'))
+    const card = $('.j-card'); card.innerHTML = STEPS.map((s) => `<p class="j-step">${s[0]}</p><h2 style="font-size:28px">${s[1]}</h2><p style="margin-bottom:14px">${s[2]}</p>`).join('')
+    card.style.cssText = 'top:auto;bottom:22px;transform:none;max-height:calc(100% - 140px);overflow:auto'
+    return
+  }
+
+  /* hero intro */
+  const words = $$('.hero h1 .w')
+  gsap.set(words, { opacity: 0, y: 60, rotation: () => gsap.utils.random(-12, 12) })
+  gsap.set('.hero .eyebrow, .hero .lede, .hero .ctas, .hero .note', { opacity: 0, y: 24 })
+  gsap.set('.hero-art .blob', { scale: .4, opacity: 0, transformOrigin: '50% 50%' })
+  gsap.set('.hero-art .moon', { y: 60, opacity: 0 })
+  gsap.set('.hero-art .fox, .hero-art .book-art, .hero-art .zz', { opacity: 0, y: 30 })
+  gsap.set('#yet-line', { strokeDashoffset: 1 }); gsap.set('#trail-draw', { strokeDashoffset: 1 })
+  const tl = gsap.timeline({ defaults: { ease: 'back.out(1.7)' } })
+  tl.to('.hero-art .blob', { scale: 1, opacity: (i, el) => +el.getAttribute('opacity'), duration: 1.1, stagger: .09, ease: 'power3.out' }, 0)
+    .to('.hero .eyebrow', { opacity: 1, y: 0, duration: .5 }, .1)
+    .to(words, { opacity: 1, y: 0, rotation: 0, duration: .7, stagger: .07 }, .15)
+    .to('#yet-line', { strokeDashoffset: 0, duration: .6, ease: 'power2.inOut' }, .75)
+    .to('.hero-art .book-art', { opacity: 1, y: 0, duration: .7 }, .35)
+    .to('.hero-art .moon', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, .4)
+    .to('.hero-art .fox', { opacity: 1, y: 0, duration: .7 }, .6)
+    .to('#trail-draw', { strokeDashoffset: 0, duration: 1.3, ease: 'power1.inOut' }, .7)
+    .to('.hero-art .zz', { opacity: 1, y: 0, duration: .5, stagger: .15 }, 1.2)
+    .to('.hero .lede, .hero .ctas, .hero .note', { opacity: 1, y: 0, duration: .6, stagger: .08, ease: 'power3.out' }, .6)
+  gsap.to('.hero-art .zz', { y: -8, duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: .4, delay: 1.8 })
+  gsap.to('.hero-art .moon', { yPercent: -18, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+
+  /* journey: scrub continuous sky / moon / path; step copy swaps on the clock */
+  const jPath = $('.j-path'), jLen = jPath.getTotalLength()
+  gsap.set(jPath, { attr: { 'stroke-dasharray': '2 14' } })
+  const jMask = jPath.cloneNode(); jMask.removeAttribute('class'); jMask.setAttribute('stroke-dasharray', `${jLen} ${jLen}`); jMask.setAttribute('stroke-dashoffset', jLen); jMask.setAttribute('stroke', '#fff'); jMask.setAttribute('stroke-width', '14')
+  const svgNS = 'http://www.w3.org/2000/svg', jsvg = jPath.ownerSVGElement, m = document.createElementNS(svgNS, 'mask'); m.id = 'j-mask'; m.appendChild(jMask)
+  const defs = document.createElementNS(svgNS, 'defs'); defs.appendChild(m); jsvg.prepend(defs); jPath.setAttribute('mask', 'url(#j-mask)')
+  const sky = $('.journey .sky')
+  const jt = gsap.timeline({ defaults: { ease: 'none' } })
+  jt.fromTo(sky, { backgroundImage: 'linear-gradient(180deg, rgb(244,201,160) 0%, rgb(247,225,196) 100%)' }, { backgroundImage: 'linear-gradient(180deg, rgb(20,26,56) 0%, rgb(43,50,98) 100%)', duration: 1 }, 0)
+    .fromTo('.j-moon', { y: 260 }, { y: -40, duration: 1 }, 0)
+    .to('.j-stars', { opacity: 1, duration: .6 }, .35)
+    .to(jMask, { attr: { 'stroke-dashoffset': 0 }, duration: 1 }, 0)
+  jBars.forEach((b, i) => jt.fromTo(b, { scaleX: 0 }, { scaleX: 1, duration: 1 / 3 }, i / 3))
+  ScrollTrigger.create({
+    trigger: '.journey', start: 'top top', end: '+=220%', pin: true, scrub: .6, animation: jt,
+    onUpdate: (st) => setStep(Math.min(2, Math.floor(st.progress * 3 * .999)))
+  })
+  setStep(0, true)
+
+  /* reveals */
+  const reveal = (sel, trig, vars = {}) => {
+    const els = typeof sel === 'string' ? $$(sel) : sel; if (!els.length) return
+    gsap.set(els, { opacity: 0, y: 40 })
+    ScrollTrigger.create({ trigger: trig || els[0], start: 'top 86%', once: true, onEnter: () => gsap.to(els, { opacity: 1, y: 0, duration: .9, stagger: .1, ease: 'back.out(1.4)', clearProps: 'transform', ...vars }) })
+  }
+  reveal('.maker-head > *', '.maker-head'); reveal('.picks fieldset, .make', '.picks'); reveal('.stage', '.stage')
+  reveal('.parents > .eyebrow, .parents > .h2, .parents > .lede', '.parents')
+  $$('.note-card').forEach((n) => { gsap.set(n, { opacity: 0, y: 60 }); ScrollTrigger.create({ trigger: n, start: 'top 90%', once: true, onEnter: () => gsap.to(n, { opacity: 1, y: 0, duration: 1, ease: 'back.out(1.6)', clearProps: 'transform' }) }) })
+  reveal('.shelf-head > *', '.shelf-head')
+  gsap.set('.spine', { y: 80, opacity: 0 })
+  ScrollTrigger.create({ trigger: '.books', start: 'top 88%', once: true, onEnter: () => gsap.to('.spine', { y: 0, opacity: 1, duration: .8, stagger: .04, ease: 'back.out(1.8)', clearProps: 'transform' }) })
+  const cnt = $('#count'), obj = { v: 0 }
+  ScrollTrigger.create({ trigger: '.counter', start: 'top 90%', once: true, onEnter: () => gsap.to(obj, { v: 41208, duration: 2, ease: 'power2.out', onUpdate: () => (cnt.textContent = Math.round(obj.v).toLocaleString('en-US')) }) })
+  reveal('.letters .sticky > *', '.letters'); $$('.letter').forEach((l) => reveal([l], l))
+  reveal('.pricing > .eyebrow, .pricing > .h2, .pricing > .lede', '.pricing'); reveal('.lib', '.cards')
+  gsap.from('.foot .gn', { yPercent: 40, opacity: 0, duration: 1.2, ease: 'back.out(1.4)', scrollTrigger: { trigger: '.foot', start: 'top 80%', toggleActions: 'play none none none' } })
+  addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

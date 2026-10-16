@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbit — The reviewer that reads every line</title>
+<meta name="description" content="Orbit reviews every pull request in about a minute, explains every comment, and only posts suggestions that pass your tests.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23dfe1e3'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23000'/%3E%3Cellipse cx='32' cy='32' rx='27' ry='9' fill='none' stroke='%231d2cf3' stroke-width='4' transform='rotate(-20 32 32)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,300..800&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#dfe1e3;
+  --paper-2:#eceef0;
+  --ink:#000;
+  --ink-2:#3a3d42;
+  --blue:#1d2cf3;
+  --amber:#ffcf3d;
+  --add:#c8f0d4;
+  --add-ink:#0b6630;
+  --del:#f8d2ce;
+  --del-ink:#a3221b;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --display:'Martian Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;border-radius:0}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--mono);font-size:16px;line-height:1.6;overflow-x:hidden}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+::selection{background:var(--amber);color:var(--ink)}
+.skip{position:absolute;left:-999px;top:8px;z-index:200;background:var(--ink);color:var(--paper);padding:10px 16px}
+.skip:focus{left:12px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.frame{width:min(1280px,calc(100% - 32px));margin:0 auto;border-left:1px solid var(--ink);border-right:1px solid var(--ink)}
+section{border-bottom:1px solid var(--ink)}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:-.04em;line-height:1.02;font-variation-settings:'wdth' 85}
+h2{font-size:clamp(32px,4.4vw,64px)}
+.tag{display:inline-block;padding:2px 8px;border:1px solid var(--ink);font-size:13px;font-weight:600;background:var(--paper-2)}
+.prompt{color:var(--blue);font-weight:600}
+.dim{color:var(--ink-2)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 22px;border:1px solid var(--ink);background:var(--paper-2);font-weight:600;font-size:16px;text-decoration:none;box-shadow:4px 4px 0 var(--ink);transition:transform .12s,box-shadow .12s,background .15s,color .15s}
+.btn:hover{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.blue{background:var(--blue);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:4px 4px 0 var(--ink)}
+
+/* nav */
+.top{position:sticky;top:0;z-index:100;background:var(--paper);border-bottom:1px solid var(--ink)}
+.top .frame{display:flex;align-items:stretch;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;padding:0 18px;min-height:56px;font-family:var(--display);font-weight:800;font-size:18px;text-decoration:none;border-right:1px solid var(--ink);font-variation-settings:'wdth' 112.5}
+.logo svg{width:24px;height:24px}
+.top ul{display:flex;list-style:none}
+.top ul a{display:flex;align-items:center;height:100%;min-height:56px;padding:0 20px;border-left:1px solid var(--ink);text-decoration:none;font-size:15px}
+.top ul a:hover{background:var(--ink);color:var(--paper)}
+.top ul li:last-child a{background:var(--blue);color:#fff}
+.top ul li:last-child a:hover{background:var(--ink)}
+.menu-btn{display:none;min-height:56px;padding:0 18px;border-left:1px solid var(--ink);font-weight:600}
+.mmenu{display:none;border-top:1px solid var(--ink)}
+.mmenu.open{display:block}
+.mmenu a{display:flex;align-items:center;min-height:56px;padding:0 18px;border-bottom:1px solid var(--ink);text-decoration:none;font-size:18px}
+.mmenu a::before{content:"> ";color:var(--blue);margin-right:6px}
+
+/* hero */
+.hero .frame{display:grid;grid-template-columns:1.05fr .95fr;min-height:calc(100svh - 57px)}
+.hero-l{display:flex;flex-direction:column;justify-content:space-between;padding:36px 32px 32px;border-right:1px solid var(--ink);gap:30px}
+.term{font-size:15px;line-height:1.7;min-height:7.4em}
+.term .ok{color:var(--add-ink)}
+.term .warn{color:var(--del-ink)}
+.caret{display:inline-block;width:.6em;height:1.1em;vertical-align:-.2em;background:var(--ink);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.hero h1{font-size:clamp(42px,5.6vw,88px);line-height:.98}
+.hero h1 .ln{display:block;overflow:hidden;padding:.04em 0 .1em}
+.hero h1 .ln>span{display:inline-block}
+.hero h1 mark{background:var(--amber);color:inherit;padding:0 .1em}
+.hero-sub{font-size:17px;max-width:36em}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap}
+.hero-r{position:relative;display:flex;flex-direction:column;background:var(--paper-2);overflow:hidden}
+.hero-r .bar{display:flex;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--ink);font-size:13px}
+.ascii{flex:1;display:grid;place-items:center;overflow:hidden;cursor:crosshair}
+.ascii pre{font-family:var(--mono);font-size:clamp(6px,0.74vw,11px);line-height:1.12;letter-spacing:0;color:var(--ink);user-select:none}
+.ascii pre b{color:var(--blue);font-weight:600}
+.hero-r .legend{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ink)}
+.hero-r .legend div{padding:12px 16px;border-right:1px solid var(--ink)}
+.hero-r .legend div:last-child{border-right:0}
+.hero-r .legend b{display:block;font-family:var(--display);font-size:22px;letter-spacing:-.04em}
+.hero-r .legend span{font-size:13px;color:var(--ink-2)}
+
+/* marquee */
+.ticker{overflow:hidden;background:var(--ink);color:var(--paper);white-space:nowrap;font-size:15px}
+.ticker .row{display:inline-flex;gap:48px;padding:12px 0;will-change:transform}
+.ticker b{color:var(--amber);font-weight:500}
+
+/* review demo */
+.sec-head{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--ink)}
+.sec-head>*{padding:28px 32px}
+.sec-head h2{border-right:1px solid var(--ink)}
+.sec-head p{align-self:end;max-width:34em}
+.pr{display:grid;grid-template-columns:1fr 300px}
+.pr-main{border-right:1px solid var(--ink);min-width:0}
+.pr-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--ink);background:var(--paper-2)}
+.pr-title h3{font-family:var(--mono);font-weight:600;font-size:17px;letter-spacing:0;font-variation-settings:normal}
+.pr-title .tag.open{background:var(--add);border-color:var(--add-ink);color:var(--add-ink)}
+.pr-title .tag.merged{background:#d9d3ff;border-color:#4b2bd6;color:#3a1fc0}
+.file{display:flex;justify-content:space-between;gap:12px;padding:10px 20px;border-bottom:1px solid var(--ink);font-size:14px}
+.diff-wrap{position:relative;overflow-x:auto;container-type:inline-size}
+.scan{position:absolute;left:0;right:0;top:0;height:3px;background:var(--blue);box-shadow:0 0 0 1px var(--blue),0 8px 24px rgba(29,44,243,.35);opacity:0;pointer-events:none;z-index:3}
+table.diff{width:100%;border-collapse:collapse;font-size:14.5px;line-height:1.75}
+.diff td{vertical-align:top}
+.diff .ln{width:46px;padding:0 10px;text-align:right;color:#6b6f75;user-select:none;border-right:1px solid #b9bcc0}
+.diff .mk{width:22px;text-align:center;user-select:none;font-weight:600}
+.diff .code{white-space:pre;padding-right:20px}
+.diff tr.add{background:var(--add)}
+.diff tr.add .mk{color:var(--add-ink)}
+.diff tr.del{background:var(--del)}
+.diff tr.del .mk{color:var(--del-ink)}
+.diff tr.del .code{text-decoration:line-through;text-decoration-color:rgba(163,34,27,.5)}
+.diff tr.flash{animation:flash 1.4s ease-out}
+@keyframes flash{0%{background:var(--amber)}}
+.diff tr.hit .ln{background:var(--amber);color:var(--ink)}
+.k{color:var(--blue);font-weight:600}
+.s{color:#8a3b00}
+.n{color:#a3221b}
+.c{color:#6b6f75;font-style:italic}
+tr.cmt td{padding:0}
+.comment{position:sticky;left:78px;max-width:calc(100cqw - 98px);margin:10px 20px 14px 78px;border:1px solid var(--ink);background:#fff;box-shadow:5px 5px 0 var(--ink);font-family:var(--mono);white-space:normal}
+.comment header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--ink);background:var(--paper-2);font-size:14px}
+.comment header .who{font-weight:600}
+.sev{padding:1px 8px;border:1px solid currentColor;font-size:12px;font-weight:600}
+.sev.bug{color:var(--del-ink);background:var(--del)}
+.sev.sec{color:#fff;background:var(--ink);border-color:var(--ink)}
+.sev.perf{color:#6a4a00;background:var(--amber);border-color:#6a4a00}
+.comment .body{padding:12px 14px;font-size:16px;line-height:1.55}
+.comment .body code{background:var(--paper);padding:0 4px;font-size:15px}
+.sugg{margin:0 14px 12px;border:1px solid var(--ink);font-size:14px;overflow-x:auto}
+.sugg div{white-space:pre;padding:0 10px;line-height:1.7}
+.sugg .m{background:var(--del)}
+.sugg .p{background:var(--add)}
+.comment .acts{display:flex;gap:10px;flex-wrap:wrap;padding:0 14px 14px}
+.comment .acts .btn{min-height:44px;padding:0 16px;font-size:15px;box-shadow:3px 3px 0 var(--ink)}
+.comment .acts .btn:hover{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.comment.resolved{box-shadow:none;background:var(--paper-2)}
+.comment.resolved header{border-bottom:0}
+.comment .state{margin-left:auto;font-weight:600}
+.comment .undo{text-decoration:underline;min-height:44px;padding:0 6px}
+.pr-side{display:flex;flex-direction:column}
+.pr-side>div{padding:18px 20px;border-bottom:1px solid var(--ink)}
+.pr-side h4{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--ink-2)}
+.checks{list-style:none;display:grid;gap:8px;font-size:15px}
+.checks li{display:flex;gap:10px;align-items:baseline}
+.checks li span:first-child{width:1.5em;flex:none;font-weight:600}
+.checks .pass{color:var(--add-ink)}
+.checks .fail{color:var(--del-ink)}
+.checks .run{color:var(--blue)}
+.tally{font-family:var(--display);font-size:44px;line-height:1;letter-spacing:-.05em}
+.tally small{font-family:var(--mono);font-size:14px;letter-spacing:0;color:var(--ink-2)}
+.pr-side .grow{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;border-bottom:0}
+.merged-banner{display:none;padding:14px;border:1px solid var(--ink);background:var(--ink);color:var(--paper);font-size:13px;line-height:1.25;white-space:pre;overflow:hidden}
+.merged-banner.show{display:block}
+
+/* pipeline (pinned horizontal) */
+.pipe{overflow:hidden}
+.pipe .frame{overflow:hidden}
+.pipe-top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;padding:28px 32px;border-bottom:1px solid var(--ink)}
+.progress{font-size:15px;white-space:pre}
+.track{display:flex;width:max-content;will-change:transform}
+.stage{width:min(560px,82vw);flex:none;border-right:1px solid var(--ink);padding:30px 32px 36px;display:flex;flex-direction:column;gap:18px;min-height:min(560px,64vh)}
+.stage .no{font-family:var(--display);font-size:clamp(70px,9vw,140px);line-height:.8;letter-spacing:-.06em;font-weight:800;color:transparent;-webkit-text-stroke:1.5px var(--ink)}
+.stage h3{font-size:clamp(26px,2.4vw,36px)}
+.stage p{max-width:30em}
+.stage pre{margin-top:auto;padding:14px;border:1px solid var(--ink);background:var(--paper-2);font-size:14px;line-height:1.6;overflow-x:auto}
+.stage.end{background:var(--ink);color:var(--paper)}
+.stage.end .no{-webkit-text-stroke-color:var(--paper)}
+.stage.end pre{background:#111;border-color:var(--paper);color:var(--paper)}
+
+/* catches */
+.catches .frame{display:grid;grid-template-columns:.8fr 1.2fr}
+.catches .frame>div{padding:36px 32px}
+.catches .frame>div:first-child{border-right:1px solid var(--ink)}
+.bars{font-size:15px;display:grid;gap:10px}
+.bars div{display:grid;grid-template-columns:minmax(0,15em) 1fr 3.5em;gap:14px;align-items:center}
+.bars .meter{white-space:pre;overflow:hidden;color:var(--blue);letter-spacing:-.04em}
+.bars .pct{text-align:right;font-weight:600}
+.catches .note{margin-top:22px;font-size:15px;color:var(--ink-2)}
+.big-stat{font-family:var(--display);font-size:clamp(70px,9vw,140px);font-weight:800;letter-spacing:-.07em;line-height:.85}
+
+/* quotes */
+.quotes .frame{display:grid;grid-template-columns:repeat(3,1fr)}
+.q{padding:32px;border-right:1px solid var(--ink);display:flex;flex-direction:column;gap:20px;transition:background .2s}
+.q:last-child{border-right:0}
+.q:hover{background:var(--paper-2)}
+.q blockquote{font-size:17px}
+.q blockquote::before{content:"> ";color:var(--blue);font-weight:600}
+.q cite{font-style:normal;font-size:14px;color:var(--ink-2);margin-top:auto}
+.q cite b{color:var(--ink)}
+
+/* pricing */
+.pricing h2{padding:28px 32px;border-bottom:1px solid var(--ink)}
+.ptable{width:100%;border-collapse:collapse;font-size:16px}
+.ptable th,.ptable td{border-bottom:1px solid var(--ink);padding:18px 20px;text-align:left;vertical-align:top}
+.ptable th{font-weight:600;font-size:14px;background:var(--paper-2)}
+.ptable td:first-child{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-.04em;width:20%}
+.ptable td.price{font-weight:600;white-space:nowrap}
+.ptable tr:last-child td{border-bottom:0}
+.ptable tbody tr:hover{background:var(--paper-2)}
+.ptable .btn{min-height:44px;padding:0 16px;font-size:15px;white-space:nowrap}
+
+/* footer */
+.foot .frame{padding:40px 32px 26px}
+.banner{font-size:clamp(11px,4vw,40px);line-height:1.12;font-weight:600;white-space:pre;color:var(--ink);overflow:hidden}
+.banner b{color:var(--blue);font-weight:500;font-size:max(.4em,12px)}
+.foot-row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:30px;padding-top:16px;border-top:1px solid var(--ink);font-size:14px}
+
+@media (max-width:980px){
+  .top ul{display:none}
+  .menu-btn{display:block}
+  .hero .frame{grid-template-columns:1fr;min-height:0}
+  .hero-l{border-right:0;border-bottom:1px solid var(--ink);padding:24px 18px}
+  .hero-r{min-height:380px}
+  .ascii pre{font-size:clamp(6px,1.9vw,9px)}
+  .sec-head{grid-template-columns:1fr}
+  .sec-head h2{border-right:0;border-bottom:1px solid var(--ink)}
+  .sec-head>*{padding:22px 18px}
+  .pr{grid-template-columns:1fr}
+  .pr-main{border-right:0;border-bottom:1px solid var(--ink)}
+  .comment{margin:10px 12px 14px;left:12px;max-width:calc(100cqw - 24px)}
+  table.diff{font-size:13.5px}
+  .pipe-top{flex-direction:column;align-items:flex-start;padding:22px 18px}
+  .stage{padding:24px 18px 28px}
+  .catches .frame,.quotes .frame{grid-template-columns:1fr}
+  .catches .frame>div:first-child{border-right:0;border-bottom:1px solid var(--ink)}
+  .catches .frame>div{padding:28px 18px}
+  .q{border-right:0;border-bottom:1px solid var(--ink);padding:26px 18px}
+  .q:last-child{border-bottom:0}
+  .pricing h2{padding:22px 18px}
+  .foot .frame{padding:30px 18px 22px}
+}
+@media (max-width:640px){
+  .frame{width:calc(100% - 16px)}
+  .hero-r .legend b{font-size:18px}
+  .bars div{grid-template-columns:1fr 3em;gap:2px 10px}
+  .bars .meter{grid-column:1/-1;grid-row:2}
+  .ptable thead{display:none}
+  .ptable,.ptable tbody,.ptable tr,.ptable td{display:block;width:100%}
+  .ptable tr{border-bottom:1px solid var(--ink);padding:10px 0}
+  .ptable td{border:0;padding:6px 18px}
+  .ptable td:first-child{width:100%}
+  .pr-title h3{font-size:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  .caret{animation:none}
+  .btn{transition:none}
+  .diff tr.flash{animation:none}
+  .track{flex-direction:column;width:auto}
+  .stage{width:auto;border-right:0;border-bottom:1px solid var(--ink);min-height:0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="frame">
+    <a class="logo" href="#top" aria-label="Orbit home">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="12" fill="#000"/><ellipse cx="32" cy="32" rx="28" ry="9" fill="none" stroke="#1d2cf3" stroke-width="5" transform="rotate(-20 32 32)"/></svg>
+      orbit
+    </a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="#review">./review</a></li>
+        <li><a href="#pipeline">./how-it-works</a></li>
+        <li><a href="#catches">./what-it-catches</a></li>
+        <li><a href="#pricing">./pricing</a></li>
+        <li><a href="#install">install --free</a></li>
+      </ul>
+    </nav>
+    <button class="menu-btn" aria-expanded="false" aria-controls="mmenu">[ menu ]</button>
+  </div>
+  <div class="mmenu" id="mmenu">
+    <a href="#review">review</a>
+    <a href="#pipeline">how it works</a>
+    <a href="#catches">what it catches</a>
+    <a href="#pricing">pricing</a>
+    <a href="#install">install free</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="frame">
+      <div class="hero-l">
+        <div class="term" id="term" aria-label="Terminal: orbit review of pull request 482 found 3 issues"><span class="prompt">~/api $</span> <span id="cmd"></span><span class="caret" aria-hidden="true"></span><div id="termOut"></div></div>
+        <h1 aria-label="The reviewer that reads every line.">
+          <span class="ln" aria-hidden="true"><span>The reviewer</span></span>
+          <span class="ln" aria-hidden="true"><span>that reads</span></span>
+          <span class="ln" aria-hidden="true"><span><mark>every line.</mark></span></span>
+        </h1>
+        <p class="hero-sub">Orbit reviews each pull request in about a minute, explains every comment in plain words, and only suggests changes that pass your own tests. Your humans get to review the design, not the typos.</p>
+        <div class="hero-ctas">
+          <a class="btn primary" href="#review">Watch it review a PR</a>
+          <a class="btn" href="#install">Install on GitHub-style repos</a>
+        </div>
+      </div>
+      <div class="hero-r" aria-hidden="true">
+        <div class="bar"><span>orbit://visualiser</span><span id="fps">rendering</span></div>
+        <div class="ascii" id="asciiBox"><pre id="ascii"></pre></div>
+        <div class="legend">
+          <div><b>61s</b><span>median review</span></div>
+          <div><b>1 in 9</b><span>comments dismissed</span></div>
+          <div><b>0</b><span>lines leave your VPC</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker" aria-hidden="true"><div class="row" id="ticker">
+    <span>PR #482 <b>3 comments</b> · 61s</span><span>PR #1190 <b>approved</b> · 44s</span><span>PR #77 <b>null deref caught</b> · 52s</span><span>PR #3051 <b>N+1 query</b> · 1m 08s</span><span>PR #904 <b>approved</b> · 38s</span><span>PR #2218 <b>secret in diff blocked</b> · 29s</span>
+  </div></div>
+
+  <section id="review" aria-labelledby="review-title">
+    <div class="frame">
+      <div class="sec-head">
+        <h2 id="review-title">$ orbit review --pr 482</h2>
+        <p>A real-shaped pull request. Orbit reads the diff and its context, then leaves comments. Apply a suggestion or dismiss it — once nothing is open, the PR is ready to merge.</p>
+      </div>
+      <div class="pr">
+        <div class="pr-main">
+          <div class="pr-title"><span class="tag open" id="prState">Open</span><h3>Add rate limiting to /api/upload</h3><span class="dim">#482 · jonas-k wants to merge 3 commits into main</span></div>
+          <div class="file"><span>src/api/upload.ts</span><span><span style="color:var(--add-ink)">+12</span> <span style="color:var(--del-ink)">−1</span></span></div>
+          <div class="diff-wrap">
+            <div class="scan" id="scan"></div>
+            <table class="diff" id="diff" aria-label="Diff of src/api/upload.ts with review comments"></table>
+          </div>
+        </div>
+        <aside class="pr-side" aria-label="Review status">
+          <div><h4>Open comments</h4><div class="tally"><span id="openN">0</span><small> / <span id="totalN">3</span> open</small></div></div>
+          <div><h4>Checks</h4>
+            <ul class="checks" id="checks">
+              <li><span class="pass">✓</span><span>build</span></li>
+              <li><span class="pass">✓</span><span>unit tests · 214 passed</span></li>
+              <li id="orbitCheck"><span class="run">○</span><span>orbit/review · waiting</span></li>
+            </ul>
+          </div>
+          <div class="grow">
+            <pre class="merged-banner" id="banner">+------------------------------+
+|  MERGED  #482 -> main        |
+|  3 suggestions applied/      |
+|  dismissed. 0 open.          |
++------------------------------+</pre>
+            <button class="btn blue" id="mergeBtn" type="button" disabled>Merge pull request</button>
+            <button class="btn" id="rerunBtn" type="button">Run review again</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="pipe" id="pipeline" aria-labelledby="pipe-title">
+    <div class="frame">
+      <div class="pipe-top">
+        <h2 id="pipe-title">How a review runs</h2>
+        <span class="progress" id="pipeBar" aria-hidden="true">[..............................]   0%</span>
+      </div>
+      <div class="track" id="pipeTrack">
+        <div class="stage"><span class="no">01</span><h3>Read the diff</h3><p>Every changed line, plus the 200 lines around it. Generated files and lockfiles are skipped, renames are followed.</p><pre>reading src/api/upload.ts
+  +12 −1  (3 hunks)
+skipping package-lock.json</pre></div>
+        <div class="stage"><span class="no">02</span><h3>Pull in context</h3><p>Orbit finds the callers, the tests that cover this code, and the last six months of commits that touched it.</p><pre>callers      4 files
+tests        upload.spec.ts (11)
+history      7 commits, 2 reverts</pre></div>
+        <div class="stage"><span class="no">03</span><h3>Review with your rules</h3><p>Checks correctness, security and performance first. Style only if you ask — your linter already has opinions.</p><pre>rules  .orbit.yml
+  - flag: unvalidated user input
+  - ignore: naming, formatting
+  - max_comments: 5</pre></div>
+        <div class="stage end"><span class="no">04</span><h3>Prove it before posting</h3><p>Every suggestion is applied in a sandbox and your test suite runs against it. If tests fail, the comment is never posted.</p><pre>sandbox  apply 3 suggestions
+tests    214 passed, 0 failed
+post     3 comments  ✓</pre></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="catches" id="catches" aria-labelledby="catch-title">
+    <div class="frame">
+      <div>
+        <h2 id="catch-title">What it catches</h2>
+        <p style="margin-top:18px;max-width:28em">Across 1.4 million reviewed pull requests last quarter, these are the comments engineers chose to apply.</p>
+        <div class="big-stat" style="margin-top:36px">89%</div>
+        <p class="dim">of Orbit comments get applied, not dismissed.</p>
+      </div>
+      <div>
+        <div class="bars" id="bars" role="list">
+          <div role="listitem"><span>Null / undefined access</span><span class="meter" data-v="31" aria-hidden="true"></span><span class="pct">31%</span></div>
+          <div role="listitem"><span>Unvalidated input</span><span class="meter" data-v="19" aria-hidden="true"></span><span class="pct">19%</span></div>
+          <div role="listitem"><span>Missing error handling</span><span class="meter" data-v="16" aria-hidden="true"></span><span class="pct">16%</span></div>
+          <div role="listitem"><span>N+1 and slow queries</span><span class="meter" data-v="12" aria-hidden="true"></span><span class="pct">12%</span></div>
+          <div role="listitem"><span>Race conditions</span><span class="meter" data-v="9" aria-hidden="true"></span><span class="pct">9%</span></div>
+          <div role="listitem"><span>Leaked secrets</span><span class="meter" data-v="7" aria-hidden="true"></span><span class="pct">7%</span></div>
+          <div role="listitem"><span>Everything else</span><span class="meter" data-v="6" aria-hidden="true"></span><span class="pct">6%</span></div>
+        </div>
+        <p class="note">// Style nits are off by default. Orbit won't argue about semicolons.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="quotes" aria-label="What engineers say">
+    <div class="frame">
+      <figure class="q"><blockquote>It caught a path traversal in a PR I'd already approved. The suggestion was one line and the tests proved it.</blockquote><cite><b>Mira Kowalczyk</b> · staff engineer, Parcelbird</cite></figure>
+      <figure class="q"><blockquote>Review queue went from two days to same-afternoon. Humans still review — they just start at the interesting part.</blockquote><cite><b>Dev Okafor</b> · eng manager, Tallyho Payments</cite></figure>
+      <figure class="q"><blockquote>The first AI reviewer my team didn't mute in a week. Five comments max, and they're all real.</blockquote><cite><b>Lena Brandt</b> · platform lead, Quillworks</cite></figure>
+    </div>
+  </section>
+
+  <section class="pricing" id="pricing" aria-labelledby="price-title">
+    <div class="frame">
+      <h2 id="price-title">pricing.md</h2>
+      <table class="ptable">
+        <thead><tr><th>Plan</th><th>What you get</th><th>Price</th><th><span class="sr-only">Action</span></th></tr></thead>
+        <tbody>
+          <tr><td>Open</td><td>Unlimited reviews on public repositories. Community rules.</td><td class="price">$0</td><td><a class="btn" href="#install">Install</a></td></tr>
+          <tr><td>Team</td><td>Private repos, custom rules, test-verified suggestions, Slack digests.</td><td class="price">$12 / dev / mo</td><td><a class="btn primary" href="#install">Start 14-day trial</a></td></tr>
+          <tr><td>Self-host</td><td>Runs in your VPC with your model keys. SSO, audit log, SLA.</td><td class="price">Talk to us</td><td><a class="btn" href="#install">Book a call</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="foot" id="install" aria-labelledby="install-title">
+    <div class="frame">
+      <h2 id="install-title" class="sr-only">Install Orbit</h2>
+      <p style="margin-bottom:22px"><span class="prompt">$</span> npx orbit-review init <span class="dim"># adds .orbit.yml and the CI step, takes 2 minutes</span></p>
+      <pre class="banner" aria-hidden="true">
+  ___  ____  ____ ___ _____
+ / _ \|  _ \| __ )_ _|_   _|
+| | | | |_) |  _ \| |  | |
+| |_| |  _ &lt;| |_) | |  | |
+ \___/|_| \_\____/___| |_|  <b>reads every line.</b></pre>
+      <div class="foot-row"><span>© 2026 Orbit Review, Inc.</span><span>Concept design — fictional brand.</span></div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  gsap.registerPlugin(ScrollTrigger)
+  let lenis = null
+  if (!reduce) {
+    lenis = new Lenis({ lerp: 0.12 })
+    window.lenis = lenis
+    lenis.on('scroll', ScrollTrigger.update)
+    gsap.ticker.add((t) => lenis.raf(t * 1000))
+    gsap.ticker.lagSmoothing(0)
+  }
+  const $ = (s) => document.querySelector(s)
+  const menuBtn = $('.menu-btn'), mmenu = $('#mmenu')
+  function setMenu(open) { mmenu.classList.toggle('open', open); menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.textContent = open ? '[ close ]' : '[ menu ]' }
+  menuBtn.addEventListener('click', () => setMenu(!mmenu.classList.contains('open')))
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false) })
+  document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href'), el = id === '#top' ? document.body : document.querySelector(id)
+    if (!el) return
+    e.preventDefault(); setMenu(false)
+    lenis ? lenis.scrollTo(el, { offset: -56 }) : window.scrollTo(0, el.getBoundingClientRect().top + scrollY - 56)
+  }))
+
+  /* ---------- hero terminal ---------- */
+  const cmd = $('#cmd'), out = $('#termOut')
+  const OUT = [
+    ['', 'reading 14 files, 612 changed lines ... done in 38s'],
+    ['ok', '✓ tests: 214 passed with suggestions applied'],
+    ['warn', '! 3 comments posted on #482 (1 bug, 1 security, 1 perf)'],
+  ]
+  function showOut() { out.innerHTML = OUT.map(([c, t]) => `<div class="${c}">${t}</div>`).join('') }
+  if (reduce) { cmd.textContent = 'orbit review --pr 482'; showOut() }
+  else {
+    gsap.set('.hero h1 .ln>span', { yPercent: 105 })
+    gsap.set(['.hero-sub', '.hero-ctas', '.hero-r'], { opacity: 0 })
+    gsap.set('.hero-ctas', { y: 16 })
+    const full = 'orbit review --pr 482'
+    const st = { i: 0 }
+    const tl = gsap.timeline({ delay: 0.15 })
+    tl.to('.hero-r', { opacity: 1, duration: 0.6 }, 0)
+      .to(st, { i: full.length, duration: 0.7, ease: 'none', onUpdate: () => { cmd.textContent = full.slice(0, Math.round(st.i)) } }, 0)
+      .to('.hero h1 .ln>span', { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.08 }, 0.35)
+      .add(() => { OUT.forEach(([c, t], k) => setTimeout(() => { const d = document.createElement('div'); d.className = c; d.textContent = t; out.appendChild(d) }, k * 260)) }, 0.75)
+      .to('.hero-sub', { opacity: 1, duration: 0.6 }, 0.8)
+      .to('.hero-ctas', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.9)
+  }
+
+  /* ---------- ASCII orbit ---------- */
+  const pre = $('#ascii'), box = $('#asciiBox')
+  const RAMP = ' .,:-=+*#%@'
+  let COLS = 72, ROWS = 34
+  function dims() { const m = innerWidth < 640; COLS = m ? 60 : 84; ROWS = m ? 28 : 42 }
+  dims(); addEventListener('resize', dims)
+  const view = { tx: 0, ty: 0, x: 0, y: 0 }
+  box.addEventListener('pointermove', (e) => { const r = box.getBoundingClientRect(); view.tx = (e.clientX - r.left) / r.width - 0.5; view.ty = (e.clientY - r.top) / r.height - 0.5 })
+  box.addEventListener('pointerleave', () => { view.tx = 0; view.ty = 0 })
+  function renderAscii(t) {
+    view.x += (view.tx - view.x) * 0.08; view.y += (view.ty - view.y) * 0.08
+    const R = 0.3, RX = 0.5, RY = 0.13, rot = t * 0.35 + view.x * 2.5
+    const lx = -0.5 + view.x * 1.6, ly = -0.55 + view.y * 1.4, lz = 0.67
+    const ll = Math.hypot(lx, ly, lz)
+    const tilt = -0.32 + view.y * 0.3
+    const mA = t * 0.9, mX = Math.cos(mA) * RX, mZ = Math.sin(mA)
+    const mx = mX * Math.cos(tilt) - mZ * RY * Math.sin(tilt), my = mX * Math.sin(tilt) + mZ * RY * Math.cos(tilt)
+    let s = ''
+    for (let r = 0; r < ROWS; r++) {
+      const y = (r / (ROWS - 1) - 0.5)
+      for (let c = 0; c < COLS; c++) {
+        const x = (c / (COLS - 1) - 0.5) * (COLS / ROWS) * 0.536
+        let ch = ' ', blue = false
+        // ring: ellipse rotated by tilt
+        const cx = x * Math.cos(-tilt) - y * Math.sin(-tilt), cy = x * Math.sin(-tilt) + y * Math.cos(-tilt)
+        const e = (cx * cx) / (RX * RX) + (cy * cy) / (RY * RY)
+        const onRing = Math.abs(e - 1) < 0.2
+        const d2 = x * x + y * y
+        if (d2 < R * R) {
+          const z = Math.sqrt(R * R - d2)
+          const nx = x / R, ny = y / R, nz = z / R
+          let b = (nx * lx + ny * ly + nz * lz) / ll
+          const lon = Math.atan2(nx, nz) + rot, lat = Math.asin(ny)
+          const band = Math.sin(lat * 9 + Math.sin(lon * 2) * 0.8) * 0.18 + Math.sin(lon * 5 + lat * 3) * 0.08
+          b = Math.max(0, Math.min(1, b * 1.05 + band + 0.12))
+          ch = RAMP[Math.min(RAMP.length - 1, Math.floor(b * (RAMP.length - 1)) + 1)]
+          if (onRing && cy > 0) { ch = '='; blue = true }
+        } else if (onRing) {
+          ch = cy > 0 ? '=' : '-'; blue = true
+        } else if (((c * 7 + r * 13) % 97 === 0) && Math.sin(t * 2 + c) > 0.3) ch = '·'
+        // moon
+        const md = Math.hypot((x - mx) * 1, (y - my))
+        if (md < 0.04 && (mZ > 0 || d2 > R * R)) { ch = md < 0.022 ? '@' : 'o'; blue = false }
+        s += blue ? '<b>' + ch + '</b>' : ch
+      }
+      s += '\n'
+    }
+    pre.innerHTML = s.replace(/<\/b><b>/g, '')
+  }
+  if (reduce) { renderAscii(1.2); $('#fps').textContent = 'static' }
+  else {
+    let on = false, raf = 0, last = 0, frames = 0, lastFps = 0
+    const loop = (ms) => {
+      raf = requestAnimationFrame(loop)
+      if (ms - last < 33) return
+      last = ms; frames++
+      renderAscii(ms / 1000)
+      if (ms - lastFps > 1000) { $('#fps').textContent = `${frames} fps · ${COLS}×${ROWS}`; frames = 0; lastFps = ms }
+    }
+    new IntersectionObserver(([en]) => {
+      if (en.isIntersecting && !on) { on = true; raf = requestAnimationFrame(loop) }
+      else if (!en.isIntersecting && on) { on = false; cancelAnimationFrame(raf) }
+    }).observe(box)
+  }
+
+  /* ---------- ticker ---------- */
+  const tk = $('#ticker')
+  if (!reduce) {
+    tk.innerHTML += tk.innerHTML
+    gsap.to(tk, { xPercent: -50, duration: 40, ease: 'none', repeat: -1 })
+  }
+
+  /* ---------- PR review demo ---------- */
+  const BASE = [
+    [' ', 1, "import { Router } from 'express'"],
+    [' ', 2, "import { store } from '../storage'"],
+    ['+', 3, "import { rateLimit } from '../middleware/rateLimit'"],
+    [' ', 4, ''],
+    [' ', 5, 'const router = Router()'],
+    ['+', 6, 'const limiter = rateLimit({ windowMs: 60_000, max: 20 })', 'c3'],
+    [' ', 7, ''],
+    ['-', 8, "router.post('/upload', async (req, res) => {"],
+    ['+', 8, "router.post('/upload', limiter, async (req, res) => {"],
+    ['+', 9, '  const file = req.files.upload', 'c1'],
+    ['+', 10, '  if (file.size > 50 * 1024 * 1024) {'],
+    ['+', 11, "    return res.status(413).send('File too large')"],
+    ['+', 12, '  }'],
+    ['+', 13, '  const key = `${req.user.id}/${file.name}`', 'c2'],
+    ['+', 14, '  await store.put(key, file.data)'],
+    ['+', 15, '  res.json({ key })'],
+    [' ', 16, '})'],
+  ]
+  const COMMENTS = {
+    c3: { sev: 'perf', label: 'PERF', body: 'This limiter keeps counts in process memory. Behind your 4 API replicas the real limit becomes 80 uploads a minute, not 20. Point it at the shared Redis store you already use for sessions.',
+      replace: ['const limiter = rateLimit({ windowMs: 60_000, max: 20, store: redisStore })'] },
+    c1: { sev: 'bug', label: 'BUG', body: '<code>req.files</code> is undefined when the request has no multipart body, so this line throws and the client gets a 500 instead of a clear error. Guard it and return a 400.',
+      replace: ['  const file = req.files?.upload', "  if (!file) return res.status(400).send('No file attached')"] },
+    c2: { sev: 'sec', label: 'SECURITY', body: '<code>file.name</code> comes straight from the client. A name like <code>../../config/keys.json</code> escapes this user\'s folder. Use a generated key and keep only the base name — the suggestion adds the <code>crypto</code> and <code>path</code> imports too.',
+      replace: ['  const key = `${req.user.id}/${randomUUID()}-${basename(file.name)}`'] },
+  }
+  const ORDER = ['c3', 'c1', 'c2']
+  const diff = $('#diff'), scan = $('#scan'), openN = $('#openN'), mergeBtn = $('#mergeBtn'), orbitCheck = $('#orbitCheck')
+  let state = {}, shown = [], reviewing = false, merged = false, flashIds = new Set(), runToken = 0
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
+  function hl(code) {
+    return code.split(/('[^']*'|`[^`]*`|\b\d[\d_]*\b|\b(?:import|from|const|async|await|return|if)\b)/).map((tok, i) => {
+      if (i % 2 === 0) return esc(tok)
+      if (/^['`]/.test(tok)) return `<span class="s">${esc(tok)}</span>`
+      if (/^\d/.test(tok)) return `<span class="n">${esc(tok)}</span>`
+      return `<span class="k">${tok}</span>`
+    }).join('')
+  }
+  function row(type, n, code, extra = '') {
+    const cls = type === '+' ? 'add' : type === '-' ? 'del' : ''
+    return `<tr class="${cls} ${extra}"><td class="ln">${n}</td><td class="mk">${type === ' ' ? '' : type === '-' ? '−' : '+'}</td><td class="code">${hl(code)}</td></tr>`
+  }
+  function render() {
+    let html = '', n = 0
+    for (const [type, num, code, cid] of BASE) {
+      const st = cid && state[cid]
+      if (type !== '-') n++
+      if (st === 'applied') {
+        COMMENTS[cid].replace.forEach((line, k) => { html += row('+', k ? '' : n, line, flashIds.has(cid) ? 'flash' : '') })
+      } else {
+        html += row(type, type === '-' ? num : n, code, cid && shown.includes(cid) && !st ? 'hit' : '')
+      }
+      if (cid && shown.includes(cid)) html += commentHtml(cid)
+    }
+    diff.innerHTML = html
+    flashIds.clear()
+    const open = shown.filter((c) => !state[c]).length
+    openN.textContent = open
+    const done = shown.length === ORDER.length && !reviewing
+    if (merged) { orbitCheck.innerHTML = '<span class="pass">✓</span><span>orbit/review · merged</span>' }
+    else if (reviewing) orbitCheck.innerHTML = '<span class="run">◌</span><span>orbit/review · reviewing…</span>'
+    else if (!shown.length) orbitCheck.innerHTML = '<span class="run">○</span><span>orbit/review · waiting</span>'
+    else if (open) orbitCheck.innerHTML = `<span class="fail">✗</span><span>orbit/review · ${open} open</span>`
+    else orbitCheck.innerHTML = '<span class="pass">✓</span><span>orbit/review · all resolved</span>'
+    mergeBtn.disabled = !(done && open === 0) || merged
+    mergeBtn.textContent = merged ? 'Merged into main' : 'Merge pull request'
+  }
+  function commentHtml(cid) {
+    const c = COMMENTS[cid], st = state[cid]
+    if (st) {
+      return `<tr class="cmt"><td colspan="3"><div class="comment resolved" data-c="${cid}"><header><span class="who">orbit</span><span class="sev ${c.sev}">${c.label}</span><span class="state">${st === 'applied' ? '✓ suggestion applied' : '— dismissed'}</span>${merged ? '' : `<button class="undo" data-act="undo" data-c="${cid}">undo</button>`}</header></div></td></tr>`
+    }
+    const old = BASE.find((b) => b[3] === cid)[2]
+    return `<tr class="cmt"><td colspan="3"><div class="comment" data-c="${cid}" role="group" aria-label="Orbit comment: ${c.label}">
+      <header><span class="who">orbit</span><span class="sev ${c.sev}">${c.label}</span><span class="dim">on line ${BASE.find((b) => b[3] === cid)[1]}</span></header>
+      <div class="body">${c.body}</div>
+      <div class="sugg" aria-label="Suggested change"><div class="m">- ${esc(old)}</div>${c.replace.map((l) => `<div class="p">+ ${esc(l)}</div>`).join('')}</div>
+      <div class="acts"><button class="btn primary" data-act="apply" data-c="${cid}">Apply suggestion</button><button class="btn" data-act="dismiss" data-c="${cid}">Dismiss</button></div>
+    </div></td></tr>`
+  }
+  diff.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-act]')
+    if (!b || merged) return
+    const cid = b.dataset.c, act = b.dataset.act
+    if (act === 'apply') { state[cid] = 'applied'; flashIds.add(cid) }
+    else if (act === 'dismiss') state[cid] = 'dismissed'
+    else if (act === 'undo') delete state[cid]
+    render()
+    const next = diff.querySelector(`.comment[data-c="${cid}"] button`)
+    if (next) next.focus({ preventScroll: true })
+  })
+  const sleep = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms))
+  async function runReview() {
+    const token = ++runToken
+    reviewing = true; merged = false; state = {}; shown = []
+    $('#prState').className = 'tag open'; $('#prState').textContent = 'Open'
+    $('#banner').classList.remove('show')
+    render()
+    if (!reduce) {
+      const h = diff.offsetHeight
+      gsap.set(scan, { y: 0, opacity: 1 })
+      await new Promise((r) => gsap.to(scan, { y: h - 3, duration: 1.8, ease: 'power1.inOut', onComplete: r }))
+      gsap.to(scan, { opacity: 0, duration: 0.3 })
+    }
+    for (const cid of ORDER) {
+      if (token !== runToken) return
+      await sleep(550)
+      if (token !== runToken) return
+      shown.push(cid)
+      render()
+      if (!reduce) {
+        const el = diff.querySelector(`.comment[data-c="${cid}"]`)
+        gsap.from(el, { y: -10, opacity: 0, duration: 0.45, ease: 'power3.out' })
+      }
+    }
+    reviewing = false
+    render()
+  }
+  mergeBtn.addEventListener('click', () => {
+    merged = true
+    $('#prState').className = 'tag merged'; $('#prState').textContent = 'Merged'
+    const applied = Object.values(state).filter((v) => v === 'applied').length
+    $('#banner').textContent = `+------------------------------+\n|  MERGED  #482 -> main        |\n|  ${applied} applied, ${3 - applied} dismissed      |\n|  0 open. Ship it.            |\n+------------------------------+`
+    $('#banner').classList.add('show')
+    render()
+  })
+  $('#rerunBtn').addEventListener('click', runReview)
+  render()
+  ScrollTrigger.create({ trigger: '#review .pr', start: 'top 70%', once: true, onEnter: runReview })
+
+  /* ---------- pipeline (pinned horizontal) ---------- */
+  const track = $('#pipeTrack'), bar = $('#pipeBar')
+  function setBar(p) { const n = Math.round(p * 30); bar.textContent = `[${'#'.repeat(n)}${'.'.repeat(30 - n)}] ${String(Math.round(p * 100)).padStart(3, ' ')}%` }
+  if (!reduce) {
+    const dist = () => Math.max(0, track.scrollWidth - track.parentElement.clientWidth)
+    gsap.to(track, {
+      x: () => -dist(), ease: 'none',
+      scrollTrigger: { trigger: '.pipe', start: 'top top+=57', end: () => '+=' + Math.max(dist(), innerHeight * 0.8), pin: true, scrub: 0.5, invalidateOnRefresh: true, onUpdate: (s) => setBar(s.progress) },
+    })
+  } else setBar(1)
+
+  /* ---------- catches bars ---------- */
+  const meters = document.querySelectorAll('.meter')
+  const W = 34
+  function drawMeters(k) { meters.forEach((m) => { const v = +m.dataset.v, n = Math.round((v / 31) * W * k); m.textContent = '█'.repeat(n) + '░'.repeat(W - n) }) }
+  if (reduce) drawMeters(1)
+  else {
+    drawMeters(0)
+    const o = { k: 0 }
+    ScrollTrigger.create({ trigger: '#bars', start: 'top 80%', once: true, onEnter: () => gsap.to(o, { k: 1, duration: 1.4, ease: 'power2.out', onUpdate: () => drawMeters(o.k) }) })
+    const big = document.querySelector('.big-stat'), b = { v: 0 }
+    ScrollTrigger.create({ trigger: big, start: 'top 85%', once: true, onEnter: () => gsap.to(b, { v: 89, duration: 1.4, ease: 'power2.out', onUpdate: () => { big.textContent = Math.round(b.v) + '%' } }) })
+    big.textContent = '0%'
+  }
+  addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>

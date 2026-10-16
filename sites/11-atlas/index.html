@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas Robotics — A-6 industrial arm</title>
+<meta name="description" content="The Atlas A-6: a six-axis industrial arm with 1,650 mm reach, 25 kg payload and ±0.02 mm repeatability.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%231B1E22'/%3E%3Cpath d='M12 52 L32 10 L52 52 M20 38 H44' fill='none' stroke='%23FF6A13' stroke-width='7' stroke-linejoin='bevel'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1B1E22; --panel:#23272C; --line:#3A4048; --text:#EDE9E2; --muted:#A3AAB3; --orange:#FF6A13; --yellow:#FFC531;
+  --head:'Chakra Petch', sans-serif; --body:'Barlow', system-ui, sans-serif; --mono:'IBM Plex Mono', ui-monospace, monospace;
+  --pad:clamp(16px,4vw,64px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--body);font-size:18px;line-height:1.55;color:var(--text);background:var(--bg);overflow-x:hidden}
+main{overflow-x:clip}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+svg{display:block}
+:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+.hud{font-family:var(--mono);font-size:13px;letter-spacing:.02em;color:var(--muted)}
+.btn{position:relative;display:inline-flex;align-items:center;gap:12px;min-height:52px;padding:0 26px;font-family:var(--head);font-weight:600;font-size:17px;text-decoration:none;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:background .2s,color .2s}
+.btn--o{background:var(--orange);color:#1B1E22}
+.btn--o:hover{background:var(--text)}
+.btn--line{background:var(--line);color:var(--text)}
+.btn--line:hover{background:#4A525C}
+.brackets{position:absolute;inset:0;pointer-events:none}
+.brackets i{position:absolute;width:22px;height:22px;border-color:var(--orange);border-style:solid;border-width:0}
+.brackets i:nth-child(1){top:0;left:0;border-top-width:2px;border-left-width:2px}
+.brackets i:nth-child(2){top:0;right:0;border-top-width:2px;border-right-width:2px}
+.brackets i:nth-child(3){bottom:0;left:0;border-bottom-width:2px;border-left-width:2px}
+.brackets i:nth-child(4){bottom:0;right:0;border-bottom-width:2px;border-right-width:2px}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:40;display:flex;align-items:center;justify-content:space-between;height:68px;padding:0 var(--pad);background:linear-gradient(180deg,rgba(27,30,34,.92),rgba(27,30,34,0))}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--head);font-weight:700;font-size:20px;letter-spacing:.12em;text-decoration:none}
+.logo svg{width:26px;height:26px}
+.nav ul{display:flex;gap:4px;list-style:none;align-items:center}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;text-decoration:none;font-family:var(--head);font-weight:500;color:var(--muted);transition:color .2s}
+.nav ul a:hover{color:var(--text)}
+.nav ul .btn{min-height:44px;margin-left:8px;color:#1B1E22}
+.menu-btn{display:none;min-height:44px;min-width:44px;padding:0 14px;border:1px solid var(--line);font-family:var(--head)}
+@media (max-width:860px){
+  .nav ul{position:fixed;inset:68px 0 auto;flex-direction:column;align-items:stretch;background:var(--bg);border-bottom:2px solid var(--orange);padding:10px var(--pad) 24px;display:none}
+  .nav ul.open{display:flex}
+  .nav ul a{min-height:52px;font-size:20px;color:var(--text);border-bottom:1px solid var(--line)}
+  .nav ul .btn{margin:16px 0 0;justify-content:center}
+  .menu-btn{display:inline-flex;align-items:center}
+}
+
+/* hero */
+.hero{position:relative;min-height:100svh;padding:110px var(--pad) 60px;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;background-image:linear-gradient(rgba(237,233,226,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(237,233,226,.035) 1px,transparent 1px);background-size:48px 48px}
+.boot{margin-bottom:26px;min-height:84px}
+.boot p{white-space:nowrap;overflow:hidden}
+.boot b{color:var(--orange);font-weight:500}
+.hero h1{font-family:var(--head);font-weight:700;font-size:clamp(46px,6.4vw,104px);line-height:.96;letter-spacing:-.01em;text-transform:none}
+.hero h1 .ln{display:block;overflow:hidden;padding:.08em 0 .1em;margin:-.08em 0 -.1em}
+.hero h1 .ln span{display:inline-block}
+.hero h1 .ln:last-child span{color:var(--orange)}
+.hero .lede{max-width:520px;margin-top:22px;color:#CFCAC2;font-size:clamp(18px,1.4vw,20px)}
+.hero .cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:32px}
+.schem{position:relative;align-self:stretch;display:flex;align-items:center;justify-content:center;min-height:420px}
+.schem svg{width:100%;max-width:620px;height:auto}
+.schem .ln-draw{fill:none;stroke:var(--text);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.schem .ln-o{stroke:var(--orange)}
+.schem .dim{stroke:var(--muted);stroke-width:1;fill:none}
+.schem text{font-family:var(--mono);font-size:13px;fill:var(--muted)}
+.scanline{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--orange),transparent);opacity:.7;top:10%}
+.hero .readout{position:absolute;left:var(--pad);right:var(--pad);bottom:24px;display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--line);padding-top:12px}
+
+/* assembly (pinned) */
+.assembly{position:relative;background:radial-gradient(70% 60% at 60% 55%,#2A2F35 0%,var(--bg) 70%)}
+.asm-pin{position:relative;height:100svh;overflow:hidden}
+.asm-copy{position:absolute;z-index:5;left:var(--pad);top:clamp(96px,14vh,150px);width:min(400px,36vw)}
+.asm-copy h2{font-family:var(--head);font-weight:700;font-size:clamp(34px,3.8vw,60px);line-height:1}
+.step{margin-top:24px;border-left:2px solid var(--orange);padding-left:16px;min-height:130px}
+.step .hud{color:var(--orange)}
+.step h3{font-family:var(--head);font-weight:600;font-size:24px;margin:4px 0 6px}
+.step p{color:#CFCAC2}
+.joints{position:absolute;z-index:5;left:var(--pad);bottom:clamp(24px,5vh,48px);display:grid;grid-template-columns:repeat(3,auto);gap:6px 26px}
+.joints span b{color:var(--text);font-weight:500;display:inline-block;min-width:5.2ch;text-align:right}
+.asm-bar{position:absolute;z-index:5;right:var(--pad);bottom:clamp(24px,5vh,48px);width:min(320px,40vw)}
+.asm-bar .track{height:4px;background:var(--line);margin-top:8px}
+.asm-bar .track i{display:block;height:100%;background:var(--orange);transform-origin:left;transform:scaleX(0)}
+.asm-bar .hud{display:flex;justify-content:space-between}
+.floor{position:absolute;left:50%;top:80%;width:1400px;height:1400px;margin:-700px 0 0 -700px;transform:rotateX(78deg);background-image:linear-gradient(rgba(255,106,19,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(255,106,19,.16) 1px,transparent 1px);background-size:70px 70px;-webkit-mask-image:radial-gradient(circle,#000 0,transparent 55%);mask-image:radial-gradient(circle,#000 0,transparent 55%);pointer-events:none}
+.scene{position:absolute;left:58%;top:80%;width:0;height:0;perspective:1800px;perspective-origin:0 -300px}
+.rig{position:absolute;transform-style:preserve-3d}
+.g{position:absolute;left:0;top:0;transform-style:preserve-3d}
+.box{position:absolute;left:0;top:0;transform-style:preserve-3d}
+.face{position:absolute;backface-visibility:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.28)}
+.box.o .f{background:linear-gradient(160deg,#FF7A2A,#F05F0E)}.box.o .bk{background:#B9480A}.box.o .r{background:#CF520C}.box.o .l{background:#D9580E}.box.o .t{background:#FF9550}.box.o .bt{background:#7A2F06}
+.box.k .f{background:linear-gradient(160deg,#4A5058,#3B4047)}.box.k .bk{background:#2B2F35}.box.k .r{background:#30353B}.box.k .l{background:#343940}.box.k .t{background:#5B626B}.box.k .bt{background:#202327}
+.box.s .f{background:linear-gradient(160deg,#C9CED4,#A8AEB5)}.box.s .bk{background:#8A9097}.box.s .r{background:#8F959C}.box.s .l{background:#979DA4}.box.s .t{background:#DCE0E4}.box.s .bt{background:#6C7177}
+.face.label{display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:700;color:#1B1E22;letter-spacing:.2em}
+.face.stripe{background:repeating-linear-gradient(-45deg,#FFC531 0 14px,#1B1E22 14px 28px) !important}
+.mk{position:absolute;left:0;top:0;width:2px;height:2px}
+.hotspot{position:absolute;z-index:6;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;display:grid;place-items:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.hotspot.show{opacity:1;pointer-events:auto}
+.hotspot::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 4px rgba(255,106,19,.3)}
+.hotspot::after{content:"";position:absolute;inset:6px;border-radius:50%;border:1px solid var(--orange);animation:hs 2s infinite}
+@keyframes hs{from{transform:scale(.6);opacity:1}to{transform:scale(1.4);opacity:0}}
+.spec{position:absolute;z-index:7;left:0;top:0;width:250px;background:rgba(27,30,34,.94);border:1px solid var(--orange);padding:14px 16px;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s}
+.spec.show{opacity:1;transform:none}
+.spec h4{font-family:var(--head);font-size:18px;font-weight:600;color:var(--orange);margin-bottom:6px}
+.spec dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:15px}
+.spec dt{color:var(--muted)}
+.spec dd{font-family:var(--mono);font-size:14px;text-align:right}
+.hs-hint{position:absolute;z-index:5;right:var(--pad);top:clamp(96px,14vh,150px);max-width:220px;text-align:right;opacity:0;transition:opacity .4s}
+.hs-hint.show{opacity:1}
+
+/* specs */
+.specs{padding:clamp(100px,11vw,160px) var(--pad);border-top:1px solid var(--line)}
+.specs-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap}
+.h2{font-family:var(--head);font-weight:700;font-size:clamp(36px,4.6vw,72px);line-height:1}
+.tabs{display:flex;border:1px solid var(--line)}
+.tabs button{min-height:48px;padding:0 20px;font-family:var(--head);font-weight:600;color:var(--muted);border-right:1px solid var(--line);transition:background .2s,color .2s}
+.tabs button:last-child{border-right:0}
+.tabs button[aria-selected="true"]{background:var(--orange);color:#1B1E22}
+.tabs button:hover:not([aria-selected="true"]){color:var(--text);background:var(--panel)}
+.sheet{display:grid;grid-template-columns:repeat(3,1fr);margin-top:40px;border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.cell{position:relative;padding:26px 24px 30px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cell .hud{display:block;margin-bottom:10px}
+.cell b{font-family:var(--head);font-weight:600;font-size:clamp(40px,4.4vw,68px);line-height:1;letter-spacing:-.02em}
+.cell small{font-family:var(--head);font-size:20px;color:var(--muted);margin-left:6px}
+.cell p{color:var(--muted);font-size:16px;margin-top:8px}
+.tape{height:14px;background:repeating-linear-gradient(-45deg,var(--yellow) 0 12px,var(--bg) 12px 24px);margin-top:48px;opacity:.85}
+
+/* applications */
+.apps{padding:clamp(100px,11vw,160px) var(--pad)}
+.apps-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(30px,5vw,80px);margin-top:44px;align-items:stretch}
+.app-list{list-style:none;border-top:1px solid var(--line)}
+.app-list button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:20px;min-height:84px;padding:14px 4px;text-align:left;border-bottom:1px solid var(--line);font-family:var(--head);font-weight:600;font-size:clamp(24px,2.4vw,34px);color:var(--muted);transition:color .2s,padding .3s}
+.app-list button .hud{font-size:14px}
+.app-list button[aria-selected="true"]{color:var(--text);padding-left:18px;box-shadow:inset 3px 0 0 var(--orange)}
+.app-list button:hover{color:var(--text)}
+.app-view{position:relative;border:1px solid var(--line);background:var(--panel);padding:clamp(20px,2.4vw,32px);display:flex;flex-direction:column;gap:20px;min-height:460px}
+.app-view svg{width:100%;height:auto;max-height:260px}
+.app-view svg .a{fill:none;stroke:var(--text);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.app-view svg .o{fill:none;stroke:var(--orange);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.app-view h3{font-family:var(--head);font-weight:600;font-size:26px}
+.app-view p{color:#CFCAC2;max-width:520px}
+.app-stats{display:flex;gap:32px;flex-wrap:wrap;margin-top:auto;padding-top:16px;border-top:1px dashed var(--line)}
+.app-stats div b{display:block;font-family:var(--head);font-size:30px;font-weight:600;line-height:1.1}
+
+/* proof */
+.proof{padding:clamp(100px,11vw,160px) var(--pad);background:var(--panel)}
+.proof blockquote{font-family:var(--head);font-weight:500;font-size:clamp(28px,3.4vw,52px);line-height:1.15;max-width:1100px}
+.proof blockquote::before{content:"“";color:var(--orange)}
+.proof blockquote::after{content:"”";color:var(--orange)}
+.proof figcaption{margin-top:24px;color:var(--muted)}
+.proof figcaption b{color:var(--text);font-weight:600}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:clamp(50px,6vw,90px);border-top:1px solid var(--line)}
+.metrics div{padding:24px 24px 0 0}
+.metrics b{display:block;font-family:var(--head);font-weight:700;font-size:clamp(44px,5vw,80px);line-height:1;color:var(--orange)}
+.metrics span{color:#CFCAC2}
+
+/* cta */
+.cta-sec{position:relative;padding:clamp(100px,12vw,180px) var(--pad) 40px;overflow:hidden}
+.cta-sec h2{font-family:var(--head);font-weight:700;font-size:clamp(46px,7.4vw,124px);line-height:.95;max-width:12ch}
+.cta-sec .row{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;margin-top:36px}
+.cta-sec p{max-width:480px;color:#CFCAC2}
+footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:clamp(70px,8vw,120px);padding-top:20px;border-top:1px solid var(--line);font-size:15px;color:var(--muted)}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr;padding-top:96px;gap:10px}
+  .schem{min-height:0;order:2}
+  .schem svg{max-width:420px}
+  .hero .readout{position:static;margin-top:10px;flex-wrap:wrap}
+  .asm-copy{top:84px;width:auto;right:var(--pad)}
+  .asm-copy h2{font-size:30px}
+  .step{margin-top:12px;min-height:118px;padding-left:12px}
+  .step h3{font-size:20px}
+  .step p{font-size:16px}
+  .scene{left:47%;top:87%}
+  .floor{top:87%}
+  .joints{display:none}
+  .asm-bar{left:var(--pad);right:var(--pad);width:auto;bottom:24px}
+  .hs-hint{display:none}
+  .sheet{grid-template-columns:1fr 1fr}
+  .apps-grid{grid-template-columns:1fr}
+  .app-view{min-height:0}
+  .metrics{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .sheet{grid-template-columns:1fr}
+  .tabs{width:100%}
+  .tabs button{flex:1;padding:0 8px;font-size:15px}
+  .spec{width:220px}
+}
+.rm .asm-pin{height:100svh}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none !important;transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="#top" aria-label="Atlas Robotics home"><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M3 23 L13 3 L23 23 M7 15 H19" fill="none" stroke="#FF6A13" stroke-width="3" stroke-linejoin="bevel"/></svg>ATLAS</a>
+  <nav aria-label="Main">
+    <ul id="navlist">
+      <li><a href="#assembly">The A-6</a></li>
+      <li><a href="#specs">Specs</a></li>
+      <li><a href="#apps">Applications</a></li>
+      <li><a href="#proof">Customers</a></li>
+      <li><a class="btn btn--o" href="#demo">Book a cell demo</a></li>
+    </ul>
+  </nav>
+  <button class="menu-btn" aria-expanded="false" aria-controls="navlist">Menu</button>
+</header>
+
+<main id="top">
+<section class="hero" aria-labelledby="hero-h">
+  <div>
+    <div class="boot hud" aria-hidden="true">
+      <p>ATLAS OS 4.2 <b>/</b> cold start</p>
+      <p>joint self-test J1–J6 ........ <b>pass</b></p>
+      <p>encoder drift 0.004 mm ....... <b>pass</b></p>
+      <p>safety field armed, ready</p>
+    </div>
+    <h1 id="hero-h"><span class="ln"><span>Precision that</span></span><span class="ln"><span>doesn't blink.</span></span></h1>
+    <p class="lede">The Atlas A-6 is a six-axis arm that places a 25 kg part within two hundredths of a millimetre, every cycle, for twenty thousand hours between services.</p>
+    <div class="cta"><a class="btn btn--o" href="#assembly">Watch it assemble</a><a class="btn btn--line" href="#demo">Book a cell demo</a></div>
+  </div>
+  <div class="schem" aria-hidden="true">
+    <div class="brackets"><i></i><i></i><i></i><i></i></div>
+    <div class="scanline"></div>
+    <svg viewBox="110 70 480 460">
+      <path class="ln-draw" d="M150 470 H350 V450 H150 Z"/>
+      <path class="ln-draw" d="M190 450 V400 H310 V450"/>
+      <circle class="ln-draw ln-o" cx="250" cy="360" r="38"/>
+      <path class="ln-draw ln-o" d="M232 330 L196 140 L236 132 L268 324"/>
+      <circle class="ln-draw" cx="214" cy="132" r="30"/>
+      <path class="ln-draw ln-o" d="M236 112 L470 168 L462 200 L232 150"/>
+      <circle class="ln-draw" cx="474" cy="186" r="18"/>
+      <path class="ln-draw" d="M490 176 L530 170 M490 196 L530 204 M530 160 V180 M530 194 V214"/>
+      <path class="dim" d="M560 186 V470 M552 186 H568 M552 470 H568"/>
+      <text x="566" y="330" transform="rotate(90 566 330)">1,650 mm reach</text>
+      <path class="dim" d="M150 495 H350 M150 487 V503 M350 487 V503"/>
+      <text x="196" y="515">420 mm base</text>
+      <text x="290" y="96">J3</text><text x="300" y="370">J2</text><text x="490" y="236">J5 / J6</text><text x="146" y="380">J1</text>
+    </svg>
+  </div>
+  <div class="readout hud" aria-hidden="true"><span>MODEL A-6 / SN 06-24117</span><span>PAYLOAD 25 KG</span><span>REPEATABILITY ±0.02 MM</span><span>IP67</span></div>
+</section>
+
+<section class="assembly" id="assembly" aria-labelledby="asm-h">
+  <div class="asm-pin">
+    <div class="floor" aria-hidden="true"></div>
+    <div class="scene" aria-hidden="true"><div class="rig" id="rig"></div></div>
+    <div class="asm-copy">
+      <h2 id="asm-h">Seven parts.<br>One arm.</h2>
+      <div class="step" aria-live="polite"><p class="hud" id="stNo">Exploded view</p><h3 id="stTitle">Nothing hidden</h3><p id="stBody">That's the whole robot. Every part can be swapped on site in under an hour, with one hex key.</p></div>
+    </div>
+    <div class="hs-hint hud">Hover the orange points for specs</div>
+    <div class="joints hud" aria-hidden="true">
+      <span>J1 <b id="j1">0.0°</b></span><span>J2 <b id="j2">0.0°</b></span><span>J3 <b id="j3">0.0°</b></span>
+      <span>J4 <b id="j4">0.0°</b></span><span>J5 <b id="j5">0.0°</b></span><span>J6 <b id="j6">0.0°</b></span>
+    </div>
+    <div class="asm-bar" aria-hidden="true"><div class="hud"><span>ASSEMBLY</span><span id="asmPct">0%</span></div><div class="track"><i></i></div></div>
+    <div id="hotspots"></div>
+    <div class="spec" id="spec" role="tooltip"><h4></h4><dl></dl></div>
+  </div>
+</section>
+
+<section class="specs" id="specs" aria-labelledby="specs-h">
+  <div class="specs-head">
+    <h2 class="h2" id="specs-h">Datasheet</h2>
+    <div class="tabs" role="tablist" aria-label="Model">
+      <button role="tab" aria-selected="false" data-m="0">A-6 Compact</button>
+      <button role="tab" aria-selected="true" data-m="1">A-6</button>
+      <button role="tab" aria-selected="false" data-m="2">A-6 Heavy</button>
+    </div>
+  </div>
+  <div class="sheet" role="tabpanel" aria-live="polite">
+    <div class="cell"><span class="hud">Payload</span><b data-k="payload">25</b><small>kg</small><p>At full reach, wrist fully loaded.</p></div>
+    <div class="cell"><span class="hud">Reach</span><b data-k="reach">1,650</b><small>mm</small><p>Measured to the tool flange.</p></div>
+    <div class="cell"><span class="hud">Repeatability</span><b data-k="rep">±0.02</b><small>mm</small><p>ISO 9283, at rated payload.</p></div>
+    <div class="cell"><span class="hud">Max TCP speed</span><b data-k="speed">2.1</b><small>m/s</small><p>Slows to 250 mm/s when a person is in range.</p></div>
+    <div class="cell"><span class="hud">Arm weight</span><b data-k="weight">212</b><small>kg</small><p>Floor, wall or ceiling mounted.</p></div>
+    <div class="cell"><span class="hud">Service interval</span><b data-k="service">20,000</b><small>h</small><p>Grease and belts only. No gearbox rebuilds.</p></div>
+  </div>
+  <div class="tape" aria-hidden="true"></div>
+</section>
+
+<section class="apps" id="apps" aria-labelledby="apps-h">
+  <h2 class="h2" id="apps-h">Where it earns its keep</h2>
+  <div class="apps-grid">
+    <ul class="app-list" role="tablist" aria-label="Applications">
+      <li><button role="tab" aria-selected="true" aria-controls="appView" data-a="0">Arc welding <span class="hud">±0.02 mm seam</span></button></li>
+      <li><button role="tab" aria-selected="false" aria-controls="appView" data-a="1">Palletizing <span class="hud">1,400 cases/h</span></button></li>
+      <li><button role="tab" aria-selected="false" aria-controls="appView" data-a="2">Machine tending <span class="hud">24/7 lights-out</span></button></li>
+      <li><button role="tab" aria-selected="false" aria-controls="appView" data-a="3">Inspection <span class="hud">0.05 mm vision</span></button></li>
+    </ul>
+    <div class="app-view" id="appView" role="tabpanel" aria-live="polite">
+      <div class="brackets"><i></i><i></i><i></i><i></i></div>
+      <div id="appArt"></div>
+      <h3 id="appTitle"></h3>
+      <p id="appBody"></p>
+      <div class="app-stats" id="appStats"></div>
+    </div>
+  </div>
+</section>
+
+<section class="proof" id="proof" aria-labelledby="proof-h">
+  <h2 class="sr" id="proof-h" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Customers</h2>
+  <figure>
+    <blockquote>We put four A-6s on the night shift in March. By June the scrap bin was the quietest thing in the building.</blockquote>
+    <figcaption><b>Halvard Brekke</b>, plant manager, Nordvik Castings</figcaption>
+  </figure>
+  <div class="metrics">
+    <div><b data-count="1240">1,240</b><span>A-6 arms running in 31 countries</span></div>
+    <div><b data-count="99.2" data-dec="1" data-suf="%">99.2%</b><span>average uptime across the fleet, last 12 months</span></div>
+    <div><b data-count="11" data-suf=" mo">11 mo</b><span>median payback, from first part to paid off</span></div>
+  </div>
+</section>
+
+<section class="cta-sec" id="demo" aria-labelledby="demo-h">
+  <h2 id="demo-h">Bring us your worst part.</h2>
+  <div class="row">
+    <p>Send a drawing or a sample. We'll build the cell in our test hall, run it for a full shift and send you the video, the cycle time and a fixed quote.</p>
+    <a class="btn btn--o" href="mailto:cells@atlasrobotics.example">Book a cell demo</a>
+  </div>
+  <footer><span>© 2026 Atlas Robotics. Concept design — fictional brand.</span><a href="#top">Back to top</a></footer>
+</section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+if (reduce) document.documentElement.classList.add('rm')
+gsap.registerPlugin(ScrollTrigger)
+let lenis = null
+if (!reduce) {
+  lenis = new Lenis({ lerp: 0.1 })
+  window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  gsap.ticker.add((t) => lenis.raf(t * 1000))
+  gsap.ticker.lagSmoothing(0)
+}
+const navlist = document.getElementById('navlist'), menuBtn = document.querySelector('.menu-btn')
+menuBtn.addEventListener('click', () => { const o = navlist.classList.toggle('open'); menuBtn.setAttribute('aria-expanded', o); menuBtn.textContent = o ? 'Close' : 'Menu' })
+document.querySelectorAll('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const t = document.querySelector(a.getAttribute('href')); if (!t) return
+  e.preventDefault(); navlist.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.textContent = 'Menu'
+  lenis ? lenis.scrollTo(t) : t.scrollIntoView()
+}))
+
+/* ---------- CSS 3D robot ---------- */
+const rig = document.getElementById('rig')
+const div = (cls, parent) => { const d = document.createElement('div'); d.className = cls; parent.appendChild(d); return d }
+// cuboid centred on (x,y,z) of its parent group; y grows downward (CSS)
+function box (parent, { w, h, d, x = 0, y = 0, z = 0, c = 'o', label, stripe }) {
+  const b = div('box ' + c, parent)
+  b.style.transform = `translate3d(${x}px,${y}px,${z}px)`
+  const faces = [
+    ['f', w, h, `translateZ(${d / 2}px)`], ['bk', w, h, `rotateY(180deg) translateZ(${d / 2}px)`],
+    ['r', d, h, `rotateY(90deg) translateZ(${w / 2}px)`], ['l', d, h, `rotateY(-90deg) translateZ(${w / 2}px)`],
+    ['t', w, d, `rotateX(90deg) translateZ(${h / 2}px)`], ['bt', w, d, `rotateX(-90deg) translateZ(${h / 2}px)`],
+  ]
+  faces.forEach(([k, fw, fh, tf]) => {
+    const f = div('face ' + k, b)
+    f.style.cssText = `width:${fw}px;height:${fh}px;left:${-fw / 2}px;top:${-fh / 2}px;transform:${tf}`
+    if (label && (k === 'f' || k === 'bk')) { f.classList.add('label'); f.textContent = label; f.style.fontSize = Math.min(fw, fh) * .32 + 'px'; if (fh > fw) f.style.writingMode = 'vertical-rl' }
+    if (stripe && k === stripe) f.classList.add('stripe')
+  })
+  return b
+}
+// octagonal pedestal from 4 rotated boxes reads as a turned casting
+function prism (parent, r, h, y, c) { for (let i = 0; i < 4; i++) { const g = div('g', parent); g.style.transform = `translateY(${y}px) rotateY(${i * 45}deg)`; box(g, { w: r * 2 * .83, h, d: r * 2 * .83, c }) } }
+const mk = (parent, x, y, z) => { const m = div('mk', parent); m.style.transform = `translate3d(${x}px,${y}px,${z}px)`; return m }
+
+const gBase = div('g', rig)
+box(gBase, { w: 280, h: 26, d: 280, y: -13, c: 'k', stripe: 'f' })
+box(gBase, { w: 280, h: 26, d: 280, y: -13, c: 'k', stripe: 'r' })
+prism(gBase, 92, 72, -62, 'k')
+const gTurret = div('g', gBase)
+prism(gTurret, 80, 56, -28, 'o')
+box(gTurret, { w: 120, h: 130, d: 170, y: -118, c: 'o' })
+const mkBase = mk(gBase, 120, -40, 120)
+const gUpper = div('g', gTurret)
+box(gUpper, { w: 140, h: 140, d: 120, c: 'k' })
+box(gUpper, { w: 82, h: 380, d: 98, y: -190, c: 'o', label: 'ATLAS' })
+const mkShoulder = mk(gUpper, 0, 0, 60)
+const gElbow = div('g', gUpper)
+box(gElbow, { w: 116, h: 116, d: 124, c: 'k' })
+box(gElbow, { w: 300, h: 70, d: 80, x: 180, c: 'o' })
+box(gElbow, { w: 40, h: 82, d: 92, x: 312, c: 'k' })
+const mkElbow = mk(gElbow, 200, -35, 40)
+const gWrist = div('g', gElbow)
+box(gWrist, { w: 70, h: 70, d: 70, x: 35, c: 'k' })
+box(gWrist, { w: 14, h: 96, d: 96, x: 77, c: 's' })
+const gF1 = div('g', gWrist), gF2 = div('g', gWrist)
+box(gF1, { w: 70, h: 16, d: 46, x: 118, y: -28, c: 's' })
+box(gF2, { w: 70, h: 16, d: 46, x: 118, y: 28, c: 's' })
+const mkTool = mk(gWrist, 150, 0, 0)
+
+const SPECS = [
+  { mk: mkBase, t: 'Cast base', d: [['Footprint', '420 × 420 mm'], ['Mounting', 'Floor, wall, ceiling'], ['Rating', 'IP67']] },
+  { mk: mkShoulder, t: 'Torque-sensing joints', d: [['Contact stop', '< 8 ms'], ['Brakes', 'All six axes'], ['J2 range', '+155° / −95°']] },
+  { mk: mkElbow, t: 'Hollow forearm', d: [['Reach', '1,650 mm'], ['Payload', '25 kg'], ['Internal', 'Air, 24 V, EtherCAT']] },
+  { mk: mkTool, t: 'Tool flange', d: [['Standard', 'ISO 9409-1-50'], ['Repeatability', '±0.02 mm'], ['J6 speed', '720°/s']] },
+]
+const hsWrap = document.getElementById('hotspots'), spec = document.getElementById('spec'), pin = document.querySelector('.asm-pin')
+SPECS.forEach((s, i) => {
+  const b = document.createElement('button')
+  b.className = 'hotspot'; b.type = 'button'; b.setAttribute('aria-label', s.t + ' specifications'); b.setAttribute('aria-describedby', 'spec')
+  hsWrap.appendChild(b); s.btn = b
+  const open = () => showSpec(i), close = () => hideSpec(i)
+  b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') open() })
+  b.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') close() })
+  b.addEventListener('focus', open); b.addEventListener('blur', close)
+  // a tap focuses (opens) and then clicks; only treat the click as a toggle when it isn't that same tap
+  b.addEventListener('click', () => { if (openSpec === i && performance.now() - openedAt > 400) close(); else open() })
+})
+let openSpec = -1, openedAt = 0
+function showSpec (i) {
+  if (openSpec !== i) openedAt = performance.now()
+  openSpec = i; const s = SPECS[i]
+  spec.querySelector('h4').textContent = s.t
+  spec.querySelector('dl').innerHTML = s.d.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')
+  spec.classList.add('show'); placeSpec()
+}
+function hideSpec (i) { if (openSpec === i) { openSpec = -1; spec.classList.remove('show') } }
+function placeSpec () {
+  if (openSpec < 0) return
+  const r = pin.getBoundingClientRect(), b = SPECS[openSpec].btn
+  const x = parseFloat(b.dataset.x), y = parseFloat(b.dataset.y), w = spec.offsetWidth, h = spec.offsetHeight
+  let left = x + 30, top = y - h / 2
+  if (left + w > r.width - 12) left = x - 30 - w
+  left = Math.max(12, left); top = Math.min(r.height - h - 12, Math.max(80, top))
+  spec.style.transform = `translate(${left}px,${top}px)`
+}
+let assembled = false
+function placeHotspots () {
+  const r = pin.getBoundingClientRect()
+  SPECS.forEach((s) => {
+    const m = s.mk.getBoundingClientRect(), x = m.left - r.left, y = m.top - r.top
+    s.btn.dataset.x = x; s.btn.dataset.y = y
+    s.btn.style.transform = `translate(${x}px,${y}px)`
+    s.btn.classList.toggle('show', assembled)
+    s.btn.tabIndex = assembled ? 0 : -1
+  })
+  if (!assembled && openSpec >= 0) hideSpec(openSpec)
+  placeSpec()
+}
+
+/* pose from progress p (0..1). Everything here is continuous, so it is safe to scrub. */
+const lerp = (a, b, t) => a + (b - a) * t, clamp = (v) => Math.max(0, Math.min(1, v))
+const easeIO = gsap.parseEase('power2.inOut')
+const J = ['j1', 'j2', 'j3', 'j4', 'j5', 'j6'].map((id) => document.getElementById(id))
+const asmPct = document.getElementById('asmPct'), asmBar = document.querySelector('.asm-bar .track i'), hint = document.querySelector('.hs-hint')
+let scale = 1
+function fit () { const w = innerWidth, h = innerHeight; scale = w < 700 ? Math.min(w / 760, h / 1560) : Math.min(w / 1800, h / 1150) }
+let lastP = 0
+function pose (p) {
+  lastP = p
+  const a = easeIO(clamp(p / .45)), e = 1 - a
+  const r = clamp((p - .45) / .55), rs = Math.sin(r * Math.PI)
+  const j1 = lerp(-20, 20, r) + rs * 25, j2 = lerp(-14, 14, a) - rs * 22, j3 = lerp(14, 22, a) + rs * 30, j5 = lerp(50, 34, a) - rs * 40, j6 = r * 180, grip = 10 + rs * 14
+  gsap.set(rig, { scale: scale * (1 - .14 * e), rotationX: -12, rotationY: lerp(-12, -28, a) + r * 300 })
+  gsap.set(gBase, { y: 90 * e, z: -60 * e })
+  gsap.set(gTurret, { y: -98 - 40 * e, rotationY: j1 })
+  gsap.set(gUpper, { x: -170 * e, y: -184 - 40 * e, z: 60 * e, rotationZ: j2 })
+  gsap.set(gElbow, { x: 160 * e, y: -380 - 40 * e, rotationZ: j3 })
+  gsap.set(gWrist, { x: 335 + 170 * e, y: -60 * e, rotationZ: j5, rotationX: j6 })
+  gsap.set(gF1, { y: -grip + 10 }); gsap.set(gF2, { y: grip - 10 })
+  const vals = [j1, j2, j3, j6 * .25, j5, j6]
+  J.forEach((n, i) => { n.textContent = (vals[i] >= 0 ? '+' : '') + vals[i].toFixed(1) + '°' })
+  asmPct.textContent = Math.round(a * 100) + '%'
+  asmBar.style.transform = `scaleX(${a})`
+  const nowAssembled = a > .985
+  if (nowAssembled !== assembled) { assembled = nowAssembled; hint.classList.toggle('show', assembled) }
+  placeHotspots()
+  const idx = p < .14 ? 0 : p < .45 ? 1 : p < .74 ? 2 : 3
+  if (idx !== step) showStep(idx)
+}
+const STEPS = [
+  ['Exploded view', 'Nothing hidden', 'That\'s the whole robot. Every part can be swapped on site in under an hour, with one hex key.'],
+  ['Base and turret', 'Cast in one piece', 'A single iron casting holds 1,650 mm of reach without a bolted sub-plate. The turret turns a full 360°, continuously.'],
+  ['Arm and wrist', 'Cables on the inside', 'Air, power and EtherCAT run through a hollow forearm and wrist, so nothing snags on a fixture at 2 m/s.'],
+  ['Ready to work', 'Teach five points. Run.', 'Every A-6 is calibrated in our test hall before it ships. Most cells make their first good part on day one.'],
+]
+let step = 0
+const stNo = document.getElementById('stNo'), stTitle = document.getElementById('stTitle'), stBody = document.getElementById('stBody'), stepEl = document.querySelector('.step')
+// discrete caption swap runs on the clock so it always finishes
+function showStep (i) {
+  step = i
+  const [n, t, b] = STEPS[i]
+  if (reduce) { stNo.textContent = n; stTitle.textContent = t; stBody.textContent = b; return }
+  gsap.killTweensOf(stepEl)
+  gsap.timeline().to(stepEl, { opacity: 0, x: -12, duration: .2, ease: 'power2.in' })
+    .add(() => { stNo.textContent = n; stTitle.textContent = t; stBody.textContent = b })
+    .fromTo(stepEl, { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: .45, ease: 'power3.out' })
+}
+fit(); pose(reduce ? .62 : 0)
+addEventListener('resize', () => { fit(); pose(lastP) })
+
+/* ---------- datasheet tabs ---------- */
+const MODELS = [
+  { payload: 6, reach: 900, rep: .01, speed: 2.6, weight: 52, service: 25000 },
+  { payload: 25, reach: 1650, rep: .02, speed: 2.1, weight: 212, service: 20000 },
+  { payload: 80, reach: 2300, rep: .04, speed: 1.8, weight: 610, service: 18000 },
+]
+const fmt = { payload: (v) => Math.round(v), reach: (v) => Math.round(v).toLocaleString('en-US'), rep: (v) => '±' + v.toFixed(2), speed: (v) => v.toFixed(1), weight: (v) => Math.round(v), service: (v) => (Math.round(v / 100) * 100).toLocaleString('en-US') }
+let cur = { ...MODELS[1] }
+const tabs = document.querySelectorAll('.tabs button')
+function setModel (m) {
+  tabs.forEach((t) => { const on = +t.dataset.m === m; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1 })
+  const write = () => document.querySelectorAll('.sheet [data-k]').forEach((b) => { b.textContent = fmt[b.dataset.k](cur[b.dataset.k]) })
+  if (reduce) { cur = { ...MODELS[m] }; write(); return }
+  gsap.to(cur, { ...MODELS[m], duration: .8, ease: 'power3.out', onUpdate: write })
+}
+tabs.forEach((t, i) => {
+  t.addEventListener('click', () => setModel(+t.dataset.m))
+  t.addEventListener('keydown', (e) => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (d) { const n = tabs[(i + d + 3) % 3]; n.focus(); n.click() } })
+})
+
+/* ---------- applications ---------- */
+const APPS = [
+  { t: 'Arc welding', b: 'Seam tracking corrects for warped parts in real time, so a bent bracket gets the same bead as a straight one. Pairs with any MIG/MAG power source that speaks EtherCAT.', s: [['38 s', 'cycle, 6-seam bracket'], ['0.4%', 'rework rate']],
+    art: '<svg viewBox="0 0 520 240"><path class="a" d="M40 200 H480"/><path class="a" d="M80 200 V150 H300 V200"/><path class="a" d="M300 150 L420 150 L420 200"/><path class="o weld" d="M80 150 H420"/><path class="a" d="M250 60 L300 120 L292 140"/><circle class="o spark" cx="292" cy="146" r="6"/><path class="o spark" d="M292 146 l-18 -14 M292 146 l20 -10 M292 146 l-6 -22"/></svg>' },
+  { t: 'Palletizing', b: 'Mixed-SKU pallets built from the order, not a fixed pattern. Vision checks each layer, and the arm re-squares a crooked case before the next one lands.', s: [['1,400', 'cases per hour'], ['80 kg', 'per pick (Heavy)']],
+    art: '<svg viewBox="0 0 520 240"><path class="a" d="M150 210 H370 M160 210 V224 M260 210 V224 M360 210 V224"/><g class="stack"><rect class="a" x="160" y="170" width="66" height="40"/><rect class="a" x="227" y="170" width="66" height="40"/><rect class="a" x="294" y="170" width="66" height="40"/><rect class="a" x="160" y="129" width="66" height="40"/><rect class="a" x="227" y="129" width="66" height="40"/></g><rect class="o drop" x="294" y="40" width="66" height="40"/><path class="a" d="M327 20 V40"/></svg>' },
+  { t: 'Machine tending', b: 'Loads and unloads CNC lathes and mills through the night, including deburring and gauging between operations. One operator supervises four cells.', s: [['24/7', 'lights-out shifts'], ['4 : 1', 'cells per operator']],
+    art: '<svg viewBox="0 0 520 240"><rect class="a" x="260" y="50" width="200" height="160"/><rect class="a" x="290" y="80" width="140" height="80"/><circle class="o spin" cx="360" cy="120" r="26"/><path class="o spin" d="M360 94 V146 M334 120 H386"/><path class="a" d="M60 210 H200 M100 210 V150 L150 110 L230 120"/><rect class="o" x="230" y="110" width="22" height="20"/></svg>' },
+  { t: 'Inspection', b: 'Carries a 3D camera around the part and compares every surface with the CAD model. Out-of-tolerance parts are flagged with a heat-map before they reach a customer.', s: [['0.05 mm', 'surface resolution'], ['90 s', 'full engine block']],
+    art: '<svg viewBox="0 0 520 240"><path class="a" d="M120 180 L200 120 L340 120 L400 180 Z"/><path class="a" d="M200 120 V80 H340 V120"/><path class="o scan" d="M110 60 L410 60"/><path class="a" d="M260 20 V40"/><rect class="a" x="240" y="40" width="40" height="18"/><path class="o" d="M250 58 L170 180 M270 58 L360 180" stroke-dasharray="4 6"/></svg>' },
+]
+const appBtns = document.querySelectorAll('.app-list button'), appArt = document.getElementById('appArt'), appTitle = document.getElementById('appTitle'), appBody = document.getElementById('appBody'), appStats = document.getElementById('appStats')
+let appAnim = null
+function setApp (i, animate = true) {
+  appBtns.forEach((b, k) => { b.setAttribute('aria-selected', k === i); b.tabIndex = k === i ? 0 : -1 })
+  const a = APPS[i]
+  const fill = () => {
+    appArt.innerHTML = a.art; appArt.firstChild.setAttribute('aria-hidden', 'true')
+    appTitle.textContent = a.t; appBody.textContent = a.b
+    appStats.innerHTML = a.s.map(([v, l]) => `<div><b>${v}</b><span class="hud">${l}</span></div>`).join('')
+    if (appAnim) appAnim.kill()
+    if (reduce) return
+    appAnim = gsap.timeline({ repeat: -1, repeatDelay: .4 })
+    if (i === 0) { const w = appArt.querySelector('.weld'), L = w.getTotalLength(); gsap.set(w, { strokeDasharray: L, strokeDashoffset: L }); appAnim.to(w, { strokeDashoffset: 0, duration: 2.4, ease: 'none' }).to('.spark', { opacity: .2, duration: .08, repeat: 15, yoyo: true }, 0) }
+    if (i === 1) appAnim.fromTo('.drop', { y: 0 }, { y: 89, duration: 1.1, ease: 'power2.inOut' }).to('.drop', { opacity: 0, duration: .3 }).set('.drop', { y: 0, opacity: 1 })
+    if (i === 2) appAnim.to('.spin', { rotation: 360, transformOrigin: '360px 120px', svgOrigin: '360 120', duration: 1.4, ease: 'none', repeat: 1 })
+    if (i === 3) appAnim.fromTo('.scan', { y: 0 }, { y: 120, duration: 1.4, ease: 'sine.inOut', yoyo: true, repeat: 1 })
+  }
+  if (!animate || reduce) return fill()
+  gsap.to('#appView > :not(.brackets)', { opacity: 0, y: 8, duration: .18, onComplete: () => { fill(); gsap.to('#appView > :not(.brackets)', { opacity: 1, y: 0, duration: .4, stagger: .05, ease: 'power3.out' }) } })
+}
+appBtns.forEach((b, i) => {
+  b.addEventListener('click', () => setApp(i))
+  b.addEventListener('keydown', (e) => { const d = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0; if (d) { e.preventDefault(); const n = appBtns[(i + d + 4) % 4]; n.focus(); n.click() } })
+})
+setApp(0, false)
+
+/* ---------- counters ---------- */
+function countUp (n, delay) {
+  const end = +n.dataset.count, dec = +(n.dataset.dec || 0), suf = n.dataset.suf || '', o = { v: 0 }
+  gsap.to(o, { v: end, duration: 1.1, delay, ease: 'power3.out', onUpdate: () => { n.textContent = o.v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf } })
+}
+
+if (reduce) { placeHotspots(); return }
+
+/* ---------- motion ---------- */
+// hero: boot log types, headline rises, schematic draws itself
+const bootLines = document.querySelectorAll('.boot p')
+gsap.set(bootLines, { clipPath: 'inset(0 100% 0 0)' })
+gsap.set('.hero h1 .ln span', { yPercent: 110 })
+gsap.set(['.hero .lede', '.hero .cta', '.hero .readout'], { opacity: 0, y: 20 })
+const draws = document.querySelectorAll('.schem .ln-draw, .schem .dim')
+draws.forEach((p) => { const L = p.getTotalLength ? p.getTotalLength() : 400; gsap.set(p, { strokeDasharray: L, strokeDashoffset: L }) })
+gsap.set('.schem text', { opacity: 0 })
+const tl = gsap.timeline({ delay: .1 })
+tl.to(bootLines, { clipPath: 'inset(0 0% 0 0)', duration: .35, stagger: .16, ease: 'steps(18)' })
+  .to('.hero h1 .ln span', { yPercent: 0, duration: 1, ease: 'expo.out', stagger: .1 }, .2)
+  .to(draws, { strokeDashoffset: 0, duration: 1.1, stagger: .06, ease: 'power2.inOut' }, .25)
+  .to('.schem text', { opacity: 1, duration: .4, stagger: .05 }, 1.1)
+  .to(['.hero .lede', '.hero .cta', '.hero .readout'], { opacity: 1, y: 0, duration: .7, stagger: .08, ease: 'power3.out' }, .55)
+gsap.fromTo('.scanline', { top: '8%' }, { top: '92%', duration: 3.2, ease: 'sine.inOut', repeat: -1, yoyo: true })
+
+// assembly: pinned, scrubbed pose
+ScrollTrigger.create({ trigger: '.assembly', start: 'top top', end: () => '+=' + innerHeight * 3, pin: '.asm-pin', scrub: .6, onUpdate: (s) => pose(s.progress) })
+let asmVisible = false
+new IntersectionObserver(([e]) => { asmVisible = e.isIntersecting }).observe(document.querySelector('.assembly'))
+gsap.ticker.add(() => { if (asmVisible && openSpec >= 0) placeSpec() })
+
+// one reveal per heading, counters once
+gsap.utils.toArray('.h2, .proof blockquote, .cta-sec h2').forEach((h) => {
+  gsap.set(h, { opacity: 0, y: 36 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => gsap.to(h, { opacity: 1, y: 0, duration: .9, ease: 'expo.out' }) })
+})
+gsap.set('.cell', { opacity: 0 })
+ScrollTrigger.create({ trigger: '.sheet', start: 'top 85%', once: true, onEnter: () => gsap.to('.cell', { opacity: 1, duration: .5, stagger: { each: .07, from: 'start' } }) })
+ScrollTrigger.create({ trigger: '.metrics', start: 'top 85%', once: true, onEnter: () => document.querySelectorAll('.metrics [data-count]').forEach((n, i) => countUp(n, i * .12)) })
+gsap.fromTo('.tape', { backgroundPositionX: 0 }, { backgroundPositionX: 240, ease: 'none', scrollTrigger: { trigger: '.tape', start: 'top bottom', end: 'bottom top', scrub: true } })
+document.fonts && document.fonts.ready.then(() => ScrollTrigger.refresh())
+})()
+</script>
+</body>
+</html>
