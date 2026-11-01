@@ -1,0 +1,1510 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tường máy — Cơ Khí Tiến Bộ MES</title>
+<meta name="description" content="MES xưởng CNC của Cơ Khí Tiến Bộ: tường máy với đèn tháp andon, OEE từng máy theo A × P × Q, ghi lý do dừng máy bằng phím số và quản lý lệnh sản xuất.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2320252A'/%3E%3Cpath d='M16 5l2.2 3.2 3.8-.9.5 3.9 3.5 1.7-1.8 3.5 1.8 3.5-3.5 1.7-.5 3.9-3.8-.9L16 27l-2.2-3.2-3.8.9-.5-3.9-3.5-1.7 1.8-3.5-1.8-3.5 3.5-1.7.5-3.9 3.8.9z' fill='%23FFC20E'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%2320252A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ui:'Barlow Condensed','Arial Narrow',sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;--rail:64px;--top:58px;--ease:cubic-bezier(.16,1,.3,1)}
+:root,[data-theme=dark]{--bg:#15181b;--bg2:#1a1e22;--panel:#1f2428;--panel2:#262c31;--panel3:#2f363c;--line:rgba(200,215,230,.09);--line2:rgba(200,215,230,.18);--text:#eef1f3;--muted:#b0bac2;--dim:#8e98a1;--y:#ffc20e;--yt:#ffc20e;--ink:#121416;--run:#3ddc84;--stop:#ff5544;--setup:#ffc20e;--qual:#ff8d3a;--steel:#6f7a84;--rivet:rgba(255,255,255,.16);--housing:#0c0e10;--brush:rgba(255,255,255,.014);--shadow:0 24px 50px -24px rgba(0,0,0,.85);color-scheme:dark}
+[data-theme=light]{--bg:#d5dade;--bg2:#cbd1d6;--panel:#f2f4f5;--panel2:#e6e9ec;--panel3:#d8dde1;--line:rgba(20,30,40,.12);--line2:rgba(20,30,40,.24);--text:#13171a;--muted:#46515b;--dim:#56626c;--y:#ffc20e;--yt:#7a5700;--ink:#121416;--run:#0f8a4b;--stop:#cf2a1a;--setup:#e0a400;--qual:#d0621a;--steel:#7d8892;--rivet:rgba(0,0,0,.2);--housing:#24292e;--brush:rgba(0,0,0,.018);--shadow:0 20px 40px -26px rgba(30,40,50,.5);color-scheme:light}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;min-height:100vh;background:linear-gradient(90deg,var(--brush) 1px,transparent 1px) 0 0/4px 100%,var(--bg);color:var(--text);font:500 16px/1.4 var(--ui);-webkit-font-smoothing:antialiased;overflow-x:clip}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--y);outline-offset:2px}
+h1,h2,h3{margin:0;line-height:1.12;font-weight:700;letter-spacing:.01em}
+p{margin:0}
+[hidden]{display:none!important}
+.anc{position:absolute;top:0;left:0;width:0;height:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+svg.i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+kbd{font:600 12px/1 var(--mono);padding:3px 6px;border-radius:4px;border:1px solid var(--line2);background:var(--panel2);color:var(--muted);white-space:nowrap}
+.hz{background:repeating-linear-gradient(-45deg,var(--y) 0 9px,#141414 9px 18px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 14px;border:1px solid var(--line2);background:var(--panel2);border-radius:4px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:15px;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--y)}
+.btn.pri{background:var(--y);color:var(--ink);border-color:var(--y)}
+.btn.pri:hover{background:#ffd34d}
+.btn.red{background:var(--stop);color:#fff;border-color:var(--stop)}
+.btn.sm{min-height:34px;padding:0 10px;font-size:14px}
+.ib{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:4px;border:1px solid var(--line);background:var(--panel);position:relative;transition:border-color .15s}
+.ib:hover{border-color:var(--y)}
+.chips{display:inline-flex;border:1px solid var(--line2);border-radius:4px;overflow:hidden;background:var(--panel)}
+.chips button{min-height:38px;padding:0 13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:14px;color:var(--muted);border-right:1px solid var(--line);white-space:nowrap}
+.chips button:last-child{border-right:0}
+.chips button[aria-pressed=true]{background:var(--y);color:var(--ink)}
+.chips button small{font:500 12px var(--mono);margin-left:4px;opacity:.8}
+
+/* ── header ── */
+.top{position:sticky;top:0;z-index:40;height:var(--top);display:flex;align-items:center;gap:12px;padding:0 12px 0 0;background:var(--panel);border-bottom:1px solid var(--line2)}
+.top::after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:4px;background:repeating-linear-gradient(-45deg,var(--y) 0 9px,#141414 9px 18px);opacity:.92}
+.brand{display:flex;align-items:center;gap:10px;height:100%;padding:0 16px;background:var(--y);color:var(--ink);text-decoration:none;flex:none}
+.brand svg{width:30px;height:30px}
+.brand b{display:block;font-size:22px;font-weight:800;letter-spacing:.05em;line-height:1.1}
+.brand small{display:block;font:500 12px/1.2 var(--mono);letter-spacing:.02em}
+.crumb{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:16px;min-width:0;white-space:nowrap}
+.crumb b{color:var(--text);font-weight:700}
+.sp{flex:1}
+.shift{display:flex;flex-direction:column;align-items:flex-end;line-height:1.1}
+.shift .clk{font:600 22px/1.1 var(--mono)}
+.shift .clk small{font-size:14px;color:var(--dim)}
+.shift span{font-size:14px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.live{display:inline-flex;align-items:center;gap:6px;font:600 12px var(--mono);letter-spacing:.06em;color:var(--run);border:1px solid var(--line2);border-radius:3px;padding:5px 8px;white-space:nowrap}
+.live i{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.live.off{color:var(--dim)}
+.srch{display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border:1px solid var(--line2);border-radius:4px;background:var(--bg2);color:var(--muted);min-width:230px}
+.srch:hover{border-color:var(--y)}
+.srch span{flex:1;text-align:left}
+.badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--stop);color:#fff;font:600 12px/20px var(--mono);text-align:center}
+.av{display:grid;place-items:center;width:40px;height:40px;border-radius:4px;background:var(--panel3);font-weight:800;font-size:17px;letter-spacing:.04em;flex:none}
+.hamb{display:none}
+
+/* ── right rail ── */
+.rail{position:fixed;z-index:30;top:calc(var(--top) + 4px);right:0;bottom:0;width:var(--rail);background:var(--panel);border-left:1px solid var(--line2);display:flex;flex-direction:column;padding:10px 8px;gap:8px}
+.rail a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0;border-radius:4px;text-decoration:none;color:var(--muted);border:1px solid transparent}
+.rail a:hover{border-color:var(--line2);color:var(--text)}
+.rail a .n{font:600 12px var(--mono)}
+.rail a .v{writing-mode:vertical-rl;transform:rotate(180deg);font-size:17px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;padding:2px 0}
+.rail a[aria-current=page]{background:var(--y);color:var(--ink)}
+.rail a .cnt{font:600 12px/18px var(--mono);min-width:22px;text-align:center;border-radius:9px;background:var(--stop);color:#fff}
+.rail .rsp{flex:1}
+.rail .ib{width:46px;height:44px;align-self:center}
+
+main{padding:18px calc(var(--rail) + 18px) 0 18px;min-height:calc(100vh - var(--top))}
+.view{display:block}
+.vh{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.vh h1{font-size:32px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.vh p{color:var(--muted);font-size:16px;margin-top:2px}
+.vh .sp{min-width:8px}
+.foot{padding:22px 0 26px;color:var(--dim);font-size:14px;display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line2);border-radius:4px;box-shadow:var(--shadow)}
+.ch{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ch h2{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.ch .tag{font:500 12px var(--mono);color:var(--dim)}
+
+/* ── KPI formula strip ── */
+.kstrip{display:flex;align-items:stretch;border:1px solid var(--line2);border-radius:4px;background:var(--panel);margin-bottom:26px;overflow:hidden}
+.kf{display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+.kf .lbl{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1.15}
+.kf .big{font:600 40px/1 var(--mono);color:var(--yt)}
+.kf .big small{font-size:20px}
+.kf .op{font:500 22px var(--mono);color:var(--dim)}
+.kf .fac{display:flex;flex-direction:column;line-height:1.1}
+.kf .fac b{font:600 22px var(--mono)}
+.kf .fac span{font-size:14px;color:var(--muted);white-space:nowrap}
+.kx{display:flex;flex:1;justify-content:flex-end}
+.kx>div{padding:10px 16px;border-left:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;line-height:1.15}
+.kx b{font:600 22px var(--mono)}
+.kx span{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.kx small{font:500 13px var(--mono);color:var(--dim)}
+.kalarm{display:flex;align-items:center;gap:12px;padding:0 16px;color:var(--ink);font-weight:800;letter-spacing:.04em;text-transform:uppercase;font-size:15px;text-align:left;position:relative}
+.kalarm::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--y) 0 12px,#ffd84f 12px 24px);z-index:0}
+.kalarm>*{position:relative}
+.kalarm b{font:600 34px/1 var(--mono)}
+.kx .kalarm span{color:inherit;font-size:15px;letter-spacing:.04em}
+.kalarm.ok::before{background:var(--panel2)}
+.kalarm.ok{color:var(--muted)}
+
+/* ── wall of towers ── */
+.wallbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:15px;color:var(--muted)}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.wall{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;align-items:stretch;padding:0 0 12px;position:relative}
+.wall::after{content:"";position:absolute;left:-6px;right:-6px;bottom:0;height:6px;background:repeating-linear-gradient(-45deg,var(--y) 0 9px,#141414 9px 18px);border-radius:1px;opacity:.85}
+.tw{position:relative;display:flex;flex-direction:column;align-items:stretch;text-align:left;margin-top:44px;padding:52px 10px 18px;min-height:470px;border:1px solid var(--line2);border-top:4px solid var(--run);border-radius:3px 3px 0 0;background:radial-gradient(circle at 7px 9px,var(--rivet) 1.6px,transparent 2.4px),radial-gradient(circle at calc(100% - 7px) 9px,var(--rivet) 1.6px,transparent 2.4px),linear-gradient(90deg,var(--brush) 1px,transparent 1px) 0 0/3px 100%,linear-gradient(180deg,var(--panel2),var(--panel));transition:translate .2s,border-color .2s;color:var(--text)}
+.tw:hover{translate:0 -3px}
+.tw[data-s=stop]{border-top-color:var(--stop)}
+.tw[data-s=setup]{border-top-color:var(--setup)}
+.lamp{position:absolute;left:50%;top:-44px;translate:-50% 0;width:30px;padding:4px;border-radius:5px;background:var(--housing);display:flex;flex-direction:column;gap:3px;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.lamp::after{content:"";position:absolute;left:50%;bottom:-12px;width:6px;height:12px;translate:-50% 0;background:var(--housing)}
+.lamp i{display:block;height:15px;border-radius:3px;opacity:.22}
+.lamp .r{background:#ff3b2f}.lamp .y{background:#ffc20e}.lamp .g{background:#2fe07c}
+.tw[data-s=run] .lamp .g,.tw[data-s=setup] .lamp .y,.tw[data-s=stop] .lamp .r{opacity:1;box-shadow:0 0 14px 2px currentColor}
+.tw[data-s=run] .lamp .g{color:#2fe07c}.tw[data-s=setup] .lamp .y{color:#ffc20e}.tw[data-s=stop] .lamp .r{color:#ff3b2f}
+.tw.unl .lamp .r{animation:blink 1s steps(2,end) infinite}
+@keyframes blink{50%{opacity:.25;box-shadow:none}}
+.tw-id{font-size:25px;font-weight:800;letter-spacing:.03em;line-height:1.1}
+.tw-type{font-size:15px;color:var(--muted);line-height:1.2}
+.tw-mod{font:500 12px var(--mono);color:var(--dim);white-space:nowrap}
+.tw-st{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;column-gap:6px;margin-top:8px;padding:6px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.tw-st b{font-size:17px;font-weight:800;letter-spacing:.06em;color:var(--run)}
+.tw[data-s=stop] .tw-st b{color:var(--stop)}
+.tw[data-s=setup] .tw-st b{color:var(--yt)}
+.tw-st .num{font-size:13px;color:var(--muted)}
+.tw-why{display:block;font-size:14px;color:var(--muted);min-height:20px;line-height:1.3;width:100%}
+.tw-oee{display:flex;align-items:baseline;gap:4px;margin-top:10px}
+.tw-oee b{font:600 34px/1 var(--mono)}
+.tw-oee small{font-size:14px;color:var(--muted);font-weight:700;letter-spacing:.06em}
+.apq{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;height:74px}
+.apq span{display:grid;grid-template-rows:auto 1fr auto;justify-items:center;gap:2px;min-width:0}
+.apq em{font:500 12px var(--mono);font-style:normal;color:var(--muted)}
+.apq u{position:relative;width:100%;max-width:22px;background:var(--panel3);border-radius:2px;text-decoration:none;overflow:hidden}
+.apq u i{position:absolute;left:0;right:0;bottom:0;height:100%;transform-origin:bottom;transform:scaleY(var(--v,0));background:var(--steel);transition:transform .6s var(--ease)}
+.apq span:first-child u i{background:var(--run)}
+.apq strong{font-size:13px;font-weight:700;color:var(--dim)}
+.tw-job{margin-top:auto;padding-top:10px;display:flex;flex-direction:column;gap:3px}
+.tw-lsx{font-size:14px;font-weight:600;letter-spacing:.03em;color:var(--dim);white-space:nowrap}
+.tw-part{font-size:15px;font-weight:600;line-height:1.2;min-height:36px}
+.tw-bar{height:6px;background:var(--panel3);border-radius:1px;overflow:hidden}
+.tw-bar i{display:block;height:100%;background:var(--y);transform-origin:left;transform:scaleX(var(--v,0));transition:transform .5s}
+.tw-cnt{font-size:13px;color:var(--muted);white-space:nowrap}
+.rib{position:relative;height:12px;margin-top:10px;background:var(--panel3);border-radius:1px;overflow:hidden}
+.rib i{position:absolute;top:0;bottom:0}
+.rib-l{display:flex;justify-content:space-between;font:500 12px var(--mono);color:var(--dim);margin-top:3px}
+.s-run{background:var(--run)}.s-setup{background:var(--setup)}.s-stop{background:var(--stop)}
+.s-unl{background:repeating-linear-gradient(-45deg,var(--stop) 0 3px,#3a0d09 3px 6px)}
+.tw-tag{position:absolute;left:-1px;right:-1px;bottom:-1px;height:22px;display:grid;place-items:center;font-size:13px;font-weight:800;letter-spacing:.08em;color:var(--ink);background:repeating-linear-gradient(-45deg,var(--y) 0 8px,#ffd84f 8px 16px)}
+.tw-base{position:absolute;left:-1px;right:-1px;bottom:-1px;height:7px;background:var(--panel3)}
+.tw.unl .tw-base{display:none}
+.tw.unl{padding-bottom:30px}
+.tw.dim{opacity:.32}
+
+/* ── OEE view ── */
+.og{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:16px}
+.formula{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line)}
+.formula .eq{font:600 15px var(--mono);color:var(--dim)}
+.formula .f{display:flex;flex-direction:column;line-height:1.1}
+.formula .f b{font:600 26px var(--mono)}
+.formula .f em{font-style:normal}
+.br{display:none}
+.kf .fac em{font-style:normal}
+.formula .f span{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.formula .f.o b{color:var(--yt);font-size:34px}
+.chart{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font-family:var(--ui);font-size:14px;fill:var(--muted)}
+.chart .v{font-family:var(--mono);font-size:13px;fill:var(--text);font-weight:600}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.chart .ax{font-family:var(--mono);font-size:12px;fill:var(--dim)}
+.cbox{padding:10px 14px 14px}
+.rk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 26px;padding:12px 14px 16px}
+.rkr{display:grid;grid-template-columns:70px minmax(0,1fr) 64px;align-items:center;gap:10px;min-height:44px;padding:4px 8px;border-radius:3px;text-align:left;border:1px solid transparent}
+.rkr:hover{border-color:var(--line2)}
+.rkr[aria-pressed=true]{background:var(--panel3);border-color:var(--y)}
+.rkr b{font-size:18px;font-weight:800}
+.rkr .tr{position:relative;height:16px;background:var(--panel3);border-radius:2px;overflow:hidden}
+.rkr .tr i{position:absolute;inset:0;transform-origin:left;transform:scaleX(var(--v,0));background:var(--steel);transition:transform .6s var(--ease)}
+.rkr .tr i.hi{background:var(--run)}.rkr .tr i.lo{background:var(--stop)}
+.rkr .tr em{position:absolute;left:0;top:0;bottom:0;border-left:2px dashed var(--y);font-style:normal}
+.rkr .val{font:600 15px var(--mono);text-align:right}
+.rkr small{grid-column:2/4;font:500 12px var(--mono);color:var(--dim);margin-top:-4px}
+
+/* ── table ── */
+.tool{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.inp{display:flex;align-items:center;gap:8px;height:40px;padding:0 10px;border:1px solid var(--line2);border-radius:4px;background:var(--bg2);min-width:240px;flex:1;max-width:360px}
+.inp input{border:0;background:none;outline:none;width:100%;font-size:16px}
+.sel{height:40px;padding:0 10px;border:1px solid var(--line2);border-radius:4px;background:var(--bg2);font-size:16px}
+.bulk{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--y);color:var(--ink);font-weight:700}
+.bulk .btn{background:var(--ink);color:var(--y);border-color:var(--ink)}
+.tbw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th{position:sticky;top:0;text-align:left;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0 10px;height:42px;border-bottom:1px solid var(--line2);white-space:nowrap;background:var(--panel)}
+th button{display:inline-flex;align-items:center;gap:4px;letter-spacing:inherit;text-transform:inherit;min-height:40px}
+th button::after{content:"↕";opacity:.35;font-size:12px}
+th[aria-sort=ascending] button::after{content:"↑";opacity:1;color:var(--yt)}
+th[aria-sort=descending] button::after{content:"↓";opacity:1;color:var(--yt)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover{background:var(--panel2)}
+tbody tr.on{background:color-mix(in srgb,var(--y) 12%,transparent)}
+.cb{width:20px;height:20px;accent-color:var(--y);cursor:pointer}
+.code{font:500 14px var(--mono);white-space:nowrap}
+.sub{display:block;font:500 12px var(--mono);color:var(--dim)}
+.prog{display:flex;align-items:center;gap:8px;min-width:150px}
+.prog u{flex:1;height:6px;background:var(--panel3);text-decoration:none;position:relative;overflow:hidden;border-radius:1px}
+.prog u i{position:absolute;inset:0;transform-origin:left;background:var(--y)}
+.prog span{font:500 13px var(--mono);white-space:nowrap}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.st i{width:9px;height:9px;border-radius:50%}
+.st.chay i{background:var(--run)}.st.cho i{background:var(--steel)}.st.dung i{background:var(--setup)}.st.xong i{background:transparent;border:2px solid var(--run)}
+.late{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:2px;background:var(--stop);color:#fff;font-size:12px;font-weight:800;letter-spacing:.06em}
+.flag{color:var(--yt);font-weight:800;font-size:14px;letter-spacing:.05em;white-space:nowrap}
+.pg{display:flex;align-items:center;gap:6px;padding:10px 14px;flex-wrap:wrap}
+.pg .info{flex:1;color:var(--muted);font-size:15px;min-width:160px}
+.pg button{min-width:40px;height:40px;border:1px solid var(--line2);border-radius:4px;font:600 14px var(--mono)}
+.pg button[aria-current=page]{background:var(--y);color:var(--ink);border-color:var(--y)}
+.pg button:disabled{opacity:.35;cursor:default}
+.empty{padding:50px 20px;text-align:center;color:var(--muted)}
+.empty svg{width:64px;height:64px;stroke:var(--dim);fill:none;stroke-width:1.5;margin-bottom:10px}
+.empty b{display:block;color:var(--text);font-size:20px;margin-bottom:4px}
+
+/* ── downtime view ── */
+.ribbox{padding:8px 12px 12px;position:relative}
+.ribbox svg text{font-family:var(--mono);font-size:12px;fill:var(--dim)}
+.ribbox svg .mc{font-family:var(--ui);font-size:15px;font-weight:700;fill:var(--text)}
+.seg{cursor:pointer}
+.seg:hover{stroke:var(--text);stroke-width:1.5}
+.ev{width:100%}
+.ev td{font-size:15px}
+.rs{display:inline-flex;align-items:center;gap:6px;font-weight:700;white-space:nowrap}
+.rs i{width:10px;height:10px;border-radius:2px;background:var(--stop)}
+.rs.setup i{background:var(--setup)}
+.needs{color:var(--stop);font-weight:800;letter-spacing:.04em;text-transform:uppercase;font-size:14px;white-space:nowrap}
+
+/* ── overlays ── */
+.scrim{position:fixed;inset:0;z-index:60;background:rgba(8,10,12,.62);backdrop-filter:blur(2px)}
+.drawer{position:fixed;z-index:61;top:0;right:0;bottom:0;width:min(440px,100vw);background:var(--panel);border-left:4px solid var(--y);display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.dh{display:flex;align-items:flex-start;gap:10px;padding:16px;border-bottom:1px solid var(--line)}
+.dh h2{font-size:32px;font-weight:800}
+.dh p{color:var(--muted)}
+.db{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.df{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line);background:var(--panel2)}
+.df .btn{flex:1}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dl div{border:1px solid var(--line);border-radius:3px;padding:8px 10px;background:var(--bg2)}
+.dl span{display:block;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.dl b{font-size:17px}
+.dsec h3{font-size:15px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.dstop{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.dstop .mono{font-size:13px;color:var(--muted);flex:none}
+.dstop .rs{flex:1;min-width:0;white-space:normal}
+.dstate{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line2);border-radius:3px;background:var(--bg2)}
+.dstate .lampH{display:flex;gap:4px;padding:4px;background:var(--housing);border-radius:4px}
+.dstate .lampH i{width:16px;height:16px;border-radius:3px;opacity:.22}
+.dstate b{font-size:22px;font-weight:800;letter-spacing:.05em}
+.err{color:var(--stop);font-size:15px;font-weight:600}
+.modal{position:fixed;z-index:62;left:50%;top:50%;translate:-50% -50%;width:min(640px,calc(100vw - 24px));max-height:calc(100vh - 32px);display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line2);border-top:6px solid var(--y);border-radius:4px;box-shadow:var(--shadow)}
+.mh{display:flex;align-items:flex-start;gap:10px;padding:16px 18px 10px}
+.mh h2{font-size:26px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.mh p{color:var(--muted)}
+.mb{padding:6px 18px 12px;overflow:auto}
+.mf{display:flex;gap:10px;justify-content:flex-end;align-items:center;padding:12px 18px;border-top:1px solid var(--line);background:var(--panel2);flex-wrap:wrap}
+.mf .err{flex:1;min-width:160px}
+.mf .err:empty{display:none}
+.rgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.rbtn{position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:6px;min-height:92px;padding:10px;border:2px solid var(--line2);border-radius:4px;background:var(--bg2);text-align:left;transition:border-color .15s,background .15s}
+.rbtn:hover{border-color:var(--y)}
+.rbtn[aria-pressed=true]{background:var(--y);color:var(--ink);border-color:var(--y)}
+.rbtn kbd{position:absolute;top:8px;right:8px}
+.rbtn[aria-pressed=true] kbd{background:var(--ink);color:var(--y);border-color:var(--ink)}
+.rbtn small{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.rbtn[aria-pressed=true] small{color:var(--ink)}
+.rbtn b{font-size:18px;font-weight:700;line-height:1.15;padding-right:22px}
+.fld{display:flex;flex-direction:column;gap:5px;margin-top:12px}
+.fld label{font-size:15px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.fld input,.fld select,.fld textarea{min-height:42px;padding:8px 10px;border:1px solid var(--line2);border-radius:4px;background:var(--bg2);font-size:17px}
+.fld textarea{resize:vertical;min-height:70px;font-size:16px}
+.fld.bad input,.fld.bad select,.fld.bad textarea{border-color:var(--stop)}
+.fld .err{min-height:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.chk{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:16px}
+.pop{position:fixed;z-index:55;top:calc(var(--top) + 6px);width:min(380px,calc(100vw - 20px));background:var(--panel);border:1px solid var(--line2);border-top:4px solid var(--stop);border-radius:4px;box-shadow:var(--shadow)}
+.pop h3{padding:12px 14px;font-size:17px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--line)}
+.pop ul{list-style:none;margin:0;padding:6px;max-height:360px;overflow:auto}
+.pop li button{display:flex;gap:10px;width:100%;text-align:left;padding:9px 8px;border-radius:3px;align-items:flex-start}
+.pop li button:hover{background:var(--panel2)}
+.pop li b{display:block}
+.pop li span{font-size:14px;color:var(--muted)}
+.pop li i{flex:none;width:10px;height:10px;margin-top:6px;border-radius:2px}
+.pal{position:fixed;z-index:70;left:50%;top:12vh;translate:-50% 0;width:min(600px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--line2);border-top:6px solid var(--y);border-radius:4px;box-shadow:var(--shadow)}
+.pal .inp{max-width:none;margin:12px;border-color:var(--y)}
+.pal ul{list-style:none;margin:0;padding:0 8px 8px;max-height:52vh;overflow:auto}
+.pal li{display:flex;align-items:center;gap:12px;padding:10px;border-radius:3px;cursor:pointer;min-height:44px}
+.pal li[aria-selected=true]{background:var(--y);color:var(--ink)}
+.pal li small{margin-left:auto;font:500 12px var(--mono);opacity:.75;white-space:nowrap}
+.pal li .k{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;width:58px;flex:none;opacity:.7}
+.pal .hint{padding:8px 14px;border-top:1px solid var(--line);font-size:14px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}
+.menu{position:fixed;z-index:65;top:0;right:0;bottom:0;width:min(320px,88vw);background:var(--panel);border-left:4px solid var(--y);display:flex;flex-direction:column;padding:14px;gap:8px;overflow:auto}
+.menu a{color:inherit;display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px;border-radius:4px;text-decoration:none;font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line)}
+.menu a[aria-current=page]{background:var(--y);color:var(--ink)}
+.menu a .n{font:600 12px var(--mono)}
+.menu .btn{justify-content:flex-start}
+.toasts{position:fixed;z-index:90;right:calc(var(--rail) + 16px);bottom:16px;display:flex;flex-direction:column;gap:8px;width:min(400px,calc(100vw - 24px));pointer-events:none}
+body.layer .toasts{top:calc(var(--top) + 14px);bottom:auto;right:50%;translate:50% 0}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--text);color:var(--bg);border-radius:4px;border-left:6px solid var(--y);box-shadow:var(--shadow);font-size:16px;font-weight:600}
+.toast.bad{border-left-color:var(--stop)}
+.toast span{flex:1}
+.toast button{font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:inherit;border:1px solid currentColor;border-radius:3px;min-height:34px;padding:0 10px;white-space:nowrap}
+.tip{position:fixed;z-index:95;pointer-events:none;max-width:260px;padding:8px 10px;background:var(--housing);color:#eef1f3;border:1px solid rgba(255,255,255,.14);border-left:4px solid var(--y);border-radius:3px;font-size:15px;line-height:1.3}
+.tip b{display:block;font-size:16px}
+.tip span{font:500 12px var(--mono);color:#b9c2ca}
+
+/* ── fullscreen wall ── */
+body.fs .rail,body.fs .crumb,body.fs .srch,body.fs .vh,body.fs .foot{display:none}
+body.fs main{padding-right:18px}
+body.fs .toasts{right:16px}
+
+/* ── responsive ── */
+@media (max-width:1359px){.wall{grid-template-columns:repeat(6,minmax(0,1fr));row-gap:12px}.tw{min-height:420px}.kx>div:nth-child(2){display:none}}
+@media (max-width:1180px){.og{grid-template-columns:1fr}.srch{min-width:0}.srch span,.srch kbd{display:none}.kstrip{flex-wrap:wrap}.kx{flex-basis:100%;justify-content:stretch;border-top:1px solid var(--line)}.kx>div{flex:1}.kx>div:first-child{border-left:0}.kalarm{flex:1;padding:12px 16px}}
+@media (max-width:820px){
+  :root{--rail:0px}
+  .rail{display:none}
+  .hamb{display:inline-grid}
+  main{padding:14px 14px 0}
+  .crumb,.live{display:none}
+  .wall{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .tw{min-height:0}
+  .rk{grid-template-columns:1fr}
+  .toasts{right:12px;left:12px;width:auto;top:calc(var(--top) + 12px);bottom:auto}
+  body.layer .toasts{right:12px;translate:none}
+}
+@media (max-width:720px){
+  table.rt thead{display:none}
+  table.rt,table.rt tbody{display:block}
+  table.rt tr{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;padding:12px 12px;border-bottom:1px solid var(--line);align-items:center}
+  table.rt td{padding:0;border:0}
+  table.rt td.c0{grid-row:1/3}
+  table.rt td.c1{grid-column:2}
+  table.rt td.c8{grid-column:3;grid-row:1}
+  table.rt td.c2{grid-column:2/4}
+  table.rt td.c3,table.rt td.c4,table.rt td.c6,table.rt td.c7{grid-column:2/4;font-size:15px;color:var(--muted)}
+  table.rt td[data-l]::before{content:attr(data-l) " · ";font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+  table.rt td.c5{grid-column:2/4}
+  table.ev thead{display:none}
+  table.ev,table.ev tbody{display:block}
+  table.ev tr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 12px;border-bottom:1px solid var(--line)}
+  table.ev td{padding:0;border:0}
+  table.ev td.e4,table.ev td.e5{grid-column:2;grid-row:1/3;align-self:center}
+  table.ev td.e5{grid-row:3}
+  .inp{max-width:none;min-width:0;flex-basis:100%}
+}
+@media (max-width:600px){
+  :root{--top:56px}
+  .brand{padding:0 10px}.brand small{display:none}.brand b{font-size:19px}
+  .brand svg{width:26px;height:26px}
+  .top{gap:6px;padding-right:8px}
+  .shift .clk{font-size:18px}.shift .clk small{display:none}.shift span{font-size:12px}
+  .av,#themeB,#fsB{display:none}
+  .kf .fac em,.formula .f em{display:none}
+  .kf .op{font-size:16px}
+  .formula{gap:6px}.formula .f b{font-size:20px}.formula .f.o b{font-size:28px}
+  .mf .btn{flex:1}
+  .br{display:block;flex-basis:100%;height:0}
+  .tool .chips{max-width:100%;overflow-x:auto}
+  table.rt td.c7.np{display:none}
+  .ib{width:40px}
+  .vh h1{font-size:26px}
+  .wall{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;row-gap:6px}
+  .tw{padding:46px 10px 18px;margin-top:40px}
+  .tw-type{min-height:0}
+  .kf{padding:10px 12px;gap:8px}.kf .big{font-size:34px}.kf .fac b{font-size:18px}
+  .kx{flex-wrap:wrap}.kx>div{flex:1 1 33%;padding:8px 12px}.kx>div:nth-child(2){display:flex}
+  .kx>div:nth-child(4){border-left:0}
+  .kx b{font-size:18px}
+  .rgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rbtn{min-height:68px}
+  .fgrid{grid-template-columns:1fr}
+  .modal{top:auto;bottom:0;translate:-50% 0;max-height:calc(100vh - 60px);border-radius:6px 6px 0 0}
+  .chips button{padding:0 10px}
+  .pg .info{flex-basis:100%}
+}
+/* ---------- vùng chạm 40px cho điện thoại/tablet ---------- */
+.cbl{display:inline-grid;place-items:center;cursor:pointer}
+@media (max-width:820px),(pointer:coarse){
+  .ib,.srch{flex:none;min-width:40px}
+  .chips button,.btn.sm{min-height:40px}
+  .inp{height:44px}
+  .inp input{align-self:stretch}
+  .cbl{width:40px;height:40px;margin:-10px}
+  table.rt th button{min-width:40px}
+}
+/* tablet dọc: bớt đệm ô để bảng lệnh vừa khung, không còn cột Trạng thái bị cắt ở mép phải */
+@media (min-width:721px) and (max-width:900px){
+  table.rt th,table.rt td{padding-left:5px;padding-right:5px}
+  table.rt td{font-size:15px}
+}
+/* điện thoại hẹp: gọn header để nút menu không bị đẩy ra ngoài mép */
+@media (max-width:420px){
+  .top{gap:4px;padding-right:6px}
+  .brand{gap:8px;padding:0 8px}
+  .brand b{letter-spacing:.02em}
+  .srch{width:40px;padding:0;justify-content:center}
+}
+.rm *,.rm *::before,.rm *::after{transition:none!important;animation:none!important}
+</style>
+</head>
+<body>
+<span class="anc" id="tuong"></span><span class="anc" id="oee"></span><span class="anc" id="lenh"></span><span class="anc" id="dung-may"></span>
+<a class="sr" href="#main">Bỏ qua tới nội dung</a>
+<header class="top">
+  <a class="brand" href="#tuong" aria-label="Cơ Khí Tiến Bộ — về tường máy">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l2.4 3.4 4-1 .6 4.2 3.8 1.8-2 3.6 2 3.6-3.8 1.8-.6 4.2-4-1L16 29l-2.4-3.4-4 1-.6-4.2-3.8-1.8 2-3.6-2-3.6L9 11.6l.6-4.2 4 1z" fill="#121416"/><circle cx="16" cy="16" r="4.4" fill="#ffc20e"/></svg>
+    <span><b>CƠ KHÍ TIẾN BỘ</b><small>MES · Xưởng CNC số 2</small></span>
+  </a>
+  <nav class="crumb" aria-label="Vị trí"><span>Xưởng 2</span><span aria-hidden="true">›</span><b id="crumbV">Tường máy</b></nav>
+  <span class="sp"></span>
+  <span class="live" id="live"><i></i><span id="liveT">TRỰC TIẾP</span></span>
+  <div class="shift"><span id="shiftL">Ca 1 · 06:00–14:00</span><b class="clk num" id="clk">00:00<small>:00</small></b></div>
+  <button class="srch" id="openPal" aria-label="Mở bảng lệnh (Ctrl K)"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Tìm máy, lệnh, lý do…</span><kbd>Ctrl K</kbd></button>
+  <button class="ib" id="bell" aria-label="Thông báo dừng máy" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="badge num" id="bellN" hidden>0</span></button>
+  <button class="ib" id="themeB" aria-label="Đổi giao diện sáng/tối"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <button class="ib" id="fsB" aria-label="Chế độ toàn màn hình (phím F)" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  <span class="av" title="Quản đốc Trần Văn Hậu" aria-label="Quản đốc Trần Văn Hậu" role="img">TH</span>
+  <button class="ib hamb" id="hamb" aria-label="Mở menu" aria-expanded="false" aria-controls="menu"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+</header>
+
+<nav class="rail" aria-label="Điều hướng chính">
+  <a href="#tuong" data-v="tuong"><span class="n">01</span><span class="v">Tường máy</span></a>
+  <a href="#oee" data-v="oee"><span class="n">02</span><span class="v">OEE</span></a>
+  <a href="#lenh" data-v="lenh"><span class="n">03</span><span class="v">Lệnh sản xuất</span></a>
+  <a href="#dung-may" data-v="dung-may"><span class="n">04</span><span class="v">Dừng máy</span><span class="cnt num" id="railN">0</span></a>
+  <span class="rsp"></span>
+</nav>
+
+<main id="main">
+  <!-- 1. Wall -->
+  <section class="view" data-view="tuong" aria-labelledby="h-tuong">
+    <div class="vh">
+      <div><h1 id="h-tuong">Tường máy · 12 CNC</h1><p id="wallSub">Đèn tháp andon cập nhật mỗi 2 giây · bấm máy để xem chi tiết</p></div>
+      <span class="sp"></span>
+      <div class="leg" aria-label="Chú giải"><span><i class="s-run"></i>Chạy</span><span><i class="s-setup"></i>Setup</span><span><i class="s-stop"></i>Dừng</span><span><i class="s-unl"></i>Chưa ghi lý do</span></div>
+      <div class="chips" role="group" aria-label="Lọc máy"><button data-wf="all" aria-pressed="true">Tất cả</button><button data-wf="stop" aria-pressed="false">Đang dừng <small id="wfN">0</small></button></div>
+    </div>
+    <div class="kstrip" id="kstrip">
+      <div class="kf">
+        <span class="lbl">OEE<br><span id="kShift">ca 1</span></span>
+        <span class="big" id="kOee">0<small>%</small></span><i class="br"></i>
+        <span class="op">=</span>
+        <span class="fac"><b id="kA">0</b><span>A<em> · khả dụng</em></span></span>
+        <span class="op">×</span>
+        <span class="fac"><b id="kP">0</b><span>P<em> · tốc độ</em></span></span>
+        <span class="op">×</span>
+        <span class="fac"><b id="kQ">0</b><span>Q<em> · chất lượng</em></span></span>
+      </div>
+      <div class="kx">
+        <div><span>Đạt ca này</span><b id="kGood">0</b><small id="kPlan">KH đến giờ 0</small></div>
+        <div><span>Phế phẩm</span><b id="kScrap">0</b><small id="kScrapP">0%</small></div>
+        <div><span>Máy chạy</span><b id="kRun">0/12</b><small id="kRunS">0 setup · 0 dừng</small></div>
+        <button class="kalarm" id="kAlarm" aria-label="Mở lần dừng chưa ghi lý do"><b id="kUnl">0</b><span>lần dừng<br>chưa ghi lý do</span></button>
+      </div>
+    </div>
+    <div class="wall" id="wall" aria-label="12 máy CNC"></div>
+  </section>
+
+  <!-- 2. OEE -->
+  <section class="view" data-view="oee" aria-labelledby="h-oee" hidden>
+    <div class="vh">
+      <div><h1 id="h-oee">OEE thiết bị</h1><p>Thời gian kế hoạch bị bào mòn bởi dừng máy, chậm tốc độ và phế phẩm</p></div>
+      <span class="sp"></span>
+      <div class="chips" role="group" aria-label="Khoảng thời gian"><button data-r="ca" aria-pressed="true">Ca này</button><button data-r="24h" aria-pressed="false">24 giờ</button><button data-r="7d" aria-pressed="false">7 ngày</button></div>
+      <label class="sr" for="oeeM">Chọn máy</label>
+      <select class="sel" id="oeeM"></select>
+    </div>
+    <div class="og">
+      <div class="card">
+        <div class="formula" id="formula"></div>
+        <div class="ch"><h2>Thác thời gian</h2><span class="tag" id="wfTag">phút</span></div>
+        <div class="cbox"><svg class="chart" id="wfSvg" role="img" aria-label="Biểu đồ thác thời gian OEE"></svg></div>
+      </div>
+      <div class="card">
+        <div class="ch"><h2>Pareto lý do dừng</h2><span class="tag" id="paTag">phút dừng · % cộng dồn</span></div>
+        <div class="cbox"><svg class="chart" id="paSvg" role="img" aria-label="Biểu đồ Pareto lý do dừng máy"></svg></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="ch"><h2>OEE từng máy</h2><span class="tag">vạch vàng = mục tiêu 75% · bấm để xem riêng máy</span></div>
+      <div class="rk" id="rank"></div>
+    </div>
+  </section>
+
+  <!-- 3. Orders -->
+  <section class="view" data-view="lenh" aria-labelledby="h-lenh" hidden>
+    <div class="vh">
+      <div><h1 id="h-lenh">Lệnh sản xuất</h1><p id="lsxSub">0 lệnh · tiến độ cập nhật từ bộ đếm máy</p></div>
+      <span class="sp"></span>
+      <button class="btn pri" id="newLsx"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Tạo lệnh</button>
+    </div>
+    <div class="card">
+      <div class="tool">
+        <label class="inp"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="sr">Tìm lệnh</span><input id="q" type="search" placeholder="Tìm mã lệnh, chi tiết, khách hàng…" autocomplete="off"></label>
+        <div class="chips" role="group" aria-label="Lọc trạng thái" id="stChips"></div>
+        <label class="sr" for="mFil">Lọc theo máy</label>
+        <select class="sel" id="mFil"></select>
+      </div>
+      <div class="bulk" id="bulk" hidden><span id="bulkN">Đã chọn 0</span><span class="sp"></span><button class="btn sm" data-b="prio">Đặt ưu tiên</button><button class="btn sm" data-b="pause">Tạm dừng</button><button class="btn sm" data-b="resume">Mở lại</button><button class="btn sm" data-b="del">Xóa</button><button class="btn sm" data-b="clear">Bỏ chọn</button></div>
+      <div class="tbw">
+        <table class="rt" id="tbl">
+          <thead><tr>
+            <th style="width:40px"><label class="cbl"><input type="checkbox" class="cb" id="all" aria-label="Chọn tất cả trên trang"></label></th>
+            <th data-k="id"><button>Mã lệnh</button></th>
+            <th data-k="part"><button>Chi tiết</button></th>
+            <th data-k="cust"><button>Khách hàng</button></th>
+            <th data-k="m"><button>Máy</button></th>
+            <th data-k="pct"><button>Tiến độ</button></th>
+            <th data-k="due"><button>Hạn giao</button></th>
+            <th data-k="prio"><button>Ưu tiên</button></th>
+            <th data-k="st"><button>Trạng thái</button></th>
+          </tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty" hidden><svg viewBox="0 0 64 64"><rect x="10" y="14" width="44" height="38" rx="2"/><path d="M10 24h44M22 34h20M22 42h12"/></svg><b>Không có lệnh nào khớp</b><p>Thử bỏ dấu, đổi bộ lọc hoặc xóa từ khóa.</p><p style="margin-top:12px"><button class="btn" id="clrF">Xóa bộ lọc</button></p></div>
+      <div class="pg" id="pg"></div>
+    </div>
+  </section>
+
+  <!-- 4. Downtime -->
+  <section class="view" data-view="dung-may" aria-labelledby="h-dm" hidden>
+    <div class="vh">
+      <div><h1 id="h-dm">Dừng máy</h1><p>Băng trạng thái từng máy · bấm đoạn dừng để ghi hoặc sửa lý do</p></div>
+      <span class="sp"></span>
+      <div class="chips" role="group" aria-label="Khung giờ"><button data-span="480" aria-pressed="true">8 giờ</button><button data-span="1440" aria-pressed="false">24 giờ</button></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2>Băng trạng thái</h2><span class="tag" id="ribTag"></span></div>
+      <div class="ribbox"><svg class="chart" id="ribSvg" role="img" aria-label="Băng trạng thái 12 máy theo thời gian"></svg></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="ch"><h2>Nhật ký dừng máy</h2><span class="tag" id="evTag"></span><span class="sp"></span><div class="chips" role="group" aria-label="Lọc nhật ký"><button data-ef="all" aria-pressed="true">Tất cả</button><button data-ef="unl" aria-pressed="false">Chưa ghi lý do</button></div></div>
+      <div class="tbw" style="max-height:520px;overflow:auto">
+        <table class="ev" id="evT"><thead><tr><th>Máy</th><th>Bắt đầu</th><th>Kết thúc</th><th>Thời lượng</th><th>Lý do</th><th><span class="sr">Thao tác</span></th></tr></thead><tbody id="evB"></tbody></table>
+      </div>
+      <div class="empty" id="evEmpty" hidden><b>Không còn lần dừng nào chưa ghi lý do</b><p>Ca này đã ghi đủ lý do — Pareto đã chính xác.</p></div>
+    </div>
+  </section>
+
+  <footer class="foot"><span>Cơ Khí Tiến Bộ MES 4.2 · Xưởng CNC số 2, KCN Sóng Thần, Bình Dương</span><span>Thiết kế concept — thương hiệu giả định.</span></footer>
+</main>
+
+<!-- overlays -->
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle" hidden></aside>
+<div class="modal" id="reason" role="dialog" aria-modal="true" aria-labelledby="rTitle" hidden>
+  <div class="mh"><div style="flex:1"><h2 id="rTitle">Ghi lý do dừng máy</h2><p id="rSub"></p></div><button class="ib" data-close aria-label="Đóng"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="mb">
+    <div class="rgrid" id="rgrid" role="group" aria-label="Lý do dừng"></div>
+    <div class="fld" id="rNoteF"><label for="rNote">Ghi chú <span id="rNoteReq" style="text-transform:none;font-weight:500">(không bắt buộc)</span></label><textarea id="rNote" placeholder="Ví dụ: mòn dao phay ngón Ø10, đã thay dao mới"></textarea><span class="err" id="rNoteE"></span></div>
+  </div>
+  <div class="mf"><span class="err" id="rErr" role="alert"></span><button class="btn" data-close>Hủy</button><button class="btn pri" id="rSave">Lưu lý do <kbd>Enter</kbd></button></div>
+</div>
+<div class="modal" id="lsxM" role="dialog" aria-modal="true" aria-labelledby="lTitle" hidden>
+  <div class="mh"><div style="flex:1"><h2 id="lTitle">Tạo lệnh sản xuất</h2><p>Lệnh mới vào hàng chờ của máy được chọn</p></div><button class="ib" data-close aria-label="Đóng"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <form class="mb" id="lsxF" novalidate>
+    <div class="fld"><label for="fPart">Chi tiết gia công</label><input id="fPart" autocomplete="off" placeholder="Ví dụ: Trục bơm Ø40"><span class="err"></span></div>
+    <div class="fgrid">
+      <div class="fld"><label for="fCust">Khách hàng</label><select id="fCust"></select><span class="err"></span></div>
+      <div class="fld"><label for="fM">Máy</label><select id="fM"></select><span class="err"></span></div>
+      <div class="fld"><label for="fQty">Số lượng (cái)</label><input id="fQty" inputmode="numeric" autocomplete="off" placeholder="200"><span class="err"></span></div>
+      <div class="fld"><label for="fDue">Hạn giao (dd/mm/yyyy)</label><input id="fDue" inputmode="numeric" autocomplete="off" placeholder="dd/mm/yyyy"><span class="err"></span></div>
+    </div>
+    <label class="chk"><input type="checkbox" class="cb" id="fPrio"> Đánh dấu ưu tiên (chen lên đầu hàng chờ)</label>
+  </form>
+  <div class="mf"><button class="btn" data-close>Hủy</button><button class="btn pri" id="lSave">Tạo lệnh</button></div>
+</div>
+<div class="pop" id="notif" role="dialog" aria-label="Thông báo dừng máy" hidden><h3>Cần ghi lý do</h3><ul id="notifL"></ul></div>
+<div class="pal" id="pal" role="dialog" aria-modal="true" aria-label="Bảng lệnh" hidden>
+  <label class="inp"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="sr">Tìm lệnh</span><input id="palQ" autocomplete="off" placeholder="Gõ tên máy, mã lệnh, màn hình…" role="combobox" aria-expanded="true" aria-controls="palL"></label>
+  <ul id="palL" role="listbox" aria-label="Kết quả"></ul>
+  <div class="hint"><span><kbd>↑</kbd> <kbd>↓</kbd> chọn</span><span><kbd>Enter</kbd> mở</span><span><kbd>Esc</kbd> đóng</span><span><kbd>1</kbd>–<kbd>4</kbd> đổi màn hình</span></div>
+</div>
+<nav class="menu" id="menu" aria-label="Menu" hidden>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><b style="flex:1;font-size:20px;letter-spacing:.06em">MENU</b><button class="ib" id="menuX" aria-label="Đóng menu"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <a href="#tuong" data-v="tuong"><span class="n">01</span>Tường máy</a>
+  <a href="#oee" data-v="oee"><span class="n">02</span>OEE</a>
+  <a href="#lenh" data-v="lenh"><span class="n">03</span>Lệnh sản xuất</a>
+  <a href="#dung-may" data-v="dung-may"><span class="n">04</span>Dừng máy</a>
+  <button class="btn" id="mTheme">Đổi giao diện sáng/tối</button>
+  <button class="btn" id="mFs">Toàn màn hình</button>
+  <button class="btn" id="mPal">Bảng lệnh (Ctrl K)</button>
+  <p style="margin-top:auto;color:var(--dim);font-size:14px">Quản đốc Trần Văn Hậu · Ca trực<br>Thiết kế concept — thương hiệu giả định.</p>
+</nav>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="tip" id="tip" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+'use strict'
+const STATIC = /[?&]static/.test(location.search)
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+if (RM) document.documentElement.classList.add('rm')
+const G = window.gsap || null
+const BOOT = Date.now()
+const now = () => (STATIC ? BOOT : Date.now())
+const MIN = 60000, HR = 3600000
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const store = {
+  get(k) { try { return localStorage.getItem(k) } catch (e) { return null } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch (e) { /* private mode */ } },
+}
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
+const R = rng(8202)
+const ri = (a, b) => a + Math.floor(R() * (b - a + 1))
+const pick = (a) => a[Math.floor(R() * a.length)]
+const p2 = (n) => String(n).padStart(2, '0')
+const nf = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+const pc = (x, d = 1) => (x * 100).toFixed(d).replace('.', ',')
+const hm = (t) => { const d = new Date(t); return p2(d.getHours()) + ':' + p2(d.getMinutes()) }
+const dmy = (t) => { const d = new Date(t); return p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear() }
+const hms = (ms) => { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 3600) + ':' + p2(Math.floor(s / 60) % 60) + ':' + p2(s % 60) }
+const dur = (ms) => { const m = Math.max(1, Math.round(ms / MIN)); if (m < 60) return m + ' phút'; const h = Math.floor(m / 60), r = m % 60; return h + ' giờ' + (r ? ' ' + r + ' phút' : '') }
+const strip = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const startOfDay = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime() }
+
+/* ───────── seed data ───────── */
+const REASONS = [
+  { k: 'dao', n: 'Thay dao / mòn dao', s: 'Thay dao', cat: 'Dụng cụ' },
+  { k: 'setup', n: 'Setup đổi mã hàng', s: 'Setup', cat: 'Kế hoạch' },
+  { k: 'phoi', n: 'Thiếu phôi / vật tư', s: 'Thiếu phôi', cat: 'Vật tư' },
+  { k: 'qc', n: 'Chờ QC đo mẫu', s: 'Chờ QC', cat: 'Chất lượng' },
+  { k: 'hong', n: 'Hỏng máy / báo lỗi', s: 'Hỏng máy', cat: 'Thiết bị' },
+  { k: 'tho', n: 'Không có thợ đứng máy', s: 'Thiếu thợ', cat: 'Con người' },
+  { k: 'bt', n: 'Bảo trì định kỳ', s: 'Bảo trì', cat: 'Thiết bị' },
+  { k: 'khac', n: 'Lý do khác (ghi chú)', s: 'Khác', cat: 'Khác' },
+]
+const RS = Object.fromEntries(REASONS.map((r) => [r.k, r]))
+const WEIGHTED = ['dao', 'dao', 'dao', 'dao', 'phoi', 'phoi', 'phoi', 'qc', 'qc', 'qc', 'hong', 'hong', 'tho', 'bt', 'khac']
+const MDEF = [
+  ['Phay đứng', 'VMC-850'], ['Phay đứng', 'VMC-1060'], ['Tiện CNC', 'CK-6150'], ['Tiện CNC', 'CK-6140'],
+  ['Phay 5 trục', 'U5-500'], ['Tiện-phay', 'TM-260'], ['Phay ngang', 'HMC-630'], ['Tiện CNC', 'CK-6163'],
+  ['Phay đứng', 'VMC-1160'], ['Cắt dây EDM', 'DK-7740'], ['Mài phẳng', 'SG-4080'], ['Phay 5 trục', 'U5-650'],
+]
+const OPS = ['Nguyễn Văn Tâm', 'Lê Hoàng Phúc', 'Trần Minh Khoa', 'Phạm Thị Hồng', 'Võ Đức Thắng', 'Huỳnh Quốc Bảo', 'Đặng Văn Lực', 'Bùi Thanh Sơn', 'Ngô Văn Hiếu', 'Đỗ Thị Mai', 'Phan Văn Toàn', 'Lý Minh Trí']
+const PARTS = ['Bích nối DN50', 'Trục bơm Ø40', 'Bánh răng côn Z24', 'Vỏ hộp số HS-2', 'Bạc lót đồng Ø60', 'Puly đai Ø180', 'Chốt định vị Ø12', 'Gá kẹp phôi GK-7', 'Khớp nối mềm Ø35', 'Nắp ổ bi 6205', 'Tấm đế khuôn 300×250', 'Trục vít me Ø25', 'Đầu nối thủy lực M22', 'Mặt bích ống Ø114', 'Cánh bơm ly tâm', 'Thân van bi DN25', 'Bánh xích Z18', 'Ống lót xi lanh Ø80']
+const CUSTS = ['Bơm Hải Đăng', 'Điện cơ Thuận Phát', 'Thủy lực Nam Việt', 'Khuôn mẫu Đại Lợi', 'Máy nông nghiệp Cửu Long', 'Ô tô Sao Bắc', 'Van công nghiệp Tân Á', 'Băng tải Minh Long']
+// current andon state of each machine: run, setup, stop (u = no reason yet)
+const CUR = ['run', 'run', 'stopU', 'run', 'setup', 'run', 'stopU', 'run', 'run', 'stopL', 'run', 'run']
+let segId = 0
+const M = MDEF.map((d, i) => ({ i, id: 'CNC-' + p2(i + 1), type: d[0], model: d[1], op: OPS[i], cyc: ri(70, 380), perf: 0.83 + R() * 0.14, scrap: 0.006 + R() * 0.04, acc: 0, segs: [], job: null }))
+for (const m of M) {
+  const c = CUR[m.i]
+  const curLen = (c === 'run' ? ri(25, 190) : c === 'setup' ? ri(8, 26) : ri(6, 28)) * MIN
+  const end = BOOT - curLen
+  let t = BOOT - 26 * HR, run = R() < 0.6
+  while (t < end) {
+    const len = (run ? ri(40, 175) : ri(5, 34)) * MIN
+    const b = Math.min(end, t + len)
+    if (run) m.segs.push({ id: ++segId, st: 'run', a: t, b, r: null })
+    else if (R() < 0.22) m.segs.push({ id: ++segId, st: 'setup', a: t, b, r: 'setup' })
+    else m.segs.push({ id: ++segId, st: 'stop', a: t, b, r: pick(WEIGHTED) })
+    t = b; run = !run
+  }
+  const last = m.segs[m.segs.length - 1]
+  const want = c === 'run' ? 'run' : 'stop'
+  if ((last.st === 'run') === (want === 'run')) {
+    if (want === 'run') { last.st = 'stop'; last.r = pick(WEIGHTED) } else { last.st = 'run'; last.r = null }
+  }
+  m.segs.push({ id: ++segId, st: c === 'setup' ? 'setup' : c === 'run' ? 'run' : 'stop', a: end, b: null, r: c === 'setup' ? 'setup' : c === 'stopL' ? 'phoi' : null })
+}
+// a few past stops nobody tagged yet (operators forgot)
+for (const i of [1, 4, 8]) {
+  const s = M[i].segs.filter((s) => s.st === 'stop' && s.b && s.a > BOOT - 8 * HR).pop()
+  if (s) s.r = null
+}
+
+const yymm = String(new Date(BOOT).getFullYear()).slice(2) + p2(new Date(BOOT).getMonth() + 1)
+let lsxSeq = 0
+const nextId = () => 'LSX-' + yymm + '-' + String(++lsxSeq).padStart(3, '0')
+const today = startOfDay(BOOT), DAY = 24 * HR
+const LSX = []
+function mkJob(st, m) {
+  const qty = ri(6, 40) * 20
+  let done = 0
+  if (st === 'xong') done = qty
+  else if (st === 'dung') done = Math.floor(qty * (0.15 + R() * 0.5))
+  else if (st === 'chay') done = Math.floor(qty * (0.08 + R() * 0.8))
+  const dd = st === 'xong' ? ri(-12, -1) : st === 'cho' ? ri(1, 16) : st === 'dung' ? ri(-2, 7) : ri(-1, 8)
+  return { id: nextId(), part: pick(PARTS), draw: 'BV-' + ri(1100, 4899), cust: pick(CUSTS), m, qty, done, due: today + dd * DAY, prio: R() < 0.18, st }
+}
+for (const m of M) { const j = mkJob('chay', m.i); if (CUR[m.i] === 'setup') j.done = 0; m.job = j; LSX.push(j) }
+for (let k = 0; k < 34; k++) LSX.push(mkJob(k < 13 ? 'cho' : k < 17 ? 'dung' : 'xong', ri(0, 11)))
+// two orders already past due, so the late flag is always visible
+M[6].job.due = today - DAY; LSX[25].due = today - 2 * DAY
+LSX.sort((a, b) => a.id.localeCompare(b.id))
+
+/* ───────── metrics ───────── */
+function shiftInfo(t) {
+  const d = new Date(t), h = d.getHours()
+  const s = new Date(t); s.setMinutes(0, 0, 0)
+  if (h >= 6 && h < 14) { s.setHours(6); return { n: 1, a: s.getTime(), label: 'Ca 1 · 06:00–14:00' } }
+  if (h >= 14 && h < 22) { s.setHours(14); return { n: 2, a: s.getTime(), label: 'Ca 2 · 14:00–22:00' } }
+  if (h < 6) s.setDate(s.getDate() - 1)
+  s.setHours(22)
+  return { n: 3, a: s.getTime(), label: 'Ca 3 · 22:00–06:00' }
+}
+const segEnd = (s) => (s.b == null ? now() : s.b)
+const curSeg = (m) => m.segs[m.segs.length - 1]
+const mState = (m) => curSeg(m).st
+const isUnl = (s) => s.st === 'stop' && !s.r
+function stats(list, a, b) {
+  let plan = 0, run = 0, total = 0, iTot = 0, iGood = 0
+  const byR = {}
+  for (const m of list) {
+    plan += b - a
+    for (const s of m.segs) {
+      const o = Math.min(b, segEnd(s)) - Math.max(a, s.a)
+      if (o <= 0) continue
+      if (s.st === 'run') {
+        run += o
+        const parts = (o / 1000 / m.cyc) * m.perf
+        total += parts; iTot += parts * m.cyc * 1000; iGood += parts * (1 - m.scrap) * m.cyc * 1000
+      } else { const k = s.r || 'none'; byR[k] = (byR[k] || 0) + o }
+    }
+  }
+  return { plan, run, stop: plan - run, speed: run - iTot, qual: iTot - iGood, good: iGood, total, byR, A: plan ? run / plan : 0, P: run ? iTot / run : 0, Q: iTot ? iGood / iTot : 0 }
+}
+// exact part counts (rounded per machine so the strip adds up)
+function parts(list, a, b) {
+  let tot = 0, good = 0
+  for (const m of list) {
+    let p = 0
+    for (const s of m.segs) { if (s.st !== 'run') continue; const o = Math.min(b, segEnd(s)) - Math.max(a, s.a); if (o > 0) p += (o / 1000 / m.cyc) * m.perf }
+    const pt = Math.floor(p), pg = Math.floor(p * (1 - m.scrap))
+    tot += pt; good += pg
+  }
+  return { tot, good, scrap: tot - good }
+}
+// weekly view: 24h pattern scaled with a fixed per-machine drift
+const WK = M.map(() => 0.93 + R() * 0.1)
+function rangeStats(list, r) {
+  const t = now()
+  if (r === 'ca') return stats(list, shiftInfo(t).a, t)
+  const d = stats(list, t - DAY, t)
+  if (r === '24h') return d
+  let plan = 0, run = 0, iTot = 0, iGood = 0
+  for (const m of list) {
+    const s = stats([m], t - DAY, t)
+    const rr = Math.min(s.plan * 7 * 0.97, s.run * 7 * WK[m.i])
+    plan += s.plan * 7; run += rr; iTot += rr * s.P; iGood += rr * s.P * s.Q
+  }
+  const k = (plan - run) / Math.max(1, d.stop * 7)
+  const byR = {}
+  for (const key in d.byR) byR[key] = key === 'none' ? d.byR[key] * 1.4 : d.byR[key] * 7 * k
+  const sum = Object.values(byR).reduce((x, y) => x + y, 0)
+  for (const key in byR) byR[key] *= (plan - run) / sum
+  return { plan, run, stop: plan - run, speed: run - iTot, qual: iTot - iGood, good: iGood, byR, A: run / plan, P: iTot / run, Q: iGood / iTot }
+}
+const unlabeled = () => {
+  const out = []
+  for (const m of M) for (const s of m.segs) if (isUnl(s) && segEnd(s) > now() - DAY) out.push({ m, s })
+  return out.sort((x, y) => y.s.a - x.s.a)
+}
+
+/* ───────── theme ───────── */
+function setTheme(t) { document.documentElement.dataset.theme = t; store.set('qt82-theme', t) }
+setTheme(store.get('qt82-theme') === 'light' ? 'light' : 'dark')
+const flipTheme = () => { setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'); redrawCharts() }
+$('#themeB').onclick = flipTheme
+$('#mTheme').onclick = () => { flipTheme(); closeTop() }
+
+/* ───────── toasts & tooltip ───────── */
+function toast(msg, opt = {}) {
+  const box = $('#toasts')
+  while (box.children.length >= 2) box.firstElementChild.remove()
+  const el = document.createElement('div')
+  el.className = 'toast' + (opt.bad ? ' bad' : '')
+  el.setAttribute('role', 'status')
+  el.innerHTML = '<span></span>'
+  el.firstChild.textContent = msg
+  if (opt.act) {
+    const b = document.createElement('button')
+    b.textContent = opt.actLabel || 'Hoàn tác'
+    b.onclick = () => { opt.act(); el.remove() }
+    el.appendChild(b)
+  }
+  box.appendChild(el)
+  if (G && !RM) G.from(el, { y: 12, opacity: 0, duration: 0.25, clearProps: 'all' })
+  setTimeout(() => el.remove(), opt.ms || 5200)
+}
+const tip = $('#tip')
+function showTip(html, x, y) {
+  tip.innerHTML = html; tip.hidden = false
+  const w = tip.offsetWidth, h = tip.offsetHeight
+  let l = x + 14, t = y - h - 12
+  if (l + w > innerWidth - 8) l = x - w - 14
+  if (l < 8) l = 8
+  if (t < 8) t = y + 16
+  tip.style.left = l + 'px'; tip.style.top = t + 'px'
+}
+const hideTip = () => { tip.hidden = true }
+
+/* ───────── layers (Esc closes topmost) ───────── */
+const layers = []
+function openLayer(el, opt = {}) {
+  closeLayer(el, true)
+  el.hidden = false
+  layers.push({ el, ret: document.activeElement, scrim: !!opt.scrim, onClose: opt.onClose })
+  syncScrim()
+  const f = opt.focus ? $(opt.focus, el) : el.querySelector('input,textarea,button,select,a[href]')
+  if (f) setTimeout(() => f.focus(), 20)
+}
+function closeLayer(el, silent) {
+  const i = layers.findIndex((l) => l.el === el)
+  if (i < 0) return
+  const [l] = layers.splice(i, 1)
+  el.hidden = true
+  if (l.onClose) l.onClose()
+  syncScrim()
+  if (!silent && l.ret && document.contains(l.ret)) l.ret.focus()
+}
+function closeTop() { const l = layers[layers.length - 1]; if (l) closeLayer(l.el); return !!l }
+function syncScrim() {
+  const top = [...layers].reverse().find((l) => l.scrim)
+  $('#scrim').hidden = !top
+  document.body.classList.toggle('layer', layers.some((l) => l.scrim))
+}
+$('#scrim').onclick = () => closeTop()
+document.addEventListener('click', (e) => { const c = e.target.closest('[data-close]'); if (c) closeLayer(c.closest('.modal')) })
+// popover closes on outside click
+document.addEventListener('pointerdown', (e) => {
+  const n = $('#notif')
+  if (!n.hidden && !n.contains(e.target) && !e.target.closest('#bell')) closeLayer(n, true)
+})
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return
+  const l = layers[layers.length - 1]
+  if (!l || !l.scrim && l.el.id !== 'menu') return
+  const f = $$('a[href],button:not([disabled]),input,select,textarea,[tabindex="0"]', l.el).filter((x) => x.offsetParent)
+  if (!f.length) return
+  if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus() }
+  else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus() }
+})
+
+/* ───────── router ───────── */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+const VIEWS = { tuong: 'Tường máy', oee: 'OEE thiết bị', lenh: 'Lệnh sản xuất', 'dung-may': 'Dừng máy' }
+let view = 'tuong'
+function route() {
+  let v = location.hash.slice(1)
+  if (!VIEWS[v]) v = 'tuong'
+  view = v
+  for (const s of $$('.view')) s.hidden = s.dataset.view !== v
+  for (const a of $$('.rail a, .menu a')) { if (a.dataset.v === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current') }
+  $('#crumbV').textContent = VIEWS[v]
+  document.title = VIEWS[v] + ' — Cơ Khí Tiến Bộ MES'
+  hideTip()
+  if (!$('#menu').hidden) closeLayer($('#menu'), true)
+  if (v === 'tuong') updateWall()
+  if (v === 'oee') renderOEE(true)
+  if (v === 'lenh') renderTable()
+  if (v === 'dung-may') renderDown()
+  window.scrollTo(0, 0)
+  requestAnimationFrame(() => window.scrollTo(0, 0)) // section ids exist for anchors; undo the browser's jump
+}
+addEventListener('hashchange', route)
+const go = (v) => { if (location.hash.slice(1) === v) route(); else location.hash = v }
+
+/* ───────── wall ───────── */
+let wallFilter = 'all'
+function buildWall() {
+  $('#wall').innerHTML = M.map((m) => `<button class="tw" data-m="${m.i}">
+    <span class="lamp" aria-hidden="true"><i class="r"></i><i class="y"></i><i class="g"></i></span>
+    <span class="tw-id">${m.id}</span><span class="tw-type">${m.type}</span><span class="tw-mod">${m.model}</span>
+    <span class="tw-st"><b></b><span class="num tw-t"></span><span class="tw-why"></span></span>
+    <span class="tw-oee"><b class="tw-o"></b><small>% OEE</small></span>
+    <span class="apq" aria-hidden="true"><span><em></em><u><i></i></u><strong>A</strong></span><span><em></em><u><i></i></u><strong>P</strong></span><span><em></em><u><i></i></u><strong>Q</strong></span></span>
+    <span class="tw-job"><span class="tw-lsx"></span><span class="tw-part"></span><span class="tw-bar"><i></i></span><span class="tw-cnt num"></span></span>
+    <span class="rib" aria-hidden="true"></span><span class="rib-l" aria-hidden="true"><span>−8 giờ</span><span>nay</span></span>
+    <span class="tw-tag" hidden>GHI LÝ DO</span><span class="tw-base"></span></button>`).join('')
+  for (const el of $$('.tw')) el.onclick = () => openDrawer(+el.dataset.m)
+}
+function ribHtml(m, span) {
+  const t = now(), a = t - span
+  let h = ''
+  for (const s of m.segs) {
+    const e = segEnd(s)
+    if (e <= a) continue
+    const x = (Math.max(a, s.a) - a) / span * 100, w = (e - Math.max(a, s.a)) / span * 100
+    h += `<i class="${isUnl(s) ? 's-unl' : 's-' + s.st}" style="left:${x.toFixed(2)}%;width:${(w + 0.15).toFixed(2)}%"></i>`
+  }
+  return h
+}
+let ribTick = 0
+function updateWall(full = true) {
+  const t = now(), sh = shiftInfo(t)
+  const st = stats(M, sh.a, t), pp = parts(M, sh.a, t)
+  $('#kShift').textContent = 'ca ' + sh.n
+  $('#kOee').innerHTML = pc(st.A * st.P * st.Q) + '<small>%</small>'
+  $('#kA').textContent = pc(st.A); $('#kP').textContent = pc(st.P); $('#kQ').textContent = pc(st.Q)
+  $('#kGood').textContent = nf(pp.good)
+  let planN = 0
+  for (const m of M) planN += Math.floor((t - sh.a) / 1000 / m.cyc * 0.85)
+  $('#kPlan').textContent = 'KH đến giờ ' + nf(planN)
+  $('#kScrap').textContent = nf(pp.scrap)
+  $('#kScrapP').textContent = pp.tot ? pc(pp.scrap / pp.tot) + '% tổng ' + nf(pp.tot) : '0%'
+  const nRun = M.filter((m) => mState(m) === 'run').length, nSet = M.filter((m) => mState(m) === 'setup').length
+  $('#kRun').textContent = nRun + '/12'
+  $('#kRunS').textContent = nSet + ' setup · ' + (12 - nRun - nSet) + ' dừng'
+  const un = unlabeled()
+  $('#kUnl').textContent = un.length
+  $('#kAlarm').classList.toggle('ok', !un.length)
+  $('#bellN').textContent = un.length; $('#bellN').hidden = !un.length
+  $('#railN').textContent = un.length; $('#railN').hidden = !un.length
+  $('#wfN').textContent = 12 - nRun
+  if (!full && view !== 'tuong') return
+  const doRib = full || ++ribTick % 5 === 0
+  for (const el of $$('.tw')) {
+    const m = M[+el.dataset.m], s = curSeg(m), ms = stats([m], sh.a, t), oee = ms.A * ms.P * ms.Q
+    const unl = isUnl(s)
+    el.dataset.s = s.st
+    el.classList.toggle('unl', unl)
+    el.classList.toggle('dim', wallFilter === 'stop' && s.st === 'run')
+    const lab = s.st === 'run' ? 'CHẠY' : s.st === 'setup' ? 'SETUP' : 'DỪNG'
+    $('.tw-st b', el).textContent = lab
+    $('.tw-t', el).textContent = hms(t - s.a)
+    $('.tw-why', el).textContent = s.st === 'run' ? 'Thợ ' + m.op.split(' ').pop() : unl ? 'Chưa có lý do' : RS[s.r].s
+    $('.tw-o', el).textContent = Math.round(oee * 100)
+    const ems = $$('.apq em', el), bars = $$('.apq u i', el);
+    [ms.A, ms.P, ms.Q].forEach((v, k) => { ems[k].textContent = Math.round(v * 100); bars[k].style.setProperty('--v', v.toFixed(3)) })
+    const j = m.job
+    $('.tw-lsx', el).textContent = j ? j.id : '—'
+    $('.tw-part', el).innerHTML = j ? esc(j.part).replace(/(\S+-\S+)/g, '<span style="white-space:nowrap">$1</span>') : 'Chưa có lệnh'
+    $('.tw-bar i', el).style.setProperty('--v', j ? (j.done / j.qty).toFixed(3) : 0)
+    $('.tw-cnt', el).textContent = j ? nf(j.done) + '/' + nf(j.qty) : ''
+    $('.tw-tag', el).hidden = !unl
+    el.setAttribute('aria-label', `${m.id}, ${lab.toLowerCase()}${unl ? ', chưa ghi lý do' : ''}, OEE ${Math.round(oee * 100)}% — mở chi tiết`)
+    if (doRib) $('.rib', el).innerHTML = ribHtml(m, 8 * HR)
+  }
+}
+for (const b of $$('[data-wf]')) b.onclick = () => {
+  wallFilter = b.dataset.wf
+  for (const x of $$('[data-wf]')) x.setAttribute('aria-pressed', x === b)
+  updateWall()
+}
+$('#kAlarm').onclick = () => { const u = unlabeled()[0]; if (u) openReason(u.m, u.s); else toast('Mọi lần dừng đã có lý do') }
+
+/* ───────── machine drawer ───────── */
+let drawerM = -1
+function openDrawer(i) { drawerM = i; renderDrawer(); openLayer($('#drawer'), { scrim: true, onClose: () => { drawerM = -1 } }) }
+function renderDrawer() {
+  const m = M[drawerM]; if (!m) return
+  const t = now(), sh = shiftInfo(t), s = curSeg(m), ms = stats([m], sh.a, t), unl = isUnl(s)
+  const lab = s.st === 'run' ? 'ĐANG CHẠY' : s.st === 'setup' ? 'SETUP' : 'DỪNG MÁY'
+  const col = s.st === 'run' ? 'var(--run)' : s.st === 'setup' ? 'var(--setup)' : 'var(--stop)'
+  const stops = m.segs.filter((x) => x.st !== 'run' && segEnd(x) > t - DAY).reverse().slice(0, 6)
+  const j = m.job
+  $('#drawer').innerHTML = `<div class="dh"><div style="flex:1"><h2 id="dTitle">${m.id}</h2><p>${m.type} ${m.model} · thợ ${m.op}</p></div><button class="ib" id="dX" aria-label="Đóng chi tiết máy"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="db">
+    <div class="dstate"><span class="lampH" aria-hidden="true"><i style="background:#ff3b2f;${s.st === 'stop' ? 'opacity:1' : ''}"></i><i style="background:#ffc20e;${s.st === 'setup' ? 'opacity:1' : ''}"></i><i style="background:#2fe07c;${s.st === 'run' ? 'opacity:1' : ''}"></i></span><div style="flex:1"><b style="color:${col}">${lab}</b><div class="mono" style="font-size:13px;color:var(--muted)">từ ${hm(s.a)} · <span id="dT">${hms(t - s.a)}</span></div></div><div style="text-align:right">${s.st === 'run' ? '' : unl ? '<span class="needs">Chưa ghi lý do</span>' : '<b style="font-size:17px">' + RS[s.r].s + '</b>'}</div></div>
+    <div class="dl">
+      <div><span>Lệnh hiện tại</span><b class="mono" style="font-size:15px">${j ? j.id : '—'}</b></div>
+      <div><span>Chi tiết</span><b>${j ? esc(j.part) : 'Chưa có lệnh'}</b></div>
+      <div><span>Sản lượng lệnh</span><b class="num" id="dCnt">${j ? nf(j.done) + ' / ' + nf(j.qty) : '—'}</b></div>
+      <div><span>Chu kỳ chuẩn</span><b class="num">${Math.floor(m.cyc / 60)} ph ${p2(m.cyc % 60)} s</b></div>
+    </div>
+    <div class="dsec"><h3>OEE ${shiftInfo(t).label.split(' · ')[0].toLowerCase()} · ${pc(ms.A * ms.P * ms.Q)}%</h3>
+      <div class="dl" style="grid-template-columns:repeat(3,1fr)"><div><span>A · khả dụng</span><b class="num">${pc(ms.A)}%</b></div><div><span>P · tốc độ</span><b class="num">${pc(ms.P)}%</b></div><div><span>Q · chất lượng</span><b class="num">${pc(ms.Q)}%</b></div></div></div>
+    <div class="dsec"><h3>24 giờ qua</h3><div class="rib" style="height:18px">${ribHtml(m, DAY)}</div><div class="rib-l"><span>${hm(t - DAY)}</span><span>${hm(t - DAY / 2)}</span><span>bây giờ</span></div></div>
+    <div class="dsec"><h3>Lần dừng gần nhất</h3>${stops.map((x) => `<div class="dstop"><span class="mono">${hm(x.a)}</span><span class="mono">${dur(segEnd(x) - x.a)}</span>${isUnl(x) ? `<span class="rs" style="flex:1"><span class="needs">Chưa ghi</span></span><button class="btn sm" data-seg="${x.id}">Ghi lý do</button>` : `<span class="rs ${x.r === 'setup' ? 'setup' : ''}"><i></i>${RS[x.r].s}</span><button class="btn sm" data-seg="${x.id}" aria-label="Sửa lý do lần dừng ${hm(x.a)}">Sửa</button>`}</div>`).join('') || '<p style="color:var(--muted)">Không dừng lần nào trong 24 giờ.</p>'}</div>
+  </div>
+  <div class="df">${s.st === 'run' ? '<button class="btn red" id="dStop">Báo dừng máy</button>' : '<button class="btn pri" id="dRun">Chạy lại</button>'}${unl ? '<button class="btn pri" id="dWhy">Ghi lý do</button>' : ''}<button class="btn" id="dLsx">Xem lệnh</button></div>`
+  $('#dX').onclick = () => closeLayer($('#drawer'))
+  for (const b of $$('[data-seg]', $('#drawer'))) b.onclick = () => { const sg = m.segs.find((x) => x.id === +b.dataset.seg); openReason(m, sg) }
+  const dw = $('#dWhy'); if (dw) dw.onclick = () => openReason(m, s)
+  const ds = $('#dStop'); if (ds) ds.onclick = () => stopMachine(m)
+  const dr = $('#dRun'); if (dr) dr.onclick = () => runMachine(m)
+  $('#dLsx').onclick = () => { closeLayer($('#drawer'), true); T.q = j ? j.id : ''; $('#q').value = T.q; T.st = 'all'; T.m = 'all'; T.page = 1; go('lenh') }
+}
+function refreshAll() {
+  updateWall()
+  if (drawerM >= 0 && !$('#drawer').hidden) { const f = document.activeElement && document.activeElement.id; renderDrawer(); if (f && $('#' + f)) $('#' + f).focus() }
+  if (view === 'oee') renderOEE(false)
+  if (view === 'dung-may') renderDown()
+  if (!$('#notif').hidden) renderNotif()
+}
+function stopMachine(m, auto) {
+  const s = curSeg(m), t = now()
+  if (s.st !== 'run') return
+  s.b = t
+  const ns = { id: ++segId, st: 'stop', a: t, b: null, r: null }
+  m.segs.push(ns)
+  refreshAll()
+  if (auto) toast(`${m.id} vừa dừng — chưa ghi lý do`, { bad: true, act: () => openReason(m, ns), actLabel: 'Ghi lý do', ms: 7000 })
+  else openReason(m, ns)
+}
+function runMachine(m) {
+  const s = curSeg(m)
+  if (s.st === 'run') return
+  if (isUnl(s)) { toast(`Ghi lý do dừng cho ${m.id} trước khi chạy lại`, { bad: true, act: () => openReason(m, s), actLabel: 'Ghi lý do' }); return }
+  const t = now()
+  s.b = t
+  const ns = { id: ++segId, st: 'run', a: t, b: null, r: null }
+  m.segs.push(ns)
+  refreshAll()
+  toast(`${m.id} đã chạy lại`, { act: () => { const k = m.segs.indexOf(ns); if (k > -1) m.segs.splice(k, 1); s.b = null; refreshAll() } })
+}
+
+/* ───────── reason modal (signature) ───────── */
+let rCtx = null
+$('#rgrid').innerHTML = REASONS.map((r, i) => `<button class="rbtn" data-r="${r.k}" aria-pressed="false"><kbd>${i + 1}</kbd><small>${r.cat}</small><b>${r.n}</b></button>`).join('')
+function openReason(m, s) {
+  rCtx = { m, s, sel: s.r }
+  $('#rTitle').textContent = 'Lý do dừng · ' + m.id
+  $('#rSub').textContent = `${s.st === 'setup' ? 'Setup' : 'Dừng'} từ ${hm(s.a)}${s.b ? ' đến ' + hm(s.b) : ' (đang dừng)'} · ${dur(segEnd(s) - s.a)}`
+  $('#rNote').value = s.note || ''
+  $('#rErr').textContent = ''; $('#rNoteE').textContent = ''; $('#rNoteF').classList.remove('bad')
+  pickReason(s.r)
+  openLayer($('#reason'), { scrim: true, focus: s.r ? `[data-r="${s.r}"]` : '.rbtn' })
+}
+function pickReason(k) {
+  if (!rCtx) return
+  rCtx.sel = k
+  for (const b of $$('.rbtn')) b.setAttribute('aria-pressed', b.dataset.r === k)
+  $('#rNoteReq').textContent = k === 'khac' ? '(bắt buộc với lý do khác)' : '(không bắt buộc)'
+  if (k) $('#rErr').textContent = ''
+}
+for (const b of $$('.rbtn')) b.onclick = () => pickReason(b.dataset.r)
+$('#rNote').addEventListener('input', () => { $('#rNoteE').textContent = ''; $('#rNoteF').classList.remove('bad') })
+function saveReason() {
+  if (!rCtx) return
+  const { m, s, sel } = rCtx
+  const note = $('#rNote').value.trim()
+  if (!sel) { $('#rErr').textContent = 'Chọn một lý do dừng máy (phím 1–8).'; return }
+  if (sel === 'khac' && note.length < 6) { $('#rNoteE').textContent = 'Lý do khác cần ghi chú ít nhất 6 ký tự.'; $('#rNoteF').classList.add('bad'); $('#rNote').focus(); return }
+  if (note.length > 200) { $('#rNoteE').textContent = 'Ghi chú tối đa 200 ký tự.'; $('#rNoteF').classList.add('bad'); return }
+  const prev = { r: s.r, note: s.note }
+  s.r = sel; s.note = note
+  closeLayer($('#reason'))
+  rCtx = null
+  refreshAll()
+  toast(`Đã ghi “${RS[sel].s}” cho ${m.id} lúc ${hm(s.a)}`, { act: () => { s.r = prev.r; s.note = prev.note; refreshAll() } })
+}
+$('#rSave').onclick = saveReason
+
+/* ───────── OEE view ───────── */
+let oRange = 'ca', oM = -1
+$('#oeeM').innerHTML = '<option value="-1">Toàn xưởng (12 máy)</option>' + M.map((m) => `<option value="${m.i}">${m.id} · ${m.type}</option>`).join('')
+$('#oeeM').onchange = (e) => { oM = +e.target.value; renderOEE(true) }
+for (const b of $$('[data-r]', $('[data-view=oee]'))) b.onclick = () => { oRange = b.dataset.r; for (const x of $$('[data-r]', $('[data-view=oee]'))) x.setAttribute('aria-pressed', x === b); renderOEE(true) }
+const WF = { plan: 0, stop: 0, speed: 0, qual: 0, good: 0 }
+const PA = {}
+const PKEYS = REASONS.map((r) => r.k).concat('none')
+for (const k of PKEYS) PA[k] = { x: 0, v: 0 }
+let paMax = { v: 1 }
+const unitF = (min) => (oRange === '7d' ? nf(min / 60) + ' giờ' : nf(min) + ' ph')
+function renderOEE(anim) {
+  const list = oM < 0 ? M : [M[oM]]
+  const s = rangeStats(list, oRange)
+  const tw = { plan: s.plan / MIN, stop: s.stop / MIN, speed: s.speed / MIN, qual: s.qual / MIN, good: s.good / MIN }
+  const oee = s.A * s.P * s.Q
+  $('#formula').innerHTML = `<span class="f o"><b>${pc(oee)}%</b><span>OEE ${oM < 0 ? 'toàn xưởng' : M[oM].id}</span></span><i class="br"></i><span class="eq">=</span><span class="f"><b>${pc(s.A)}%</b><span>A<em> khả dụng</em></span></span><span class="eq">×</span><span class="f"><b>${pc(s.P)}%</b><span>P<em> tốc độ</em></span></span><span class="eq">×</span><span class="f"><b>${pc(s.Q)}%</b><span>Q<em> chất lượng</em></span></span>`
+  $('#wfTag').textContent = oRange === '7d' ? 'đơn vị: giờ máy' : 'đơn vị: phút máy'
+  // pareto targets: sorted by minutes, unlabeled kept visible in hazard stripes
+  const vals = PKEYS.map((k) => ({ k, v: (s.byR[k] || 0) / MIN })).sort((a, b) => b.v - a.v)
+  const tgt = {}
+  vals.forEach((o, i) => { tgt[o.k] = { x: i, v: o.v } })
+  const max = Math.max(1, vals[0].v)
+  const dly = anim && G && !RM ? 0.6 : 0
+  if (dly) {
+    G.to(WF, { ...tw, duration: dly, ease: 'power3.out', onUpdate: drawWF, overwrite: true })
+    for (const k of PKEYS) G.to(PA[k], { ...tgt[k], duration: dly, ease: 'power3.out', overwrite: true })
+    G.to(paMax, { v: max, duration: dly, ease: 'power3.out', onUpdate: drawPA, overwrite: true })
+  } else {
+    Object.assign(WF, tw); for (const k of PKEYS) Object.assign(PA[k], tgt[k]); paMax.v = max
+    drawWF(); drawPA()
+  }
+  // ranking
+  const rk = $('#rank')
+  if (!rk.children.length) rk.innerHTML = M.map((m) => `<button class="rkr" data-i="${m.i}" aria-pressed="false"><b>${m.id}</b><span class="tr"><i></i><em style="left:75%"></em></span><span class="val num"></span><small></small></button>`).join('')
+  for (const b of $$('.rkr', rk)) {
+    const m = M[+b.dataset.i], ms = rangeStats([m], oRange), o = ms.A * ms.P * ms.Q
+    const bar = $('.tr i', b)
+    bar.style.setProperty('--v', o.toFixed(3)); bar.className = o >= 0.75 ? 'hi' : o < 0.55 ? 'lo' : ''
+    $('.val', b).textContent = pc(o) + '%'
+    $('small', b).textContent = `${m.type} · A ${Math.round(ms.A * 100)} · P ${Math.round(ms.P * 100)} · Q ${Math.round(ms.Q * 100)}`
+    b.setAttribute('aria-pressed', oM === m.i)
+    b.setAttribute('aria-label', `${m.id} OEE ${pc(o)}% — xem riêng máy này`)
+    b.onclick = () => { oM = oM === m.i ? -1 : m.i; $('#oeeM').value = oM; renderOEE(true) }
+  }
+}
+const svgW = (svg) => Math.max(300, Math.round(svg.parentNode.clientWidth - 28))
+function drawWF() {
+  const svg = $('#wfSvg'); if (!svg.isConnected || !svg.parentNode.clientWidth) return
+  const W = svgW(svg), H = 310, l = 46, r = 8, t = 30, b = 52
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+  const plan = Math.max(1, WF.plan), y = (v) => t + (1 - v / plan) * (H - t - b)
+  const slot = (W - l - r) / 5, bw = Math.min(90, slot * 0.58), sm = slot < 84
+  const cols = [
+    { k: 'plan', n: [sm ? 'KH' : 'Kế hoạch', '100%'], lo: 0, hi: WF.plan, c: 'var(--steel)' },
+    { k: 'stop', n: [sm ? 'Dừng' : 'Dừng máy', 'mất A'], lo: WF.plan - WF.stop, hi: WF.plan, c: 'var(--stop)' },
+    { k: 'speed', n: [sm ? 'Chậm' : 'Chậm tốc độ', 'mất P'], lo: WF.plan - WF.stop - WF.speed, hi: WF.plan - WF.stop, c: 'var(--setup)' },
+    { k: 'qual', n: [sm ? 'Phế' : 'Phế phẩm', 'mất Q'], lo: WF.good, hi: WF.good + WF.qual, c: 'var(--qual)' },
+    { k: 'good', n: ['Hữu ích', sm ? pc(WF.good / plan, 0) + '%' : 'OEE ' + pc(WF.good / plan) + '%'], lo: 0, hi: WF.good, c: 'var(--run)' },
+  ]
+  let h = ''
+  for (const g of [0, 0.25, 0.5, 0.75, 1]) h += `<line class="gl" x1="${l}" x2="${W - r}" y1="${y(plan * g)}" y2="${y(plan * g)}"/><text class="ax" x="${l - 8}" y="${y(plan * g) + 4}" text-anchor="end">${g * 100}%</text>`
+  cols.forEach((c, i) => {
+    const x = l + slot * i + (slot - bw) / 2, y1 = y(c.hi), y0 = y(c.lo)
+    if (i < 4) { const nx = l + slot * (i + 1) + (slot - bw) / 2, ly = y(i ? c.lo : c.hi); h += `<line x1="${x + bw}" x2="${nx}" y1="${ly}" y2="${ly}" stroke="var(--dim)" stroke-dasharray="3 3"/>` }
+    h += `<rect data-k="${c.k}" x="${x}" y="${Math.min(y1, y0)}" width="${bw}" height="${Math.max(1.5, Math.abs(y0 - y1))}" fill="${c.c}" rx="1"/>`
+    const val = c.hi - c.lo
+    h += `<text class="v" x="${x + bw / 2}" y="${Math.min(y1, y0) - 8}" text-anchor="middle">${i && i < 4 ? '−' : ''}${sm ? nf(oRange === '7d' ? val / 60 : val) : unitF(val)}</text>`
+    h += `<text x="${x + bw / 2}" y="${H - b + 20}" text-anchor="middle" style="font-weight:700;fill:var(--text)">${c.n[0]}</text><text x="${x + bw / 2}" y="${H - b + 38}" text-anchor="middle">${c.n[1]}</text>`
+  })
+  svg.innerHTML = h
+}
+function drawPA() {
+  const svg = $('#paSvg'); if (!svg.isConnected || !svg.parentNode.clientWidth) return
+  const W = svgW(svg), H = 310, l = 40, r = 40, t = 26, b = 52
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+  const n = PKEYS.length, slot = (W - l - r) / n, bw = Math.min(44, slot * 0.66)
+  const max = Math.max(1, paMax.v) * 1.08
+  const y = (v) => t + (1 - v / max) * (H - t - b)
+  let h = `<defs><pattern id="paHz" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="var(--stop)"/><rect width="3.5" height="8" fill="#3a0d09"/></pattern></defs>`
+  for (const g of [0, 0.5, 1]) h += `<line class="gl" x1="${l}" x2="${W - r}" y1="${y(max * g)}" y2="${y(max * g)}"/><text class="ax" x="${l - 6}" y="${y(max * g) + 4}" text-anchor="end">${Math.round(max * g / (oRange === '7d' ? 60 : 1))}</text>`
+  for (const g of [0, 0.5, 0.8, 1]) h += `<text class="ax" x="${W - r + 6}" y="${t + (1 - g) * (H - t - b) + 4}">${g * 100}%</text>`
+  h += `<line x1="${l}" x2="${W - r}" y1="${t + 0.2 * (H - t - b)}" y2="${t + 0.2 * (H - t - b)}" stroke="var(--yt)" stroke-dasharray="2 4" opacity=".6"/>`
+  const ord = PKEYS.map((k) => ({ k, ...PA[k] })).sort((a, c) => a.x - c.x)
+  const tot = ord.reduce((s, o) => s + o.v, 0) || 1
+  let cum = 0, pts = []
+  for (const o of ord) {
+    const cx = l + slot * o.x + slot / 2, x = cx - bw / 2, top = y(o.v)
+    const lab = o.k === 'none' ? 'Chưa ghi' : RS[o.k].s
+    const [w1, w2] = lab.includes(' ') ? [lab.slice(0, lab.indexOf(' ')), lab.slice(lab.indexOf(' ') + 1)] : [lab, '']
+    h += `<rect data-k="${o.k}" x="${x}" y="${top}" width="${bw}" height="${Math.max(0, H - b - top)}" fill="${o.k === 'none' ? 'url(#paHz)' : 'var(--y)'}" rx="1"/>`
+    const inside = H - b - top >= 24
+    if (o.v >= 0.5) h += `<text class="v" x="${cx}" y="${inside ? H - b - 8 : top - 6}" text-anchor="middle" style="font-size:12px${inside && o.k !== 'none' ? ';fill:#121416' : ''}${inside && o.k === 'none' ? ';fill:#fff;paint-order:stroke;stroke:#3a0d09;stroke-width:3px' : ''}">${nf(oRange === '7d' ? o.v / 60 : o.v)}</text>`
+    h += `<text x="${cx}" y="${H - b + 18}" text-anchor="middle" style="font-size:13px${o.k === 'none' ? ';fill:var(--stop);font-weight:700' : ''}">${w1}</text>${w2 ? `<text x="${cx}" y="${H - b + 34}" text-anchor="middle" style="font-size:13px">${w2}</text>` : ''}`
+    cum += o.v; pts.push([cx, t + (1 - cum / tot) * (H - t - b)])
+  }
+  h += `<polyline points="${pts.map((p) => p.map((v) => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="var(--text)" stroke-width="2"/>`
+  h += pts.map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="var(--panel)" stroke="var(--text)" stroke-width="2"/>`).join('')
+  svg.innerHTML = h
+}
+function chartTip(svg, fn) {
+  svg.addEventListener('pointermove', (e) => { const k = e.target.dataset && e.target.dataset.k; if (k) showTip(fn(k), e.clientX, e.clientY); else hideTip() })
+  svg.addEventListener('pointerleave', hideTip)
+}
+chartTip($('#wfSvg'), (k) => {
+  const names = { plan: ['Thời gian kế hoạch', 'tổng thời gian máy được xếp lịch'], stop: ['Dừng máy', 'kéo A xuống'], speed: ['Chậm tốc độ', 'chạy chậm hơn chu kỳ chuẩn, kéo P xuống'], qual: ['Phế phẩm', 'thời gian làm ra hàng hỏng, kéo Q xuống'], good: ['Thời gian hữu ích', 'chỉ hàng đạt ở chu kỳ chuẩn'] }
+  return `<b>${names[k][0]}</b>${unitF(WF[k])} · ${pc(WF[k] / Math.max(1, WF.plan))}% kế hoạch<br><span>${names[k][1]}</span>`
+})
+chartTip($('#paSvg'), (k) => {
+  const tot = PKEYS.reduce((s, x) => s + PA[x].v, 0) || 1
+  return `<b>${k === 'none' ? 'Chưa ghi lý do' : RS[k].n}</b>${unitF(PA[k].v)} · ${pc(PA[k].v / tot)}% thời gian dừng${k === 'none' ? '<br><span>ghi lý do để Pareto chính xác</span>' : ''}`
+})
+
+/* ───────── downtime view ───────── */
+const SP = { v: 480 }
+let evFilter = 'all'
+for (const b of $$('[data-span]')) b.onclick = () => {
+  for (const x of $$('[data-span]')) x.setAttribute('aria-pressed', x === b)
+  const v = +b.dataset.span
+  if (G && !RM) G.to(SP, { v, duration: 0.7, ease: 'power3.inOut', onUpdate: drawRib, overwrite: true })
+  else { SP.v = v; drawRib() }
+}
+for (const b of $$('[data-ef]')) b.onclick = () => { evFilter = b.dataset.ef; for (const x of $$('[data-ef]')) x.setAttribute('aria-pressed', x === b); renderEvents() }
+function drawRib() {
+  const svg = $('#ribSvg'); if (!svg.isConnected || !svg.parentNode.clientWidth) return
+  const W = svgW(svg), mob = W < 560, rowH = mob ? 28 : 32, l = mob ? 62 : 74, r = 10, t = 30
+  const H = t + rowH * 12 + 6
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+  const T0 = now(), span = SP.v * MIN, a = T0 - span, x = (tt) => l + (tt - a) / span * (W - l - r)
+  const pxH = (W - l - r) / (SP.v / 60)
+  const step = pxH >= 70 ? 1 : pxH >= 26 ? 2 : pxH >= 18 ? 3 : pxH >= 12 ? 4 : 6
+  let h = `<defs><clipPath id="ribClip"><rect x="${l}" y="0" width="${W - l - r}" height="${H}"/></clipPath><pattern id="ribHz" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="var(--stop)"/><rect width="3.5" height="8" fill="#3a0d09"/></pattern></defs>`
+  const h0 = new Date(a); h0.setMinutes(0, 0, 0)
+  for (let tt = h0.getTime() + HR; tt < T0; tt += HR) {
+    const hr = new Date(tt).getHours()
+    if (hr % step) continue
+    const xx = x(tt)
+    h += `<line x1="${xx}" x2="${xx}" y1="${t - 4}" y2="${H}" stroke="var(--line)"/>`
+    if (xx > l + 20 && xx < W - r - 80) h += `<text x="${xx}" y="${t - 10}" text-anchor="middle">${p2(hr)}:00</text>`
+  }
+  h += `<line x1="${W - r}" x2="${W - r}" y1="${t - 4}" y2="${H}" stroke="var(--yt)" stroke-width="2"/><text x="${W - r}" y="${t - 10}" text-anchor="end" style="fill:var(--yt);font-weight:600">bây giờ</text>`
+  h += `<g clip-path="url(#ribClip)">`
+  M.forEach((m, i) => {
+    const yy = t + i * rowH + 4
+    h += `<rect x="${l}" y="${yy}" width="${W - l - r}" height="${rowH - 8}" fill="var(--panel3)"/>`
+    for (const s of m.segs) {
+      const e = segEnd(s); if (e <= a) continue
+      const fill = isUnl(s) ? 'url(#ribHz)' : s.st === 'run' ? 'var(--run)' : s.st === 'setup' ? 'var(--setup)' : 'var(--stop)'
+      const xa = x(Math.max(a - MIN, s.a))
+      h += `<rect ${s.st === 'run' ? '' : `class="seg" data-m="${i}" data-s="${s.id}"`} x="${xa.toFixed(1)}" y="${yy}" width="${Math.max(1.5, x(e) - xa).toFixed(1)}" height="${rowH - 8}" fill="${fill}" ${s.st === 'run' ? `data-m="${i}" data-s="${s.id}" opacity=".85"` : ''}/>`
+    }
+  })
+  h += `</g>`
+  M.forEach((m, i) => { h += `<text class="mc" x="0" y="${t + i * rowH + rowH / 2 + 5}">${m.id}</text>` })
+  svg.innerHTML = h
+  $('#ribTag').textContent = `${hm(a)} → ${hm(T0)} · ${SP.v / 60} giờ`
+}
+$('#ribSvg').addEventListener('pointermove', (e) => {
+  const d = e.target.dataset
+  if (!d || d.s == null) { hideTip(); return }
+  const m = M[+d.m], s = m.segs.find((x) => x.id === +d.s); if (!s) return
+  const lab = s.st === 'run' ? 'Chạy' : isUnl(s) ? 'Dừng · chưa ghi lý do' : (s.st === 'setup' ? 'Setup' : 'Dừng') + ' · ' + RS[s.r].s
+  showTip(`<b>${m.id} · ${lab}</b>${hm(s.a)}–${s.b ? hm(s.b) : 'nay'} · ${dur(segEnd(s) - s.a)}${s.st === 'run' ? '' : '<br><span>bấm để ' + (isUnl(s) ? 'ghi' : 'sửa') + ' lý do</span>'}`, e.clientX, e.clientY)
+})
+$('#ribSvg').addEventListener('pointerleave', hideTip)
+$('#ribSvg').addEventListener('click', (e) => {
+  const d = e.target.dataset; if (!d || d.s == null) return
+  const m = M[+d.m], s = m.segs.find((x) => x.id === +d.s)
+  if (s && s.st !== 'run') { hideTip(); openReason(m, s) }
+})
+function renderEvents() {
+  const t = now()
+  let ev = []
+  for (const m of M) for (const s of m.segs) if (s.st !== 'run' && segEnd(s) > t - DAY) ev.push({ m, s })
+  ev.sort((x, y) => y.s.a - x.s.a)
+  const nU = ev.filter((e) => isUnl(e.s)).length
+  if (evFilter === 'unl') ev = ev.filter((e) => isUnl(e.s))
+  const totMin = ev.reduce((s, e) => s + (segEnd(e.s) - e.s.a), 0)
+  $('#evTag').textContent = `${ev.length} lần · ${dur(totMin)} · ${nU} chưa ghi`
+  $('#evEmpty').hidden = !!ev.length
+  $('#evT').hidden = !ev.length
+  $('#evB').innerHTML = ev.map(({ m, s }) => `<tr><td class="e0"><b>${m.id}</b> <span class="sub" style="display:inline">${m.type}</span></td><td class="e1 mono">${hm(s.a)}</td><td class="e2 mono">${s.b ? hm(s.b) : '<span class="needs" style="color:var(--yt)">đang diễn ra</span>'}</td><td class="e3 mono">${dur(segEnd(s) - s.a)}</td><td class="e4">${isUnl(s) ? '<span class="needs">Chưa ghi lý do</span>' : `<span class="rs ${s.st === 'setup' || s.r === 'setup' ? 'setup' : ''}"><i></i>${RS[s.r].s}</span>`}</td><td class="e5"><button class="btn sm${isUnl(s) ? ' pri' : ''}" data-em="${m.i}" data-es="${s.id}" aria-label="${isUnl(s) ? 'Ghi' : 'Sửa'} lý do ${m.id} lúc ${hm(s.a)}">${isUnl(s) ? 'Ghi lý do' : 'Sửa'}</button></td></tr>`).join('')
+  for (const b of $$('[data-es]')) b.onclick = () => { const m = M[+b.dataset.em]; openReason(m, m.segs.find((x) => x.id === +b.dataset.es)) }
+}
+function renderDown() { drawRib(); renderEvents() }
+
+/* ───────── orders table ───────── */
+const STL = { chay: 'Đang chạy', cho: 'Chờ chạy', dung: 'Tạm dừng', xong: 'Hoàn tất' }
+const T = { q: '', st: 'all', m: 'all', sort: 'st', dir: 1, page: 1, sel: new Set() }
+const PER = 10
+$('#mFil').innerHTML = '<option value="all">Mọi máy</option>' + M.map((m) => `<option value="${m.i}">${m.id}</option>`).join('')
+$('#mFil').onchange = (e) => { T.m = e.target.value; T.page = 1; renderTable() }
+let qT
+$('#q').addEventListener('input', (e) => { clearTimeout(qT); qT = setTimeout(() => { T.q = e.target.value; T.page = 1; renderTable() }, 120) })
+$('#clrF').onclick = () => { T.q = ''; $('#q').value = ''; T.st = 'all'; T.m = 'all'; $('#mFil').value = 'all'; T.page = 1; renderTable() }
+for (const th of $$('#tbl th[data-k]')) $('button', th).onclick = () => { const k = th.dataset.k; T.dir = T.sort === k ? -T.dir : 1; T.sort = k; renderTable() }
+function rowsF() {
+  const q = strip(T.q.trim())
+  return LSX.filter((j) => (T.st === 'all' || j.st === T.st) && (T.m === 'all' || j.m === +T.m) && (!q || strip([j.id, j.part, j.draw, j.cust, M[j.m].id].join(' ')).includes(q)))
+}
+const sortV = (j, k) => (k === 'pct' ? j.done / j.qty : k === 'm' ? j.m : k === 'prio' ? (j.prio ? 1 : 0) : k === 'st' ? ['chay', 'dung', 'cho', 'xong'].indexOf(j.st) : j[k])
+function renderTable() {
+  const all = rowsF().sort((a, b) => { const x = sortV(a, T.sort), y = sortV(b, T.sort); return (typeof x === 'string' ? x.localeCompare(y, 'vi') : x - y) * T.dir })
+  const cnt = { all: 0, chay: 0, cho: 0, dung: 0, xong: 0 }
+  const q = strip(T.q.trim())
+  for (const j of LSX) if ((T.m === 'all' || j.m === +T.m) && (!q || strip([j.id, j.part, j.draw, j.cust, M[j.m].id].join(' ')).includes(q))) { cnt.all++; cnt[j.st]++ }
+  $('#stChips').innerHTML = ['all', 'chay', 'cho', 'dung', 'xong'].map((k) => `<button data-st="${k}" aria-pressed="${T.st === k}">${k === 'all' ? 'Tất cả' : STL[k]}<small>${cnt[k]}</small></button>`).join('')
+  for (const b of $$('#stChips button')) b.onclick = () => { T.st = b.dataset.st; T.page = 1; renderTable() }
+  const pages = Math.max(1, Math.ceil(all.length / PER))
+  T.page = Math.min(T.page, pages)
+  const rows = all.slice((T.page - 1) * PER, T.page * PER)
+  const late = (j) => j.st !== 'xong' && j.due < today
+  $('#tb').innerHTML = rows.map((j) => `<tr class="${T.sel.has(j.id) ? 'on' : ''}">
+    <td class="c0"><label class="cbl"><input type="checkbox" class="cb" data-id="${j.id}" ${T.sel.has(j.id) ? 'checked' : ''} aria-label="Chọn ${j.id}"></label></td>
+    <td class="c1"><span class="code">${j.id}</span><span class="sub">${j.draw}</span></td>
+    <td class="c2"><b>${esc(j.part)}</b></td>
+    <td class="c3" data-l="Khách">${esc(j.cust)}</td>
+    <td class="c4" data-l="Máy"><span class="code">${M[j.m].id}</span></td>
+    <td class="c5"><span class="prog"><u><i style="transform:scaleX(${(j.done / j.qty).toFixed(3)})"></i></u><span>${nf(j.done)}/${nf(j.qty)}</span></span></td>
+    <td class="c6 mono" data-l="Hạn">${dmy(j.due)}${late(j) ? '<span class="late">TRỄ</span>' : ''}</td>
+    <td class="c7${j.prio ? '' : ' np'}">${j.prio ? '<span class="flag">▲ Ưu tiên</span>' : '<span style="color:var(--dim)">—</span>'}</td>
+    <td class="c8"><span class="st ${j.st}"><i></i>${STL[j.st]}</span></td></tr>`).join('')
+  for (const th of $$('#tbl th[data-k]')) th.setAttribute('aria-sort', T.sort === th.dataset.k ? (T.dir > 0 ? 'ascending' : 'descending') : 'none')
+  $('#empty').hidden = !!all.length
+  $('#tbl').hidden = !all.length
+  for (const c of $$('#tb .cb')) c.onchange = () => { c.checked ? T.sel.add(c.dataset.id) : T.sel.delete(c.dataset.id); c.closest('tr').classList.toggle('on', c.checked); syncBulk(rows) }
+  $('#all').onchange = (e) => { for (const j of rows) e.target.checked ? T.sel.add(j.id) : T.sel.delete(j.id); renderTable() }
+  syncBulk(rows)
+  const pg = $('#pg')
+  let ph = `<span class="info">${all.length ? `${(T.page - 1) * PER + 1}–${Math.min(T.page * PER, all.length)} / ${all.length} lệnh` : '0 lệnh'}</span><button data-p="${T.page - 1}" ${T.page <= 1 ? 'disabled' : ''} aria-label="Trang trước">‹</button>`
+  for (let p = 1; p <= pages; p++) ph += `<button data-p="${p}" ${p === T.page ? 'aria-current="page"' : ''} aria-label="Trang ${p}">${p}</button>`
+  ph += `<button data-p="${T.page + 1}" ${T.page >= pages ? 'disabled' : ''} aria-label="Trang sau">›</button>`
+  pg.innerHTML = ph
+  for (const b of $$('button', pg)) b.onclick = () => { T.page = +b.dataset.p; renderTable() }
+  $('#lsxSub').textContent = `${LSX.length} lệnh · ${LSX.filter((j) => j.st === 'chay').length} đang chạy · ${LSX.filter(late).length} trễ hạn`
+}
+function syncBulk(rows) {
+  $('#bulk').hidden = !T.sel.size
+  $('#bulkN').textContent = `Đã chọn ${T.sel.size} lệnh`
+  const a = $('#all'); a.checked = rows.length > 0 && rows.every((j) => T.sel.has(j.id)); a.indeterminate = !a.checked && rows.some((j) => T.sel.has(j.id))
+}
+for (const b of $$('[data-b]')) b.onclick = () => {
+  const act = b.dataset.b, sel = LSX.filter((j) => T.sel.has(j.id))
+  if (act === 'clear') { T.sel.clear(); renderTable(); return }
+  if (!sel.length) return
+  const snap = sel.map((j) => ({ j, st: j.st, prio: j.prio }))
+  const undo = () => { for (const s of snap) { s.j.st = s.st; s.j.prio = s.prio } renderTable() }
+  if (act === 'prio') { sel.forEach((j) => { j.prio = true }); toast(`Đã đặt ưu tiên ${sel.length} lệnh`, { act: undo }) }
+  if (act === 'pause' || act === 'resume') {
+    const ok = sel.filter((j) => (act === 'pause' ? j.st === 'cho' : j.st === 'dung'))
+    const skip = sel.length - ok.length
+    ok.forEach((j) => { j.st = act === 'pause' ? 'dung' : 'cho' })
+    toast(`${act === 'pause' ? 'Đã tạm dừng' : 'Đã mở lại'} ${ok.length} lệnh${skip ? ` · bỏ qua ${skip} lệnh ${act === 'pause' ? 'đang chạy hoặc đã xong' : 'không ở trạng thái tạm dừng'}` : ''}`, { act: undo, bad: !ok.length })
+  }
+  if (act === 'del') {
+    const ok = sel.filter((j) => j.st !== 'chay')
+    const skip = sel.length - ok.length
+    const pos = ok.map((j) => [LSX.indexOf(j), j])
+    for (const j of ok) LSX.splice(LSX.indexOf(j), 1)
+    toast(`Đã xóa ${ok.length} lệnh${skip ? ` · giữ ${skip} lệnh đang chạy trên máy` : ''}`, { bad: !ok.length, act: () => { pos.sort((x, y) => x[0] - y[0]).forEach(([i, j]) => LSX.splice(i, 0, j)); renderTable() } })
+  }
+  T.sel.clear(); renderTable()
+}
+
+/* ───────── new order form ───────── */
+$('#fCust').innerHTML = '<option value="">— Chọn khách hàng —</option>' + CUSTS.map((c) => `<option>${c}</option>`).join('')
+$('#fM').innerHTML = M.map((m) => `<option value="${m.i}">${m.id} · ${m.type}</option>`).join('')
+const openLsx = () => {
+  $('#lsxF').reset()
+  for (const f of $$('#lsxF .fld')) { f.classList.remove('bad'); $('.err', f).textContent = '' }
+  openLayer($('#lsxM'), { scrim: true, focus: '#fPart' })
+}
+$('#newLsx').onclick = openLsx
+function parseDmy(s) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s.trim()); if (!m) return null
+  const d = new Date(+m[3], +m[2] - 1, +m[1])
+  return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? d.getTime() : NaN
+}
+function fErr(id, msg) { const f = $('#' + id).closest('.fld'); f.classList.toggle('bad', !!msg); $('.err', f).textContent = msg || ''; return !msg }
+for (const id of ['fPart', 'fCust', 'fQty', 'fDue']) $('#' + id).addEventListener('input', () => fErr(id, ''))
+function saveLsx(e) {
+  if (e) e.preventDefault()
+  const part = $('#fPart').value.trim(), cust = $('#fCust').value, qs = $('#fQty').value.trim(), ds = $('#fDue').value
+  const due = parseDmy(ds)
+  const ok = [
+    fErr('fPart', !part ? 'Nhập tên chi tiết gia công.' : part.length < 3 ? 'Tên chi tiết quá ngắn (ít nhất 3 ký tự).' : ''),
+    fErr('fCust', cust ? '' : 'Chọn khách hàng.'),
+    fErr('fQty', !qs ? 'Nhập số lượng.' : !/^\d+$/.test(qs) ? 'Số lượng phải là số nguyên, không có dấu chấm.' : +qs < 1 || +qs > 100000 ? 'Số lượng từ 1 đến 100.000 cái.' : ''),
+    fErr('fDue', !ds.trim() ? 'Nhập hạn giao.' : due === null ? 'Ngày theo dạng dd/mm/yyyy, ví dụ ' + dmy(today + 7 * DAY) + '.' : isNaN(due) ? 'Ngày không tồn tại.' : due < today ? 'Hạn giao không được trước hôm nay.' : ''),
+  ].every(Boolean)
+  if (!ok) { const f = $('#lsxF .fld.bad input, #lsxF .fld.bad select'); if (f) f.focus(); return }
+  const j = { id: nextId(), part, draw: 'BV-' + (4900 + lsxSeq), cust, m: +$('#fM').value, qty: +qs, done: 0, due, prio: $('#fPrio').checked, st: 'cho' }
+  LSX.push(j)
+  closeLayer($('#lsxM'))
+  T.sort = 'id'; T.dir = -1; T.st = 'all'; T.page = 1
+  renderTable()
+  toast(`Đã tạo ${j.id} · ${part} cho ${M[j.m].id}`, { act: () => { LSX.splice(LSX.indexOf(j), 1); renderTable() } })
+}
+$('#lsxF').addEventListener('submit', saveLsx)
+$('#lSave').onclick = saveLsx
+
+/* ───────── notifications ───────── */
+function renderNotif() {
+  const u = unlabeled()
+  $('#notifL').innerHTML = u.length ? u.map(({ m, s }) => `<li><button data-nm="${m.i}" data-ns="${s.id}"><i style="background:var(--stop)"></i><span style="flex:1"><b>${m.id} · ${s.b ? 'đã dừng' : 'đang dừng'} ${dur(segEnd(s) - s.a)}</b><span>từ ${hm(s.a)} · bấm để ghi lý do</span></span></button></li>`).join('') : '<li style="padding:14px;color:var(--muted)">Không có lần dừng nào thiếu lý do.</li>'
+  for (const b of $$('[data-nm]')) b.onclick = () => { closeLayer($('#notif'), true); const m = M[+b.dataset.nm]; openReason(m, m.segs.find((x) => x.id === +b.dataset.ns)) }
+}
+$('#bell').onclick = () => {
+  const n = $('#notif')
+  if (!n.hidden) { closeLayer(n); return }
+  renderNotif()
+  const r = $('#bell').getBoundingClientRect()
+  n.style.right = Math.max(10, innerWidth - r.right) + 'px'
+  openLayer(n, { onClose: () => $('#bell').setAttribute('aria-expanded', 'false') })
+  $('#bell').setAttribute('aria-expanded', 'true')
+}
+
+/* ───────── fullscreen ───────── */
+function setFs(on) {
+  document.body.classList.toggle('fs', on)
+  $('#fsB').setAttribute('aria-pressed', on)
+  if (on && view !== 'tuong') go('tuong')
+  try {
+    if (on && !document.fullscreenElement && document.documentElement.requestFullscreen && !STATIC) document.documentElement.requestFullscreen().catch(() => {})
+    if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => {})
+  } catch (e) { /* not allowed */ }
+  setTimeout(redrawCharts, 50)
+}
+$('#fsB').onclick = () => setFs(!document.body.classList.contains('fs'))
+$('#mFs').onclick = () => { closeLayer($('#menu'), true); setFs(true) }
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && document.body.classList.contains('fs')) setFs(false) })
+
+/* ───────── mobile menu ───────── */
+$('#hamb').onclick = () => { openLayer($('#menu'), { scrim: true, onClose: () => $('#hamb').setAttribute('aria-expanded', 'false') }); $('#hamb').setAttribute('aria-expanded', 'true') }
+$('#menuX').onclick = () => closeLayer($('#menu'))
+for (const a of $$('.menu a')) a.addEventListener('click', () => closeLayer($('#menu'), true))
+
+/* ───────── command palette ───────── */
+let palSel = 0, palItems = []
+function palData(q) {
+  const s = strip(q.trim())
+  const items = [
+    ...Object.entries(VIEWS).map(([k, v], i) => ({ k: 'Màn hình', t: v, h: 'phím ' + (i + 1), run: () => go(k) })),
+    ...M.map((m) => ({ k: 'Máy', t: `${m.id} · ${m.type} ${m.model}`, h: { run: 'đang chạy', setup: 'setup', stop: 'đang dừng' }[mState(m)], run: () => { go('tuong'); openDrawer(m.i) } })),
+    ...unlabeled().map(({ m, s: sg }) => ({ k: 'Lý do', t: `Ghi lý do dừng ${m.id} lúc ${hm(sg.a)}`, h: dur(segEnd(sg) - sg.a), run: () => openReason(m, sg) })),
+    { k: 'Lệnh', t: 'Tạo lệnh sản xuất mới', h: '', run: () => { go('lenh'); openLsx() } },
+    { k: 'Lệnh', t: 'Đổi giao diện sáng/tối', h: '', run: flipTheme },
+    { k: 'Lệnh', t: 'Bật/tắt toàn màn hình tường máy', h: 'phím F', run: () => setFs(!document.body.classList.contains('fs')) },
+    ...LSX.map((j) => ({ k: 'LSX', t: `${j.id} · ${j.part}`, h: STL[j.st], run: () => { T.q = j.id; $('#q').value = j.id; T.st = 'all'; T.m = 'all'; $('#mFil').value = 'all'; T.page = 1; go('lenh') } })),
+  ]
+  const f = s ? items.filter((it) => strip(it.k + ' ' + it.t + ' ' + it.h).includes(s)) : items.filter((it) => it.k !== 'LSX')
+  return f.slice(0, 12)
+}
+function renderPal() {
+  palItems = palData($('#palQ').value)
+  palSel = Math.min(palSel, Math.max(0, palItems.length - 1))
+  $('#palL').innerHTML = palItems.length ? palItems.map((it, i) => `<li role="option" id="po${i}" aria-selected="${i === palSel}" data-i="${i}"><span class="k">${it.k}</span><span>${esc(it.t)}</span><small>${it.h || ''}</small></li>`).join('') : '<li style="color:var(--muted)">Không tìm thấy — thử “CNC-07”, “lsx”, “dừng”.</li>'
+  $('#palQ').setAttribute('aria-activedescendant', palItems.length ? 'po' + palSel : '')
+  const cur = $('#po' + palSel); if (cur) cur.scrollIntoView({ block: 'nearest' })
+  for (const li of $$('#palL li[data-i]')) { li.onclick = () => runPal(+li.dataset.i); li.onmousemove = () => { if (palSel !== +li.dataset.i) { palSel = +li.dataset.i; renderPal() } } }
+}
+function runPal(i) { const it = palItems[i]; if (!it) return; closeLayer($('#pal'), true); it.run() }
+function openPal() { if (!$('#pal').hidden) return; $('#palQ').value = ''; palSel = 0; renderPal(); openLayer($('#pal'), { scrim: true, focus: '#palQ' }) }
+$('#openPal').onclick = openPal
+$('#mPal').onclick = () => { closeLayer($('#menu'), true); openPal() }
+$('#palQ').addEventListener('input', () => { palSel = 0; renderPal() })
+$('#palQ').addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); palSel = Math.min(palItems.length - 1, palSel + 1); renderPal() }
+  if (e.key === 'ArrowUp') { e.preventDefault(); palSel = Math.max(0, palSel - 1); renderPal() }
+  if (e.key === 'Enter') { e.preventDefault(); runPal(palSel) }
+})
+
+/* ───────── global keys ───────── */
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#pal').hidden ? openPal() : closeLayer($('#pal')); return }
+  if (e.key === 'Escape') {
+    if (closeTop()) { e.preventDefault(); return }
+    if (document.body.classList.contains('fs')) setFs(false)
+    return
+  }
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)
+  const top = layers[layers.length - 1]
+  if (top && top.el.id === 'reason') {
+    if (!typing && /^[1-8]$/.test(e.key)) { e.preventDefault(); pickReason(REASONS[+e.key - 1].k); $(`.rbtn[data-r="${REASONS[+e.key - 1].k}"]`).focus() }
+    if (e.key === 'Enter' && document.activeElement.tagName !== 'TEXTAREA' && !document.activeElement.closest('[data-close]')) { e.preventDefault(); saveReason() }
+    return
+  }
+  if (top || typing || e.ctrlKey || e.metaKey || e.altKey) return
+  if (/^[1-4]$/.test(e.key)) go(Object.keys(VIEWS)[+e.key - 1])
+  if (e.key.toLowerCase() === 'f') setFs(!document.body.classList.contains('fs'))
+})
+
+/* ───────── live loop ───────── */
+function clock() {
+  const t = now(), d = new Date(t)
+  $('#clk').innerHTML = p2(d.getHours()) + ':' + p2(d.getMinutes()) + '<small>:' + p2(d.getSeconds()) + '</small>'
+  $('#shiftL').textContent = shiftInfo(t).label
+}
+const STOP_ORDER = [3, 10, 0, 7, 11, 5, 1, 8]
+let tick = 0, nextStop = 0
+function live() {
+  tick++
+  clock()
+  if (tick % 2) return
+  for (const m of M) {
+    if (mState(m) !== 'run' || !m.job) continue
+    m.acc += 2 * 9 // bộ đếm chạy nhanh hơn thật để thấy nhịp
+    while (m.acc >= m.cyc) { m.acc -= m.cyc; if (m.job.done < m.job.qty) m.job.done++ }
+  }
+  // scripted andon events: a running machine stops, a tagged stop gets resumed
+  if (tick % 40 === 0) {
+    const resumable = M.filter((m) => mState(m) !== 'run' && !isUnl(curSeg(m)))
+    const running = M.filter((m) => mState(m) === 'run')
+    if ((tick / 40) % 2 === 1 && running.length > 6) {
+      let m = null
+      for (let k = 0; k < STOP_ORDER.length && !m; k++) { const c = M[STOP_ORDER[(nextStop + k) % STOP_ORDER.length]]; if (mState(c) === 'run') { m = c; nextStop += k + 1 } }
+      if (m) stopMachine(m, true)
+    } else if (resumable.length) {
+      const m = resumable[0], s = curSeg(m), t = now()
+      s.b = t; m.segs.push({ id: ++segId, st: 'run', a: t, b: null, r: null })
+      toast(`${m.id} chạy lại sau ${RS[s.r].s.toLowerCase()}`)
+    }
+  }
+  updateWall(false)
+  if (drawerM >= 0 && !$('#drawer').hidden) { const dt = $('#dT'), dc = $('#dCnt'), m = M[drawerM]; if (dt) dt.textContent = hms(now() - curSeg(m).a); if (dc && m.job) dc.textContent = nf(m.job.done) + ' / ' + nf(m.job.qty) }
+  if (tick % 10 === 0) {
+    if (view === 'dung-may') { drawRib(); if (!document.activeElement.closest('#evT')) renderEvents() }
+    if (view === 'oee' && !G) renderOEE(false)
+    if (view === 'oee' && G) renderOEE(true)
+    if (view === 'lenh' && !document.activeElement.closest('#tbl')) renderTable()
+  }
+}
+function redrawCharts() { if (view === 'oee') { drawWF(); drawPA() } if (view === 'dung-may') drawRib() }
+let rzT
+addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(redrawCharts, 120) })
+
+/* ───────── boot ───────── */
+if (STATIC) { $('#live').classList.add('off'); $('#liveT').textContent = 'ĐÃ ĐÓNG BĂNG' }
+buildWall()
+clock()
+route()
+if (G && !RM && view === 'tuong') {
+  G.from('.tw', { y: 40, opacity: 0, duration: 0.5, stagger: 0.035, ease: 'power3.out', clearProps: 'transform,opacity' })
+  G.from('.kstrip', { y: -10, opacity: 0, duration: 0.4, clearProps: 'transform,opacity' })
+}
+if (!STATIC) setInterval(live, 1000)
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

@@ -9,7 +9,9 @@ const fs = require('fs')
 const site = process.argv[2]
 const file = path.resolve(__dirname, '..', 'sites', site, 'index.html')
 if (!fs.existsSync(file)) { console.error('missing', file); process.exit(1) }
-const url = 'file:///' + file.replace(/\\/g, '/')
+// ?static asks pages with live feeds/tickers (the admin dashboards) to stop self-updating, so the
+// consistency check compares layout and animation state, not data that changed on its own.
+const url = 'file:///' + file.replace(/\\/g, '/') + '?static'
 const out = path.join(__dirname, 'shots', 'deep')
 fs.mkdirSync(out, { recursive: true })
 for (const f of fs.readdirSync(out)) if (f.startsWith(site + '-')) fs.unlinkSync(path.join(out, f))
@@ -49,9 +51,14 @@ function signature() {
 
 function staticChecks() {
   const issues = []
-  if (!document.documentElement.lang) issues.push('html has no lang')
+  if (document.documentElement.lang !== 'vi') issues.push(`html lang="${document.documentElement.lang}" (expected "vi")`)
   if (!document.title.trim()) issues.push('empty <title>')
   if (!document.querySelector('link[rel~="icon"]')) issues.push('no favicon')
+  const BAD_FONTS = ['Albert Sans','Amiri','Atkinson Hyperlegible','Azeret Mono','Bagel Fat One','Bebas Neue','Bodoni Moda','Bowlby One','Caprasimo','Caveat','Chango','Corben','Courier Prime','Covered By Your Grace','Cutive Mono','DM Mono','DM Sans','DM Serif Display','Figtree','Fragment Mono','Fredoka','Funnel Display','Funnel Sans','Gabarito','Gilda Display','Gloock','Gochi Hand','Golos Text','Hedvig Letters Sans','Hedvig Letters Serif','Host Grotesk','IM Fell English','Instrument Sans','Instrument Serif','Italiana','Jost','Kalam','Karla','Libre Caslon Display','Libre Caslon Text','Lilita One','Limelight','Martian Mono','Michroma','Orbitron','Outfit','Oxanium','PT Serif','Permanent Marker','Pirata One','Press Start 2P','Red Hat Display','Red Hat Mono','Red Hat Text','Reenie Beanie','Rethink Sans','Righteous','Rubik','Schibsted Grotesk','Schoolbell','Shippori Mincho','Shrikhand','Sofia Sans','Sometype Mono','Sora','Special Elite','Spline Sans Mono','Syncopate','Syne','Tenor Sans','Ultra','UnifrakturMaguntia','Urbanist','Yellowtail','Young Serif','Zen Kaku Gothic New','Zilla Slab']
+  for (const l of document.querySelectorAll('link[href*="fonts.googleapis.com"]')) {
+    const h = decodeURIComponent(l.href).replace(/\+/g, ' ')
+    for (const bf of BAD_FONTS) if (new RegExp(`family=${bf}(?:[:&]|$)`, 'i').test(h)) issues.push(`non-VI font: ${bf}`)
+  }
   for (const a of document.querySelectorAll('a[href^="#"]')) {
     const id = decodeURIComponent(a.getAttribute('href').slice(1))
     if (id && id !== 'top' && !document.getElementById(id)) issues.push(`dead anchor #${id}`)

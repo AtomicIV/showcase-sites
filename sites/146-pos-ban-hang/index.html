@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KiotFlow POS — Phần Mềm Quản Lý Bán Hàng Đa Kênh, Bán Lẻ & F&B</title>
+<meta name="description" content="KiotFlow POS giúp cửa hàng bán lẻ, siêu thị, nhà hàng và quán cà phê đồng bộ đơn hàng TikTok Shop, Shopee, GrabFood, trừ định mức kho tự động và thanh toán VietQR trong 0.5 giây.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563EB'/%3E%3Crect x='14' y='18' width='36' height='28' rx='4' fill='%230B1221'/%3E%3Ccircle cx='42' cy='26' r='5' fill='%23F97316'/%3E%3Crect x='20' y='24' width='14' height='4' fill='%2310B981'/%3E%3Crect x='20' y='32' width='22' height='4' fill='%23F8FAFC'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --dark:#0B1221; --dark2:#121E36; --dark3:#060B14;
+  --blue:#2563EB; --blueL:#60A5FA;
+  --orange:#F97316; --orangeL:#FB923C;
+  --mint:#10B981; --mintL:#34D399;
+  --light:#F8FAFC; --slate:#E2E8F0; --white:#FFFFFF;
+  --ink:#0F172A; --muted:#64748B; --mutedL:#94A3B8;
+  --sans:"Plus Jakarta Sans", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:clip}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--light);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.62}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--blue);color:#fff;padding:10px 18px;z-index:500;text-decoration:none;font-weight:700}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1280px,calc(100% - 48px));margin-inline:auto}
+h1,h2,h3,h4{font-family:var(--sans);font-weight:800;margin:0;line-height:1.12;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.4vw,60px)}
+h1 em,h2 em{font-style:normal;color:var(--blue)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);background:rgba(37,99,235,.1);padding:6px 14px;border-radius:99px}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--orange)}
+.kick.dark-k{color:var(--orangeL);background:rgba(249,115,22,.16)}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border-radius:10px;border:1.5px solid var(--orange);background:var(--orange);color:#fff;font-weight:700;font-size:14.5px;text-decoration:none;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .45s var(--ease),background .25s,border-color .25s}
+.btn:hover{background:#ea580c;border-color:#ea580c}
+.btn.blue{background:var(--blue);border-color:var(--blue)}
+.btn.blue:hover{background:#1d4ed8;border-color:#1d4ed8}
+.btn.mint{background:var(--mint);border-color:var(--mint);color:#042f2e}
+.btn.ghost{background:transparent;color:var(--light);border-color:rgba(248,250,252,.28)}
+.btn.ghost:hover{border-color:var(--blueL);color:var(--blueL)}
+.btn.sm{min-height:40px;padding:0 16px;font-size:13px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,box-shadow .35s}
+.nav.solid{background:rgba(11,18,33,.94);backdrop-filter:blur(12px);box-shadow:0 1px 0 rgba(255,255,255,.1)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:74px}
+.logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-weight:800;font-size:22px}
+.logo svg{width:34px;height:34px;flex-shrink:0}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;text-decoration:none;font-size:14px;font-weight:600;color:rgba(248,250,252,.82);transition:color .25s}
+.nav ul a:hover{color:var(--orangeL)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:#fff;transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:82px;z-index:99;background:var(--dark2);border:1px solid rgba(96,165,250,.3);border-radius:14px;padding:12px;display:grid;gap:4px;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease);box-shadow:0 24px 48px rgba(0,0,0,.5)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 14px;text-decoration:none;color:#fff;font-weight:700;font-size:18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--orangeL)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 70px;background:radial-gradient(ellipse 65% 55% at 80% 15%,rgba(37,99,235,.32),transparent 70%),radial-gradient(ellipse 50% 50% at 15% 85%,rgba(249,115,22,.2),transparent 70%),linear-gradient(165deg,var(--dark3) 0%,var(--dark) 55%,var(--dark2) 100%);color:#fff;display:flex;align-items:center;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:44px;align-items:center}
+.hero h1{font-size:clamp(38px,5.2vw,72px);line-height:1.1;margin:18px 0 20px}
+.hero h1 em{color:var(--orangeL)}
+.hero-lead{font-size:17.5px;color:var(--mutedL);max-width:52ch;margin-bottom:28px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:34px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding-top:22px;border-top:1px solid rgba(255,255,255,.14)}
+.hero-stats b{display:block;font-family:var(--mono);font-size:clamp(24px,2.8vw,34px);color:var(--mintL);line-height:1.1}
+.hero-stats span{font-size:13px;color:var(--mutedL)}
+
+.dash-card{background:rgba(18,30,54,.85);border:1px solid rgba(96,165,250,.3);border-radius:18px;padding:20px;box-shadow:0 35px 75px -20px rgba(0,0,0,.7)}
+.dc-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.dash-card canvas{width:100%;height:auto;border-radius:10px;background:#070D19}
+.dc-channels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.ch-btn{padding:8px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.ch-btn.active,.ch-btn:hover{border-color:var(--orange);background:rgba(249,115,22,.18);color:var(--orangeL)}
+
+/* Pinned Scrollytelling: 0.5s Order Sync Flow */
+.syncflow{position:relative;background:var(--dark3);color:#fff}
+.sf-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:48px;align-items:center;width:min(1280px,calc(100% - 48px));margin-inline:auto;padding-top:74px}
+.syncflow h2{margin:16px 0 22px;color:#fff}
+.syncflow h2 em{color:var(--mintL)}
+.psteps{position:relative;height:250px}
+.pstep{position:absolute;inset:0}
+.pstep .ms-tag{display:inline-block;font-family:var(--mono);font-size:12px;color:var(--orangeL);background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.4);padding:4px 12px;border-radius:6px;margin-bottom:10px}
+.pstep h3{font-size:clamp(24px,2.5vw,34px);margin-bottom:10px;color:#fff}
+.pstep p{color:var(--mutedL);font-size:16px;max-width:46ch;margin-bottom:14px}
+.pstep-chips{display:flex;flex-wrap:wrap;gap:8px}
+.pstep-chips span{font-family:var(--mono);font-size:11.5px;padding:4px 10px;border-radius:6px;background:rgba(37,99,235,.25);color:var(--blueL)}
+.sf-stage{background:linear-gradient(160deg,#121E36,#080F1E);border:1px solid rgba(96,165,250,.3);border-radius:18px;padding:22px;box-shadow:0 35px 70px -25px rgba(0,0,0,.8)}
+.sf-stage canvas{width:100%;height:auto;border-radius:10px;background:#050912}
+.sf-foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--mutedL)}
+.sf-foot b{color:var(--mintL)}
+
+/* Signature Widget: Interactive Live Cashier POS Terminal */
+.pos-demo{padding:110px 0;background:var(--light)}
+.sec-head{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.pos-terminal{background:var(--dark);color:#fff;border-radius:22px;padding:24px;border:2px solid rgba(96,165,250,.28);box-shadow:0 30px 70px -25px rgba(11,18,33,.35);display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:24px}
+.pos-left{display:flex;flex-direction:column;gap:16px}
+.table-bar{display:flex;flex-wrap:wrap;gap:8px}
+.tbl-btn{padding:8px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.tbl-btn[aria-pressed="true"]{background:var(--blue);border-color:var(--blueL)}
+.menu-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.item-btn{background:var(--dark2);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:all .2s}
+.item-btn:hover{border-color:var(--orange);transform:translateY(-2px)}
+.item-btn strong{font-size:15px;color:#fff}
+.item-btn span{font-family:var(--mono);font-size:13px;color:var(--mintL);font-weight:600}
+.item-btn small{font-size:11.5px;color:var(--mutedL)}
+
+.pos-bill{background:var(--white);color:var(--ink);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.bill-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:2px dashed var(--slate)}
+.bill-items{min-height:150px;max-height:220px;overflow-y:auto;display:grid;gap:8px;align-content:start}
+.b-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;padding-bottom:6px;border-bottom:1px solid var(--slate)}
+.b-row b{font-family:var(--mono);color:var(--blue)}
+.bill-totals{padding-top:10px;border-top:2px dashed var(--slate);display:grid;gap:6px;font-size:14px}
+.bill-totals .grand{display:flex;justify-content:space-between;font-size:20px;font-weight:800;color:var(--orange)}
+.pos-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qr-status{min-height:24px;font-family:var(--mono);font-size:12px;color:var(--mint);font-weight:700;text-align:center}
+
+/* Omnichannel Features */
+.features{padding:110px 0;background:var(--slate)}
+.feat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.fcard{background:var(--white);border-radius:16px;padding:28px;border:1px solid rgba(15,23,42,.08);display:flex;flex-direction:column;gap:12px}
+.fcard .tag{font-family:var(--mono);font-size:11.5px;color:var(--blue);font-weight:700}
+.fcard h3{font-size:23px}
+.fcard p{color:var(--muted);font-size:15px}
+
+/* Industry Verticals */
+.verticals{padding:110px 0;background:var(--light)}
+.vert-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.vcard{background:var(--white);border:1px solid rgba(15,23,42,.1);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.vcard h3{font-size:21px}
+.vcard p{font-size:14.5px;color:var(--muted)}
+
+/* Pricing */
+.pricing{padding:110px 0;background:var(--dark);color:#fff}
+.pricing .sec-head p{color:var(--mutedL)}
+.pr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.p-card{background:var(--dark2);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:30px 26px;display:flex;flex-direction:column;gap:14px}
+.p-card.pro{border:2px solid var(--orange);background:linear-gradient(180deg,#1B2C52,#101B33)}
+.p-card h3{font-size:26px}
+.p-val{font-family:var(--mono);font-size:36px;color:var(--mintL);font-weight:700}
+.p-val small{font-size:13px;color:var(--mutedL)}
+.p-card ul{list-style:none;margin:0;padding:0;display:grid;gap:9px;font-size:14.5px;color:rgba(248,250,252,.9)}
+.p-card li::before{content:"✓ ";color:var(--orangeL);font-weight:700}
+.p-card .btn{margin-top:auto}
+
+/* CTA */
+.cta{padding:110px 0;background:var(--slate)}
+.cta-box{background:var(--white);border-radius:22px;padding:44px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;border:1px solid rgba(15,23,42,.1)}
+.cta-form{display:grid;gap:14px}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cta-form label{display:block;font-size:13.5px;font-weight:700;margin-bottom:5px}
+.cta-form input,.cta-form select{width:100%;height:48px;padding:0 14px;border-radius:8px;border:1.5px solid rgba(15,23,42,.2);background:var(--light)}
+.f-msg{min-height:24px;font-family:var(--mono);font-size:13px;color:var(--mint);font-weight:700}
+
+footer{background:var(--dark3);color:var(--mutedL);padding:56px 0 36px}
+.ft-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,.1)}
+footer ul{display:flex;flex-wrap:wrap;gap:8px 18px;list-style:none;margin:0;padding:0}
+footer a{text-decoration:none;font-size:14px;color:var(--mutedL)}
+footer a:hover{color:var(--orangeL)}
+.ft-fine{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding-top:22px;font-family:var(--mono);font-size:12px}
+
+.rm .sf-pin{height:auto;padding:100px 0}
+.rm .psteps{height:auto;display:grid;gap:24px}
+.rm .pstep{position:static;opacity:1!important;visibility:visible!important}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.sf-pin,.sec-head,.pos-terminal,.cta-box{grid-template-columns:1fr}
+  .sf-pin{height:auto;min-height:100svh;padding:96px 0 60px}
+  .feat-grid,.vert-grid,.pr-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:680px){
+  .wrap,.sf-pin{width:calc(100% - 32px)}
+  .hero{padding:108px 0 56px}
+  .hero-stats,.menu-grid,.pos-actions,.feat-grid,.vert-grid,.pr-grid,.f-row{grid-template-columns:1fr}
+  .dc-channels{grid-template-columns:repeat(2,1fr)}
+  .psteps{height:290px}
+  .cta-box,.pos-terminal,.pos-bill,.dash-card,.sf-stage{padding:18px 14px}
+  .kick{font-size:10.5px;padding:5px 10px}
+  .pos-demo,.features,.verticals,.pricing,.cta{padding:80px 0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="KiotFlow POS - Trang chủ">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="#2563EB"/><rect x="8" y="10" width="24" height="20" rx="3" fill="#0B1221"/><circle cx="26" cy="16" r="3.5" fill="#F97316"/><rect x="12" y="15" width="9" height="3" fill="#10B981"/><rect x="12" y="21" width="15" height="3" fill="#F8FAFC"/></svg>
+      <span>KiotFlow POS</span>
+    </a>
+    <nav aria-label="Điều hướng chính">
+      <ul>
+        <li><a href="#syncflow">Đồng bộ 0.5s</a></li>
+        <li><a href="#pos-demo">Trải nghiệm POS</a></li>
+        <li><a href="#features">Đa kênh</a></li>
+        <li><a href="#verticals">Ngành hàng</a></li>
+        <li><a href="#pricing">Bảng giá</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm mag" href="#trial">Dùng thử 14 ngày miễn phí</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#syncflow">Luồng đồng bộ đơn hàng 0.5s</a>
+  <a href="#pos-demo">Màn hình thu ngân POS trực tiếp</a>
+  <a href="#features">Tính năng bán hàng đa kênh</a>
+  <a href="#verticals">Giải pháp F&B & Bán lẻ</a>
+  <a href="#pricing">Bảng giá phần mềm & Thiết bị</a>
+  <a href="#trial">Đăng ký dùng thử miễn phí</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick dark-k hf">Bán hàng tại quầy · F&B · TikTok Shop · Shopee · GrabFood</p>
+        <h1 id="hero-h">
+          <span class="mask"><span>Một màn hình POS,</span></span>
+          <span class="mask"><span>vận hành <em>vạn đơn hàng</em></span></span>
+          <span class="mask"><span>không lệch một đồng.</span></span>
+        </h1>
+        <p class="hero-lead hf">KiotFlow POS hợp nhất thu ngân tại quầy, gọi món QR tại bàn, sàn TMĐT và ứng dụng giao đồ ăn vào một trung tâm điều hành duy nhất. Tự động trừ định mức nguyên vật liệu, phát loa báo tiền về VietQR và xuất hóa đơn điện tử tức thì.</p>
+        <div class="hero-cta hf">
+          <a class="btn mag" href="#pos-demo">Bấm thử màn hình Thu ngân POS</a>
+          <a class="btn ghost mag" href="#syncflow">Xem luồng xử lý 0.5 giây</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><b>85.000+</b><span>Cửa hàng & Chuỗi F&B tin dùng</span></div>
+          <div><b>0,5 giây</b><span>Tốc độ đồng bộ tồn kho đa sàn</span></div>
+          <div><b>99,99%</b><span>Uptime · Bán hàng ngay cả khi mất mạng</span></div>
+        </div>
+      </div>
+
+      <div class="dash-card hf">
+        <div class="dc-top">
+          <span class="mono" style="color:var(--blueL)">LIVE REAL-TIME DASHBOARD</span>
+          <span class="mono" id="dashChLabel" style="color:var(--mintL)">TỔNG DOANH THU HÔM NAY: 42.850.000đ</span>
+        </div>
+        <canvas id="heroDashCanvas" width="520" height="330" role="img" aria-label="Biểu đồ doanh thu trực tiếp từ Tại quầy, TikTok Shop, Shopee và GrabFood"></canvas>
+        <div class="dc-channels" role="group" aria-label="Lọc nguồn đơn hàng">
+          <button type="button" class="ch-btn active" data-ch="0">Tất cả kênh</button>
+          <button type="button" class="ch-btn" data-ch="1">Tại quầy POS</button>
+          <button type="button" class="ch-btn" data-ch="2">TikTok / Shopee</button>
+          <button type="button" class="ch-btn" data-ch="3">Grab / ShopeeFood</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pinned Scrollytelling: 0.5s Order Sync Flow -->
+  <section class="syncflow" id="syncflow" aria-labelledby="sf-h">
+    <div class="sf-pin" id="sfPin">
+      <div>
+        <p class="kick dark-k">Tự động hóa khép kín</p>
+        <h2 id="sf-h">Chuyện gì xảy ra trong<br><em>0,5 giây</em> sau khi bấm thanh toán?</h2>
+        <div class="psteps">
+          <article class="pstep">
+            <span class="ms-tag">0.00s – 0.12s · TIẾP NHẬN ĐƠN ĐA KÊNH</span>
+            <h3>Gom đơn từ Quầy POS, QR tại bàn, TikTok Shop & Shopee</h3>
+            <p>Khách quét mã gọi món tại bàn hoặc đặt hàng trên sàn, đơn hàng lập tức nổ về máy POS trung tâm kèm âm báo rõ ràng, không cần nhân viên nhìn 4–5 chiếc điện thoại khác nhau.</p>
+            <div class="pstep-chips"><span>Webhook Real-time</span><span>Gọi món QR Table</span><span>Đồng bộ giá & KM</span></div>
+          </article>
+          <article class="pstep">
+            <span class="ms-tag">0.12s – 0.25s · ĐIỀU PHỐI BẾP / BAR & ĐÓNG GÓI</span>
+            <h3>Tự động chia lệnh in xuống Bếp Nóng, Quầy Bar & Kho</h3>
+            <p>Món cà phê tự nhảy về máy in quầy Bar, món bánh ngọt hiển thị trên màn hình KDS nhà bếp. Với cửa hàng bán lẻ, phiếu gửi hàng mã vạch GHTK/GHN được in ra ngay lập tức.</p>
+            <div class="pstep-chips"><span>Kitchen Display KDS</span><span>In tem nhãn trà sữa</span><span>Đẩy đơn vận chuyển</span></div>
+          </article>
+          <article class="pstep">
+            <span class="ms-tag">0.25s – 0.38s · TRỪ ĐỊNH MỨC KHO NGUYÊN LIỆU</span>
+            <h3>Khấu trừ chính xác từng gram cà phê, ml sữa & tồn kho</h3>
+            <p>Bán 1 ly Trà Ô Long Kem Phô Mai, hệ thống tự trừ 15g trà, 40ml kem và 1 ly nhựa trong kho. Cảnh báo ngay trên điện thoại chủ quán khi nguyên liệu chạm ngưỡng tối thiểu.</p>
+            <div class="pstep-chips"><span>Định mức BOM 3 cấp</span><span>Kiểm kho mã vạch</span><span>Chống thất thoát 100%</span></div>
+          </article>
+          <article class="pstep">
+            <span class="ms-tag">0.38s – 0.50s · VIETQR, HÓA ĐƠN ĐIỆN TỬ & LÃI LỖ</span>
+            <h3>Loa đọc tiền về, xuất Hóa đơn MTT & Cập nhật Lãi ròng</h3>
+            <p>Khách quét mã VietQR động đúng số tiền, loa đọc to xác nhận giao dịch, hóa đơn điện tử khởi tạo từ máy tính tiền gửi lên cơ quan thuế và báo cáo P&L nhảy số tức thì.</p>
+            <div class="pstep-chips"><span>VietQR Động</span><span>HĐĐT Máy tính tiền</span><span>Báo cáo Lãi/Lỗ Live</span></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="sf-stage" aria-hidden="true">
+        <canvas id="syncCanvas" width="640" height="430"></canvas>
+        <div class="sf-foot">
+          <span>Trạng thái luồng: <b id="sfStateText">01 · Tiếp nhận đơn hàng đa kênh</b></span>
+          <span>Độ trễ xử lý: <b id="sfLatency">120ms</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Signature Interactive Widget: Live Cashier POS Terminal -->
+  <section class="pos-demo" id="pos-demo" aria-labelledby="pos-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Màn hình thu ngân thực tế</p>
+          <h2 id="pos-h" class="split" style="margin-top:16px">Trải nghiệm <em>chốt đơn POS</em><br>ngay trên trình duyệt</h2>
+        </div>
+        <p class="rv">Chọn bàn hoặc kênh bán, nhấp vào các món bên dưới để thêm vào hóa đơn, áp dụng chiết khấu và bấm "Thanh toán VietQR" để xem tốc độ xử lý của KiotFlow.</p>
+      </div>
+
+      <div class="pos-terminal rv">
+        <div class="pos-left">
+          <div class="table-bar" role="group" aria-label="Chọn bàn hoặc kênh đơn hàng">
+            <button type="button" class="tbl-btn" data-tbl="Bàn 04 · Tầng 1" aria-pressed="true">🪑 Bàn 04 · Tầng 1</button>
+            <button type="button" class="tbl-btn" data-tbl="Bàn 12 · Sân vườn" aria-pressed="false">🌿 Bàn 12 · Sân vườn</button>
+            <button type="button" class="tbl-btn" data-tbl="Đơn Mang Về #89" aria-pressed="false">🛍️ Mang về #89</button>
+            <button type="button" class="tbl-btn" data-tbl="Đơn GrabFood #GF24" aria-pressed="false">🛵 GrabFood #GF24</button>
+          </div>
+
+          <div class="menu-grid" id="posMenuGrid" role="group" aria-label="Danh sách món bán chạy">
+            <button type="button" class="item-btn" data-name="Cold Brew Cam Sả" data-price="55000">
+              <strong>Cold Brew Cam Sả</strong><span>55.000đ</span><small>Tồn kho: 42 ly · Trừ 18g hạt</small>
+            </button>
+            <button type="button" class="item-btn" data-name="Trà Ô Long Kem Cheese" data-price="49000">
+              <strong>Trà Ô Long Kem Cheese</strong><span>49.000đ</span><small>Tồn kho: 68 ly · Best seller</small>
+            </button>
+            <button type="button" class="item-btn" data-name="Matcha Latte Uji Nhật" data-price="62000">
+              <strong>Matcha Latte Uji Nhật</strong><span>62.000đ</span><small>Tồn kho: 35 ly · Trừ 6g bột</small>
+            </button>
+            <button type="button" class="item-btn" data-name="Bánh Sừng Bò Hạnh Nhân" data-price="45000">
+              <strong>Bánh Sừng Bò Hạnh Nhân</strong><span>45.000đ</span><small>Tủ bánh: Còn 14 chiếc</small>
+            </button>
+            <button type="button" class="item-btn" data-name="Cà Phê Muối Huế" data-price="42000">
+              <strong>Cà Phê Muối Huế</strong><span>42.000đ</span><small>Tồn kho: 90 ly · Đậm vị</small>
+            </button>
+            <button type="button" class="item-btn" data-name="Combo Trà Bánh Chiều" data-price="89000">
+              <strong>Combo Trà Bánh Chiều</strong><span>89.000đ</span><small>Tiết kiệm 15.000đ</small>
+            </button>
+          </div>
+        </div>
+
+        <aside class="pos-bill" aria-live="polite">
+          <div class="bill-head">
+            <div>
+              <span class="mono" style="color:var(--muted)">PHIẾU TẠM TÍNH</span>
+              <h3 style="font-size:19px" id="billTableTitle">Bàn 04 · Tầng 1</h3>
+            </div>
+            <button type="button" class="btn sm blue" id="discBtn" data-disc="0">Giảm 10% VIP</button>
+          </div>
+
+          <div class="bill-items" id="billItemsList"></div>
+
+          <div class="bill-totals">
+            <div style="display:flex;justify-content:space-between"><span>Tạm tính (<span id="billQty">0</span> món):</span><b id="billSub">0đ</b></div>
+            <div style="display:flex;justify-content:space-between"><span>Chiết khấu thành viên:</span><b id="billDisc" style="color:var(--mint)">0đ</b></div>
+            <div class="grand"><span>Khách cần trả:</span><span id="billGrand">0đ</span></div>
+          </div>
+
+          <div class="pos-actions">
+            <button type="button" class="btn mint" id="payQrBtn">Quét VietQR & In Bill</button>
+            <button type="button" class="btn sm" style="background:var(--ink);border-color:var(--ink)" id="clearBillBtn">Xóa / Đơn mới</button>
+          </div>
+          <p class="qr-status" id="qrStatus" role="status"></p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- Omnichannel Features -->
+  <section class="features" id="features" aria-labelledby="ft-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Công nghệ cốt lõi</p>
+          <h2 id="ft-h" class="split" style="margin-top:16px">Kiểm soát <em>chặt chẽ</em><br>từng điểm chạm bán hàng</h2>
+        </div>
+        <p class="rv">Giải phóng chủ quán khỏi việc cộng sổ thủ công mỗi tối với hệ thống báo cáo tự động theo thời gian thực.</p>
+      </div>
+
+      <div class="feat-grid">
+        <article class="fcard rv">
+          <span class="tag">01 · OMNICHANNEL SYNC</span>
+          <h3>Đồng bộ tồn kho Đa sàn TMĐT</h3>
+          <p>Kết nối chính thức TikTok Shop, Shopee, Lazada và Facebook. Hết hàng tại cửa hàng lập tức tự động cập nhật tồn kho trên sàn để tránh phạt hủy đơn.</p>
+        </article>
+        <article class="fcard rv">
+          <span class="tag">02 · SMART F&B QR ORDER</span>
+          <h3>Thực đơn Điện tử QR tại bàn</h3>
+          <p>Khách tự quét mã QR trên mặt bàn để chọn món, chọn mức đường/đá, topping và thanh toán ngay, giúp giảm 40% áp lực nhân sự phục vụ giờ cao điểm.</p>
+        </article>
+        <article class="fcard rv">
+          <span class="tag">03 · ANTI-LOSS & CRM</span>
+          <h3>Phân quyền Nhân viên & Tích điểm Zalo OA</h3>
+          <p>Ghi nhật ký mọi thao tác hủy món, sửa bill hoặc mở két tiền. Tự động gửi tin nhắn Zalo ZNS tích điểm và tặng voucher sinh nhật khách hàng.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Industry Verticals -->
+  <section class="verticals" id="verticals" aria-labelledby="vt-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Thiết kế riêng cho từng mô hình</p>
+          <h2 id="vt-h" class="split" style="margin-top:16px">Tối ưu cho <em>mọi ngành hàng</em><br>tại Việt Nam</h2>
+        </div>
+        <p class="rv">Giao diện tinh chỉnh chuyên biệt chỉ mất 5 phút để nhân viên mới thao tác thành thạo.</p>
+      </div>
+
+      <div class="vert-grid">
+        <article class="vcard rv">
+          <span class="mono" style="color:var(--orange)">F&B · CAFE & TRÀ SỮA</span>
+          <h3>Nhà hàng, Quán ăn & Trà sữa</h3>
+          <p>Quản lý sơ đồ phòng bàn, gộp/tách bàn, in tem nhãn dán cốc và định lượng nguyên vật liệu pha chế.</p>
+        </article>
+        <article class="vcard rv">
+          <span class="mono" style="color:var(--blue)">RETAIL · THỜI TRANG</span>
+          <h3>Thời trang, Mỹ phẩm & Phụ kiện</h3>
+          <p>Quản lý hàng nghìn mã SKU theo Màu sắc - Kích cỡ, in mã vạch và livestream chốt đơn tự động.</p>
+        </article>
+        <article class="vcard rv">
+          <span class="mono" style="color:var(--mint)">MART · TẠP HÓA</span>
+          <h3>Siêu thị mini, Mẹ & Bé, Nông sản</h3>
+          <p>Kết nối cân điện tử in mã vạch, cảnh báo hạn sử dụng lô hàng và thanh toán nhanh 3 giây/khách.</p>
+        </article>
+        <article class="vcard rv">
+          <span class="mono" style="color:var(--orange)">PHARMACY · NHÀ THUỐC</span>
+          <h3>Nhà thuốc GPP & Phòng khám</h3>
+          <p>Quy đổi đơn vị Viên - Vỉ - Hộp linh hoạt và liên thông dữ liệu Dược Quốc gia tự động.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing" id="pricing" aria-labelledby="pr-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick dark-k">Chi phí tiết kiệm nhất thị trường</p>
+          <h2 id="pr-h" class="split" style="margin-top:16px">Chỉ từ <em>6.000đ / ngày</em><br>cho toàn bộ cửa hàng</h2>
+        </div>
+        <p class="rv">Không giới hạn số lượng thiết bị đăng nhập, miễn phí ứng dụng quản lý trên iOS & Android.</p>
+      </div>
+
+      <div class="pr-grid">
+        <article class="p-card rv">
+          <span class="mono" style="color:var(--blueL)">CỬA HÀNG ĐƠN LẺ</span>
+          <h3>Gói Cơ Bản (Starter)</h3>
+          <div class="p-val">180.000đ <small>/ tháng</small></div>
+          <ul>
+            <li>Bán hàng tại quầy POS & Quản lý thu chi</li>
+            <li>Quản lý tối đa 3.000 mặt hàng & tồn kho</li>
+            <li>Tích hợp thanh toán động VietQR Napas247</li>
+            <li>Báo cáo doanh thu trực tiếp trên điện thoại</li>
+          </ul>
+          <a class="btn ghost" href="#trial">Dùng thử Gói Cơ Bản</a>
+        </article>
+
+        <article class="p-card pro rv">
+          <span class="mono" style="color:var(--orangeL)">ĐƯỢC CHỌN NHIỀU NHẤT</span>
+          <h3>Gói Chuyên Nghiệp (Omni Pro)</h3>
+          <div class="p-val">290.000đ <small>/ tháng</small></div>
+          <ul>
+            <li>Đầy đủ tính năng F&B phòng bàn, KDS & Định mức kho</li>
+            <li>Đồng bộ không giới hạn Shopee, TikTok Shop, GrabFood</li>
+            <li>Tặng 2.000 Hóa đơn điện tử khởi tạo từ máy tính tiền</li>
+            <li>Chăm sóc khách hàng VIP & Tích điểm Zalo OA</li>
+          </ul>
+          <a class="btn" href="#trial">Nhận ưu đãi Tặng Máy In Bill</a>
+        </article>
+
+        <article class="p-card rv">
+          <span class="mono" style="color:var(--mintL)">CHUỖI CỬA HÀNG & NHƯỢNG QUYỀN</span>
+          <h3>Gói Chuỗi (Enterprise)</h3>
+          <div class="p-val">490.000đ <small>/ tháng / chi nhánh</small></div>
+          <ul>
+            <li>Quản trị kho tổng, điều chuyển hàng liên chi nhánh</li>
+            <li>Báo cáo hợp nhất toàn chuỗi & Phân quyền đa cấp</li>
+            <li>API mở kết nối ERP (SAP, Odoo, MISA, Fast)</li>
+            <li>Chuyên viên kỹ thuật hỗ trợ tận nơi 24/7</li>
+          </ul>
+          <a class="btn ghost" href="#trial">Tư vấn Giải pháp Chuỗi</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta" id="trial" aria-labelledby="tr-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <div>
+          <p class="kick">Khởi tạo tài khoản trong 30 giây</p>
+          <h2 id="tr-h" style="margin:16px 0">Trải nghiệm miễn phí<br><em>14 ngày trọn tính năng</em></h2>
+          <p style="color:var(--muted);margin-bottom:20px">Đội ngũ chuyên viên KiotFlow sẽ hỗ trợ nhập danh mục sản phẩm/thực đơn ban đầu và hướng dẫn nhân viên tận nơi tại 63 tỉnh thành.</p>
+          <p class="mono" style="color:var(--blue)">● Tặng máy in hóa đơn nhiệt K80 khi đăng ký gói 2 năm<br>● Tổng đài kỹ thuật 24/7: 1900 6886</p>
+        </div>
+
+        <form class="cta-form" id="posForm" novalidate>
+          <div>
+            <label for="sName">Tên cửa hàng / Thương hiệu của bạn</label>
+            <input id="sName" type="text" placeholder="Tiệm Cà Phê & Bánh Mây Trắng" required>
+          </div>
+          <div class="f-row">
+            <div>
+              <label for="sPhone">Số điện thoại kích hoạt dùng thử</label>
+              <input id="sPhone" type="tel" placeholder="0938 555 666" required>
+            </div>
+            <div>
+              <label for="sModel">Mô hình kinh doanh</label>
+              <select id="sModel">
+                <option value="F&B - Cafe - Nhà hàng">F&B · Quán Cafe, Trà sữa, Nhà hàng</option>
+                <option value="Thời trang - Mỹ phẩm">Thời trang, Mỹ phẩm & Bán lẻ</option>
+                <option value="Siêu thị mini - Tạp hóa">Siêu thị mini, Mẹ & Bé, Tạp hóa</option>
+                <option value="Bán hàng Đa sàn TMĐT">Nhà bán hàng TikTok Shop & Shopee</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label for="sCity">Tỉnh / Thành phố nhận hỗ trợ lắp đặt</label>
+            <input id="sCity" type="text" placeholder="TP. Hồ Chí Minh / Hà Nội / Đà Nẵng..." required>
+          </div>
+          <button type="submit" class="btn">Tạo tài khoản Dùng thử Miễn phí ngay</button>
+          <p class="f-msg" id="posMsg" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="ft-top">
+      <a class="logo" href="#top">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="#2563EB"/><rect x="8" y="10" width="24" height="20" rx="3" fill="#0B1221"/><circle cx="26" cy="16" r="3.5" fill="#F97316"/><rect x="12" y="15" width="9" height="3" fill="#10B981"/><rect x="12" y="21" width="15" height="3" fill="#F8FAFC"/></svg>
+        <span>KiotFlow POS</span>
+      </a>
+      <nav aria-label="Liên kết chân trang">
+        <ul>
+          <li><a href="#syncflow">Đồng bộ 0.5s</a></li>
+          <li><a href="#pos-demo">Màn hình POS</a></li>
+          <li><a href="#features">Tính năng</a></li>
+          <li><a href="#verticals">Ngành hàng</a></li>
+          <li><a href="#pricing">Bảng giá</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="ft-fine">
+      <span>© <span id="yr"></span> KiotFlow Retail & F&B Cloud Technology.</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  $('#yr').textContent = new Date().getFullYear();
+
+  /* ================= Hero Omnichannel Dashboard Canvas ================= */
+  const hC = $('#heroDashCanvas'), hX = hC.getContext('2d');
+  const CHANNELS = [
+    { name: 'TỔNG DOANH THU HÔM NAY: 42.850.000đ', pts: [35, 48, 62, 58, 79, 88, 95], col: '#34D399', orders: '318 đơn hoàn tất' },
+    { name: 'TẠI QUẦY POS & QR TABLE: 21.400.000đ', pts: [25, 38, 45, 52, 64, 70, 78], col: '#60A5FA', orders: '164 đơn tại quán' },
+    { name: 'TIKTOK SHOP & SHOPEE: 13.200.000đ', pts: [18, 30, 55, 44, 72, 80, 86], col: '#FB923C', orders: '92 đơn sàn TMĐT' },
+    { name: 'GRABFOOD & SHOPEEFOOD: 8.250.000đ', pts: [15, 28, 36, 48, 52, 60, 68], col: '#A78BFA', orders: '62 đơn giao đồ ăn' }
+  ];
+  let curCh = 0;
+
+  function drawHeroDash() {
+    const w = hC.width, h = hC.height;
+    hX.clearRect(0, 0, w, h);
+    const ch = CHANNELS[curCh];
+
+    // Grid
+    hX.strokeStyle = 'rgba(255,255,255,0.06)';
+    hX.lineWidth = 1;
+    for (let y = 40; y < h - 40; y += 45) { hX.beginPath(); hX.moveTo(24, y); hX.lineTo(w - 24, y); hX.stroke(); }
+
+    // Line chart
+    const pts = ch.pts;
+    const x0 = 40, x1 = w - 40, yBase = 245, ySpan = 165;
+    hX.strokeStyle = ch.col;
+    hX.lineWidth = 3.5;
+    hX.beginPath();
+    pts.forEach((v, i) => {
+      const x = x0 + ((x1 - x0) * i) / (pts.length - 1);
+      const y = yBase - (v / 100) * ySpan;
+      i === 0 ? hX.moveTo(x, y) : hX.lineTo(x, y);
+    });
+    hX.stroke();
+
+    // Points & time labels
+    const times = ['08:00', '10:00', '12:00', '14:00', '17:00', '19:00', '21:00'];
+    pts.forEach((v, i) => {
+      const x = x0 + ((x1 - x0) * i) / (pts.length - 1);
+      const y = yBase - (v / 100) * ySpan;
+      hX.fillStyle = ch.col;
+      hX.beginPath(); hX.arc(x, y, 5, 0, Math.PI * 2); hX.fill();
+      hX.fillStyle = '#94A3B8';
+      hX.font = '500 11px "JetBrains Mono", monospace';
+      hX.textAlign = 'center';
+      hX.fillText(times[i], x, 272);
+    });
+
+    // Bottom status bar
+    hX.fillStyle = 'rgba(37,99,235,0.2)';
+    hX.fillRect(24, h - 42, w - 48, 28);
+    hX.textAlign = 'left';
+    hX.fillStyle = '#FFFFFF';
+    hX.font = '600 12px "JetBrains Mono", monospace';
+    hX.fillText('⚡ ĐỒNG BỘ REAL-TIME · ' + ch.orders.toUpperCase() + ' · TỒN KHO KHỚP 100%', 36, h - 24);
+  }
+  drawHeroDash();
+
+  $$('.ch-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curCh = +btn.dataset.ch;
+      $$('.ch-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      $('#dashChLabel').textContent = CHANNELS[curCh].name;
+      drawHeroDash();
+    });
+  });
+
+  /* ================= Pinned 0.5s Sync Flow Canvas ================= */
+  const sC = $('#syncCanvas'), sX = sC.getContext('2d');
+  const SYNC_NAMES = [
+    '01 · Tiếp nhận đơn hàng đa kênh (0.12s)',
+    '02 · Chia lệnh Bếp / Bar & In vận đơn (0.25s)',
+    '03 · Trừ định mức nguyên vật liệu BOM (0.38s)',
+    '04 · Quét VietQR, Xuất HĐĐT & Cộng quỹ (0.50s)'
+  ];
+
+  function drawSync(p) {
+    const w = sC.width, h = sC.height;
+    sX.clearRect(0, 0, w, h);
+    const prog = clamp(p, 0.05, 1);
+    const sIdx = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3;
+
+    $('#sfStateText').textContent = SYNC_NAMES[sIdx];
+    $('#sfLatency').textContent = Math.round(110 + prog * 380) + 'ms';
+
+    const cx = w / 2, cy = h / 2;
+    const hubs = [
+      { x: 130, y: 95, title: 'ĐƠN ĐA KÊNH', sub: 'POS · TikTok · Shopee', col: '#F97316' },
+      { x: 510, y: 95, title: 'MÀN HÌNH KDS', sub: 'In bill Bếp & Quầy Bar', col: '#60A5FA' },
+      { x: 130, y: 335, title: 'KHO ĐỊNH MỨC', sub: 'Trừ gram trà / ml sữa', col: '#A78BFA' },
+      { x: 510, y: 335, title: 'SỔ QUỸ & HĐĐT', sub: 'VietQR & Thuế MTT', col: '#10B981' }
+    ];
+
+    // Connect center POS core to 4 satellite nodes
+    hubs.forEach((hb, i) => {
+      const active = i <= sIdx;
+      sX.strokeStyle = active ? hb.col : 'rgba(255,255,255,0.12)';
+      sX.lineWidth = active ? 3.5 : 1.5;
+      sX.beginPath(); sX.moveTo(cx, cy); sX.lineTo(hb.x, hb.y); sX.stroke();
+
+      sX.fillStyle = active ? 'rgba(18,30,54,0.95)' : 'rgba(255,255,255,0.04)';
+      sX.strokeStyle = i === sIdx ? '#FFFFFF' : active ? hb.col : 'rgba(255,255,255,0.15)';
+      sX.lineWidth = 2;
+      sX.fillRect(hb.x - 105, hb.y - 42, 210, 84);
+      sX.strokeRect(hb.x - 105, hb.y - 42, 210, 84);
+
+      sX.textAlign = 'center';
+      sX.fillStyle = active ? hb.col : '#64748B';
+      sX.font = '700 13px "JetBrains Mono", monospace';
+      sX.fillText(hb.title, hb.x, hb.y - 6);
+      sX.fillStyle = '#E2E8F0';
+      sX.font = '12.5px "Plus Jakarta Sans", sans-serif';
+      sX.fillText(hb.sub, hb.x, hb.y + 18);
+    });
+
+    // Center KiotFlow Engine
+    sX.fillStyle = '#2563EB';
+    sX.beginPath(); sX.arc(cx, cy, 56, 0, Math.PI * 2); sX.fill();
+    sX.strokeStyle = '#60A5FA';
+    sX.lineWidth = 4;
+    sX.beginPath(); sX.arc(cx, cy, 64, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * prog); sX.stroke();
+
+    sX.fillStyle = '#FFFFFF';
+    sX.font = '800 15px "Plus Jakarta Sans", sans-serif';
+    sX.textAlign = 'center';
+    sX.fillText('KIOTFLOW', cx, cy - 4);
+    sX.font = '600 12px "JetBrains Mono", monospace';
+    sX.fillStyle = '#34D399';
+    sX.fillText((prog * 0.5).toFixed(2) + 's', cx, cy + 16);
+  }
+
+  /* ================= Signature Widget: Live Cashier POS ================= */
+  let cart = [
+    { name: 'Cold Brew Cam Sả', price: 55000, qty: 1 },
+    { name: 'Trà Ô Long Kem Cheese', price: 49000, qty: 2 }
+  ];
+  let hasDisc = false;
+
+  function renderCart() {
+    const list = $('#billItemsList');
+    if (!cart.length) {
+      list.innerHTML = `<p style="color:var(--muted);font-size:14px;text-align:center;padding:30px 0">Chưa có món trong đơn. Nhấp vào món bên trái để thêm.</p>`;
+    } else {
+      list.innerHTML = cart.map((it, idx) => `
+        <div class="b-row">
+          <span><strong>${it.qty}x</strong> ${it.name}</span>
+          <b>${(it.price * it.qty).toLocaleString('vi-VN')}đ</b>
+        </div>
+      `).join('');
+    }
+
+    const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+    const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const disc = hasDisc ? Math.round(sub * 0.1) : 0;
+    const grand = sub - disc;
+
+    $('#billQty').textContent = totalQty;
+    $('#billSub').textContent = sub.toLocaleString('vi-VN') + 'đ';
+    $('#billDisc').textContent = '-' + disc.toLocaleString('vi-VN') + 'đ';
+    $('#billGrand').textContent = grand.toLocaleString('vi-VN') + 'đ';
+  }
+
+  $$('.tbl-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      $$('.tbl-btn').forEach((b) => b.setAttribute('aria-pressed', b === btn));
+      $('#billTableTitle').textContent = btn.dataset.tbl;
+      $('#qrStatus').textContent = '';
+    });
+  });
+
+  $$('.item-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.name;
+      const price = +btn.dataset.price;
+      const ex = cart.find((x) => x.name === name);
+      if (ex) ex.qty += 1;
+      else cart.push({ name, price, qty: 1 });
+      $('#qrStatus').textContent = '';
+      renderCart();
+    });
+  });
+
+  $('#discBtn').addEventListener('click', () => {
+    hasDisc = !hasDisc;
+    $('#discBtn').textContent = hasDisc ? 'Đã giảm 10% VIP ✓' : 'Giảm 10% VIP';
+    renderCart();
+  });
+
+  $('#payQrBtn').addEventListener('click', () => {
+    if (!cart.length) {
+      $('#qrStatus').textContent = 'Vui lòng chọn ít nhất 1 món trước khi thanh toán.';
+      return;
+    }
+    const amt = $('#billGrand').textContent;
+    $('#qrStatus').textContent = `✓ Đã nhận ${amt} qua VietQR! Đã trừ kho & in bill bếp trong 0.42s.`;
+  });
+
+  $('#clearBillBtn').addEventListener('click', () => {
+    cart = [];
+    hasDisc = false;
+    $('#discBtn').textContent = 'Giảm 10% VIP';
+    $('#qrStatus').textContent = 'Đã tạo phiếu bán hàng mới.';
+    renderCart();
+  });
+
+  renderCart();
+
+  /* ================= Nav, Menu, Form & Lenis ================= */
+  const nav = $('#nav');
+  const onScroll = () => nav.classList.toggle('solid', scrollY > 30);
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function toggleMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+    mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu');
+  }
+  mb.addEventListener('click', () => toggleMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) toggleMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { toggleMenu(false); mb.focus(); } });
+
+  $('#posForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const store = $('#sName').value.trim();
+    const phone = $('#sPhone').value.trim();
+    if (!store || !phone) {
+      $('#posMsg').style.color = '#F97316';
+      $('#posMsg').textContent = 'Vui lòng nhập Tên cửa hàng và Số điện thoại để kích hoạt dùng thử.';
+      return;
+    }
+    $('#posMsg').style.color = '#10B981';
+    $('#posMsg').textContent = `Tài khoản dùng thử cho "${store}" đã sẵn sàng! Mã đăng nhập đã gửi qua Zalo ${phone}.`;
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      if (id.length < 2 || !$(id)) return;
+      e.preventDefault();
+      lenis ? lenis.scrollTo($(id), { offset: 0 }) : $(id).scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  if (!anim) { drawSync(1); return; }
+
+  /* ================= GSAP Motion ================= */
+  G.set('.hero h1 .mask>span', { yPercent: 110 });
+  G.set('.hf', { autoAlpha: 0, y: 18 });
+  G.timeline({ delay: 0.1 })
+    .to('.hero h1 .mask>span', { yPercent: 0, duration: 1.0, stagger: 0.1, ease: 'expo.out' }, 0)
+    .to('.hf', { autoAlpha: 1, y: 0, duration: 0.75, stagger: 0.08, ease: 'power3.out' }, 0.25);
+
+  $$('.split').forEach((h) => {
+    h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('');
+    const lines = h.querySelectorAll('.mask>span');
+    G.set(lines, { yPercent: 110 });
+    ScrollTrigger.create({
+      trigger: h, start: 'top 88%', once: true,
+      onEnter: () => G.to(lines, { yPercent: 0, duration: 1.05, stagger: 0.1, ease: 'expo.out' })
+    });
+  });
+
+  G.set('.rv', { autoAlpha: 0, y: 26 });
+  ScrollTrigger.batch('.rv', {
+    start: 'top 90%', once: true,
+    onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: 0.85, stagger: 0.08, ease: 'power3.out', clearProps: 'transform' })
+  });
+
+  const psteps = $$('.pstep');
+  let curP = -1, pTw = [];
+  function setP(i) {
+    if (i === curP) return;
+    const prev = curP; curP = i;
+    pTw.forEach((t) => t.kill()); pTw = [];
+    psteps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }); });
+    if (prev >= 0) pTw.push(G.to(psteps[prev], { autoAlpha: 0, y: -14, duration: 0.28, ease: 'power2.in' }));
+    pTw.push(G.fromTo(psteps[i], { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.6, delay: prev >= 0 ? 0.15 : 0, ease: 'power3.out' }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  drawSync(0.08);
+  setP(0);
+
+  ScrollTrigger.create({
+    trigger: '.syncflow', start: 'top top', end: '+=280%', pin: '#sfPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      drawSync(p);
+      setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3);
+    }
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

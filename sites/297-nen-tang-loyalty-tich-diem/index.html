@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RewardLoop Zalo Mini App — Giải pháp Thẻ Thành Viên Tích Điểm & Gamification trên Zalo OA</title>
+<meta name="description" content="RewardLoop giúp chuỗi F&B, Thời trang và Spa xây dựng thẻ thành viên tích điểm trên Zalo Mini App trong 1 giây không cần tải ứng dụng, tự động hóa chăm sóc khách hàng bằng ZNS.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23120D24'/%3E%3Cpolygon points='32,10 39,24 54,26 43,37 46,52 32,44 18,52 21,37 10,26 25,24' fill='%23FBBF24' stroke='%23A855F7' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#120D24;
+  --bg2:#1F163B;
+  --bg3:#0A0715;
+  --paper:#FAF5FF;
+  --ink:#120D24;
+  --pri:#FBBF24;
+  --sec:#A855F7;
+  --ok:#34D399;
+  --text:#F8FAFC;
+  --muted:#B4A8D1;
+  --mutedD:#524670;
+  --line:rgba(168,85,247,.26);
+  --head:"Plus Jakarta Sans", sans-serif;
+  --body:"Be Vietnam Pro", sans-serif;
+  --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:700;border-radius:6px}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3,h4{font-family:var(--head);font-weight:800;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.4vw,58px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--pri);background:rgba(251,191,36,.1);border:1px solid var(--line);padding:6px 12px;border-radius:99px}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sec);box-shadow:0 0 10px 2px rgba(168,85,247,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;border-radius:8px;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .35s var(--ease),background .25s}
+.btn:hover{background:#FCD34D;border-color:#FCD34D}
+.btn.ghost{background:rgba(31,22,59,.75);color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--pri);color:var(--pri)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(18,13,36,.92);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--head);font-size:23px;font-weight:800;color:var(--text)}
+.logo span{color:var(--pri)}
+.logo svg{width:34px;height:34px;flex-shrink:0}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 13px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:19px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:122px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 78% 24%,rgba(168,85,247,.2),transparent 70%),radial-gradient(ellipse 50% 50% at 15% 82%,rgba(251,191,36,.14),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(36px,5.1vw,68px);line-height:1.09;margin-top:16px}
+.hero-lead{max-width:52ch;color:var(--muted);font-size:17.5px;margin-top:18px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3);cursor:pointer}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+/* Pinned 1-Second QR Scan to ZNS Re-engagement */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:245px;margin-top:22px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--pri)}
+.pstep h3{font-size:clamp(23px,2.4vw,35px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:46ch}
+.pr-vis{background:var(--bg3);border:1px solid var(--line);border-radius:16px;padding:18px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive VIP Tier & CLV Calculator Widget */
+.widget{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.w-shell{display:grid;grid-template-columns:1.16fr .84fr;gap:28px;align-items:start}
+.w-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.w-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3)}
+.w-controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.sl-row label b{color:var(--pri)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.w-panel{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:16px}
+.ind-tabs{display:grid;gap:10px}
+.i-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+.i-btn .mono{font-size:10.5px;color:var(--pri);display:block}
+.i-btn b{font-family:var(--head);font-size:18px;display:block;margin-top:2px}
+.i-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(251,191,36,.14)}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px}
+.kpi-card span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.kpi-card strong{font-family:var(--head);font-size:22px;color:var(--pri)}
+.clv-note{padding:14px;background:rgba(168,85,247,.14);border-left:3px solid var(--sec);border-radius:6px;font-size:14.5px;color:var(--text)}
+
+/* Gamification & CDP Features (Light Contrast) */
+.features{padding:116px 0;background:var(--paper);color:var(--ink)}
+.features .kick{color:#7E22CE;background:rgba(126,34,206,.1);border-color:rgba(126,34,206,.25)}
+.features h2 em{color:#9333EA}
+.features .sec-head p{color:var(--mutedD)}
+.feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.fcard{background:#fff;border:1px solid rgba(18,13,36,.1);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.fcard .mono{color:#7E22CE;font-weight:600}
+.fcard h3{font-size:21px;color:var(--ink)}
+.fcard p{color:var(--mutedD);font-size:15px}
+
+/* POS & Omnichannel Sync */
+.pos{padding:116px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.pcard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.pcard .mono{color:var(--pri)}
+.pcard h3{font-size:23px}
+.pcard p{color:var(--muted);font-size:15px}
+
+/* CTA */
+.cta{padding:116px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(168,85,247,.22),transparent 70%),var(--bg);border-top:1px solid var(--line)}
+.cta-box{max-width:860px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--pri)}
+
+footer{background:var(--bg3);border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-nav a:hover{color:var(--pri)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.w-shell,.pos-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .feat-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.w-controls,.kpi-grid,.feat-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 18px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="RewardLoop Zalo Mini App Trang chủ">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="8" fill="#1F163B" stroke="#A855F7" stroke-width="2"/><polygon points="18,6 22,14 30,15 24,21 26,29 18,25 10,29 12,21 6,15 14,14" fill="#FBBF24"/></svg>
+      RewardLoop<span>.Zalo</span>
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Luồng Quét QR 1 Giây</a></li>
+        <li><a href="#simulator">Mô Phỏng Thẻ VIP & CLV</a></li>
+        <li><a href="#features">Gamification & ZNS</a></li>
+        <li><a href="#pos">Tích Hợp Máy POS</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#launch">Khởi Tạo Mini App</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Quét QR Tại Quầy Mở Zalo Mini App</a>
+  <a href="#simulator">Bộ Mô Phỏng Thẻ Thành Viên & Tính CLV</a>
+  <a href="#features">Vòng Quay May Mắn & Tự Động Hóa ZNS</a>
+  <a href="#pos">Kết Nối KiotViet, Sapo, iPOS, Haravan</a>
+  <a href="#launch">Đăng Ký Demo Trên Điện Thoại</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Zalo Mini App Loyalty · CDP & ZNS Automation</p>
+        <h1 id="hero-h"><span class="mask"><span>Mở thẻ VIP trong 1 giây,</span></span><span class="mask"><span>không bắt khách <em>tải thêm App.</em></span></span></h1>
+        <p class="hero-lead hf">92% khách mua lẻ từ chối tải ứng dụng riêng của thương hiệu tại quầy thu ngân. Với RewardLoop trên Zalo Mini App, khách chỉ cần quét QR để tích điểm tức thì, nâng hạng thẻ Gold/Diamond, quay thưởng trúng Voucher và nhận tin nhắn ZNS nhắc quay lại tự động.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#simulator">Tính Doanh Thu Quay Lại (CLV)</a>
+          <a class="btn ghost" href="#process">Xem Luồng Tích Điểm 1 Chạm</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>88%</strong><span>Tỷ lệ khách quét QR đăng ký tại quầy</span></div>
+          <div><strong>+38%</strong><span>Tần suất khách cũ quay lại mua hàng</span></div>
+          <div><strong>07 Ngày</strong><span>Ra mắt Zalo Mini App mang thương hiệu riêng</span></div>
+        </div>
+      </div>
+      <div class="hero-stage hf">
+        <canvas id="heroC" width="600" height="420" role="img" aria-label="Giao diện Zalo Mini App Thẻ thành viên Diamond kèm vòng quay may mắn"></canvas>
+        <div class="hero-meta">
+          <span>Bấm hoặc di chuột lên màn hình để xoay Vòng quay Voucher</span>
+          <span style="color:var(--pri)">ZALO MINI APP · 76 TRIỆU USER VN</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Hành trình khép kín Online-to-Offline</p>
+        <h2 id="pr-h">Bốn bước biến khách vãng lai<br><em>thành khách hàng trung thành</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Bước 01 · Quét Mã QR Động Trên Màn Hình Phụ Máy POS</p>
+            <h3>Định danh số điện thoại Zalo trong 1 giây, không cần nhập biểu mẫu</h3>
+            <p>Ngay khi thu ngân xuất hóa đơn, màn hình POS hiển thị mã QR tích điểm. Khách quét bằng Zalo, bấm xác nhận 1 chạm để trở thành hội viên chính thức.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 02 · Tích Điểm, Đổi Quà & Nâng Hạng Thẻ Member / Gold / Diamond</p>
+            <h3>Thanh tiến trình thăng hạng trực quan kích thích mua thêm</h3>
+            <p>Hiển thị rõ "Chỉ còn 150.000đ nữa để lên hạng Gold hưởng hoàn điểm 8%", thôi thúc khách hàng chọn thêm sản phẩm ngay tại quầy hoặc lần ghé tiếp theo.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 03 · Gamification: Vòng Quay May Mắn & Lắc Xì Theo Mùa</p>
+            <h3>Biến mỗi hóa đơn mua hàng thành một lượt chơi trúng thưởng</h3>
+            <p>Tặng lượt quay mảnh ghép, mở hộp quà bí ẩn hoặc giới thiệu bạn bè (Referral) trên Zalo để lan tỏa thương hiệu với chi phí thu hút khách mới (CAC) gần như bằng 0.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 04 · Kịch Bản ZNS Cá Nhân Hóa Theo Phân Khúc RFM</p>
+            <h3>Tự động gửi quà sinh nhật & gọi khách "ngủ đông" quay lại</h3>
+            <p>Hệ thống tự động phân nhóm khách VIP, khách có nguy cơ rời bỏ (quá 30 ngày chưa mua) để gửi tin nhắn Zalo ZNS kèm mã giảm giá cá nhân hóa có thời hạn 48 giờ.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Trạm tương tác: <b id="pSt">01 · Quét QR tại quầy POS</b></span>
+          <span>Tỷ lệ mở tin ZNS: <b id="pOpen">94.2%</b></span>
+          <span>Thời gian thao tác: <b id="pSec">01.2 giây</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="widget" id="simulator" aria-labelledby="w-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Công cụ hoạch định chiến lược giữ chân khách hàng</p>
+          <h2 id="w-h" style="margin-top:16px">Bộ mô phỏng Thẻ Thành Viên &<br><em>Tính Giá trị Vòng đời Khách hàng (CLV)</em></h2>
+        </div>
+        <p class="rv">Chọn ngành hàng kinh doanh, kéo tỷ lệ hoàn điểm tích lũy (3%–12%) và lượng khách giao dịch mỗi tháng để xem giao diện thẻ thành viên 3 hạng trên canvas cùng doanh thu quay lại tăng thêm.</p>
+      </div>
+      <div class="w-shell">
+        <div class="w-stage">
+          <canvas id="loyC" width="680" height="410" role="img" aria-label="Mô phỏng giao diện thẻ thành viên Member Gold Diamond trên Zalo Mini App và biểu đồ tăng trưởng CLV"></canvas>
+          <div class="w-controls">
+            <div class="sl-row">
+              <label for="rateR"><span>Tỷ lệ hoàn điểm tích lũy (Cashback)</span><b id="vRate">6% giá trị đơn</b></label>
+              <input id="rateR" type="range" min="3" max="12" step="1" value="6">
+            </div>
+            <div class="sl-row">
+              <label for="custR"><span>Lượng khách mua hàng / tháng</span><b id="vCust">4.500 khách</b></label>
+              <input id="custR" type="range" min="1000" max="15000" step="500" value="4500">
+            </div>
+          </div>
+        </div>
+        <div class="w-panel">
+          <span class="mono" style="color:var(--pri)">Chọn ngành hàng bán lẻ & dịch vụ</span>
+          <div class="ind-tabs" id="indTabs" role="group" aria-label="Chọn ngành hàng">
+            <button type="button" class="i-btn" data-i="0" aria-pressed="true">
+              <span class="mono">HÓA ĐƠN TB: 185.000Đ · TẦN SUẤT CAO</span>
+              <b>Chuỗi Cà phê, Trà sữa & Nhà hàng F&B</b>
+            </button>
+            <button type="button" class="i-btn" data-i="1" aria-pressed="false">
+              <span class="mono">HÓA ĐƠN TB: 680.000Đ · BÁN CHÉO BỘ SƯU TẬP</span>
+              <b>Chuỗi Thời trang, Mỹ phẩm & Bán lẻ</b>
+            </button>
+            <button type="button" class="i-btn" data-i="2" aria-pressed="false">
+              <span class="mono">HÓA ĐƠN TB: 1.450.000Đ · THẺ LIỆU TRÌNH</span>
+              <b>Hệ thống Spa, Thẩm mỹ viện & Phòng tập</b>
+            </button>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span>Hội viên Zalo mới / tháng</span>
+              <strong id="kMem">3.825 người</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Tỷ lệ quay lại mua lần 2+</span>
+              <strong id="kRet">46.5%</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Doanh thu tăng thêm / tháng</span>
+              <strong id="kRev">+312 Triệu</strong>
+            </div>
+            <div class="kpi-card">
+              <span>ROI chiến dịch ZNS & Điểm</span>
+              <strong id="kRoi" style="color:var(--ok)">8.4x Chi phí</strong>
+            </div>
+          </div>
+          <div class="clv-note" id="wAdv" role="status" aria-live="polite">
+            <strong>Chiến lược hạng thẻ đề xuất:</strong> Với mức hoàn điểm <b>6%</b> cho ngành <em>Chuỗi F&B</em>, việc tặng Voucher "Mua 1 Tặng 1" khi lên hạng <b>Gold</b> giúp rút ngắn chu kỳ quay lại từ 18 ngày xuống còn <b>7 ngày</b>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features" aria-labelledby="fe-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Nền tảng MarTech toàn diện trên Zalo</p>
+          <h2 id="fe-h" style="margin-top:16px">Tối đa hóa giá trị <em>từng điểm chạm</em></h2>
+        </div>
+        <p class="rv">Sở hữu dữ liệu khách hàng của riêng bạn (First-party Data) thay vì phụ thuộc hoàn toàn vào sàn TMĐT và quảng cáo đắt đỏ.</p>
+      </div>
+      <div class="feat-grid">
+        <article class="fcard rv">
+          <span class="mono">01 · Smart Tiering Engine</span>
+          <h3>Phân Hạng VIP Động Tự Động</h3>
+          <p>Tự động xét duyệt nâng hạng, giữ hạng hoặc hạ hạng theo chu kỳ 6–12 tháng kèm đặc quyền nhân đôi điểm thưởng ngày sinh nhật.</p>
+        </article>
+        <article class="fcard rv">
+          <span class="mono">02 · Automated RFM Segmentation</span>
+          <h3>Phân Khúc Khách Hàng RFM</h3>
+          <p>Chia tập khách hàng thành 8 nhóm theo Lần mua gần nhất (Recency), Tần suất (Frequency) và Chi tiêu (Monetary) để gửi ưu đãi trúng đích.</p>
+        </article>
+        <article class="fcard rv">
+          <span class="mono">03 · Prepaid & Service Pass</span>
+          <h3>Thẻ Trả Trước & Thẻ Liệu Trình</h3>
+          <p>Quản lý ví nạp tiền trả trước và thẻ gạch buổi dịch vụ (10 buổi chăm sóc da / gội đầu), tự động nhắc lịch hẹn buổi tiếp theo qua Zalo.</p>
+        </article>
+        <article class="fcard rv">
+          <span class="mono">04 · Affiliate & Member Get Member</span>
+          <h3>Khách Cũ Giới Thiệu Khách Mới</h3>
+          <p>Mỗi thành viên có một mã QR giới thiệu riêng trên Zalo; khi bạn bè đến cửa hàng sử dụng Voucher, cả hai cùng được cộng điểm thưởng.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="pos" id="pos" aria-labelledby="pos-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Đồng bộ đa kênh thời gian thực</p>
+          <h2 id="pos-h" style="margin-top:16px">Kết nối sẵn sàng mọi <em>phần mềm POS</em></h2>
+        </div>
+        <p class="rv">Khách mua tại cửa hàng, đặt trên Website hay mua qua Zalo Mini App đều được cộng dồn vào một ví điểm duy nhất.</p>
+      </div>
+      <div class="pos-grid">
+        <article class="pcard rv">
+          <span class="mono">F&B & Hospitality POS</span>
+          <h3>Tích hợp iPOS, PosApp, CukCuk, Golden Gate</h3>
+          <p>Tự động in số điểm vừa tích lũy và số dư điểm khả dụng ngay dưới chân hóa đơn tính tiền tại bàn, quét mã Voucher trừ tiền trực tiếp.</p>
+        </article>
+        <article class="pcard rv">
+          <span class="mono">Retail & Omnichannel</span>
+          <h3>Đồng bộ KiotViet, Sapo, Haravan, Nhanh.vn</h3>
+          <p>Cập nhật tồn kho quà tặng đổi điểm theo từng chi nhánh cửa hàng và đồng bộ lịch sử mua hàng giữa Offline và Website.</p>
+        </article>
+        <article class="pcard rv">
+          <span class="mono">Zalo Official Account & ZNS</span>
+          <h3>Đối Tác Ủy Quyền Giải Pháp Zalo Mini App</h3>
+          <p>Hỗ trợ trọn gói thủ tục xét duyệt Zalo Mini App chính chủ doanh nghiệp và phê duyệt mẫu tin nhắn ZNS chỉ trong 3–5 ngày làm việc.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="launch" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Ra mắt chương trình Loyalty chuyên nghiệp trong 7 ngày</p>
+        <h2 id="cta-h" style="margin-top:14px">Nhận Bản Thiết Kế Giao Diện Zalo Mini App &<br><em>5.000 Tin Nhắn ZNS Chăm Sóc Khách Hàng Miễn Phí</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="rName">Họ tên Chủ thương hiệu / Giám đốc Marketing</label>
+            <input id="rName" type="text" placeholder="Nguyễn Phương Thảo — CMO Chuỗi F&B" required>
+          </div>
+          <div>
+            <label for="rEmail">Số điện thoại Zalo / Email</label>
+            <input id="rEmail" type="email" placeholder="thao.nguyen@brandretail.vn" required>
+          </div>
+          <div>
+            <label for="rStore">Quy mô điểm bán hiện tại</label>
+            <select id="rStore">
+              <option value="s1">Từ 1 – 5 cửa hàng (Đang xây dựng tệp khách quen)</option>
+              <option value="s2">Từ 6 – 25 cửa hàng (Chuỗi bán lẻ / F&B tăng trưởng)</option>
+              <option value="s3">Trên 25 cửa hàng (Hệ thống toàn quốc / Nhượng quyền)</option>
+            </select>
+          </div>
+          <div>
+            <label for="rPos">Phần mềm bán hàng POS đang sử dụng</label>
+            <select id="rPos">
+              <option value="kiot">KiotViet / Sapo / Haravan</option>
+              <option value="ipos">iPOS / PosApp / CukCuk</option>
+              <option value="other">ERP riêng hoặc cần tư vấn mới toàn bộ</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Nhận Bản Demo Mini App Ngành Của Bạn</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">RewardLoop<span>.Zalo</span></a>
+      <ul class="f-nav">
+        <li><a href="#process">Luồng Quét QR</a></li>
+        <li><a href="#simulator">Mô Phỏng CLV</a></li>
+        <li><a href="#features">Gamification</a></li>
+        <li><a href="#pos">Kết Nối POS</a></li>
+        <li><a href="#launch">Khởi Tạo Mini App</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> RewardLoop Loyalty & CDP Vietnam · Giải pháp Thẻ Thành Viên Zalo Mini App</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  // 1. Hero Canvas: Interactive Zalo Mini App VIP Card & Lucky Wheel
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  let wheelAngle = 0.4;
+
+  function drawHero(ang = 0.4) {
+    const w = 600, h = 420;
+    heroX.fillStyle = '#0A0715';
+    heroX.fillRect(0, 0, w, h);
+
+    // Left: Smartphone Mockup with Zalo Mini App VIP Card
+    heroX.fillStyle = '#1F163B';
+    heroX.strokeStyle = '#A855F7';
+    heroX.lineWidth = 2;
+    heroX.fillRect(28, 24, 265, 372);
+    heroX.strokeRect(28, 24, 265, 372);
+
+    // Gold VIP Card inside phone
+    const cg = heroX.createLinearGradient(44, 52, 276, 175);
+    cg.addColorStop(0, '#FBBF24');
+    cg.addColorStop(1, '#D97706');
+    heroX.fillStyle = cg;
+    heroX.fillRect(44, 54, 233, 122);
+
+    heroX.fillStyle = '#120D24';
+    heroX.font = '800 13px "Plus Jakarta Sans", sans-serif';
+    heroX.fillText('DIAMOND VIP MEMBER', 58, 82);
+    heroX.font = '700 22px "JetBrains Mono", monospace';
+    heroX.fillText('14,850 ĐIỂM', 58, 118);
+    heroX.font = '600 11px "Be Vietnam Pro", sans-serif';
+    heroX.fillText('Hoàn điểm 10% · Ưu tiên bàn VIP', 58, 152);
+
+    // Voucher list inside phone
+    const vouchers = [
+      ['TẶNG 01 LY COLD BREW', 'Hạn: Hôm nay'],
+      ['GIẢM 100K ĐƠN TỪ 400K', 'Sinh nhật VIP'],
+      ['NHÂN ĐÔI ĐIỂM THỨ 4', 'Đã kích hoạt']
+    ];
+    vouchers.forEach((v, i) => {
+      const y = 196 + i * 58;
+      heroX.fillStyle = '#120D24';
+      heroX.strokeStyle = 'rgba(251,191,36,0.4)';
+      heroX.fillRect(44, y, 233, 46);
+      heroX.strokeRect(44, y, 233, 46);
+      heroX.fillStyle = '#FBBF24';
+      heroX.font = '700 11px "JetBrains Mono", monospace';
+      heroX.fillText(v[0], 56, y + 20);
+      heroX.fillStyle = '#B4A8D1';
+      heroX.font = '500 10.5px "Be Vietnam Pro", sans-serif';
+      heroX.fillText(v[1], 56, y + 36);
+    });
+
+    // Right: Gamification Lucky Spin Wheel
+    const cx = 446, cy = 205, r = 118;
+    const colors = ['#A855F7', '#FBBF24', '#1F163B', '#34D399', '#9333EA', '#F59E0B'];
+    const labels = ['+500đ', 'Voucher 50K', '+200đ', 'Quà VIP', 'Freeship', 'Mua 1 Tặng 1'];
+
+    heroX.save();
+    heroX.translate(cx, cy);
+    heroX.rotate(ang);
+    for (let i = 0; i < 6; i++) {
+      const a0 = (i * Math.PI * 2) / 6;
+      const a1 = ((i + 1) * Math.PI * 2) / 6;
+      heroX.beginPath();
+      heroX.moveTo(0, 0);
+      heroX.arc(0, 0, r, a0, a1);
+      heroX.closePath();
+      heroX.fillStyle = colors[i];
+      heroX.fill();
+      heroX.strokeStyle = '#0A0715';
+      heroX.lineWidth = 2;
+      heroX.stroke();
+
+      heroX.save();
+      heroX.rotate(a0 + Math.PI / 6);
+      heroX.fillStyle = i % 2 === 1 ? '#120D24' : '#F8FAFC';
+      heroX.font = '700 10.5px "JetBrains Mono", monospace';
+      heroX.fillText(labels[i], 34, 4);
+      heroX.restore();
+    }
+    heroX.restore();
+
+    // Center hub
+    heroX.fillStyle = '#FBBF24';
+    heroX.beginPath(); heroX.arc(cx, cy, 22, 0, Math.PI * 2); heroX.fill();
+    heroX.fillStyle = '#120D24';
+    heroX.font = '800 10px "JetBrains Mono", monospace';
+    heroX.fillText('QUAY', cx - 15, cy + 4);
+
+    heroX.fillStyle = '#F8FAFC';
+    heroX.font = '600 11.5px "JetBrains Mono", monospace';
+    heroX.fillText('GAMIFICATION TRÊN ZALO MINI APP', 332, 48);
+    heroX.fillStyle = '#34D399';
+    heroX.fillText('TỶ LỆ THAM GIA CHƠI: 91.4% KHÁCH TẠI QUẦY', 318, 368);
+  }
+  drawHero(wheelAngle);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    wheelAngle = ((e.clientX - r.left) / r.width) * Math.PI * 2;
+    drawHero(wheelAngle);
+  });
+  heroC.addEventListener('click', () => {
+    wheelAngle += 2.2;
+    drawHero(wheelAngle);
+  });
+
+  // 2. Pinned 4-Step O2O Loyalty Journey Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const P_INFO = [
+    ['01 · Quét QR tại quầy POS', '94.2%', '01.2 giây'],
+    ['02 · Tích điểm & Thăng hạng VIP', 'Tự động 100%', '+32% Giá trị đơn'],
+    ['03 · Vòng quay Gamification', '91.4% Chơi', '0đ Chi phí CAC'],
+    ['04 · Tự động hóa Zalo ZNS', '96.5% Đọc tin', '+38% Quay lại']
+  ];
+  function renderPin(p) {
+    const w = 660, h = 440;
+    const step = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3;
+    pinX.fillStyle = '#0A0715';
+    pinX.fillRect(0, 0, w, h);
+
+    for (let i = 0; i < 4; i++) {
+      const x = 48 + i * 145;
+      pinX.fillStyle = i <= step ? '#FBBF24' : '#1F163B';
+      pinX.fillRect(x, 38, 125, 8);
+      pinX.fillStyle = i === step ? '#FBBF24' : '#B4A8D1';
+      pinX.font = '600 11px "JetBrains Mono", monospace';
+      pinX.fillText(`BƯỚC 0${i + 1}`, x, 28);
+    }
+
+    if (step === 0) {
+      // POS QR Scan in 1 second
+      pinX.strokeStyle = '#FBBF24';
+      pinX.lineWidth = 2;
+      pinX.strokeRect(75, 92, 220, 240);
+      pinX.fillStyle = '#FBBF24';
+      pinX.font = '700 13px "JetBrains Mono", monospace';
+      pinX.fillText('MÀN HÌNH POS THU NGÂN', 96, 128);
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 6; c++) {
+          if ((r * c + r) % 2 === 0) pinX.fillRect(125 + c * 20, 152 + r * 20, 14, 14);
+        }
+      }
+      pinX.fillStyle = '#1F163B';
+      pinX.fillRect(325, 92, 265, 240);
+      pinX.fillStyle = '#34D399';
+      pinX.fillText('MỞ ZALO MINI APP TỨC THÌ', 348, 134);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Không cần tải App trên AppStore', 348, 180);
+      pinX.fillText('• Không cần nhớ mật khẩu đăng nhập', 348, 216);
+      pinX.fillText('• Cộng ngay +185 điểm vào ví Zalo', 348, 252);
+    } else if (step === 1) {
+      // Tier Progression Bars
+      const tiers = [
+        ['HẠNG MEMBER (Hoàn 3%)', 100, '#B4A8D1'],
+        ['HẠNG GOLD (Hoàn 6% + Quà SN)', 82, '#FBBF24'],
+        ['HẠNG DIAMOND (Hoàn 10% + Phòng VIP)', 48, '#A855F7']
+      ];
+      tiers.forEach((t, i) => {
+        const y = 105 + i * 78;
+        pinX.fillStyle = '#F8FAFC';
+        pinX.font = '700 13px "JetBrains Mono", monospace';
+        pinX.fillText(t[0], 65, y);
+        pinX.fillStyle = '#1F163B';
+        pinX.fillRect(65, y + 14, 530, 26);
+        pinX.fillStyle = t[2];
+        pinX.fillRect(65, y + 14, (t[1] / 100) * 530, 26);
+      });
+      pinX.fillStyle = '#FBBF24';
+      pinX.fillText('THÔNG BÁO ĐỘNG: "CHỈ CÒN 180.000Đ ĐỂ LÊN HẠNG DIAMOND!"', 65, 375);
+    } else if (step === 2) {
+      // Gamification Reward Drop
+      for (let i = 0; i < 3; i++) {
+        const x = 68 + i * 182;
+        pinX.fillStyle = '#1F163B';
+        pinX.strokeStyle = i === 1 ? '#FBBF24' : '#A855F7';
+        pinX.lineWidth = 2;
+        pinX.fillRect(x, 105, 160, 210);
+        pinX.strokeRect(x, 105, 160, 210);
+        pinX.fillStyle = i === 1 ? '#FBBF24' : '#F8FAFC';
+        pinX.font = '700 13px "JetBrains Mono", monospace';
+        pinX.fillText(['LẮC XÌ TẾT', 'VÒNG QUAY VIP', 'GHÉP HÌNH ĐỔI QUÀ'][i], x + 16, 155);
+        pinX.fillStyle = '#34D399';
+        pinX.fillText(['Tặng Voucher 50K', 'Trúng Ly Giữ Nhiệt', 'Hoàn 20% Đơn Sau'][i], x + 16, 225);
+      }
+      pinX.fillStyle = '#F8FAFC';
+      pinX.fillText('TỶ LỆ ĐỔI VOUCHER QUAY LẠI CỬA HÀNG ĐẠT 42.8%', 68, 375);
+    } else {
+      // Automated ZNS Message Card
+      pinX.fillStyle = '#1F163B';
+      pinX.strokeStyle = '#34D399';
+      pinX.lineWidth = 2;
+      pinX.fillRect(65, 92, 530, 245);
+      pinX.strokeRect(65, 92, 530, 245);
+      pinX.fillStyle = '#34D399';
+      pinX.font = '700 15px "JetBrains Mono", monospace';
+      pinX.fillText('TIN NHẮN ZALO ZNS TỰ ĐỘNG · KỊCH BẢN GỌI KHÁCH NGỦ ĐÔNG', 90, 138);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• "Chào chị Lan Anh! Đã 21 ngày chúng mình chưa gặp lại chị tại cửa hàng."', 90, 185);
+      pinX.fillText('• "Gửi tặng chị mã VIP100 giảm ngay 100.000đ, áp dụng đến Chủ nhật tuần này."', 90, 220);
+      pinX.fillStyle = '#FBBF24';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('TỰ ĐỘNG ĐỐI SOÁT DOANH THU TỪ TIN NHẮN ZNS VỀ BÁO CÁO MARKETING', 90, 280);
+    }
+
+    $('#pSt').textContent = P_INFO[step][0];
+    $('#pOpen').textContent = P_INFO[step][1];
+    $('#pSec').textContent = P_INFO[step][2];
+  }
+  renderPin(0.2);
+
+  // 3. Signature Interactive Widget: VIP Tier Card Preview & CLV Revenue Simulator
+  const INDS = [
+    {
+      name: 'Chuỗi Cà phê, Trà sữa & Nhà hàng F&B',
+      brand: 'THE ARTISAN COFFEE',
+      aov: 185000, // VND
+      baseRet: 32,
+      perkGold: 'Tặng 1 bánh ngọt sinh nhật + Hoàn điểm 6%',
+      perkDia: 'Miễn phí Upsize trọn đời + Quầy gọi món ưu tiên'
+    },
+    {
+      name: 'Chuỗi Thời trang, Mỹ phẩm & Bán lẻ',
+      brand: 'LUMIÈRE STUDIO VN',
+      aov: 680000,
+      baseRet: 26,
+      perkGold: 'Giảm 15% BST mới ra mắt + Đổi trả 30 ngày',
+      perkDia: 'Stylist riêng tư vấn + Quà tặng độc quyền mỗi quý'
+    },
+    {
+      name: 'Hệ thống Spa, Thẩm mỹ viện & Phòng tập',
+      brand: 'AURA WELLNESS SPA',
+      aov: 1450000,
+      baseRet: 38,
+      perkGold: 'Tặng buổi soi da chuyên sâu + Tích lũy 8%',
+      perkDia: 'Phòng VIP riêng biệt + Ưu đãi 25% gói liệu trình năm'
+    }
+  ];
+
+  const loyC = $('#loyC'), loyX = loyC.getContext('2d');
+  let curInd = 0, cashRate = 6, monthlyCust = 4500;
+
+  function renderLoyalty() {
+    const w = 680, h = 410;
+    const ind = INDS[curInd];
+    loyX.fillStyle = '#0A0715';
+    loyX.fillRect(0, 0, w, h);
+
+    $('#vRate').textContent = `${cashRate}% giá trị đơn`;
+    $('#vCust').textContent = `${monthlyCust.toLocaleString('vi-VN')} khách`;
+
+    // Calculate new members, retention rate, incremental monthly revenue & ROI
+    const newMems = Math.round(monthlyCust * 0.85);
+    const retRate = +(ind.baseRet + cashRate * 2.1).toFixed(1);
+    const extraOrders = Math.round(newMems * (retRate / 100) * 0.45);
+    const extraRevMillion = Math.round((extraOrders * ind.aov) / 1000000);
+    const roi = Math.max(4.2, +(11.5 - cashRate * 0.42).toFixed(1));
+
+    $('#kMem').textContent = `${newMems.toLocaleString('vi-VN')} người`;
+    $('#kRet').textContent = `${retRate}%`;
+    $('#kRev').textContent = `+${extraRevMillion.toLocaleString('vi-VN')} Triệu`;
+    $('#kRoi').textContent = `${roi}x Chi phí`;
+
+    $('#wAdv').innerHTML = `<strong>Chiến lược hạng thẻ đề xuất:</strong> Với mức hoàn điểm <b>${cashRate}%</b> cho <em>${ind.name}</em>, chương trình tạo thêm khoảng <b>+${extraRevMillion.toLocaleString('vi-VN')} triệu VNĐ/tháng</b> doanh thu từ khách hàng cũ quay lại qua Zalo ZNS.`;
+
+    // Draw 3 Stacked / Side-by-side Tier Cards (Member / Gold / Diamond)
+    const cards = [
+      { tier: 'MEMBER TIER', rate: `${Math.max(2, cashRate - 3)}%`, bg: '#1F163B', border: '#B4A8D1', text: '#F8FAFC' },
+      { tier: 'GOLD VIP', rate: `${cashRate}%`, bg: '#D97706', border: '#FBBF24', text: '#120D24' },
+      { tier: 'DIAMOND ELITE', rate: `${cashRate + 4}%`, bg: '#6B21A8', border: '#FBBF24', text: '#F8FAFC' }
+    ];
+
+    loyX.fillStyle = '#F8FAFC';
+    loyX.font = '600 11.5px "JetBrains Mono", monospace';
+    loyX.fillText(`GIAO DIỆN 3 HẠNG THẺ TRÊN ZALO MINI APP — ${ind.brand}`, 30, 32);
+
+    cards.forEach((c, i) => {
+      const x = 30 + i * 212;
+      const y = 52;
+      loyX.fillStyle = c.bg;
+      loyX.strokeStyle = c.border;
+      loyX.lineWidth = i === 2 ? 2.5 : 1.5;
+      loyX.fillRect(x, y, 196, 130);
+      loyX.strokeRect(x, y, 196, 130);
+
+      loyX.fillStyle = c.text;
+      loyX.font = '700 10.5px "JetBrains Mono", monospace';
+      loyX.fillText(ind.brand, x + 14, y + 26);
+      loyX.font = '800 15px "Plus Jakarta Sans", sans-serif';
+      loyX.fillText(c.tier, x + 14, y + 54);
+      loyX.font = '700 22px "JetBrains Mono", monospace';
+      loyX.fillText(`HOÀN ${c.rate}`, x + 14, y + 90);
+      loyX.font = '500 10.5px "Be Vietnam Pro", sans-serif';
+      loyX.fillText('Quét QR tích điểm 1 chạm', x + 14, y + 114);
+    });
+
+    // Bottom Chart: CLV Comparison (Without Loyalty vs With RewardLoop Zalo)
+    loyX.fillStyle = '#B4A8D1';
+    loyX.font = '600 11px "JetBrains Mono", monospace';
+    loyX.fillText('SO SÁNH DOANH THU TÍCH LŨY 12 THÁNG TRÊN MỖI KHÁCH HÀNG (CLV):', 30, 222);
+
+    const baseClv = Math.round((ind.aov * 2.2) / 1000);
+    const loopClv = Math.round((ind.aov * (3.6 + cashRate * 0.18)) / 1000);
+
+    // Traditional Bar
+    loyX.fillStyle = '#1F163B';
+    loyX.fillRect(30, 244, 260, 42);
+    loyX.fillStyle = '#F8FAFC';
+    loyX.font = '600 12px "JetBrains Mono", monospace';
+    loyX.fillText(`KHÁCH VÃNG LAI: ${baseClv.toLocaleString('vi-VN')}K VNĐ/NĂM`, 44, 270);
+
+    // RewardLoop Bar
+    const boostW = Math.min(620, Math.round(260 * (loopClv / baseClv)));
+    loyX.fillStyle = '#FBBF24';
+    loyX.fillRect(30, 304, boostW, 46);
+    loyX.fillStyle = '#120D24';
+    loyX.font = '700 12.5px "JetBrains Mono", monospace';
+    loyX.fillText(`HỘI VIÊN ZALO MINI APP: ${loopClv.toLocaleString('vi-VN')}K VNĐ/NĂM (+${Math.round((loopClv / baseClv - 1) * 100)}%)`, 44, 332);
+
+    loyX.fillStyle = '#34D399';
+    loyX.font = '600 11.5px "JetBrains Mono", monospace';
+    loyX.fillText(`Đặc quyền VIP: ${ind.perkGold}`, 30, 382);
+  }
+
+  function selectInd(idx) {
+    curInd = idx;
+    $$('#indTabs .i-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === idx));
+    renderLoyalty();
+  }
+  selectInd(0);
+
+  $('#indTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.i-btn');
+    if (b) selectInd(+b.dataset.i);
+  });
+  $('#rateR').addEventListener('input', (e) => {
+    cashRate = +e.target.value;
+    renderLoyalty();
+  });
+  $('#custR').addEventListener('input', (e) => {
+    monthlyCust = +e.target.value;
+    renderLoyalty();
+  });
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#rName').value.trim();
+    $('#ctaOk').textContent = n
+      ? `Chào mừng ${n}! Bản thiết kế Zalo Mini App mẫu và gói tặng 5.000 tin nhắn ZNS đã được gửi tới thông tin liên hệ của bạn.`
+      : 'Vui lòng nhập họ tên và số điện thoại/email để nhận bản Demo Zalo Mini App.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.32 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.42, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

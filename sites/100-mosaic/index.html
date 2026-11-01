@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mosaic — Phục chế tỉ mỉ những bức ảnh xưa</title>
+<meta name="description" content="Mosaic phục chế những bức ảnh gia đình xưa cũ: xóa vết xước và bụi mờ, khôi phục độ tương phản phai màu, làm nét dịu nhẹ và tái tạo màu sắc cẩn trọng. Thử ngay trên ba bức ảnh mẫu.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23140F0C'/%3E%3Crect x='10' y='10' width='20' height='20' fill='%23C9A27A'/%3E%3Crect x='34' y='10' width='20' height='20' fill='%23C2412B'/%3E%3Crect x='10' y='34' width='20' height='20' fill='%232E6E73'/%3E%3Crect x='34' y='34' width='20' height='20' fill='%23E5B53C'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Brygada+1918:ital,wght@0,400;0,500;0,700;1,400;1,500&family=JetBrains+Mono:ital,wght@0,400..700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --dark:#140F0C; --dark2:#1E1713; --safe:#C2412B; --safeD:#7A1E12; --sepia:#C9A27A; --paper:#EFE4D0; --paper2:#E5D6BC; --ink:#211A15; --muted:#5C4F43;
+  --teal:#2E6E73; --gold:#E5B53C; --rose:#C2412B; --cream:#F3EADB; --mutedL:#C7B9A6;
+  --serif:"Brygada 1918", Georgia, serif; --mono:"JetBrains Mono", ui-monospace, monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--dark);color:var(--cream);font-family:var(--serif);font-size:18px;line-height:1.6;overflow-x:hidden}
+body::after{content:"";position:fixed;inset:-50%;pointer-events:none;z-index:300;opacity:.11;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E");animation:grain 1s steps(5) infinite}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,4%)}50%{transform:translate(4%,-2%)}75%{transform:translate(-5%,-4%)}100%{transform:translate(0,0)}}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--gold);color:var(--dark);padding:10px 16px;z-index:400}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1280px,100% - 64px);margin-inline:auto}
+h1,h2,h3{font-weight:500;margin:0;line-height:1.08;letter-spacing:-.015em}
+h2{font-size:clamp(42px,5.4vw,86px)}
+h2 em,h1 em{font-weight:400}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:12px;font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--sepia)}
+.kick::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--safe);box-shadow:0 0 12px 2px rgba(194,65,43,.7)}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 26px;border:1px solid var(--cream);background:var(--cream);color:var(--dark);font-family:var(--mono);font-size:14px;letter-spacing:.1em;text-transform:uppercase;text-decoration:none;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .5s var(--ease),background .3s,color .3s,border-color .3s}
+.btn:hover{background:var(--gold);border-color:var(--gold)}
+.btn.ghost{background:transparent;color:var(--cream)}
+.btn.ghost:hover{background:rgba(243,234,219,.1);border-color:var(--gold)}
+.btn.sm{min-height:44px;padding:0 16px;font-size:13px}
+.btn.dark{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.btn.dark:hover{background:var(--teal);border-color:var(--teal)}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:90;transition:background .4s,box-shadow .4s}
+.nav.solid{background:rgba(20,15,12,.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 1px 0 rgba(201,162,122,.2)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:76px}
+.logo{display:inline-flex;align-items:center;gap:12px;text-decoration:none;min-height:44px;font-size:26px;font-weight:500;letter-spacing:.01em}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;text-decoration:none;font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--mutedL);transition:color .3s}
+.nav ul a:hover{color:var(--gold)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:48px;height:48px;border:1px solid var(--sepia);background:transparent;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:1.5px;background:var(--cream);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:12px;right:12px;top:84px;z-index:89;background:var(--dark2);border:1px solid var(--sepia);padding:10px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .35s,visibility .35s,transform .45s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:58px;padding:0 12px;text-decoration:none;font-size:28px;border-bottom:1px solid rgba(201,162,122,.2)}
+.mmenu a:last-child{border:0}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:120px 0 60px;overflow:hidden;display:flex;flex-direction:column;justify-content:center;background:radial-gradient(ellipse 70% 60% at 80% 0%,rgba(194,65,43,.38),transparent 70%),radial-gradient(ellipse 50% 50% at 10% 100%,rgba(122,30,18,.35),transparent 70%),var(--dark)}
+.hero .wrap{position:relative;z-index:2}
+.hero h1{font-size:clamp(56px,7.6vw,128px);line-height:1.06;max-width:12ch}
+.hero h1 em{color:var(--sepia)}
+.hero-low{display:flex;flex-wrap:wrap;gap:24px 40px;align-items:flex-end;margin-top:30px}
+.hero-lead{max-width:40ch;font-size:19px;color:var(--mutedL)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px}
+.line{position:absolute;left:0;right:0;top:118px;height:230px;z-index:1;pointer-events:none}
+.line svg.wire{position:absolute;inset:0;width:100%;height:100%}
+.print{position:absolute;top:0;width:var(--w,220px);transform-origin:50% 0;pointer-events:auto;cursor:pointer;border:0;padding:10px 10px 30px;background:#EDE3CF;box-shadow:0 30px 50px -20px rgba(0,0,0,.8)}
+.print canvas{width:100%;height:auto;background:#d9c8a8}
+.print .peg{position:absolute;left:50%;top:-16px;width:16px;height:40px;margin-left:-8px;background:linear-gradient(90deg,#8B6B4A,#B38E66,#8B6B4A);border-radius:3px}
+.print .cap{position:absolute;left:10px;right:10px;bottom:6px;font-family:var(--mono);font-size:11px;color:#5C4F43;text-align:left}
+.hero-hint{position:absolute;right:max(32px,calc((100vw - 1280px)/2));bottom:28px;z-index:2;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mutedL)}
+
+/* process (pinned) */
+.process{position:relative;background:var(--dark2)}
+.pr-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:50px;align-items:center;width:min(1280px,100% - 64px);margin-inline:auto;padding-top:76px}
+.pr-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 70% at 70% 50%,rgba(194,65,43,.42),transparent 70%)}
+.process h2{margin:20px 0 26px}
+.process h2 em{color:var(--sepia)}
+.psteps{position:relative;height:200px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--gold)}
+.pstep h3{font-size:clamp(28px,2.6vw,40px);margin:8px 0 12px}
+.pstep p{color:var(--mutedL);max-width:40ch}
+.tray{position:relative;padding:34px;background:linear-gradient(160deg,#2b2420,#18120f);border-radius:14px;box-shadow:inset 0 0 0 2px rgba(201,162,122,.18),inset 0 30px 60px rgba(0,0,0,.5),0 50px 80px -40px rgba(0,0,0,.9)}
+.tray::before{content:"";position:absolute;inset:14px;border-radius:8px;background:rgba(194,65,43,.07);box-shadow:inset 0 0 40px rgba(194,65,43,.25)}
+.tray canvas{position:relative;width:100%;height:auto;border:8px solid #EDE3CF;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.tray .meter{position:relative;display:flex;justify-content:space-between;gap:12px;margin-top:16px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--mutedL);text-transform:uppercase}
+.tray .meter b{color:var(--cream);font-weight:500}
+
+/* lab */
+.lab{padding:140px 0 120px;background:var(--dark)}
+.sec-head{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:end;margin-bottom:50px}
+.sec-head p{color:var(--mutedL);max-width:44ch}
+.lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:34px;align-items:start}
+.stagebox{position:relative;user-select:none;-webkit-user-select:none;touch-action:pan-y;background:#EDE3CF;padding:12px 12px 40px;box-shadow:0 40px 80px -40px rgba(0,0,0,.9)}
+.stagebox canvas{width:100%;height:auto;cursor:ew-resize}
+.stagebox .lbls{position:absolute;left:12px;right:12px;bottom:10px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#5C4F43}
+.handle{position:absolute;top:12px;bottom:40px;width:0;left:50%;z-index:3;outline:none}
+.handle::before{content:"";position:absolute;top:0;bottom:0;left:-1px;width:2px;background:var(--cream);box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.handle span{position:absolute;top:50%;left:-26px;width:52px;height:52px;margin-top:-26px;border-radius:50%;background:var(--cream);box-shadow:0 6px 20px rgba(0,0,0,.45);display:grid;place-items:center;cursor:ew-resize;touch-action:none}
+.handle span svg{width:26px;height:26px}
+.handle:focus-visible span{outline:3px solid var(--gold);outline-offset:3px}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.thumbs button{padding:6px 6px 8px;border:1px solid rgba(201,162,122,.3);background:transparent;cursor:pointer;text-align:left;transition:border-color .3s,transform .4s var(--ease)}
+.thumbs button canvas{width:100%;height:auto}
+.thumbs button small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--mutedL);margin-top:6px}
+.thumbs button:hover{transform:translateY(-4px)}
+.thumbs button[aria-pressed="true"]{border-color:var(--gold);background:rgba(229,181,60,.08)}
+.steps{display:grid;gap:10px}
+.steps .lb{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--sepia);margin-bottom:4px}
+.tg{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center;width:100%;min-height:72px;padding:12px 16px;border:1px solid rgba(201,162,122,.3);background:rgba(239,228,208,.03);cursor:pointer;text-align:left;transition:border-color .3s,background .3s}
+.tg b{font-weight:500;font-size:19px}
+.tg small{grid-column:1;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--mutedL)}
+.tg i{grid-row:1/3;grid-column:2;position:relative;width:48px;height:28px;border-radius:99px;background:#3A2F28;transition:background .3s}
+.tg i::after{content:"";position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:var(--mutedL);transition:transform .4s var(--ease),background .3s}
+.tg[aria-pressed="true"]{border-color:var(--gold);background:rgba(229,181,60,.07)}
+.tg[aria-pressed="true"] i{background:var(--teal)}
+.tg[aria-pressed="true"] i::after{transform:translateX(20px);background:var(--cream)}
+.lab-acts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.lab-acts .btn{padding:0 10px}
+.status{min-height:56px;font-family:var(--mono);font-size:13px;line-height:1.5;color:var(--gold);margin-top:6px}
+
+/* fixes (light, colour returns) */
+.fixes{padding:140px 0 120px;background:var(--paper);color:var(--ink)}
+.fixes .kick{color:var(--safeD)}
+.fixes .sec-head p{color:var(--muted)}
+.fixes h2 em{color:var(--teal)}
+.fx{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--ink)}
+.fxi{padding:28px 26px 30px 0;border-bottom:1px solid rgba(33,26,21,.2)}
+.fxi:nth-child(3n+2),.fxi:nth-child(3n+3){padding-left:26px;border-left:1px solid rgba(33,26,21,.2)}
+.fxi .sw{display:flex;height:84px;margin-bottom:18px;overflow:hidden;box-shadow:0 0 0 1px rgba(33,26,21,.25)}
+.fxi .sw canvas{width:50%;height:84px;object-fit:cover}
+.fxi h3{font-size:28px;margin-bottom:6px}
+.fxi p{color:var(--muted);font-size:17px}
+.fxi .mono{color:var(--safeD);margin-bottom:10px;display:block}
+
+/* story */
+.story{padding:130px 0;background:var(--paper2);color:var(--ink);overflow:hidden}
+.story-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:70px;align-items:center}
+.pair{position:relative;height:440px}
+.pair .print{position:absolute;cursor:default;--w:250px}
+.pair .print:nth-child(1){left:0;top:30px;transform:rotate(-6deg)}
+.pair .print:nth-child(2){left:150px;top:0;transform:rotate(4deg)}
+.story blockquote{margin:0;font-size:clamp(28px,2.8vw,42px);line-height:1.3;font-style:italic}
+.story cite{display:block;margin-top:22px;font-style:normal;font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+
+/* pricing */
+.pricing{padding:130px 0 120px;background:var(--cream);color:var(--ink)}
+.pricing .kick{color:var(--safeD)}
+.pricing .sec-head p{color:var(--muted)}
+.pricing h2 em{color:var(--rose)}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.plan{position:relative;padding:34px 30px 30px;background:var(--paper);display:flex;flex-direction:column;gap:14px;border-top:6px solid var(--c)}
+.plan h3{font-size:32px}
+.plan .pr{font-size:58px;line-height:1}
+.plan .pr small{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.plan ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:17px}
+.plan li{display:grid;grid-template-columns:18px 1fr;gap:8px}
+.plan li::before{content:"";width:8px;height:8px;margin-top:10px;background:var(--c)}
+.plan .btn{margin-top:auto}
+.priv{display:flex;flex-wrap:wrap;gap:12px 30px;margin-top:34px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+
+/* cta */
+.cta{padding:130px 0;background:var(--dark);text-align:center;position:relative;overflow:hidden}
+.cta::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 50% 60% at 50% 100%,rgba(194,65,43,.35),transparent 70%)}
+.cta .wrap{position:relative}
+.cta h2{max-width:14ch;margin:20px auto 0}
+.cta form{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:36px}
+.cta input{min-height:54px;min-width:min(320px,100%);padding:0 18px;border:1px solid var(--sepia);background:transparent;color:var(--cream)}
+.cta input::placeholder{color:#B5A591}
+.cta .ok{min-height:24px;margin-top:14px;font-family:var(--mono);font-size:13px;color:var(--gold)}
+
+footer{background:var(--dark);border-top:1px solid rgba(201,162,122,.2);padding:50px 0 34px}
+footer .top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;padding-bottom:28px}
+footer ul{display:flex;flex-wrap:wrap;list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;text-decoration:none;font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mutedL)}
+footer li a:hover{color:var(--gold)}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(201,162,122,.2);font-family:var(--mono);font-size:12px;color:var(--mutedL)}
+
+.rm .pr-pin{height:auto;padding:120px 0 90px}
+.rm .psteps{height:auto;display:grid;gap:24px}
+.rm .pstep{position:static}
+@media (prefers-reduced-motion:reduce){body::after{animation:none}}
+
+@media (max-width:1100px){
+  .lab-grid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .steps .lb,.lab-acts,.status{grid-column:1/-1}
+}
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .sec-head,.story-grid{grid-template-columns:1fr;gap:24px}
+  .pr-pin{grid-template-columns:1fr;grid-template-rows:auto auto;gap:10px;align-content:center;padding-top:80px}
+  .tray{order:-1;padding:16px;max-width:560px;width:100%;justify-self:center}
+  .fx{grid-template-columns:1fr 1fr}
+  .fxi:nth-child(3n+2),.fxi:nth-child(3n+3){padding-left:0;border-left:0}
+  .fxi:nth-child(even){padding-left:22px;border-left:1px solid rgba(33,26,21,.2)}
+  .plans{grid-template-columns:1fr;max-width:520px;margin:0 auto}
+}
+@media (max-width:760px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  body{font-size:17px}
+  .nav .wrap{height:68px}
+  .mmenu{top:76px}
+  .hero{padding:330px 0 50px;justify-content:flex-start;min-height:0}
+  .hero h1{font-size:clamp(46px,13vw,62px)}
+  .hero-lead{font-size:17px}
+  .line{top:84px;height:220px}
+  .hero-hint{display:none}
+  .process h2{font-size:32px;margin:6px 0 10px}
+  .process .kick{display:none}
+  .tray canvas{border-width:5px}
+  .tray .meter{margin-top:10px;font-size:11px}
+  .psteps{height:200px}
+  .pstep h3{font-size:24px;margin:4px 0 6px}
+  .pstep p{font-size:15px;line-height:1.5}
+  .lab,.fixes,.pricing{padding:96px 0 84px}
+  .story{padding:96px 0}
+  .sec-head{margin-bottom:30px}
+  .stagebox{padding:8px 8px 34px;margin:0 -8px}
+  .handle{top:8px;bottom:34px}
+  .steps{grid-template-columns:1fr}
+  .tg{min-height:64px}
+  .fx{grid-template-columns:1fr}
+  .fxi,.fxi:nth-child(even){padding:24px 0;border-left:0!important;padding-left:0!important}
+  .pair{height:340px}
+  .pair .print{--w:190px}
+  .pair .print:nth-child(2){left:120px}
+  .cta{padding:96px 0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Mosaic, trang chủ"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="13" height="13" fill="#C9A27A"/><rect x="17" y="2" width="13" height="13" fill="#C2412B"/><rect x="2" y="17" width="13" height="13" fill="#2E6E73"/><rect x="17" y="17" width="13" height="13" fill="#E5B53C"/></svg>Mosaic</a>
+    <nav aria-label="Điều hướng chính"><ul><li><a href="#process">Quy trình</a></li><li><a href="#lab">Phòng thử</a></li><li><a href="#fixes">Khắc phục hư hại</a></li><li><a href="#pricing">Bảng giá</a></li></ul></nav>
+    <div class="nav-r"><a class="btn sm mag" href="#start">Phục chế ảnh</a><button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button></div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true"><a href="#process">Quy trình</a><a href="#lab">Phòng thử</a><a href="#fixes">Khắc phục hư hại</a><a href="#pricing">Bảng giá</a><a href="#start">Phục chế ảnh</a></div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="line" id="line"><svg class="wire" viewBox="0 0 1440 230" preserveAspectRatio="none" aria-hidden="true"><path d="M-10 18Q720 70 1450 14" fill="none" stroke="#7A6450" stroke-width="2"/></svg></div>
+  <div class="wrap">
+    <p class="kick hf">Phục chế ảnh bằng AI · hợp tác cùng chuyên gia lưu trữ</p>
+    <h1 id="hero-h" style="margin-top:24px"><span class="mask"><span>Đánh thức</span></span><span class="mask"><span>những bức ảnh <em>xưa.</em></span></span></h1>
+    <div class="hero-low">
+      <p class="hero-lead hf">Mosaic làm lành vết xước, vực dậy sắc độ phai mờ và — chỉ khi bạn yêu cầu — tái tạo lại màu sắc. Mọi thay đổi đều được hiển thị rõ ràng, giải thích minh bạch và có thể hoàn tác để bức ảnh mãi là kỷ vật của riêng gia đình bạn.</p>
+      <div class="hero-cta hf"><a class="btn mag" href="#lab">Phục chế thử ảnh mẫu</a><a class="btn ghost mag" href="#process">Xem quy trình</a></div>
+    </div>
+  </div>
+  <p class="hero-hint hf" aria-hidden="true">Di chuột lên tấm ảnh phơi để xem bản phục chế</p>
+</section>
+
+<section class="process" id="process" aria-labelledby="pr-h">
+  <div class="pr-glow" id="prGlow" aria-hidden="true"></div>
+  <div class="pr-pin" id="prPin">
+    <div>
+      <p class="kick">Quy trình hoạt động</p>
+      <h2 id="pr-h">Trong khay tráng,<br><em>bốn lượt xử lý</em></h2>
+      <div class="psteps">
+        <article class="pstep"><p class="n">01 · Quét bản gốc</p><h3>Khởi đầu bằng bản sao chuẩn xác</h3><p>Chúng tôi làm việc trên bản quét 2400 dpi và không bao giờ can thiệp vào tệp gốc. Tấm ảnh hiện lên trong khay thuốc nguyên trạng với đầy đủ dấu vết thời gian.</p></article>
+        <article class="pstep"><p class="n">02 · Lập bản đồ</p><h3>Định vị từng vết hư hại</h3><p>Mô hình bóc tách riêng vết xước, hạt bụi, nếp gấp và vết ố để chỉ sửa chữa vùng tổn thương mà không tự bịa thêm chi tiết chưa từng tồn tại.</p></article>
+        <article class="pstep"><p class="n">03 · Hàn gắn</p><h3>Khâu lành rồi cân bằng sắc độ</h3><p>Các vết rách được bù đắp từ chính kết cấu hạt giấy xung quanh, vùng phai màu được nâng tương phản, và độ nhòe của thấu kính cũ được làm nét dịu nhẹ.</p></article>
+        <article class="pstep"><p class="n">04 · Lên màu</p><h3>Tái tạo màu, nếu bạn muốn</h3><p>Màu sắc phục dựng luôn là một phép phỏng đoán có cơ sở, và chúng tôi ghi chú rõ điều đó. Bạn có thể chọn bảng màu, chỉnh màu áo khoác từ xanh dương sang xanh lá, hoặc giữ nguyên sắc nâu sepia truyền thống.</p></article>
+      </div>
+    </div>
+    <div class="tray" aria-hidden="true"><canvas id="trayC" width="720" height="540"></canvas><p class="meter"><span>Lượt <b id="tPass">1</b> / 4</span><span id="tWhat">Đang hiện ảnh</span><span><b id="tPct">0</b>%</span></p></div>
+  </div>
+</section>
+
+<section class="lab" id="lab" aria-labelledby="lab-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick">Phòng thử nghiệm</p><h2 id="lab-h" class="split" style="margin-top:20px">Kéo để so sánh,<br><em>bật tắt từng lượt</em></h2></div><p class="rv">Ba bức ảnh mẫu do chúng tôi tạo riêng cho trang này (không quét ảnh gia đình thật nào). Kéo thanh phân cách để đối chiếu trước và sau, đồng thời bật hoặc tắt từng bước xử lý để quan sát sự khác biệt.</p></div>
+    <div class="lab-grid">
+      <div>
+        <div class="stagebox" id="stagebox">
+          <canvas id="labC" width="720" height="540" role="img" aria-label="Ảnh mẫu, trước và sau khi phục chế"></canvas>
+          <div class="handle" id="handle" role="slider" tabindex="0" aria-label="Thanh kéo so sánh trước và sau" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50% trước, 50% sau"><span><svg viewBox="0 0 26 26" fill="none" stroke="#211A15" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 7l-5 6 5 6M17 7l5 6-5 6"/></svg></span></div>
+          <p class="lbls" aria-hidden="true"><span>Trước</span><span>Sau</span></p>
+        </div>
+        <div class="thumbs" id="thumbs" role="group" aria-label="Chọn một bức ảnh mẫu"></div>
+      </div>
+      <div class="steps" id="steps">
+        <p class="lb">Các bước phục chế</p>
+        <button class="tg" type="button" data-k="heal" aria-pressed="false"><b>Xóa vết xước và bụi bẩn</b><small>Bù đắp vết rách từ kết cấu hạt giấy liền kề</small><i aria-hidden="true"></i></button>
+        <button class="tg" type="button" data-k="tone" aria-pressed="false"><b>Khôi phục sắc độ phai mờ</b><small>Nâng độ tương phản, khử lớp ám vàng ố</small><i aria-hidden="true"></i></button>
+        <button class="tg" type="button" data-k="sharp" aria-pressed="false"><b>Làm nét dịu nhẹ</b><small>Khử độ nhòe ống kính cũ, không làm bệt da</small><i aria-hidden="true"></i></button>
+        <button class="tg" type="button" data-k="colour" aria-pressed="false"><b>Tái tạo màu sắc</b><small>Luôn được gắn nhãn là màu phỏng đoán</small><i aria-hidden="true"></i></button>
+        <div class="lab-acts"><button class="btn sm" type="button" id="autoBtn">Phục chế toàn bộ</button><button class="btn sm ghost" type="button" id="resetBtn">Về lại bản gốc</button></div>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="fixes" id="fixes" aria-labelledby="fx-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick">Khắc phục hư hại</p><h2 id="fx-h" class="split" style="margin-top:20px">Thời gian khắc nghiệt<br>với <em>giấy ảnh</em></h2></div><p class="rv">Sáu dạng hư hại phổ biến, mỗi dạng được xử lý bởi một lượt chuyên biệt để bạn giữ lại những dấu vết mình trân quý. Nhiều người muốn giữ lại nếp gấp kỷ niệm — chúng tôi hoàn toàn tôn trọng điều đó.</p></div>
+    <div class="fx" id="fx"></div>
+  </div>
+</section>
+
+<section class="story" id="story" aria-labelledby="st-h">
+  <div class="wrap story-grid">
+    <div class="pair" id="pair" aria-hidden="true"></div>
+    <div>
+      <p class="kick" style="color:var(--safeD)" id="st-h">Chia sẻ từ khách hàng</p>
+      <blockquote class="rv" style="margin-top:22px">“Khi lớp bụi mờ được tẩy sạch, chúng tôi đọc được cái tên sơn trên mạn thuyền. Bà tôi chưa từng kể về nó. Cả nhà đã đặt vé cho một chuyến đi tìm lại con thuyền ấy.”</blockquote>
+      <cite class="rv">Rosa Imbert · đã phục chế 214 bức ảnh từ một chiếc hộp giày cũ</cite>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing" aria-labelledby="pp-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick">Bảng giá</p><h2 id="pp-h" class="split" style="margin-top:20px">Từng tấm lẻ,<br>hoặc <em>cả hộp ảnh kỷ niệm</em></h2></div><p class="rv">Phục chế thử miễn phí ba bức ảnh. Bạn chỉ thanh toán cho những bản phục chế mình tải xuống, và mọi tệp xuất ra luôn đi kèm bản quét gốc nguyên vẹn bên cạnh.</p></div>
+    <div class="plans">
+      <article class="plan rv" style="--c:var(--sepia)"><h3>Từng tấm lẻ</h3><p class="pr">£3<small> / ảnh</small></p><ul><li>Đầy đủ bốn lượt xử lý</li><li>Tải xuống độ phân giải tối đa</li><li>Tệp đối chiếu trước và sau</li></ul><a class="btn dark" href="#start">Phục chế một tấm</a></article>
+      <article class="plan rv" style="--c:var(--rose)"><h3>Hộp ảnh gia đình</h3><p class="pr">£39<small> / 100 ảnh</small></p><ul><li>Tải lên hàng loạt từ máy quét</li><li>Lưu giữ ngày tháng và tên gọi theo từng tấm</li><li>Tặng kèm bản in каталог (contact sheet) gửi qua bưu điện</li></ul><a class="btn dark" href="#start">Bắt đầu hộp ảnh</a></article>
+      <article class="plan rv" style="--c:var(--teal)"><h3>Kho lưu trữ</h3><p class="pr">£12<small> / tháng</small></p><ul><li>Phục chế không giới hạn số lượng</li><li>Album gia đình chia sẻ chung</li><li>Hỗ trợ trực tiếp từ chuyên gia lưu trữ</li></ul><a class="btn dark" href="#start">Trò chuyện với chuyên gia</a></article>
+    </div>
+    <p class="priv"><span>● Bản quét của bạn được xóa tự động sau 30 ngày</span><span>● Không bao giờ dùng ảnh khách hàng để huấn luyện AI</span><span>● Ảnh lên màu luôn được ghi chú rõ là bản phỏng đoán</span></p>
+  </div>
+</section>
+
+<section class="cta" id="start" aria-labelledby="cta-h">
+  <div class="wrap">
+    <p class="kick">Miễn phí ba bức ảnh đầu tiên</p>
+    <h2 id="cta-h" class="split">Hãy bắt đầu từ bức ảnh<br>bạn trân quý nhất</h2>
+    <form id="ctaForm" novalidate><label class="sr" for="ctaE">Địa chỉ email</label><input id="ctaE" type="email" placeholder="ban@email.com" autocomplete="email"><button class="btn" type="submit">Gửi liên kết tải ảnh cho tôi</button></form>
+    <p class="ok" id="ctaOk" role="status"></p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top"><a class="logo" href="#top"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="13" height="13" fill="#C9A27A"/><rect x="17" y="2" width="13" height="13" fill="#C2412B"/><rect x="2" y="17" width="13" height="13" fill="#2E6E73"/><rect x="17" y="17" width="13" height="13" fill="#E5B53C"/></svg>Mosaic</a>
+      <nav aria-label="Chân trang"><ul><li><a href="#process">Quy trình</a></li><li><a href="#lab">Phòng thử</a></li><li><a href="#fixes">Khắc phục</a></li><li><a href="#pricing">Bảng giá</a></li><li><a href="#start">Bắt đầu</a></li></ul></nav></div>
+    <p class="fine"><span>© <span id="yr"></span> Mosaic Restoration Ltd · các bức ảnh mẫu được tạo bằng thuật toán máy tính</span><span>Thiết kế concept — thương hiệu giả định.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+$('#yr').textContent = new Date().getFullYear()
+const W = 720, H = 540
+const mk = (w = W, h = H) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c }
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+
+/* ================= generated "old photographs" (no real people) ================= */
+// figures are simple faceless shapes: an oval head, a body, maybe a hat
+function figure(c, x, y, s, o) {
+  c.save(); c.translate(x, y); c.scale(s, s)
+  c.fillStyle = o.coat; c.beginPath(); c.moveTo(-26, 0); c.quadraticCurveTo(-30, -70, 0, -78); c.quadraticCurveTo(30, -70, 26, 0); c.closePath(); c.fill()
+  if (o.skirt) { c.fillStyle = o.skirt; c.beginPath(); c.moveTo(-24, -28); c.lineTo(-34, 6); c.lineTo(34, 6); c.lineTo(24, -28); c.closePath(); c.fill() }
+  c.fillStyle = o.legs || '#3b3430'; c.fillRect(-14, 0, 9, 34); c.fillRect(5, 0, 9, 34)
+  c.fillStyle = o.skin; c.beginPath(); c.ellipse(0, -96, 15, 19, 0, 0, Math.PI * 2); c.fill()
+  c.fillStyle = o.hair; c.beginPath(); c.ellipse(0, -104, 16, 12, 0, Math.PI, 0); c.fill()
+  if (o.hat) { c.fillStyle = o.hat; c.fillRect(-22, -114, 44, 5); c.fillRect(-13, -128, 26, 15) }
+  c.restore()
+}
+function texture(c, seed, a = .06) { const R = rng(seed); for (let i = 0; i < 2600; i++) { c.fillStyle = `rgba(${R() > .5 ? '255,255,255' : '0,0,0'},${(R() * a).toFixed(3)})`; c.fillRect(R() * W, R() * H, 2 + R() * 3, 2 + R() * 3) } }
+const SCENES = [
+  { n: 'Bờ biển, 1958', alt: 'Hai người đứng cạnh chiếc ô kẻ sọc trên bãi cát, phía sau là chiếc thuyền buồm trên biển', seed: 11, draw(c) {
+    let g = c.createLinearGradient(0, 0, 0, 260); g.addColorStop(0, '#7FB2D6'); g.addColorStop(1, '#CFE3EC'); c.fillStyle = g; c.fillRect(0, 0, W, 270)
+    c.fillStyle = '#F6F1DD'; c.beginPath(); c.arc(590, 80, 34, 0, 7); c.fill()
+    c.fillStyle = 'rgba(255,255,255,.8)'; [[120, 70, 70], [180, 60, 50], [430, 110, 80]].forEach(([x, y, r]) => { c.beginPath(); c.ellipse(x, y, r, r * .35, 0, 0, 7); c.fill() })
+    g = c.createLinearGradient(0, 250, 0, 330); g.addColorStop(0, '#2F6F8E'); g.addColorStop(1, '#4E93A6'); c.fillStyle = g; c.fillRect(0, 250, W, 90)
+    c.fillStyle = '#F3EEE1'; c.beginPath(); c.moveTo(520, 250); c.lineTo(548, 180); c.lineTo(552, 250); c.fill(); c.fillStyle = '#8A3B2B'; c.fillRect(505, 250, 60, 8)
+    c.fillStyle = '#B83A33'; c.font = 'bold 9px sans-serif'; c.fillText('ALBA', 520, 248)
+    g = c.createLinearGradient(0, 320, 0, H); g.addColorStop(0, '#E2C99A'); g.addColorStop(1, '#C9A673'); c.fillStyle = g; c.beginPath(); c.moveTo(0, 330); c.quadraticCurveTo(360, 310, W, 336); c.lineTo(W, H); c.lineTo(0, H); c.fill()
+    c.save(); c.translate(200, 400)
+    for (let i = 0; i < 8; i++) { c.fillStyle = i % 2 ? '#F4EFE6' : '#C8473A'; c.beginPath(); c.moveTo(0, -150); c.lineTo(-130 + i * 32.5, -96 + Math.sin(i / 7 * Math.PI) * -14); c.lineTo(-130 + (i + 1) * 32.5, -96 + Math.sin((i + 1) / 7 * Math.PI) * -14); c.fill() }
+    c.fillStyle = '#6B5137'; c.fillRect(-3, -150, 6, 160); c.restore()
+    c.fillStyle = '#3F6E5A'; c.save(); c.translate(120, 470); c.rotate(-.08); c.fillRect(-50, -10, 100, 14); c.fillStyle = '#E9D9B6'; c.fillRect(-50, -40, 100, 32); c.restore()
+    figure(c, 310, 450, 1.25, { coat: '#2F4C6E', skin: '#E3B694', hair: '#3A2A20', hat: '#E6DCC2' })
+    figure(c, 395, 456, 1.12, { coat: '#D7A33E', skirt: '#C4523F', skin: '#E8BE9C', hair: '#6B3E25' })
+    c.fillStyle = '#B48E5E'; c.beginPath(); c.ellipse(470, 482, 22, 12, 0, 0, 7); c.fill(); c.beginPath(); c.arc(490, 470, 10, 0, 7); c.fill()
+  } },
+  { n: 'Tiệm tạp hóa góc phố, 1964', alt: 'Mặt tiền cửa tiệm với mái hiên kẻ sọc, chiếc xe đạp dựng bên khung cửa sổ và một người đeo tạp dề đứng ở lối vào', seed: 23, draw(c) {
+    c.fillStyle = '#B9C9CC'; c.fillRect(0, 0, W, H)
+    c.fillStyle = '#9B5A43'; c.fillRect(40, 40, 640, 420)
+    for (let y = 48; y < 460; y += 16) for (let x = 40 + (y / 16 % 2) * 14; x < 680; x += 28) { c.fillStyle = 'rgba(0,0,0,.08)'; c.fillRect(x, y, 26, 2) }
+    c.fillStyle = '#28473F'; c.fillRect(70, 70, 580, 56); c.fillStyle = '#E8D9A6'; c.font = 'bold 34px Georgia, serif'; c.fillText('PELLEGRINI & SON', 170, 110)
+    for (let i = 0; i < 12; i++) { c.fillStyle = i % 2 ? '#F2EAD8' : '#3C7D63'; c.beginPath(); c.moveTo(70 + i * 48.3, 140); c.lineTo(70 + (i + 1) * 48.3, 140); c.lineTo(70 + (i + 1) * 48.3, 190); c.quadraticCurveTo(70 + (i + .5) * 48.3, 204, 70 + i * 48.3, 190); c.fill() }
+    let g = c.createLinearGradient(90, 210, 400, 430); g.addColorStop(0, '#6D8E97'); g.addColorStop(1, '#30474D'); c.fillStyle = g; c.fillRect(90, 210, 330, 220)
+    ;[[120, 300, '#D24B3A'], [170, 300, '#E2A93B'], [220, 300, '#7EA04A'], [280, 300, '#D24B3A'], [330, 300, '#E2A93B']].forEach(([x, y, col]) => { c.fillStyle = col; for (let k = 0; k < 6; k++) { c.beginPath(); c.arc(x + (k % 3) * 14, y + 100 - Math.floor(k / 3) * 12, 7, 0, 7); c.fill() } })
+    c.strokeStyle = '#EDE3CF'; c.lineWidth = 6; c.strokeRect(90, 210, 330, 220); c.beginPath(); c.moveTo(255, 210); c.lineTo(255, 430); c.stroke()
+    c.fillStyle = '#1E2B2C'; c.fillRect(470, 210, 150, 250); c.fillStyle = '#E8D9A6'; c.fillRect(600, 330, 8, 8)
+    figure(c, 545, 452, 1.4, { coat: '#EFE8D8', skin: '#D9A882', hair: '#2B211B', legs: '#2C2C34' })
+    c.strokeStyle = '#1B1B1B'; c.lineWidth = 5; c.beginPath(); c.arc(150, 470, 34, 0, 7); c.stroke(); c.beginPath(); c.arc(300, 470, 34, 0, 7); c.stroke()
+    c.strokeStyle = '#B23A2E'; c.lineWidth = 6; c.beginPath(); c.moveTo(150, 470); c.lineTo(210, 410); c.lineTo(270, 410); c.lineTo(300, 470); c.moveTo(210, 410); c.lineTo(225, 470); c.lineTo(150, 470); c.moveTo(270, 410); c.lineTo(276, 392); c.stroke()
+    c.fillStyle = '#8D8A84'; c.fillRect(0, 470, W, 70)
+  } },
+  { n: 'Chiếc xe mới, 1962', alt: 'Chiếc xe hơi dáng tròn màu xanh lá đậu trước ngôi nhà trắng có cửa đỏ, phía sau là đồi cỏ và tán cây cao', seed: 37, draw(c) {
+    let g = c.createLinearGradient(0, 0, 0, 300); g.addColorStop(0, '#9DBBD0'); g.addColorStop(1, '#E3E4D6'); c.fillStyle = g; c.fillRect(0, 0, W, 320)
+    c.fillStyle = '#7E9C6E'; c.beginPath(); c.moveTo(0, 250); c.quadraticCurveTo(200, 170, 420, 240); c.quadraticCurveTo(600, 200, W, 230); c.lineTo(W, 330); c.lineTo(0, 330); c.fill()
+    c.fillStyle = '#5E7D53'; c.beginPath(); c.moveTo(0, 300); c.quadraticCurveTo(300, 250, W, 300); c.lineTo(W, 340); c.lineTo(0, 340); c.fill()
+    c.fillStyle = '#F1ECDF'; c.fillRect(340, 150, 300, 190); c.fillStyle = '#8B4434'; c.beginPath(); c.moveTo(325, 155); c.lineTo(490, 80); c.lineTo(655, 155); c.fill()
+    c.fillStyle = '#B33A2E'; c.fillRect(470, 240, 50, 100); c.fillStyle = '#5D7F94'; c.fillRect(370, 190, 70, 60); c.fillRect(560, 190, 60, 60)
+    c.fillStyle = '#4C6B3E'; c.beginPath(); c.arc(140, 160, 80, 0, 7); c.fill(); c.fillStyle = '#5B4330'; c.fillRect(130, 220, 20, 120)
+    c.fillStyle = '#9D9B93'; c.fillRect(0, 330, W, H - 330)
+    c.fillStyle = '#3F7457'; c.beginPath(); c.moveTo(120, 450); c.quadraticCurveTo(130, 380, 230, 370); c.quadraticCurveTo(290, 320, 400, 330); c.quadraticCurveTo(470, 340, 500, 380); c.quadraticCurveTo(580, 390, 590, 450); c.closePath(); c.fill()
+    c.fillStyle = '#A9C8D4'; c.beginPath(); c.moveTo(260, 372); c.quadraticCurveTo(300, 338, 380, 340); c.lineTo(450, 376); c.closePath(); c.fill()
+    c.fillStyle = '#E8E0CC'; c.fillRect(110, 438, 490, 10)
+    ;[200, 500].forEach((x) => { c.fillStyle = '#1C1C1C'; c.beginPath(); c.arc(x, 455, 36, 0, 7); c.fill(); c.fillStyle = '#CFCAC0'; c.beginPath(); c.arc(x, 455, 15, 0, 7); c.fill() })
+    figure(c, 640, 470, 1.15, { coat: '#6E4B7A', skin: '#E2B897', hair: '#C9A15E', skirt: '#46638A' })
+  } },
+]
+function buildScene(sc) {
+  const col = mk(), c = col.getContext('2d')
+  sc.draw(c); texture(c, sc.seed, .05)
+  // sepia
+  const sep = mk(), s = sep.getContext('2d'); s.drawImage(col, 0, 0)
+  const d = s.getImageData(0, 0, W, H), p = d.data
+  for (let i = 0; i < p.length; i += 4) { const l = .3 * p[i] + .59 * p[i + 1] + .11 * p[i + 2]; p[i] = Math.min(255, l * 1.07 + 18); p[i + 1] = Math.min(255, l * .93 + 8); p[i + 2] = Math.min(255, l * .72) }
+  s.putImageData(d, 0, 0)
+  // soft versions: down- and up-scale
+  const soft = (src) => { const t = mk(W / 5, H / 5), o = mk(); t.getContext('2d').drawImage(src, 0, 0, W / 5, H / 5); const oc = o.getContext('2d'); oc.imageSmoothingQuality = 'high'; oc.drawImage(t, 0, 0, W, H); oc.globalAlpha = .5; oc.drawImage(src, 0, 0); return o }
+  // damage: scratches, dust, a crease, a stain, a torn corner
+  const dmg = mk(), m = dmg.getContext('2d'), R = rng(sc.seed * 7)
+  const marks = []
+  for (let i = 0; i < 16; i++) { const x = R() * W, y = R() * H, l = 60 + R() * 260, a = (R() - .5) * 1.4 + (R() > .5 ? Math.PI / 2 : 0); marks.push(['s', x, y, l, a, .6 + R() * 1.6]) }
+  for (let i = 0; i < 220; i++) marks.push(['d', R() * W, R() * H, .5 + R() * 1.7, R() > .25])
+  marks.forEach((k) => {
+    if (k[0] === 's') { m.strokeStyle = `rgba(250,244,230,${.55 + Math.random() * .3})`; m.lineWidth = k[5]; m.beginPath(); m.moveTo(k[1], k[2]); m.quadraticCurveTo(k[1] + Math.cos(k[4]) * k[3] / 2 + 10, k[2] + Math.sin(k[4]) * k[3] / 2, k[1] + Math.cos(k[4]) * k[3], k[2] + Math.sin(k[4]) * k[3]); m.stroke() }
+    else { m.fillStyle = k[4] ? 'rgba(250,244,230,.85)' : 'rgba(30,22,16,.75)'; m.beginPath(); m.arc(k[1], k[2], k[3], 0, 7); m.fill() }
+  })
+  m.strokeStyle = 'rgba(255,250,240,.7)'; m.lineWidth = 3; m.beginPath(); m.moveTo(0, H * .62); m.lineTo(W, H * .3); m.stroke()
+  m.strokeStyle = 'rgba(40,28,20,.35)'; m.lineWidth = 2; m.beginPath(); m.moveTo(0, H * .62 + 4); m.lineTo(W, H * .3 + 4); m.stroke()
+  const sg = m.createRadialGradient(W * .82, H * .78, 10, W * .82, H * .78, 120); sg.addColorStop(0, 'rgba(120,80,40,.0)'); sg.addColorStop(.75, 'rgba(120,80,40,.28)'); sg.addColorStop(.85, 'rgba(90,55,25,.45)'); sg.addColorStop(1, 'rgba(120,80,40,0)'); m.fillStyle = sg; m.fillRect(0, 0, W, H)
+  m.fillStyle = '#EDE3CF'; m.beginPath(); m.moveTo(W, 0); m.lineTo(W - 70, 0); m.lineTo(W - 40, 22); m.lineTo(W - 52, 40); m.lineTo(W, 66); m.fill()
+  // red map of the damage, for the "map" pass
+  const map = mk(), mc = map.getContext('2d'); mc.drawImage(dmg, 0, 0); mc.globalCompositeOperation = 'source-in'; mc.fillStyle = '#FF5A3C'; mc.fillRect(0, 0, W, H)
+  return { col, sep, colS: soft(col), sepS: soft(sep), dmg, map }
+}
+const grainC = (() => { const g = mk(240, 180), c = g.getContext('2d'), d = c.createImageData(240, 180); for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 40 } c.putImageData(d, 0, 0); return g })()
+const scenes = SCENES.map(buildScene)
+const tmp = mk(), tc = tmp.getContext('2d')
+// one function draws any state: heal/tone/sharp/colour run 0..1; heal sweeps left to right, colour blooms from the centre
+function compose(ctx, S, st, x0 = 0, x1 = W) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x0, 0, x1 - x0, H); ctx.clip()
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'
+  ctx.drawImage(S.sepS, 0, 0); ctx.globalAlpha = st.sharp; ctx.drawImage(S.sep, 0, 0)
+  if (st.colour > 0) {
+    tc.globalCompositeOperation = 'source-over'; tc.globalAlpha = 1; tc.clearRect(0, 0, W, H)
+    tc.drawImage(S.colS, 0, 0); tc.globalAlpha = st.sharp; tc.drawImage(S.col, 0, 0); tc.globalAlpha = 1
+    const r = st.colour * 520
+    const gr = tc.createRadialGradient(W / 2, H / 2, Math.max(0, r - 160), W / 2, H / 2, Math.max(1, r))
+    gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)')
+    tc.globalCompositeOperation = 'destination-in'; tc.fillStyle = gr; tc.fillRect(0, 0, W, H)
+    ctx.globalAlpha = 1; ctx.drawImage(tmp, 0, 0)
+  }
+  const fade = 1 - st.tone
+  if (fade > 0) {
+    ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = fade * .55; ctx.fillStyle = '#7A6450'; ctx.fillRect(0, 0, W, H)
+    ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = fade * .5; ctx.fillStyle = '#E9CF96'; ctx.fillRect(0, 0, W, H)
+    ctx.globalCompositeOperation = 'source-over'
+    const vg = ctx.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, W * .7); vg.addColorStop(0, 'rgba(60,40,20,0)'); vg.addColorStop(1, `rgba(60,40,20,${(fade * .55).toFixed(3)})`); ctx.globalAlpha = 1; ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H)
+  }
+  ctx.globalCompositeOperation = 'source-over'
+  if (st.map > 0) { ctx.globalAlpha = st.map; ctx.drawImage(S.map, 0, 0) }
+  const sweep = st.heal * (W + 80) - 40
+  if (st.heal < 1) {
+    ctx.save(); ctx.beginPath(); ctx.rect(Math.max(sweep, x0), 0, W, H); ctx.clip(); ctx.globalAlpha = 1; ctx.drawImage(S.dmg, 0, 0); ctx.restore()
+    if (st.heal > 0) { const lg = ctx.createLinearGradient(sweep - 40, 0, sweep + 4, 0); lg.addColorStop(0, 'rgba(229,181,60,0)'); lg.addColorStop(1, 'rgba(229,181,60,.55)'); ctx.globalAlpha = 1; ctx.fillStyle = lg; ctx.fillRect(sweep - 40, 0, 44, H) }
+  }
+  ctx.globalAlpha = (1 - st.tone * .6) * .55; ctx.globalCompositeOperation = 'overlay'
+  for (let y = 0; y < H; y += 180) for (let x = 0; x < W; x += 240) ctx.drawImage(grainC, x, y)
+  ctx.restore(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'
+}
+const BEFORE = { heal: 0, tone: 0, sharp: 0, colour: 0, map: 0 }
+const AFTER = { heal: 1, tone: 1, sharp: 1, colour: 1, map: 0 }
+
+/* ================= hero prints on a line ================= */
+const line = $('#line')
+const PR = [{ s: 0, x: .52, r: -3, w: 230 }, { s: 1, x: .7, r: 2, w: 200 }, { s: 2, x: .87, r: -2, w: 214 }]
+line.insertAdjacentHTML('beforeend', PR.map((p, i) => `<button type="button" class="print" data-i="${i}" style="--w:${p.w}px" aria-label="${SCENES[p.s].n}: xem bản phục chế"><span class="peg" aria-hidden="true"></span><canvas width="360" height="270" aria-hidden="true"></canvas><span class="cap" aria-hidden="true">${SCENES[p.s].n}</span></button>`).join(''))
+const prints = $$('.print', line)
+const bigC = mk(), bigX = bigC.getContext('2d')
+const small = (S, st, cv) => { compose(bigX, S, st); cv.getContext('2d').drawImage(bigC, 0, 0, cv.width, cv.height) }
+const printState = PR.map(() => ({ ...BEFORE }))
+function placePrints() {
+  const w = line.clientWidth, mob = innerWidth < 760
+  prints.forEach((el, i) => {
+    const p = PR[i], x = mob ? [.04, .37, .68][i] * w : p.x * w - p.w / 2
+    el.style.left = x + 'px'; el.style.top = (mob ? 18 + i * 4 : 18 + Math.sin(p.x * Math.PI) * 26) + 'px'
+    if (mob) el.style.setProperty('--w', Math.min(130, w * .31) + 'px')
+    if (!anim) el.style.transform = `rotate(${p.r}deg)`
+  })
+}
+placePrints()
+prints.forEach((el, i) => small(scenes[PR[i].s], printState[i], $('canvas', el)))
+function restorePrint(i, on) {
+  const st = printState[i], cv = $('canvas', prints[i]), S = scenes[PR[i].s]
+  prints[i].setAttribute('aria-label', `${SCENES[PR[i].s].n}: ${on ? 'xem bản gốc' : 'xem bản phục chế'}`)
+  prints[i].dataset.on = on ? 1 : ''
+  if (!anim) { Object.assign(st, on ? AFTER : BEFORE); small(S, st, cv); return }
+  G.to(st, { heal: on ? 1 : 0, tone: on ? 1 : 0, sharp: on ? 1 : 0, colour: on ? 1 : 0, duration: on ? 1.4 : .6, ease: 'power2.inOut', overwrite: true, onUpdate: () => small(S, st, cv) })
+}
+prints.forEach((el, i) => {
+  el.addEventListener('click', () => restorePrint(i, !el.dataset.on))
+  if (matchMedia('(hover:hover)').matches) { el.addEventListener('pointerenter', () => restorePrint(i, true)); el.addEventListener('pointerleave', () => restorePrint(i, false)) }
+})
+
+/* ================= process tray ================= */
+const trayC = $('#trayC'), trayX = trayC.getContext('2d')
+const trayS = scenes[0], trayT = mk(), trayTX = trayT.getContext('2d')
+const WORDS = ['Đang hiện ảnh', 'Lập bản đồ hư hại', 'Hàn gắn vết xước', 'Tái tạo màu sắc']
+function trayAt(p) {
+  const dev = clamp(p / .2), map = clamp((p - .22) / .12) * (1 - clamp((p - .5) / .12)), heal = clamp((p - .45) / .25), tone = clamp((p - .55) / .2), sharp = clamp((p - .6) / .15), colour = clamp((p - .76) / .22)
+  trayX.globalAlpha = 1; trayX.fillStyle = '#EDE3CF'; trayX.fillRect(0, 0, W, H)
+  if (dev > 0) {
+    compose(trayTX, trayS, { heal, tone, sharp, colour, map }); trayX.globalAlpha = dev; trayX.drawImage(trayT, 0, 0); trayX.globalAlpha = 1
+  }
+  const k = p < .22 ? 0 : p < .45 ? 1 : p < .76 ? 2 : 3
+  $('#tPass').textContent = k + 1; $('#tWhat').textContent = WORDS[k]; $('#tPct').textContent = Math.round(p * 100)
+  $('#prGlow').style.opacity = (1 - colour * .8).toFixed(2)
+}
+
+/* ================= the lab ================= */
+const labC = $('#labC'), labX = labC.getContext('2d')
+let cur = 0, split = .5
+const st = { heal: 0, tone: 0, sharp: 0, colour: 0, map: 0 }
+const on = { heal: false, tone: false, sharp: false, colour: false }
+function drawLab() { const sx = Math.round(split * W); compose(labX, scenes[cur], BEFORE, 0, sx); compose(labX, scenes[cur], st, sx, W); labX.fillStyle = 'rgba(0,0,0,.25)'; labX.fillRect(sx - 1, 0, 2, H) }
+function setSplit(v) {
+  split = clamp(v, 0, 1); $('#handle').style.left = (split * 100).toFixed(2) + '%'
+  const n = Math.round(split * 100); $('#handle').setAttribute('aria-valuenow', n); $('#handle').setAttribute('aria-valuetext', `${n}% trước, ${100 - n}% sau`)
+  drawLab()
+}
+$('#thumbs').innerHTML = SCENES.map((s, i) => `<button type="button" data-i="${i}" aria-pressed="${!i}"><canvas width="240" height="180" aria-hidden="true"></canvas><small>${s.n}</small></button>`).join('')
+$$('#thumbs canvas').forEach((cv, i) => small(scenes[i], BEFORE, cv))
+$('#thumbs').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  cur = +b.dataset.i; $$('#thumbs button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  labC.setAttribute('aria-label', `${SCENES[cur].n}: ${SCENES[cur].alt}. Trước và sau khi phục chế.`)
+  drawLab(); $('#status').textContent = `Đã tải ảnh: ${SCENES[cur].n}.`
+})
+labC.setAttribute('aria-label', `${SCENES[0].n}: ${SCENES[0].alt}. Trước và sau khi phục chế.`)
+const NOTE = { heal: ['Đã xóa vết xước và bụi bẩn', 'Đã khôi phục vết xước và bụi bẩn như cũ'], tone: ['Đã khôi phục sắc độ phai mờ', 'Đã trả lại độ phai màu ban đầu'], sharp: ['Đã làm nét dịu nhẹ', 'Đã trả lại độ mờ ống kính gốc'], colour: ['Đã phỏng đoán và áp dụng màu sắc', 'Đã quay về sắc nâu sepia'] }
+const tws = {}
+function setStep(k, v, quiet) {
+  on[k] = v
+  $(`.tg[data-k="${k}"]`).setAttribute('aria-pressed', v)
+  if (tws[k]) tws[k].kill()
+  if (anim) tws[k] = G.to(st, { [k]: v ? 1 : 0, duration: k === 'heal' || k === 'colour' ? 1.5 : .9, ease: 'power2.inOut', onUpdate: drawLab })
+  else { st[k] = v ? 1 : 0; drawLab() }
+  if (!quiet) $('#status').textContent = NOTE[k][v ? 0 : 1] + (k === 'colour' && v ? '. Lưu ý: màu sắc là phép phỏng đoán tối ưu, không phải tư liệu gốc.' : '.')
+}
+$('#steps').addEventListener('click', (e) => { const b = e.target.closest('.tg'); if (b) setStep(b.dataset.k, !on[b.dataset.k]) })
+let autoT = []
+$('#autoBtn').addEventListener('click', () => {
+  autoT.forEach(clearTimeout); autoT = []
+  ;['heal', 'tone', 'sharp', 'colour'].forEach((k, i) => autoT.push(setTimeout(() => setStep(k, true, true), anim ? i * 900 : 0)))
+  autoT.push(setTimeout(() => { $('#status').textContent = 'Đã áp dụng cả bốn lượt xử lý. Kéo thanh trượt để so sánh.' }, anim ? 3400 : 0))
+  if (split > .8) setSplit(.5)
+})
+$('#resetBtn').addEventListener('click', () => { autoT.forEach(clearTimeout); autoT = [];['heal', 'tone', 'sharp', 'colour'].forEach((k) => setStep(k, false, true)); $('#status').textContent = 'Đã quay về bản quét gốc nguyên trạng.' })
+// divider: drag on the photo or the handle (pointer + touch), arrow keys on the handle
+const box = $('#stagebox'), handle = $('#handle')
+let dragging = false
+const fromX = (cx) => { const r = labC.getBoundingClientRect(); return (cx - r.left) / r.width }
+const grab = (e) => { dragging = true; setSplit(fromX(e.clientX)); e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId) }
+labC.addEventListener('pointerdown', grab); $('span', handle).addEventListener('pointerdown', (e) => { e.preventDefault(); grab(e) })
+;[labC, $('span', handle)].forEach((el) => { el.addEventListener('pointermove', (e) => { if (dragging) setSplit(fromX(e.clientX)) }); el.addEventListener('pointerup', () => { dragging = false }); el.addEventListener('pointercancel', () => { dragging = false }) })
+handle.addEventListener('keydown', (e) => {
+  const step = e.shiftKey ? .1 : .02
+  const v = { ArrowLeft: split - step, ArrowDown: split - step, ArrowRight: split + step, ArrowUp: split + step, Home: 0, End: 1, PageDown: split - .1, PageUp: split + .1 }[e.key]
+  if (v === undefined) return
+  e.preventDefault(); setSplit(v)
+})
+setSplit(.5)
+
+/* ================= fixes grid ================= */
+const FIX = [
+  ['Vết trầy xước', 'heal', 'Những vết xước mảnh và rãnh sâu được lấp đầy từ kết cấu hạt giấy liền kề.', [230, 300]],
+  ['Bụi và đốm mốc', 'heal', 'Các hạt bụi từ mặt kính máy quét và đốm ố qua nhiều thập kỷ biến mất sau một lượt xử lý.', [90, 250]],
+  ['Phai màu', 'tone', 'Sắc đen trầm trở lại, lớp ám vàng được gỡ bỏ và vùng sáng giữ nguyên chi tiết.', [360, 160]],
+  ['Nếp gấp và góc rách', 'heal', 'Đường gấp đôi và các góc giấy bị xé rách được tái tạo và đánh dấu minh bạch.', [420, 180]],
+  ['Nhòe nét', 'sharp', 'Ống kính thời xưa dịu mắt nhưng dễ mờ viền. Chúng tôi làm nét lại một cách tự nhiên.', [150, 62]],
+  ['Màu sắc', 'colour', 'Phép phỏng đoán có cơ sở, luôn được gắn nhãn rõ ràng và không bao giờ tự động áp đặt.', [120, 360]],
+]
+$('#fx').innerHTML = FIX.map(([n, k, d], i) => `<article class="fxi rv"><div class="sw" aria-hidden="true"><canvas width="200" height="84"></canvas><canvas width="200" height="84"></canvas></div><span class="mono">0${i + 1} · ${k === 'heal' ? 'lượt hàn gắn' : k === 'tone' ? 'lượt sắc độ' : k === 'sharp' ? 'lượt chi tiết' : 'lượt lên màu'}</span><h3>${n}</h3><p>${d}</p></article>`).join('')
+{
+  const full = (S, s) => { const c = mk(); compose(c.getContext('2d'), S, s); return c }
+  $$('#fx .fxi').forEach((el, i) => {
+    const [, k, , [x, y]] = FIX[i], S = scenes[i % 3]
+    const b = full(S, BEFORE), a = full(S, k === 'colour' ? AFTER : { ...BEFORE, [k]: 1, tone: k === 'tone' ? 1 : 0 })
+    const [c1, c2] = $$('canvas', el)
+    c1.getContext('2d').drawImage(b, x, y, 200, 84, 0, 0, 200, 84); c2.getContext('2d').drawImage(a, x, y, 200, 84, 0, 0, 200, 84)
+  })
+}
+
+/* ================= story pair ================= */
+$('#pair').innerHTML = [0, 2].map((s, i) => `<div class="print" style="cursor:default"><span class="peg"></span><canvas width="360" height="270"></canvas><span class="cap">${SCENES[s].n}${i ? ' · đã phục chế' : ''}</span></div>`).join('')
+$$('#pair canvas').forEach((cv, i) => small(scenes[[0, 2][i]], i ? AFTER : { ...BEFORE }, cv))
+
+/* ================= nav, menu, forms ================= */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+$('#ctaForm').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#ctaE').value.trim(); $('#ctaOk').textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Đã gửi liên kết tải ảnh. Ba bức ảnh phục chế đầu tiên hoàn toàn miễn phí.' : 'Địa chỉ email có vẻ chưa đầy đủ.' })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .085 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+function go(id) { const t = $(id); if (!t) return; lenis ? lenis.scrollTo(t, { offset: 0 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }) }
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => { const id = a.getAttribute('href'); if (id.length < 2 || !$(id)) return; e.preventDefault(); go(id) }))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .2}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .3}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+let lw = innerWidth; addEventListener('resize', () => { if (Math.abs(innerWidth - lw) > 30) { lw = innerWidth; placePrints() } })
+
+if (!anim) { trayAt(1); return }
+
+/* ================= motion ================= */
+G.set('.hero h1 .mask>span', { yPercent: 112 })
+G.set('.hf', { autoAlpha: 0, y: 16 })
+G.set(prints, { y: -60, opacity: 0, rotation: 0 })
+G.set('#line .wire', { opacity: 0 })
+// prints "develop" on the line: they arrive blank and the image comes up
+const devState = PR.map(() => ({ v: 0 }))
+G.timeline({ delay: .15 })
+  .to('#line .wire', { opacity: 1, duration: .8 }, 0)
+  .to(prints, { y: 0, opacity: 1, rotation: (i) => PR[i].r, duration: 1.1, stagger: .15, ease: 'back.out(1.6)' }, .1)
+  .to('.hero h1 .mask>span', { yPercent: 0, duration: 1.2, stagger: .12, ease: 'expo.out' }, .3)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .8, stagger: .08, ease: 'power3.out' }, .6)
+prints.forEach((el, i) => {
+  const cv = $('canvas', el), c = cv.getContext('2d'), S = scenes[PR[i].s], full = mk(); compose(full.getContext('2d'), S, BEFORE)
+  G.fromTo(devState[i], { v: 0 }, { v: 1, duration: 1.6, delay: .5 + i * .25, ease: 'power2.out', onUpdate: () => { c.fillStyle = '#EDE3CF'; c.globalAlpha = 1; c.fillRect(0, 0, cv.width, cv.height); c.globalAlpha = devState[i].v; c.drawImage(full, 0, 0, cv.width, cv.height); c.globalAlpha = 1 } })
+  // a slow sway on the line
+  G.to(el, { rotation: PR[i].r + (i % 2 ? 2.4 : -2.4), duration: 3 + i * .6, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 1.8 })
+})
+G.to('#line', { y: -80, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 112 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, duration: 1.2, stagger: .12, ease: 'expo.out' }) })
+})
+G.set('.rv', { autoAlpha: 0, y: 34 })
+ScrollTrigger.batch('.rv', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: 1.1, stagger: .08, ease: 'expo.out', clearProps: 'transform' }) })
+G.fromTo('#pair .print', { y: 60, rotation: 0, opacity: 0 }, { y: 0, rotation: (i) => [-6, 4][i], opacity: 1, duration: 1.2, stagger: .2, ease: 'back.out(1.4)', scrollTrigger: { trigger: '#pair', start: 'top 80%', toggleActions: 'play none none none' } })
+// the lab restores itself once the first time it's seen, as a demonstration
+ScrollTrigger.create({ trigger: '#stagebox', start: 'top 60%', once: true, onEnter: () => { if (!Object.values(on).some(Boolean)) setStep('heal', true) } })
+
+// pinned tray: the print develops and is repaired with scroll; captions swap on the clock
+const psteps = $$('.pstep')
+let curP = -1, pTw = []
+function setP(i) {
+  if (i === curP) return
+  const prev = curP; curP = i
+  pTw.forEach((t) => t.kill()); pTw = []
+  psteps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) pTw.push(G.to(psteps[prev], { autoAlpha: 0, y: -14, duration: .3, ease: 'power2.in' }))
+  pTw.push(G.fromTo(psteps[i], { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: .75, delay: prev >= 0 ? .2 : 0, ease: 'power3.out' }))
+}
+G.set(psteps, { autoAlpha: 0 })
+trayAt(0); setP(0)
+ScrollTrigger.create({
+  trigger: '.process', start: 'top top', end: '+=300%', pin: '#prPin', scrub: true,
+  onUpdate(self) { const p = self.progress; trayAt(p); setP(p < .22 ? 0 : p < .45 ? 1 : p < .76 ? 2 : 3) },
+})
+addEventListener('load', () => { placePrints(); ScrollTrigger.refresh() })
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

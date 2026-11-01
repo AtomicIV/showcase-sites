@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wayfinder — Cho biết thành phố, chúng tôi sẽ vẽ hành trình</title>
+<meta name="description" content="Wayfinder biến thành phố, vài ngày nghỉ và sở thích của bạn thành kế hoạch dạo bộ trên bản đồ: gom nhóm theo khu phố, nhịp độ vừa sức người đi và dễ dàng sắp xếp lại.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFC93C'/%3E%3Cpath d='M32 10c-9 0-16 7-16 16 0 12 16 28 16 28s16-16 16-28c0-9-7-16-16-16z' fill='%23EE5A3C' stroke='%231F2B47' stroke-width='3'/%3E%3Ccircle cx='32' cy='26' r='6' fill='%23F7EED8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chonburi&family=Patrick+Hand&family=Work+Sans:ital,wght@0,400..700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7EED8; --paper2:#EFE2C2; --card:#FFFBF0; --ink:#1F2B47; --ink2:#4A5470; --sea:#8FCBD0; --sea2:#4E9BA6; --sun:#FFC93C; --tom:#EE5A3C; --tom-d:#C63F23; --park:#A9CC8F; --line:rgba(31,43,71,.16);
+  --disp:"Chonburi", Georgia, serif; --sans:"Work Sans", system-ui, sans-serif; --hand:"Patrick Hand", "Comic Sans MS", cursive;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--tom-d);outline-offset:3px;border-radius:8px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--paper);padding:10px 16px;z-index:400;border-radius:8px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1240px,100% - 64px);margin-inline:auto}
+h1,h2,h3{font-family:var(--disp);font-weight:400;margin:0;line-height:1.08;letter-spacing:-.005em}
+h2{font-size:clamp(38px,4.8vw,72px)}
+h2 em,h1 em{font-style:normal;color:var(--tom-d)}
+p{margin:0}
+.hand{font-family:var(--hand);font-weight:700}
+.kick{display:inline-flex;align-items:center;gap:10px;font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--tom-d)}
+.kick::before{content:"";width:22px;height:2px;background:repeating-linear-gradient(90deg,currentColor 0 5px,transparent 5px 9px)}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:300;opacity:.22;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .42 0 0 0 0 .3 0 0 0 .4 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+/* perforated postage edge: paper-coloured dots on the border ring, inner panel covers the rest */
+.perf{position:relative;padding:9px;background:radial-gradient(circle at 6px 6px,var(--paper) 4px,transparent 4.6px) -6px -6px/12px 12px,var(--card);filter:drop-shadow(0 6px 10px rgba(31,43,71,.14))}
+.perf>.in{position:relative;background:var(--card);height:100%}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 26px;border-radius:999px;border:2px solid var(--ink);background:var(--tom);color:#fff;font-weight:700;font-size:16px;text-decoration:none;cursor:pointer;box-shadow:0 4px 0 var(--ink);transform:translate(var(--mx),var(--my));transition:transform .4s var(--ease),box-shadow .2s,background .25s}
+.btn:hover{background:var(--tom-d);box-shadow:0 6px 0 var(--ink)}
+.btn:active{box-shadow:0 1px 0 var(--ink);transform:translate(var(--mx),calc(var(--my) + 3px))}
+.btn.ghost{background:var(--card);color:var(--ink)}
+.btn.ghost:hover{background:var(--sun)}
+.btn.sm{min-height:44px;padding:0 18px;font-size:15px}
+.btn svg{width:18px;height:18px}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:90;transition:background .3s,box-shadow .3s}
+.nav.solid{background:rgba(247,238,216,.93);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 1px 0 var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:20px}
+.logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--disp);font-size:28px;min-height:44px}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;text-decoration:none;font-weight:700;font-size:15px;transition:background .2s}
+.nav ul a:hover{background:var(--sun)}
+.menu-btn{display:none;width:48px;height:48px;border-radius:50%;border:2px solid var(--ink);background:var(--card);cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:18px;height:2px;background:var(--ink);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:14px;right:14px;top:84px;z-index:89;display:grid;gap:4px;padding:16px;opacity:0;visibility:hidden;transform:translateY(-12px) rotate(-1.5deg);transition:opacity .3s,visibility .3s,transform .45s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:rotate(-1deg)}
+.mmenu a{display:flex;align-items:center;min-height:56px;padding:0 10px;text-decoration:none;font-family:var(--disp);font-size:26px;border-bottom:2px dashed var(--line)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:120px 0 70px;display:flex;align-items:center;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:40px;align-items:center}
+.hero h1{font-size:clamp(46px,5.8vw,92px)}
+.hero h1 .hand{display:block;font-size:.5em;color:var(--sea2);margin-top:.15em;transform:rotate(-3deg);transform-origin:left}
+.hero-lead{font-size:19px;color:var(--ink2);max-width:42ch;margin:26px 0 32px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.hero-cta .hand{font-size:24px;color:var(--tom-d);transform:rotate(-4deg)}
+.folds{position:relative;perspective:1600px;aspect-ratio:1.18;width:100%}
+.fold{position:absolute;top:0;bottom:0;width:33.34%;overflow:hidden;background:var(--paper2);transform-style:preserve-3d;box-shadow:0 30px 50px rgba(31,43,71,.18)}
+.fold svg{position:absolute;top:0;height:100%;width:300%;max-width:none}
+.fold.f1{left:0;transform-origin:right center}
+.fold.f1 svg{left:0}
+.fold.f2{left:33.33%}
+.fold.f2 svg{left:-100%}
+.fold.f3{left:66.66%;transform-origin:left center}
+.fold.f3 svg{left:-200%}
+.fold::after{content:"";position:absolute;inset:0;pointer-events:none}
+.fold.f1::after{background:linear-gradient(90deg,transparent 80%,rgba(31,43,71,.08))}
+.fold.f3::after{background:linear-gradient(90deg,rgba(31,43,71,.08),transparent 20%)}
+.stamp{position:absolute;width:132px;z-index:4}
+.stamp .in{padding:10px 10px 8px;text-align:center}
+.stamp svg{width:100%;height:auto;aspect-ratio:1.1;border-radius:2px}
+.stamp b{display:block;font-family:var(--disp);font-weight:400;font-size:17px;line-height:1;margin-top:6px}
+.stamp small{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.st1{left:-26px;top:-30px;transform:rotate(-8deg)}
+.st2{right:-18px;top:18%;transform:rotate(7deg)}
+.st3{left:12%;bottom:-40px;transform:rotate(4deg)}
+.postmark{position:absolute;right:16%;bottom:-24px;z-index:5;width:130px;height:130px;pointer-events:none;opacity:.8}
+
+/* stamps sheet */
+.sheet{padding:130px 0 110px}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:56px}
+.sheet-head p{color:var(--ink2);max-width:40ch}
+.sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.fs{transition:transform .5s var(--ease)}
+.fs:nth-child(3n+1){transform:rotate(-1.5deg)}.fs:nth-child(3n+2){transform:rotate(1deg) translateY(16px)}.fs:nth-child(3n){transform:rotate(-.5deg)}
+.fs:hover{transform:rotate(0) translateY(-8px)}
+.fs .in{padding:22px 22px 24px;display:grid;grid-template-columns:86px 1fr;gap:18px;align-items:start}
+.fs .ill{width:86px;height:96px;border-radius:4px;overflow:hidden}
+.fs .ill svg{width:100%;height:100%}
+.fs .den{font-family:var(--disp);font-size:15px;color:var(--tom-d)}
+.fs h3{font-size:26px;margin:4px 0 8px}
+.fs p{color:var(--ink2);font-size:16px}
+
+/* pinned how */
+.how{position:relative;background:var(--paper2)}
+.how-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:50px;align-items:center;width:min(1240px,100% - 64px);margin-inline:auto;padding-top:70px}
+.how h2{margin:16px 0 30px}
+.hsteps{position:relative;height:200px}
+.hstep{position:absolute;inset:0}
+.hstep .n{font-family:var(--hand);font-size:28px;color:var(--tom-d);line-height:1}
+.hstep h3{font-size:clamp(32px,3vw,44px);margin:4px 0 12px}
+.hstep p{color:var(--ink2);max-width:40ch}
+.hmap{position:relative;border-radius:10px;overflow:hidden;box-shadow:0 30px 50px rgba(31,43,71,.18);aspect-ratio:1.3;max-height:72vh;width:100%;justify-self:center;background:var(--paper)}
+.hmap svg{width:100%;height:100%}
+.hmap .pm{opacity:0;transform:scale(1.6) rotate(-20deg);transform-box:fill-box;transform-origin:center;transition:opacity .35s,transform .45s cubic-bezier(.3,1.6,.5,1)}
+.hmap .pm.on{opacity:1;transform:scale(1) rotate(-12deg)}
+
+/* planner */
+.planner{padding:140px 0 130px}
+.pl-head{display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:end;margin-bottom:40px}
+.pl-head p{color:var(--ink2);max-width:46ch}
+.form{display:grid;grid-template-columns:auto auto 1fr auto;gap:22px 30px;align-items:end;padding:24px 26px;border-radius:18px;background:var(--card);border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink);margin-bottom:30px}
+.f-l{display:block;font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:44px;padding:0 14px;border-radius:999px;border:2px solid var(--ink);background:var(--paper);cursor:pointer;font-weight:700;font-size:15px;transition:background .2s,transform .2s}
+.chip:hover{background:var(--sun)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.chip.int[aria-pressed="true"]{background:var(--sun);color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+.trip{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:24px;align-items:start}
+.map-card{position:sticky;top:96px;border-radius:14px;overflow:hidden;background:var(--paper);border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink)}
+.map-card svg{width:100%;height:auto}
+.map-card .ttl{position:absolute;left:16px;top:14px;padding:8px 14px 6px;background:var(--card);border:2px solid var(--ink);border-radius:10px;transform:rotate(-2deg)}
+.map-card .ttl b{display:block;font-family:var(--disp);font-weight:400;font-size:24px;line-height:1}
+.map-card .ttl span{font-size:14px;color:var(--ink2);font-weight:700}
+.map-card .legend{position:absolute;right:14px;bottom:12px;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;max-width:70%}
+.map-card .legend span{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--card);border:1.5px solid var(--ink);font-size:13px;font-weight:700}
+.map-card .legend i{width:12px;height:12px;border-radius:50%}
+.pin{transition:transform .3s var(--ease);transform-box:fill-box;transform-origin:50% 100%}
+.pin.hl{transform:scale(1.35)}
+.days{display:grid;gap:14px}
+.day{border-radius:14px;background:var(--card);border:2px solid var(--ink);padding:12px 12px 10px;transition:box-shadow .2s,transform .2s}
+.day.over{box-shadow:0 0 0 4px var(--sun);transform:translateY(-2px)}
+.day-h{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:44px;padding:0 4px;background:none;border:0;cursor:pointer;text-align:left;border-radius:8px}
+.day-h b{display:flex;align-items:center;gap:8px;font-family:var(--disp);font-weight:400;font-size:22px}
+.day-h b i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink)}
+.day-h span{font-size:14px;font-weight:700;color:var(--ink2)}
+.day-h .mv{display:none;font-size:13px;color:var(--tom-d)}
+.picking .day-h .mv{display:inline}
+.picking .day-h:hover{background:var(--paper)}
+.dsum{font-family:var(--hand);font-size:20px;line-height:1.15;color:var(--sea2);padding:0 4px 6px}
+.day ol{list-style:none;margin:0;padding:0;display:grid;gap:6px;min-height:46px}
+.day li{position:relative}
+.day li.ins::before{content:"";position:absolute;left:0;right:0;top:-5px;height:3px;border-radius:2px;background:var(--tom)}
+.day li.ins-end::after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:3px;border-radius:2px;background:var(--tom)}
+.stop{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;width:100%;min-height:48px;padding:6px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);text-align:left;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;transition:background .2s,border-color .2s}
+.stop:hover{border-color:var(--ink)}
+.stop[aria-pressed="true"]{background:var(--sun);border-color:var(--ink)}
+.stop.away{opacity:.3}
+.stop .no{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:13px;border:2px solid var(--ink)}
+.stop .nm{font-weight:700;font-size:15px;line-height:1.2}
+.stop .nm small{display:block;font-weight:500;font-size:13px;color:var(--ink2)}
+.stop .tg{font-size:12px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+.drag-ghost{position:fixed;left:0;top:0;z-index:500;width:240px;pointer-events:none}
+.drag-ghost .stop{background:var(--sun);border-color:var(--ink);box-shadow:0 12px 24px rgba(31,43,71,.25);cursor:grabbing}
+.tip{margin-top:16px;font-size:15px;color:var(--ink2)}
+.tip kbd{font-family:var(--sans);font-weight:700;font-size:13px;border:1.5px solid var(--ink);border-radius:5px;padding:0 6px;background:var(--card)}
+.err{font-family:var(--hand);font-size:22px;color:var(--tom-d);min-height:26px}
+
+/* postcards */
+.cards{padding:120px 0}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:56px}
+.pc{perspective:1400px}
+.pc-in{position:relative;aspect-ratio:1.45;transform-style:preserve-3d;transition:transform .9s var(--ease)}
+.pc[data-flip="true"] .pc-in{transform:rotateY(180deg)}
+.pc-f,.pc-b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:8px;overflow:hidden;box-shadow:0 18px 30px rgba(31,43,71,.18)}
+.pc-f svg{width:100%;height:100%}
+.pc-b{transform:rotateY(180deg);background:var(--card);display:grid;grid-template-columns:1.3fr 1fr;gap:12px;padding:18px}
+.pc-b .msg{font-family:var(--hand);font-size:21px;line-height:1.15;color:var(--ink);border-right:1.5px solid var(--line);padding-right:12px}
+.pc-b .msg small{display:block;margin-top:8px;font-size:18px;color:var(--tom-d)}
+.pc-b .addr{display:flex;flex-direction:column;justify-content:flex-end;gap:14px;position:relative}
+.pc-b .addr i{display:block;height:1.5px;background:var(--line)}
+.pc-b .addr .perf{position:absolute;right:0;top:0;width:58px;height:66px;padding:6px}
+.pc-b .addr .perf .in{background:var(--sun)}
+.pc-flip{margin-top:14px;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--ink);background:var(--card);cursor:pointer;font-weight:700}
+.pc-flip:hover{background:var(--sun)}
+.pc-flip svg{width:18px;height:18px}
+
+/* tags pricing */
+.price{padding:110px 0 120px;background:var(--paper2);overflow:hidden}
+.sheet,.cards{overflow-x:clip}
+.price-head{text-align:center;margin-bottom:60px}
+.price-head p{color:var(--ink2);max-width:46ch;margin:18px auto 0}
+.tags{display:grid;grid-template-columns:repeat(3,minmax(0,360px));justify-content:center;gap:30px;align-items:start}
+.tag{position:relative;padding:54px 26px 28px;background:var(--card);border:2px solid var(--ink);border-radius:18px 18px 22px 22px;clip-path:polygon(28% 0,72% 0,100% 12%,100% 100%,0 100%,0 12%);transform-origin:50% 0;transition:transform .6s var(--ease)}
+.tag:nth-child(1){transform:rotate(-3deg)}.tag:nth-child(2){transform:rotate(1.5deg);background:var(--sun)}.tag:nth-child(3){transform:rotate(3deg)}
+.tag:hover{transform:rotate(0)}
+.tag .hole{position:absolute;left:50%;top:16px;width:22px;height:22px;margin-left:-11px;border-radius:50%;border:2px solid var(--ink);background:var(--paper2)}
+.tag .kind{font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);text-align:center}
+.tag h3{text-align:center;font-size:34px;margin:6px 0 4px}
+.tag .amt{text-align:center;font-family:var(--hand);font-size:30px;color:var(--tom-d)}
+.tag ul{list-style:none;margin:16px 0 22px;padding:16px 0 0;border-top:2px dashed var(--line);display:grid;gap:8px;font-size:16px}
+.tag li{display:flex;gap:10px}
+.tag li::before{content:"✓";font-weight:700;color:var(--sea2)}
+.tag .btn{width:100%}
+.string{position:absolute;left:50%;top:-60px;width:2px;height:80px;background:var(--ink);opacity:.5;transform:rotate(8deg)}
+
+/* faq */
+.faq{padding:120px 0 130px}
+.faq .wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px;align-items:start}
+.qa{border-bottom:2px dashed var(--line)}
+.qa:first-child{border-top:2px solid var(--ink)}
+.qa button{width:100%;min-height:72px;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:16px 0;background:none;border:0;cursor:pointer;text-align:left;font-family:var(--disp);font-size:23px;line-height:1.2}
+.qa button i{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-style:normal;font-family:var(--sans);font-weight:700;transition:transform .4s var(--ease),background .2s}
+.qa button[aria-expanded="true"] i{transform:rotate(45deg);background:var(--sun)}
+.qa .ans{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s var(--ease)}
+.qa .ans>div{overflow:hidden}
+.qa .ans p{color:var(--ink2);padding:0 40px 22px 0;max-width:60ch}
+.qa.open .ans{grid-template-rows:1fr}
+
+footer{padding:70px 0 40px;background:var(--ink);color:var(--paper)}
+footer .top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:40px}
+footer h4{margin:0 0 12px;font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--sun)}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:40px;text-decoration:none;color:#E2D8C0}
+footer li a:hover{color:#fff}
+footer .tl{font-family:var(--hand);font-size:26px;color:var(--sea);margin-top:10px;max-width:22ch;line-height:1.1}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:24px;border-top:1px dashed rgba(247,238,216,.25);font-size:14px;color:#CFC6AE}
+
+.rm .how-pin{height:auto;padding:110px 0 80px;align-items:start}
+.rm .hsteps{height:auto;display:grid;gap:26px}
+.rm .hstep{position:static}
+
+@media (max-width:1060px){
+  .nav ul,.nav .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero .wrap{grid-template-columns:1fr}
+  .folds{max-width:620px;margin:20px auto 30px}
+  .sheet-grid{grid-template-columns:1fr 1fr}
+  .pl-head{grid-template-columns:1fr;gap:20px}
+  .form{grid-template-columns:1fr 1fr}
+  .form .ints{grid-column:1/-1}
+  .trip{grid-template-columns:1fr}
+  .map-card{position:relative;top:auto}
+  .days{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .cards-grid{grid-template-columns:1fr;max-width:520px;margin-inline:auto}
+  .tags{grid-template-columns:minmax(0,380px);gap:70px}
+  .faq .wrap{grid-template-columns:1fr;gap:30px}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+  .how-pin{grid-template-columns:1fr;grid-template-rows:auto auto;gap:14px;align-content:center}
+  .hmap{order:-1;max-height:44vh;aspect-ratio:auto;height:44vh}
+}
+@media (max-width:760px){
+  .wrap,.how-pin{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav .wrap{height:68px}
+  .mmenu{top:76px}
+  .hero{padding:96px 0 70px;min-height:0}
+  .hero h1{font-size:clamp(36px,10.5vw,50px)}
+  .hero-lead{font-size:17px;margin:20px 0 26px}
+  .stamp{width:92px}
+  .stamp .in{padding:6px 6px 5px}
+  .stamp b{font-size:13px}
+  .stamp small{font-size:9px}
+  .st1{left:-6px;top:-24px}
+  .st2{right:-6px}
+  .st3{bottom:-34px}
+  .postmark{width:90px;height:90px}
+  .sheet{padding:100px 0 80px}
+  .sheet-head{flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:34px}
+  .sheet-grid{grid-template-columns:1fr;gap:20px}
+  .fs:nth-child(3n+2){transform:rotate(1deg)}
+  .fs .in{grid-template-columns:70px 1fr;padding:16px}
+  .fs .ill{width:70px;height:78px}
+  .fs h3{font-size:22px}
+  .how-pin{padding-top:80px}
+  .how h2{font-size:34px;margin:6px 0 12px}
+  .how .kick{display:none}
+  .hmap{height:38vh}
+  .hsteps{height:190px}
+  .hstep h3{font-size:28px}
+  .hstep p{font-size:15px;line-height:1.5}
+  .planner{padding:100px 0 90px}
+  .form{grid-template-columns:1fr;padding:18px;gap:16px}
+  .form .go{width:100%}
+  .map-card .ttl{left:10px;top:10px;padding:6px 10px 4px}
+  .map-card .ttl b{font-size:18px}
+  .map-card .ttl span{font-size:12px}
+  .map-card .legend{position:static;max-width:none;justify-content:flex-start;padding:0 10px 10px}
+  .cards{padding:90px 0}
+  .pc-b{padding:12px;gap:8px}
+  .pc-b .msg{font-size:17px}
+  .pc-b .addr .perf{width:44px;height:50px}
+  .price{padding:90px 0}
+  .tag h3{font-size:30px}
+  .qa button{font-size:20px}
+  .qa .ans p{padding-right:0}
+  .faq{padding:90px 0}
+}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Wayfinder, trang chủ"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#FFC93C" stroke="#1F2B47" stroke-width="2"/><path d="M16 5l4 11-4 11-4-11z" fill="#EE5A3C" stroke="#1F2B47" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="16" r="2" fill="#1F2B47"/></svg>Wayfinder</a>
+    <nav aria-label="Điều hướng chính"><ul><li><a href="#features">Tính năng</a></li><li><a href="#how">Cách lập lịch</a></li><li><a href="#planner">Lên lịch trình</a></li><li><a href="#pricing">Bảng giá</a></li><li><a href="#faq">Hỏi đáp</a></li></ul></nav>
+    <a class="btn sm mag" href="#planner">Lên lịch trình</a>
+    <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+  </div>
+</header>
+<div class="mmenu perf" id="mmenu" aria-hidden="true"><div class="in" style="display:grid;gap:4px;padding:6px 8px">
+  <a href="#features">Tính năng</a><a href="#how">Cách lập lịch</a><a href="#planner">Lên lịch trình</a><a href="#pricing">Bảng giá</a><a href="#faq">Hỏi đáp</a>
+</div></div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="wrap">
+    <div>
+      <p class="kick hf">Trợ lý AI lập lịch trình du lịch</p>
+      <h1 id="hero-h" style="margin-top:22px"><span class="mask"><span>Chọn thành phố.</span></span><span class="mask"><span><em>Chúng tôi vẽ</em> ngày đi.</span></span><span class="hand hf">và giữ lộ trình thong thả đi bộ</span></h1>
+      <p class="hero-lead hf">Wayfinder biến một thành phố, vài ngày nghỉ và những điều bạn yêu thích thành kế hoạch trực quan trên bản đồ: gom nhóm theo từng khu phố, nhịp độ vừa sức người đi, và dễ dàng sắp xếp lại khi thời tiết đổi ý.</p>
+      <div class="hero-cta hf"><a class="btn mag" href="#planner">Lên lịch trình <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn ghost mag" href="#how">Cách hoạt động</a><span class="hand">miễn phí chuyến đi đầu tiên</span></div>
+    </div>
+    <div class="folds" id="folds" aria-hidden="true">
+      <div class="fold f1"></div><div class="fold f2"></div><div class="fold f3"></div>
+      <div class="stamp perf st1"><div class="in" id="stmp1"></div></div>
+      <div class="stamp perf st2"><div class="in" id="stmp2"></div></div>
+      <div class="stamp perf st3"><div class="in" id="stmp3"></div></div>
+      <svg class="postmark" viewBox="0 0 130 130"><g fill="none" stroke="#C63F23" stroke-width="2.5"><circle cx="65" cy="65" r="40"/><circle cx="65" cy="65" r="32"/><path d="M0 50c20-8 40 8 60 0s40-8 70 0M0 62c20-8 40 8 60 0s40-8 70 0M0 74c20-8 40 8 60 0s40-8 70 0" opacity=".7"/></g><text x="65" y="62" text-anchor="middle" font-family="Work Sans" font-weight="700" font-size="10" fill="#C63F23">WAYFINDER</text><text x="65" y="76" text-anchor="middle" font-family="Work Sans" font-weight="700" font-size="9" fill="#C63F23" id="pmDate"></text></svg>
+    </div>
+  </div>
+</section>
+
+<section class="sheet" id="features" aria-labelledby="sheet-h">
+  <div class="wrap">
+    <div class="sheet-head"><div><p class="kick">Tính năng nổi bật</p><h2 id="sheet-h" class="split" style="margin-top:16px">Tập tem nhỏ,<br><em>tiện ích lớn</em></h2></div><p class="reveal">Sáu điều Wayfinder thực hiện để chuyến đi của bạn ấm áp như được lên lịch bởi một người bạn bản xứ, chứ không phải danh sách top 10 trên mạng.</p></div>
+    <div class="sheet-grid" id="sheetGrid"></div>
+  </div>
+</section>
+
+<section class="how" id="how" aria-labelledby="how-h">
+  <div class="how-pin" id="howPin">
+    <div>
+      <p class="kick">Cách lập lịch</p>
+      <h2 id="how-h">Từ danh sách ước muốn<br>đến <em>lộ trình thực tế</em></h2>
+      <div class="hsteps">
+        <article class="hstep"><p class="n">một · hỏi</p><h3>Ba câu hỏi ngắn</h3><p>Đi đâu, mấy ngày và bạn thích gì. Toàn bộ biểu mẫu chỉ có vậy. Không có bảng khảo sát 40 câu về tính cách du lịch của bạn.</p></article>
+        <article class="hstep"><p class="n">hai · gom cụm</p><h3>Theo từng khu phố</h3><p>Các điểm dừng được gom theo vị trí địa lý để mỗi ngày bạn chỉ khám phá một hoặc hai khu vực, thay vì vội vã chạy dọc thành phố hai lần trước bữa trưa.</p></article>
+        <article class="hstep"><p class="n">ba · nhịp đi</p><h3>Vừa sức đôi chân</h3><p>Mỗi ngày có quãng đường đi bộ vừa phải để tận hưởng, có giờ nghỉ ăn trưa đàng hoàng và kiểm tra sẵn giờ mở cửa đúng vào ngày bạn ghé thăm.</p></article>
+        <article class="hstep"><p class="n">bốn · bỏ túi</p><h3>Linh hoạt theo ý bạn</h3><p>Kéo một điểm dừng sang ngày khác và lộ trình sẽ tự vẽ lại. Tải bản đồ về máy để xem ngoại tuyến ngay cả khi ngồi trong quán cà phê tầng hầm.</p></article>
+      </div>
+    </div>
+    <div class="hmap" aria-hidden="true"><svg id="howMap" viewBox="0 0 600 460" preserveAspectRatio="xMidYMid slice"></svg></div>
+  </div>
+</section>
+
+<section class="planner" id="planner" aria-labelledby="pl-h">
+  <div class="wrap">
+    <div class="pl-head"><div><p class="kick">Lên lịch trình</p><h2 id="pl-h" class="split" style="margin-top:16px">Chọn thành phố.<br><em>Xem lộ trình hiện ra.</em></h2></div><p class="reveal">Hãy chọn thành phố, số ngày và sở thích của bạn. Wayfinder sẽ chọn điểm dừng, chia vào từng ngày và vẽ lộ trình di chuyển. Sau đó bạn có thể kéo thả điểm dừng giữa các ngày để bản đồ tự vẽ lại. Các khu phố đều có thật; lịch trình là bản minh họa.</p></div>
+    <div class="form reveal">
+      <div><span class="f-l" id="cityL">Thành phố</span><div class="chips" role="group" aria-labelledby="cityL" id="citySel"></div></div>
+      <div><span class="f-l" id="daysL">Số ngày</span><div class="chips" role="group" aria-labelledby="daysL" id="daysSel"></div></div>
+      <div class="ints"><span class="f-l" id="intL">Sở thích</span><div class="chips" role="group" aria-labelledby="intL" id="intSel"></div></div>
+      <button class="btn go" type="button" id="goBtn">Vẽ lịch trình</button>
+    </div>
+    <p class="err" id="plErr" role="status"></p>
+    <div class="trip" id="trip">
+      <div class="map-card reveal"><div class="ttl"><b id="tripT">Lisbon</b><span id="tripD"></span></div><svg id="cityMap" viewBox="0 0 600 420" role="img" aria-label="Bản đồ các điểm dừng và lộ trình hàng ngày"></svg><div class="legend" id="legend" aria-hidden="true"></div></div>
+      <div class="days" id="days"></div>
+    </div>
+    <p class="tip reveal">Kéo một điểm dừng thả sang ngày khác, hoặc chạm vào điểm dừng rồi chạm vào tiêu đề ngày. Bàn phím: chọn điểm dừng, nhấn <kbd>←</kbd> <kbd>→</kbd> để chuyển ngày, <kbd>↑</kbd> <kbd>↓</kbd> để đổi thứ tự.</p>
+    <p class="sr" id="plLive" aria-live="polite"></p>
+  </div>
+</section>
+
+<section class="cards" aria-labelledby="cards-h">
+  <div class="wrap">
+    <p class="kick">Bưu thiếp</p>
+    <h2 id="cards-h" class="split" style="margin-top:16px">Gửi về từ<br><em>những miền đất đẹp</em></h2>
+    <div class="cards-grid" id="cardsGrid"></div>
+  </div>
+</section>
+
+<section class="price" id="pricing" aria-labelledby="price-h">
+  <div class="wrap">
+    <div class="price-head"><p class="kick">Bảng giá</p><h2 id="price-h" class="split" style="margin-top:16px">Hành lý gọn nhẹ,<br><em>chi phí nhẹ nhàng</em></h2><p class="reveal">Chuyến đi đầu tiên của bạn hoàn toàn miễn phí từ đầu đến cuối. Sau đó, hãy chọn thẻ hành lý phù hợp với tần suất xê dịch của bạn.</p></div>
+    <div class="tags">
+      <article class="tag reveal"><span class="hole" aria-hidden="true"></span><p class="kind">Dạo chơi ngắn ngày</p><h3>Miễn phí</h3><p class="amt">mãi mãi</p><ul><li>Một chuyến đi mỗi lần</li><li>Tối đa ba ngày</li><li>Bản đồ ngoại tuyến</li></ul><a class="btn ghost" href="#planner">Bắt đầu lên lịch</a></article>
+      <article class="tag reveal"><span class="hole" aria-hidden="true"></span><p class="kind">Người lữ hành</p><h3>$4</h3><p class="amt">mỗi tháng</p><ul><li>Không giới hạn chuyến đi, tới 14 ngày</li><li>Kế hoạch dự phòng ngày mưa</li><li>Cùng lên lịch với bạn bè</li><li>Tự động kiểm tra lại giờ mở cửa mỗi ngày</li></ul><a class="btn" href="#planner">Thử miễn phí 1 tháng</a></article>
+      <article class="tag reveal"><span class="hole" aria-hidden="true"></span><p class="kind">Người lữ hành, gói năm</p><h3>$29</h3><p class="amt">mỗi năm</p><ul><li>Mọi quyền lợi gói Người lữ hành</li><li>Tiết kiệm khoảng 40%</li><li>Sổ tay hành trình chuẩn in ấn</li></ul><a class="btn ghost" href="#planner">Chọn gói năm</a></article>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="faq" aria-labelledby="faq-h">
+  <div class="wrap">
+    <div><p class="kick">Hỏi đáp</p><h2 id="faq-h" class="split" style="margin-top:16px">Trước khi bạn<br><em>lên đường</em></h2></div>
+    <div id="qas"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo" href="#top"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#FFC93C"/><path d="M16 5l4 11-4 11-4-11z" fill="#EE5A3C"/></svg>Wayfinder</a><p class="tl">bớt mở tab trình duyệt, thêm bước chân dạo phố</p></div>
+      <div><h4>Lịch trình</h4><ul><li><a href="#planner">Lên lịch trình</a></li><li><a href="#how">Cách lập lịch</a></li><li><a href="#features">Tính năng</a></li></ul></div>
+      <div><h4>Trợ giúp</h4><ul><li><a href="#faq">Hỏi đáp</a></li><li><a href="#pricing">Bảng giá</a></li><li><a href="#faq">Bản đồ ngoại tuyến</a></li></ul></div>
+      <div><h4>Wayfinder</h4><ul><li><a href="#top">Giới thiệu</a></li><li><a href="#top">Báo chí</a></li><li><a href="#pricing">Liên hệ</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Wayfinder Travel Co.</span><span>Thiết kế concept — thương hiệu giả định.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+const DAY = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'], MON = ['Th01', 'Th02', 'Th03', 'Th04', 'Th05', 'Th06', 'Th07', 'Th08', 'Th09', 'Th10', 'Th11', 'Th12']
+const today = new Date(); today.setHours(12, 0, 0, 0)
+$('#yr').textContent = today.getFullYear()
+$('#pmDate').textContent = `${today.getDate()} ${MON[today.getMonth()].toUpperCase()} ${today.getFullYear()}`
+const DAYC = ['#EE5A3C', '#4E9BA6', '#1F2B47', '#7FA65F']
+let seed = 9; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 }
+
+/* hand-drawn smooth route through points (Catmull-Rom with a little wobble) */
+function wobblePts(pts, amp, s) {
+  seed = s; const out = []
+  pts.forEach((p, i) => {
+    out.push(p)
+    const q = pts[i + 1]; if (!q) return
+    const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, dx = q[0] - p[0], dy = q[1] - p[1], L = Math.hypot(dx, dy) || 1
+    const o = (rnd() - .5) * amp * Math.min(1, L / 80)
+    out.push([mx - dy / L * o, my + dx / L * o])
+  })
+  return out
+}
+function smooth(pts) {
+  if (pts.length < 2) return ''
+  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2
+    d += `C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)} ${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)} ${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`
+  }
+  return d
+}
+// CSS transforms (highlight, drop-in) go on the inner group so they never replace the SVG translate
+const pinSVG = (x, y, c, label, cls = '') => `<g transform="translate(${x} ${y})"><g class="pin ${cls}"><path d="M0 0C-3-8-12-12-12-21a12 12 0 0 1 24 0C12-12 3-8 0 0z" fill="${c}" stroke="#1F2B47" stroke-width="2"/><text y="-17" text-anchor="middle" font-family="Work Sans" font-weight="700" font-size="12" fill="#fff">${label}</text></g></g>`
+
+/* ================= hero: folded map + stamps ================= */
+function streets(w, h, s, col = 'rgba(31,43,71,.12)') {
+  seed = s; let d = ''
+  for (let i = 0; i < 14; i++) { const x = rnd() * w; d += `M${x.toFixed(0)} 0C${(x + (rnd() - .5) * 80).toFixed(0)} ${h * .4} ${(x + (rnd() - .5) * 80).toFixed(0)} ${h * .6} ${(x + (rnd() - .5) * 60).toFixed(0)} ${h}` }
+  for (let i = 0; i < 10; i++) { const y = rnd() * h; d += `M0 ${y.toFixed(0)}C${w * .3} ${(y + (rnd() - .5) * 60).toFixed(0)} ${w * .6} ${(y + (rnd() - .5) * 60).toFixed(0)} ${w} ${(y + (rnd() - .5) * 40).toFixed(0)}` }
+  return `<path d="${d}" stroke="${col}" stroke-width="2" fill="none"/>`
+}
+{
+  const heroPts = [[150, 330], [250, 250], [380, 290], [470, 180], [620, 230], [740, 140]]
+  const route = smooth(wobblePts(heroPts, 30, 4))
+  const map = `<svg viewBox="0 0 900 760" preserveAspectRatio="xMidYMid slice"><rect width="900" height="760" fill="#F7EED8"/>
+    <path d="M0 560C150 520 260 600 420 570S700 470 900 520V760H0z" fill="#8FCBD0"/><path d="M0 590C150 550 260 630 420 600S700 500 900 550" stroke="#4E9BA6" stroke-width="2" fill="none" stroke-dasharray="6 8"/>
+    <path d="M60 80C140 40 260 70 300 140S220 260 140 240 20 140 60 80z" fill="#A9CC8F"/><path d="M640 420c60-30 160-10 180 50s-60 90-130 70-110-90-50-120z" fill="#A9CC8F"/>
+    ${streets(900, 540, 3)}
+    <path d="M0 470C200 440 330 470 520 420S800 360 900 380" stroke="#FFC93C" stroke-width="10" fill="none"/>
+    <path class="hroute" d="${route}" fill="none" stroke="#EE5A3C" stroke-width="6" stroke-linecap="round" stroke-dasharray="2 14" />
+    ${heroPts.map((p, i) => pinSVG(p[0], p[1], DAYC[i % 3], i + 1, 'hpin')).join('')}
+    <text x="90" y="160" font-family="Patrick Hand" font-weight="700" font-size="34" fill="#1F2B47">công viên cổ</text><text x="560" y="640" font-family="Patrick Hand" font-weight="700" font-size="34" fill="#1F2B47">tắm biển lúc 5h</text>
+    <text x="430" y="400" font-family="Chonburi" font-size="30" fill="#4A5470" opacity=".6">PHỐ CỔ</text>
+    <g transform="translate(800 80)"><circle r="40" fill="#F7EED8" stroke="#1F2B47" stroke-width="2"/><path d="M0-30L8 0 0 30-8 0z" fill="#EE5A3C" stroke="#1F2B47" stroke-width="1.5"/><text y="-44" text-anchor="middle" font-family="Work Sans" font-weight="700" font-size="14" fill="#1F2B47">B</text></g></svg>`
+  $$('.fold').forEach((f) => { f.innerHTML = map })
+  const stampArt = [
+    ['Lisbon', '2 ngày', `<rect width="110" height="100" fill="#FFC93C"/><path d="M0 70C30 55 60 80 110 62V100H0z" fill="#4E9BA6"/><path d="M20 70V40l14-10 14 10v30M60 70V30l16-12 16 12v40" fill="#F7EED8" stroke="#1F2B47" stroke-width="2"/><circle cx="85" cy="20" r="10" fill="#EE5A3C"/>`],
+    ['Kyoto', '3 ngày', `<rect width="110" height="100" fill="#EE5A3C"/><circle cx="78" cy="28" r="14" fill="#FFC93C"/><path d="M20 85V40M90 85V40M10 40h90M14 50h82" stroke="#1F2B47" stroke-width="6"/><path d="M0 92h110" stroke="#1F2B47" stroke-width="4"/>`],
+    ['Copenhagen', '4 ngày', `<rect width="110" height="100" fill="#8FCBD0"/><path d="M8 70V36l12-10 12 10v34M34 70V30l12-10 12 10v40M60 70V38l12-10 12 10v32M86 70V34l10-8 10 8v36" fill="#FFC93C" stroke="#1F2B47" stroke-width="2"/><path d="M0 76h110V100H0z" fill="#4E9BA6"/>`],
+  ]
+  stampArt.forEach(([n, d, art], i) => { $(`#stmp${i + 1}`).innerHTML = `<svg viewBox="0 0 110 100">${art}</svg><b>${n}</b><small>${d}</small>` })
+}
+
+/* ================= stamp sheet ================= */
+const FEATS = [
+  ['1 ngày', 'Ngày theo khu phố', 'Mỗi ngày chỉ xoay quanh một hoặc hai khu vực gần nhau, để đôi chân bạn thong thả khám phá còn thẻ tàu điện nằm yên trong túi.', `<rect width="86" height="96" fill="#FFC93C"/><circle cx="43" cy="44" r="26" fill="#F7EED8" stroke="#1F2B47" stroke-width="3"/><path d="M43 26v18l12 8" stroke="#EE5A3C" stroke-width="4" stroke-linecap="round" fill="none"/>`],
+  ['2 km', 'Nhịp bước thư thái', 'Lịch trình được sắp xếp ở nhịp độ bạn thực sự tận hưởng được, có bữa trưa thong thả và chỗ ngồi nghỉ ngắm cảnh đẹp.', `<rect width="86" height="96" fill="#8FCBD0"/><path d="M12 76C30 60 40 74 56 52S74 24 78 18" stroke="#EE5A3C" stroke-width="4" stroke-dasharray="2 8" stroke-linecap="round" fill="none"/><circle cx="12" cy="76" r="6" fill="#1F2B47"/><circle cx="78" cy="18" r="6" fill="#FFC93C" stroke="#1F2B47" stroke-width="2"/>`],
+  ['10–6', 'Kiểm tra giờ mở cửa', 'Bảo tàng đóng cửa thứ Hai? Wayfinder biết rõ điều đó và âm thầm đổi lịch sang khu chợ địa phương để bạn không bao giờ gặp cảnh cửa khóa.', `<rect width="86" height="96" fill="#EE5A3C"/><rect x="16" y="22" width="54" height="54" rx="6" fill="#F7EED8" stroke="#1F2B47" stroke-width="3"/><path d="M16 36h54" stroke="#1F2B47" stroke-width="3"/><path d="M28 54l8 8 16-16" stroke="#4E9BA6" stroke-width="4" fill="none" stroke-linecap="round"/>`],
+  ['☂', 'Phương án ngày mưa', 'Mỗi ngày đều có sẵn một phiên bản trong nhà. Nếu dự báo thời tiết chuyển mưa, chỉ cần lật lịch trình mà vẫn giữ nguyên khu phố đó.', `<rect width="86" height="96" fill="#1F2B47"/><path d="M14 52a29 29 0 0 1 58 0z" fill="#FFC93C"/><path d="M43 52v22a6 6 0 0 1-12 0" stroke="#F7EED8" stroke-width="3" fill="none"/><path d="M20 20l-4 8M40 14l-4 8M62 18l-4 8" stroke="#8FCBD0" stroke-width="3" stroke-linecap="round"/>`],
+  ['★', 'Điểm hẹn bản địa', 'Bớt đi những danh sách top 10 sáo rỗng, thêm nhiều nơi người dân bản xứ thực sự ghé tới: tiệm bánh xếp hàng dài hay góc ngắm cảnh yên tĩnh.', `<rect width="86" height="96" fill="#A9CC8F"/><path d="M43 18l7 15 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2z" fill="#FFC93C" stroke="#1F2B47" stroke-width="2.5" stroke-linejoin="round"/>`],
+  ['∞', 'Bản đồ ngoại tuyến', 'Tải chuyến đi một lần duy nhất. Ghim địa điểm, lộ trình và ghi chú hoạt động mượt mà không cần sóng, trong đường hầm, trên phà hay quán bar tầng hầm.', `<rect width="86" height="96" fill="#F7EED8"/><path d="M10 26l20-8 26 8 20-8v52l-20 8-26-8-20 8z" fill="#8FCBD0" stroke="#1F2B47" stroke-width="2.5" stroke-linejoin="round"/><path d="M30 18v52M56 26v52" stroke="#1F2B47" stroke-width="2"/>`],
+]
+$('#sheetGrid').innerHTML = FEATS.map(([den, h, p, art]) => `<article class="fs perf reveal"><div class="in"><div class="ill" aria-hidden="true"><svg viewBox="0 0 86 96">${art}</svg></div><div><p class="den">${den}</p><h3>${h}</h3><p>${p}</p></div></div></article>`).join('')
+
+/* ================= pinned how-map ================= */
+const HOWPTS = [[70, 380], [160, 300], [250, 340], [330, 230], [420, 260], [470, 150], [540, 90]]
+const howRoute = smooth(wobblePts(HOWPTS, 36, 21))
+$('#howMap').innerHTML = `<rect width="600" height="460" fill="#F7EED8"/><path d="M0 420C120 400 200 440 320 420S520 380 600 400V460H0z" fill="#8FCBD0"/>
+  <path d="M380 40c50-20 140-10 160 40s-40 70-100 60-110-80-60-100z" fill="#A9CC8F"/>${streets(600, 400, 11)}
+  <path d="M0 200C150 180 250 210 380 170S560 110 600 120" stroke="#FFC93C" stroke-width="8" fill="none"/>
+  <path d="${howRoute}" fill="none" stroke="rgba(31,43,71,.18)" stroke-width="4" stroke-dasharray="2 10" stroke-linecap="round"/>
+  <path id="howInk" d="${howRoute}" fill="none" stroke="#EE5A3C" stroke-width="5" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+  ${HOWPTS.map((p, i) => pinSVG(p[0], p[1], DAYC[Math.floor(i / 3) % 3], i + 1)).join('')}
+  ${['ĐÃ HỎI', 'ĐÃ GOM', 'ĐÃ CHIA', 'BỎ TÚI'].map((t, i) => { const p = HOWPTS[[0, 2, 4, 6][i]]; return `<g class="pm" transform="translate(${p[0] + 30} ${p[1] - 70})"><g transform="translate(-36 -36)"><circle cx="36" cy="36" r="32" fill="rgba(247,238,216,.85)" stroke="#C63F23" stroke-width="2.5"/><circle cx="36" cy="36" r="25" fill="none" stroke="#C63F23" stroke-width="1.5"/><text x="36" y="40" text-anchor="middle" font-family="Work Sans" font-weight="700" font-size="10" fill="#C63F23">${t}</text></g></g>` }).join('')}
+  <circle id="howDot" r="9" fill="#FFC93C" stroke="#1F2B47" stroke-width="3"/>`
+const howInk = $('#howInk'), howDot = $('#howDot'), howLen = howInk.getTotalLength(), pms = $$('#howMap .pm')
+function howAt(p) {
+  howInk.setAttribute('stroke-dashoffset', (1 - p).toFixed(4))
+  const q = howInk.getPointAtLength(howLen * p); howDot.setAttribute('cx', q.x.toFixed(1)); howDot.setAttribute('cy', q.y.toFixed(1))
+  pms.forEach((m, i) => m.classList.toggle('on', p >= [.02, .3, .62, .94][i]))
+}
+
+/* ================= planner data ================= */
+const CITIES = {
+  lisbon: { n: 'Lisbon', km: 7, c: [300, 230], map: `<path d="M0 330C120 310 240 345 360 320S520 300 600 330V420H0z" fill="#8FCBD0"/><path d="M60 140c40-30 110-20 120 30s-50 60-90 50-60-50-30-80z" fill="#A9CC8F"/><text x="420" y="390" font-family="Chonburi" font-size="20" fill="#4E9BA6">Sông Tagus</text>`,
+    stops: [['Ngõ nhỏ Alfama', 'Alfama', ['architecture'], 380, 250], ['Đài ngắm cảnh Graça', 'Graça', ['outdoors', 'night'], 395, 195], ['Bảo tàng gạch Azulejo', 'Xabregas', ['art'], 480, 170], ['Quảng trường & cổng vòm Baixa', 'Baixa', ['architecture'], 330, 275], ['Chợ ẩm thực Ribeira', 'Cais do Sodré', ['food', 'markets'], 270, 300], ['Phố bar Bairro Alto', 'Bairro Alto', ['night', 'food'], 285, 240], ['Bờ sông Belém & bánh trứng', 'Belém', ['food', 'architecture'], 80, 310], ['Công viên rừng Monsanto', 'Monsanto', ['outdoors'], 115, 170], ['Chợ trời Feira da Ladra', 'São Vicente', ['markets'], 425, 228], ['Vườn nghệ thuật đương đại', 'Avenidas Novas', ['art', 'outdoors'], 300, 110], ['Hoàng hôn bậc thềm bờ sông', 'Cais do Sodré', ['night', 'outdoors'], 235, 318], ['Chợ Campo de Ourique', 'Campo de Ourique', ['markets', 'food'], 200, 215]] },
+  kyoto: { n: 'Kyoto', km: 9, c: [310, 230], map: `<path d="M330 0C320 120 348 240 330 420" stroke="#8FCBD0" stroke-width="18" fill="none"/><path d="M500 0C470 120 520 260 600 300V0z" fill="#A9CC8F"/><path d="M0 60C40 120 20 240 0 300z" fill="#A9CC8F"/><text x="345" y="60" font-family="Chonburi" font-size="18" fill="#4E9BA6">Sông Kamo</text>`,
+    stops: [['Đường hầm ngàn cổng Torii', 'Fushimi', ['outdoors', 'architecture'], 390, 385], ['Chợ ẩm thực Nishiki', 'Nakagyō', ['food', 'markets'], 285, 220], ['Ngõ cổ Gion buổi tối', 'Gion', ['night', 'architecture'], 370, 210], ['Con đường Triết gia', 'Higashiyama', ['outdoors'], 460, 115], ['Sườn đồi chùa Kiyomizu', 'Higashiyama', ['architecture'], 430, 262], ['Rừng trúc lúc bình minh', 'Arashiyama', ['outdoors'], 60, 165], ['Bữa tối hẻm nhỏ Pontochō', 'Pontochō', ['food', 'night'], 338, 200], ['Dã ngoại bờ sông Kamo', 'Demachiyanagi', ['outdoors', 'food'], 335, 120], ['Phòng tranh thủ công đương đại', 'Okazaki', ['art'], 420, 160], ['Chợ phiên sân chùa hàng tháng', 'Minami', ['markets'], 245, 335], ['Vườn thượng uyển nhà ga', 'Shimogyō', ['architecture'], 290, 315], ['Phố gốm sứ cổ', 'Gojōzaka', ['art', 'markets'], 410, 290]] },
+  mexico: { n: 'Mexico City', km: 12, c: [300, 240], map: `<path d="M90 150c50-50 140-40 150 20s-60 80-110 70-80-50-40-90z" fill="#A9CC8F"/><path d="M400 400c20-30 70-40 120-30s80 20 80 30V420H400z" fill="#8FCBD0"/><path d="M410 380c30 10 60-6 90 4s50 0 70-8" stroke="#8FCBD0" stroke-width="6" fill="none" stroke-linecap="round"/><text x="80" y="275" font-family="Chonburi" font-size="18" fill="#5E8A49">Chapultepec</text>`,
+    stops: [['Chợ Coyoacán', 'Coyoacán', ['food', 'markets'], 330, 360], ['Công viên & hồ Chapultepec', 'Chapultepec', ['outdoors'], 140, 200], ['Bảo tàng Nhân chủng học', 'Polanco', ['art', 'architecture'], 165, 155], ['Quán cà phê Roma Norte', 'Roma', ['food'], 265, 235], ['Cung đường rợp bóng Condesa', 'Condesa', ['outdoors'], 225, 255], ['Quảng trường trung tâm lịch sử', 'Centro', ['architecture'], 405, 160], ['Bích họa dinh thự cổ', 'Centro', ['art'], 390, 135], ['Chợ truyền thống La Merced', 'Merced', ['markets', 'food'], 455, 190], ['Quán bar rượu Mezcal', 'Juárez', ['night'], 290, 180], ['Thuyền kênh đào lúc hoàng hôn', 'Xochimilco', ['outdoors', 'night'], 440, 395], ['Chợ nghệ thuật thứ Bảy', 'San Ángel', ['art', 'markets'], 225, 360], ['Dạo phố thưởng thức Taco', 'Roma', ['food', 'night'], 300, 260]] },
+  cph: { n: 'Copenhagen', km: 6, c: [300, 200], map: `<path d="M250 420C300 320 360 260 420 200S560 80 600 60" stroke="#8FCBD0" stroke-width="40" fill="none"/><path d="M540 0H600V420H580C540 300 560 140 540 0z" fill="#8FCBD0"/><path d="M200 80c30-20 70-10 70 20s-40 40-60 30-30-30-10-50z" fill="#A9CC8F"/><text x="430" y="300" font-family="Chonburi" font-size="18" fill="#4E9BA6">Bến cảng</text>`,
+    stops: [['Dạo bộ cảng cổ Nyhavn', 'Nyhavn', ['architecture'], 380, 175], ['Khu ẩm thực nhà kính', 'Nørreport', ['food', 'markets'], 225, 150], ['Hồ bơi bến cảng', 'Islands Brygge', ['outdoors'], 300, 310], ['Bảo tàng Thiết kế', 'Frederiksstaden', ['art', 'architecture'], 385, 115], ['Kênh đào Christianshavn', 'Christianshavn', ['architecture', 'outdoors'], 400, 245], ['Phố ẩm thực đêm Vesterbro', 'Vesterbro', ['night', 'food'], 190, 265], ['Nhà kính Vườn Bách thảo', 'Indre By', ['outdoors'], 225, 105], ['Đảo ẩm thực đường phố', 'Refshaleøen', ['food', 'night'], 485, 170], ['Đài quan sát Tháp Tròn', 'Indre By', ['architecture'], 275, 170], ['Chợ đồ cũ Nørrebro', 'Nørrebro', ['markets'], 150, 70], ['Thư viện bên bờ vịnh', 'Slotsholmen', ['architecture', 'art'], 320, 225], ['Đạp xe ra bãi biển', 'Amager', ['outdoors'], 470, 340]] },
+}
+const INTS = [['food', 'Ẩm thực'], ['art', 'Nghệ thuật'], ['outdoors', 'Ngoài trời'], ['markets', 'Chợ'], ['architecture', 'Kiến trúc'], ['night', 'Về đêm']]
+const INT_LBL = Object.fromEntries(INTS)
+let city = 'lisbon', ndays = 3, ints = new Set(['food', 'art', 'outdoors']), plan = [], sel = null
+$('#citySel').innerHTML = Object.entries(CITIES).map(([k, c]) => `<button class="chip" type="button" aria-pressed="${k === city}" data-c="${k}">${c.n}</button>`).join('')
+$('#daysSel').innerHTML = [2, 3, 4].map((d) => `<button class="chip" type="button" aria-pressed="${d === ndays}" data-d="${d}">${d}</button>`).join('')
+$('#intSel').innerHTML = INTS.map(([k, n]) => `<button class="chip int" type="button" aria-pressed="${ints.has(k)}" data-i="${k}">${n}</button>`).join('')
+// trip starts on the next Friday, so the dates never go stale
+const start = new Date(today); start.setDate(start.getDate() + 1); while (start.getDay() !== 5) start.setDate(start.getDate() + 1)
+const dayDate = (i) => { const d = new Date(start); d.setDate(d.getDate() + i); return d }
+const fd = (d) => `${DAY[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`
+
+function generate() {
+  const C = CITIES[city]
+  const scored = C.stops.map((s, i) => ({ i, sc: s[2].filter((t) => ints.has(t)).length * 10 - i * .1 }))
+  scored.sort((a, b) => b.sc - a.sc)
+  const pick = scored.slice(0, ndays * 3).map((o) => o.i)
+  // group by direction from the city centre, then split into equal neighbourhood wedges
+  const ang = (i) => Math.atan2(C.stops[i][4] - C.c[1], C.stops[i][3] - C.c[0])
+  pick.sort((a, b) => ang(a) - ang(b))
+  // rotate the start so the biggest angular gap becomes the cut between groups
+  let gapAt = 0, gap = -1
+  pick.forEach((s, k) => { const n = pick[(k + 1) % pick.length]; let g = ang(n) - ang(s); if (g <= 0) g += Math.PI * 2; if (g > gap) { gap = g; gapAt = (k + 1) % pick.length } })
+  const ring = pick.slice(gapAt).concat(pick.slice(0, gapAt))
+  plan = Array.from({ length: ndays }, (_, d) => order(ring.slice(d * 3, d * 3 + 3)))
+}
+function order(ids) {
+  const C = CITIES[city]
+  if (ids.length < 3) return ids
+  const left = ids.slice(), out = []
+  let cur = left.reduce((b, i) => (Math.hypot(C.stops[i][3] - C.c[0], C.stops[i][4] - C.c[1]) > Math.hypot(C.stops[b][3] - C.c[0], C.stops[b][4] - C.c[1]) ? i : b), left[0])
+  while (left.length) { out.push(cur); left.splice(left.indexOf(cur), 1); if (!left.length) break; const p = C.stops[cur]; cur = left.reduce((b, i) => (Math.hypot(C.stops[i][3] - p[3], C.stops[i][4] - p[4]) < Math.hypot(C.stops[b][3] - p[3], C.stops[b][4] - p[4]) ? i : b), left[0]) }
+  return out
+}
+const mapEl = $('#cityMap')
+let drawTw = []
+function render(animate) {
+  const C = CITIES[city]
+  $('#tripT').textContent = `${C.n} · ${ndays} ngày`
+  $('#tripD').textContent = `${fd(dayDate(0))} – ${fd(dayDate(ndays - 1))}`
+  const routes = plan.map((ids, d) => ids.length > 1 ? `<path class="rt" data-d="${d}" d="${smooth(wobblePts(ids.map((i) => [C.stops[i][3], C.stops[i][4]]), 26, 7 + d * 13 + ids.length))}" fill="none" stroke="${DAYC[d]}" stroke-width="4.5" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/>` : '').join('')
+  let n = 0
+  const pins = plan.map((ids, d) => ids.map((i) => { n++; return pinSVG(C.stops[i][3], C.stops[i][4], DAYC[d], n, `p${i}`) }).join('')).join('')
+  const used = new Set(plan.flat())
+  const ghosts = C.stops.map((s, i) => (used.has(i) ? '' : `<circle cx="${s[3]}" cy="${s[4]}" r="4" fill="rgba(31,43,71,.25)"/>`)).join('')
+  mapEl.innerHTML = `<rect width="600" height="420" fill="#F7EED8"/>${C.map}${streets(600, 420, city.length * 7)}${ghosts}${routes}${pins}`
+  mapEl.setAttribute('aria-label', `Bản đồ ${C.n}: ${plan.map((ids, d) => `ngày ${d + 1}, ${ids.map((i) => C.stops[i][0]).join(', ') || 'không có điểm dừng'}`).join('; ')}`)
+  $('#legend').innerHTML = plan.map((_, d) => `<span><i style="background:${DAYC[d]}"></i>Ngày ${d + 1}</span>`).join('')
+  // day columns
+  n = 0
+  $('#days').innerHTML = plan.map((ids, d) => {
+    const rt = $(`.rt[data-d="${d}"]`, mapEl), km = rt ? rt.getTotalLength() / 600 * C.km : 0
+    const areas = [...new Set(ids.map((i) => C.stops[i][1]))]
+    const walk = Math.round(km / 4.5 * 60)
+    return `<div class="day" data-d="${d}"><button class="day-h" type="button" data-d="${d}" aria-label="Ngày ${d + 1}, ${fd(dayDate(d))}. Chuyển điểm dừng đang chọn vào đây"><b><i style="background:${DAYC[d]}"></i>Ngày ${d + 1}</b><span>${fd(dayDate(d))}<span class="mv"> · chuyển vào đây</span></span></button>
+      <p class="dsum">${ids.length ? `${areas.slice(0, 2).join(' & ')} · ~${km.toFixed(1)} km, ${walk < 60 ? walk + ' phút' : Math.floor(walk / 60) + ' giờ ' + String(walk % 60).padStart(2, '0')} đi bộ` : 'ngày tự do: dạo phố, nghỉ trưa, tận hưởng'}</p>
+      <ol>${ids.map((i) => { n++; const s = C.stops[i]; return `<li><button class="stop" type="button" data-s="${i}" aria-pressed="${sel === i}" aria-label="${s[0]} tại ${s[1]}, ngày ${d + 1}. Dùng phím mũi tên để di chuyển."><span class="no" style="background:${DAYC[d]}">${n}</span><span class="nm">${s[0]}<small>${s[1]}</small></span><span class="tg">${INT_LBL[s[2][0]] || s[2][0]}</span></button></li>` }).join('')}</ol></div>`
+  }).join('')
+  $('#days').classList.toggle('picking', sel !== null)
+  if (sel !== null) { const pn = $(`.p${sel}`, mapEl); if (pn) pn.classList.add('hl') }
+  drawTw.forEach((t) => t.kill()); drawTw = []
+  if (animate && anim) {
+    $$('.rt', mapEl).forEach((r, k) => drawTw.push(G.fromTo(r, { attr: { 'stroke-dashoffset': 1 } }, { attr: { 'stroke-dashoffset': 0 }, duration: 1.1, delay: .15 + k * .35, ease: 'power2.inOut' })))
+    drawTw.push(G.from($$('.pin', mapEl), { y: -24, opacity: 0, duration: .5, stagger: .05, ease: 'back.out(2.5)', clearProps: 'opacity' }))
+  }
+}
+function plot(animate = true) {
+  if (!ints.size) { $('#plErr').textContent = 'Hãy chọn ít nhất một sở thích bất kỳ.'; return }
+  $('#plErr').textContent = ''
+  sel = null; generate(); render(animate)
+  $('#plLive').textContent = `Đã lên lịch ${ndays} ngày tại ${CITIES[city].n}: ${plan.map((ids, d) => `ngày ${d + 1}, ${ids.map((i) => CITIES[city].stops[i][0]).join(', ')}`).join('; ')}.`
+}
+$('#citySel').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; city = b.dataset.c; $$('#citySel .chip').forEach((x) => x.setAttribute('aria-pressed', x === b)); plot() })
+$('#daysSel').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; ndays = +b.dataset.d; $$('#daysSel .chip').forEach((x) => x.setAttribute('aria-pressed', x === b)); plot() })
+$('#intSel').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; const k = b.dataset.i; ints.has(k) ? ints.delete(k) : ints.add(k); b.setAttribute('aria-pressed', ints.has(k)); if (ints.size) $('#plErr').textContent = '' })
+$('#goBtn').addEventListener('click', () => plot())
+
+/* moving stops: drag (pointer + touch), tap-then-day, or arrow keys */
+function where(i) { for (let d = 0; d < plan.length; d++) { const k = plan[d].indexOf(i); if (k >= 0) return [d, k] } return [-1, -1] }
+function move(i, d, k, announce = true) {
+  const [d0, k0] = where(i); if (d0 < 0) return
+  plan[d0].splice(k0, 1)
+  if (d0 === d && k > k0) k--
+  plan[d].splice(clamp(k, 0, plan[d].length), 0, i)
+  sel = null; render(false)
+  const r = $(`.rt[data-d="${d}"]`, mapEl)
+  if (r && anim) drawTw.push(G.fromTo(r, { attr: { 'stroke-dashoffset': 1 } }, { attr: { 'stroke-dashoffset': 0 }, duration: .9, ease: 'power2.inOut' }))
+  if (d0 !== d) { const r0 = $(`.rt[data-d="${d0}"]`, mapEl); if (r0 && anim) drawTw.push(G.fromTo(r0, { attr: { 'stroke-dashoffset': 1 } }, { attr: { 'stroke-dashoffset': 0 }, duration: .9, ease: 'power2.inOut' })) }
+  if (announce) $('#plLive').textContent = `Đã chuyển ${CITIES[city].stops[i][0]} sang ngày ${d + 1}, vị trí ${plan[d].indexOf(i) + 1}. Lộ trình đã vẽ lại.`
+}
+function selectStop(i) {
+  sel = sel === i ? null : i; render(false)
+  const b = $(`.stop[data-s="${i}"]`); if (b) b.focus()
+  $('#plLive').textContent = sel === null ? 'Đã bỏ chọn.' : `Đã chọn ${CITIES[city].stops[i][0]}. Hãy chọn một ngày.`
+}
+const daysEl = $('#days')
+daysEl.addEventListener('click', (e) => {
+  const h = e.target.closest('.day-h')
+  if (h) { if (sel !== null) { const i = sel; move(i, +h.dataset.d, 99); const b = $(`.stop[data-s="${i}"]`); if (b) b.focus() } else $('#plLive').textContent = 'Hãy chọn một điểm dừng trước, rồi chọn ngày.'; return }
+  const b = e.target.closest('.stop'); if (b && e.detail === 0) selectStop(+b.dataset.s)
+})
+daysEl.addEventListener('keydown', (e) => {
+  const b = e.target.closest('.stop'); if (!b) return
+  const i = +b.dataset.s, [d, k] = where(i)
+  let nd = d, nk = k
+  if (e.key === 'ArrowLeft') { nd = d - 1; nk = 99 } else if (e.key === 'ArrowRight') { nd = d + 1; nk = 99 } else if (e.key === 'ArrowUp') nk = k - 1; else if (e.key === 'ArrowDown') nk = k + 2; else if (e.key === 'Escape' && sel !== null) { sel = null; render(false); return } else return
+  e.preventDefault()
+  if (nd < 0 || nd >= plan.length || nk < 0 || (nd === d && nk > plan[d].length)) return
+  move(i, nd, nk); const nb = $(`.stop[data-s="${i}"]`); if (nb) nb.focus()
+})
+daysEl.addEventListener('pointerover', (e) => { const b = e.target.closest('.stop'); $$('.pin', mapEl).forEach((p) => p.classList.toggle('hl', !!b && p.classList.contains(`p${b.dataset.s}`) || (sel !== null && p.classList.contains(`p${sel}`)))) })
+let drag = null
+daysEl.addEventListener('pointerdown', (e) => { const b = e.target.closest('.stop'); if (!b || e.button > 0) return; drag = { b, i: +b.dataset.s, x0: e.clientX, y0: e.clientY, id: e.pointerId, on: false }; b.setPointerCapture(e.pointerId) })
+daysEl.addEventListener('pointermove', (e) => {
+  if (!drag || e.pointerId !== drag.id) return
+  if (!drag.on && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 6) {
+    drag.on = true
+    const g = document.createElement('div'); g.className = 'drag-ghost'; g.setAttribute('aria-hidden', 'true')
+    g.appendChild(drag.b.cloneNode(true)); g.firstChild.removeAttribute('data-s')
+    document.body.appendChild(g); drag.g = g; drag.b.classList.add('away')
+    if (window.lenis) window.lenis.stop()
+    drag.raf = requestAnimationFrame(edge)
+  }
+  if (drag.on) { drag.cx = e.clientX; drag.cy = e.clientY; drag.g.style.transform = `translate(${e.clientX - 120}px,${e.clientY - 24}px) rotate(-3deg)`; target() }
+})
+function target() {
+  const els = document.elementsFromPoint(drag.cx, drag.cy), day = els.find((el) => el.classList && el.classList.contains('day'))
+  $$('.day', daysEl).forEach((d) => d.classList.toggle('over', d === day))
+  $$('.day li', daysEl).forEach((l) => l.classList.remove('ins', 'ins-end'))
+  drag.to = null
+  if (!day) return
+  const lis = $$('li', day).filter((l) => !l.querySelector('.away'))
+  let k = lis.findIndex((l) => { const r = l.getBoundingClientRect(); return drag.cy < r.top + r.height / 2 })
+  if (k < 0) { k = lis.length; if (lis.length) lis[lis.length - 1].classList.add('ins-end') } else lis[k].classList.add('ins')
+  const d = +day.dataset.d, [d0, k0] = where(drag.i)
+  // convert index among visible items back to the plan index (the dragged item is hidden in its own day)
+  drag.to = [d, d === d0 && k >= k0 ? k + 1 : k]
+}
+function edge() {
+  if (!drag || !drag.on) return
+  const e = 80, v = clamp(drag.cy > innerHeight - e ? (drag.cy - innerHeight + e) / 6 : drag.cy < e + 60 ? -(e + 60 - drag.cy) / 6 : 0, -9, 9)
+  if (v) { scrollBy(0, v); target() }
+  drag.raf = requestAnimationFrame(edge)
+}
+function endDrag(e, cancel) {
+  if (!drag || e.pointerId !== drag.id) return
+  const d = drag; drag = null
+  cancelAnimationFrame(d.raf)
+  if (window.lenis) window.lenis.start()
+  $$('.day', daysEl).forEach((x) => x.classList.remove('over'))
+  if (!d.on) { if (!cancel) selectStop(d.i); return }
+  d.g.remove(); d.b.classList.remove('away')
+  if (!cancel && d.to) move(d.i, d.to[0], d.to[1])
+  else render(false)
+}
+daysEl.addEventListener('pointerup', (e) => endDrag(e, false))
+daysEl.addEventListener('pointercancel', (e) => endDrag(e, true))
+plot(false)
+
+/* ================= postcards ================= */
+const CARDS = [
+  { c: 'Lisbon', bg: '#FFC93C', art: `<path d="M0 150C60 120 120 160 200 130S320 110 360 130V250H0z" fill="#4E9BA6"/><path d="M40 160V100l30-20 30 20v60M120 150V80l34-24 34 24v70M210 150V96l26-18 26 18v54" fill="#F7EED8" stroke="#1F2B47" stroke-width="3"/><rect x="250" y="150" width="70" height="34" rx="6" fill="#EE5A3C" stroke="#1F2B47" stroke-width="3"/><circle cx="265" cy="190" r="6" fill="#1F2B47"/><circle cx="305" cy="190" r="6" fill="#1F2B47"/><circle cx="300" cy="50" r="22" fill="#EE5A3C"/>`, msg: 'Ngày thứ hai trọn vẹn ở khu Alfama cùng một bữa trưa thong thả. Tàu điện có thể đợi, chứ đôi chân thì háo hức lắm rồi.', who: 'Inês & Tom, ba ngày' },
+  { c: 'Kyoto', bg: '#EE5A3C', art: `<circle cx="270" cy="60" r="34" fill="#FFC93C"/><path d="M60 230V110M300 230V110M30 110h300M44 132h272" stroke="#1F2B47" stroke-width="16"/><path d="M0 236h360V250H0z" fill="#1F2B47"/><path d="M120 236V160h120v76" fill="#F7EED8" stroke="#1F2B47" stroke-width="3"/>`, msg: 'Ứng dụng xếp lịch đi rừng trúc lúc 7 giờ sáng và chợ phiên sân chùa đúng vào Chủ nhật họp chợ. Kỳ diệu thật sự.', who: 'Priyanka, bốn ngày' },
+  { c: 'Copenhagen', bg: '#8FCBD0', art: `<path d="M20 170V90l26-20 26 20v80M80 170V80l28-22 28 22v90M144 170V96l24-18 24 18v74M200 170V86l26-20 26 20v84M260 170V92l24-18 24 18v78" fill="#FFC93C" stroke="#1F2B47" stroke-width="3"/><path d="M0 176h360V250H0z" fill="#4E9BA6"/><path d="M60 200h80l-10 16H70z" fill="#EE5A3C" stroke="#1F2B47" stroke-width="3"/>`, msg: 'Ngày thứ ba trời đổ mưa, tụi mình lật sang lịch trình trong nhà và tình cờ tìm thấy tiệm bánh quế ngon nhất đời.', who: 'Jonas & Mette, hai ngày' },
+]
+$('#cardsGrid').innerHTML = CARDS.map((c, i) => `<div class="pc reveal" data-flip="false"><div class="pc-in"><div class="pc-f"><svg viewBox="0 0 360 250" role="img" aria-label="Bưu thiếp minh họa ${c.c}"><rect width="360" height="250" fill="${c.bg}"/><g transform="translate(0 46) scale(1 .8)">${c.art}</g><text x="20" y="44" font-family="Chonburi" font-size="28" fill="#1F2B47">Lời chào từ</text><text x="20" y="80" font-family="Chonburi" font-size="34" fill="#F7EED8" stroke="#1F2B47" stroke-width="1.5">${c.c}</text></svg></div><div class="pc-b" aria-hidden="true"><p class="msg">${c.msg}<small>— ${c.who}</small></p><div class="addr"><div class="perf"><div class="in"></div></div><i></i><i></i><i></i></div></div></div><button class="pc-flip" type="button" aria-pressed="false" data-i="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg><span>Đọc mặt sau</span></button></div>`).join('')
+$('#cardsGrid').addEventListener('click', (e) => {
+  const b = e.target.closest('.pc-flip'); if (!b) return
+  const pc = b.closest('.pc'), on = pc.dataset.flip !== 'true'
+  pc.dataset.flip = on; b.setAttribute('aria-pressed', on)
+  $('.pc-b', pc).setAttribute('aria-hidden', !on); $('span', b).textContent = on ? 'Xem mặt trước' : 'Đọc mặt sau'
+})
+
+/* ================= faq ================= */
+const FAQ = [
+  ['Wayfinder có đặt vé hay khách sạn giúp không?', 'Không. Ứng dụng lập lịch trình, vẽ bản đồ và nhắc giờ mở cửa. Bạn tự do đặt dịch vụ ở bất kỳ đâu mình muốn và chúng tôi không bao giờ nhận hoa hồng để dẫn bạn tới một địa điểm nào đó.'],
+  ['Các địa điểm gợi ý được lấy từ đâu?', 'Từ những cây viết bản địa ở từng thành phố, dữ liệu giờ mở cửa thực tế và những nơi du khách có cùng gu với bạn đã lưu lại và ghé thăm. Tuyệt đối không có địa điểm tài trợ quảng cáo.'],
+  ['Tôi có thể lên lịch trình cùng bạn bè không?', 'Có, trong gói Người lữ hành. Khi chia sẻ chuyến đi, mọi người đều có thể kéo thả các điểm dừng và lộ trình sẽ tự động vẽ lại cho cả nhóm.'],
+  ['Nếu trời mưa thì sao?', 'Mỗi ngày đều có sẵn phương án trong nhà ngay tại cùng khu phố. Chỉ cần một chạm để lật sang lịch trình ngày mưa và chạm lại khi trời hửng nắng.'],
+]
+$('#qas').innerHTML = FAQ.map(([q, a], i) => `<div class="qa"><button type="button" aria-expanded="false" aria-controls="ans${i}" id="q${i}">${q}<i aria-hidden="true">+</i></button><div class="ans" id="ans${i}" role="region" aria-labelledby="q${i}"><div><p>${a}</p></div></div></div>`).join('')
+$('#qas').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  const qa = b.parentElement, open = !qa.classList.contains('open')
+  qa.classList.toggle('open', open); b.setAttribute('aria-expanded', open)
+  setTimeout(() => window.ScrollTrigger && ScrollTrigger.refresh(), 450)
+})
+
+/* ================= nav, menu, lenis ================= */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .1 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t, { offset: 0 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .2}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .3}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+if (!anim) { howAt(1); return }
+
+/* ================= motion ================= */
+// hero: the map unfolds panel by panel, stamps get licked and stuck, the route is drawn in pen
+G.set('.hero h1 .mask>span', { yPercent: 110 })
+G.set('.hf', { autoAlpha: 0, y: 16 })
+G.set('.fold.f1', { rotationY: 178 })
+G.set('.fold.f3', { rotationY: -178 })
+G.set('.fold.f2', { scale: .9, autoAlpha: 0 })
+G.set('.stamp', { autoAlpha: 0, scale: 1.6, y: -40 })
+G.set('.postmark', { autoAlpha: 0, scale: 1.8, rotation: -30 })
+const hr = $$('.hroute')
+G.set(hr, { attr: { 'stroke-dashoffset': 400 } })
+G.set('.hpin', { autoAlpha: 0, y: -30 })
+G.timeline({ delay: .1 })
+  .to('.hero h1 .mask>span', { yPercent: 0, duration: 1, stagger: .12, ease: 'expo.out' }, 0)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .7, stagger: .08, ease: 'power3.out' }, .45)
+  .to('.fold.f2', { scale: 1, autoAlpha: 1, duration: .6, ease: 'power3.out' }, .1)
+  .to('.fold.f1', { rotationY: 0, duration: 1, ease: 'power3.inOut' }, .35)
+  .to('.fold.f3', { rotationY: 0, duration: 1, ease: 'power3.inOut' }, .55)
+  .to('.hpin', { autoAlpha: 1, y: 0, duration: .45, stagger: .06, ease: 'back.out(2.6)' }, 1.2)
+  .to(hr, { attr: { 'stroke-dashoffset': 0 }, duration: 1.4, ease: 'power2.inOut' }, 1.2)
+  .to('.stamp', { autoAlpha: 1, scale: 1, y: 0, duration: .45, stagger: .14, ease: 'back.out(2)' }, 1.3)
+  .to('.postmark', { autoAlpha: .8, scale: 1, rotation: -12, duration: .35, ease: 'power4.in' }, 1.9)
+if (matchMedia('(hover:hover)').matches) {
+  const folds = $('#folds')
+  $('.hero').addEventListener('pointermove', (e) => { const dx = e.clientX / innerWidth - .5, dy = e.clientY / innerHeight - .5; G.to(folds, { rotationY: dx * 6, rotationX: -dy * 5, transformPerspective: 1600, duration: 1, ease: 'power3.out', overwrite: 'auto' }); G.to('.stamp', { x: (i) => dx * (10 + i * 8), y: (i) => dy * (8 + i * 6), duration: 1, ease: 'power3.out', overwrite: 'auto' }) })
+}
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const ls = h.querySelectorAll('.mask>span'); G.set(ls, { yPercent: 110 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(ls, { yPercent: 0, duration: 1, stagger: .1, ease: 'expo.out' }) })
+})
+G.set('.reveal', { autoAlpha: 0, y: 34 })
+ScrollTrigger.batch('.reveal', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: .9, stagger: .08, ease: 'expo.out', clearProps: 'transform' }) })
+
+// pinned: route drawing and dot scrub; postmarks pop at thresholds; copy swaps on the clock
+const hs = $$('.hstep')
+let cur = -1, tw = []
+function setStep(i) {
+  if (i === cur) return
+  const prev = cur; cur = i
+  tw.forEach((t) => t.kill()); tw = []
+  hs.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) tw.push(G.to(hs[prev], { autoAlpha: 0, y: -14, rotation: -1, duration: .3, ease: 'power2.in' }))
+  tw.push(G.fromTo(hs[i], { autoAlpha: 0, y: 24, rotation: 1 }, { autoAlpha: 1, y: 0, rotation: 0, duration: .65, delay: prev >= 0 ? .2 : 0, ease: 'power3.out' }))
+}
+G.set(hs, { autoAlpha: 0 })
+howAt(0); setStep(0)
+ScrollTrigger.create({
+  trigger: '.how', start: 'top top', end: '+=260%', pin: '#howPin', scrub: true,
+  onUpdate(self) { const p = self.progress; howAt(p); setStep(p < .25 ? 0 : p < .55 ? 1 : p < .85 ? 2 : 3) },
+})
+// the planner draws its first trip when you arrive
+ScrollTrigger.create({ trigger: '#trip', start: 'top 75%', once: true, onEnter: () => render(true) })
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

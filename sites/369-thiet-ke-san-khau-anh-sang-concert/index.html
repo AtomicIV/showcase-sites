@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>kineticStage — Studio Thiết Kế Sân Khấu, Visual VJ &amp; Ánh Sáng Concert</title>
+  <meta name="description" content="kineticStage: Studio thiết kế sân khấu concert, lập trình ánh sáng SMPTE Timecode DMX trên bàn GrandMA3, đồ họa Visual VJ 3D và hệ thống tời cơ khí Kinetic.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2307080C' stroke='%2300F0FF' stroke-width='3'/%3E%3Cpolygon points='32,10 54,52 10,52' fill='none' stroke='%23FF2A85' stroke-width='3'/%3E%3Ccircle cx='32' cy='38' r='6' fill='%23C8FF29'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07080C;
+      --bg-card: #10131C;
+      --bg-panel: #171B28;
+      --cyan: #00F0FF;
+      --magenta: #FF2A85;
+      --lime: #C8FF29;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --border: rgba(0, 240, 255, 0.22);
+      --border-strong: rgba(0, 240, 255, 0.55);
+      --font-display: 'Unbounded', sans-serif;
+      --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      overflow-x: clip;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.65;
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .skip {
+      position: absolute;
+      top: -100px;
+      left: 16px;
+      background: var(--cyan);
+      color: #07080C;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 700;
+      z-index: 10000;
+      text-decoration: none;
+    }
+    .skip:focus {
+      top: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 4vw, 48px);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7, 8, 12, 0.9);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 76px;
+      flex-wrap: wrap;
+      padding: 10px 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .brand-cube {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--cyan), var(--magenta));
+      color: #07080C;
+      display: grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+    .brand-text strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+      letter-spacing: -0.02em;
+    }
+    .brand-text span {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--cyan);
+      letter-spacing: 0.06em;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: clamp(12px, 2.2vw, 26px);
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .nav-links a:hover {
+      color: var(--cyan);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 22px;
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #07080C;
+      background: var(--cyan);
+      border: 1px solid var(--cyan);
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 24px rgba(0, 240, 255, 0.45);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    /* Hero */
+    .hero {
+      padding: clamp(44px, 7vw, 90px) 0;
+      border-bottom: 1px solid var(--border);
+      background:
+        radial-gradient(circle at 75% 20%, rgba(255, 42, 133, 0.18), transparent 45%),
+        radial-gradient(circle at 20% 80%, rgba(0, 240, 255, 0.14), transparent 50%);
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: clamp(28px, 4vw, 56px);
+      align-items: center;
+    }
+    .timecode-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: rgba(200, 255, 41, 0.1);
+      border: 1px solid var(--lime);
+      color: var(--lime);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.85rem, 3.8vw, 3.25rem);
+      line-height: 1.15;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 em {
+      color: var(--cyan);
+      font-style: normal;
+    }
+    .hero-lead {
+      color: var(--text-muted);
+      font-size: clamp(0.98rem, 1.3vw, 1.1rem);
+      margin-bottom: 28px;
+      max-width: 60ch;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+    .rig-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .rig-stats strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(1.25rem, 2.1vw, 1.7rem);
+      color: var(--cyan);
+    }
+    .rig-stats span {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .stage-rig-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: clamp(16px, 2.5vw, 24px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    }
+    .stage-svg-wrap {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border-radius: 10px;
+      background: #050609;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .stage-svg-wrap svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .section {
+      padding: clamp(56px, 8vw, 100px) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-head {
+      max-width: 780px;
+      margin-bottom: clamp(32px, 5vw, 52px);
+    }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.45rem);
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .section-head p {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Interactive DMX Console */
+    .dmx-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: clamp(24px, 3.5vw, 44px);
+      align-items: start;
+    }
+    .dmx-viewport {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: clamp(16px, 2.5vw, 24px);
+    }
+    #stageCanvas {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 10;
+      display: block;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #05060A;
+    }
+    .dmx-desk {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: clamp(18px, 2.8vw, 28px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .fader-block label, .fader-block .fader-title {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+    .cue-pads {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .cue-pad {
+      padding: 10px 8px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .cue-pad.active {
+      background: rgba(0, 240, 255, 0.2);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.25);
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--cyan);
+      cursor: pointer;
+    }
+
+    /* Pipeline Scrollytelling */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: clamp(24px, 4vw, 48px);
+      align-items: start;
+    }
+    .pipeline-sticky {
+      position: sticky;
+      top: 100px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: clamp(20px, 3vw, 32px);
+    }
+    .pipeline-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .pipe-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: clamp(18px, 2.5vw, 26px);
+    }
+    .pipe-card span {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--lime);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .pipe-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+    }
+
+    /* Packages */
+    .show-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(18px, 2.5vw, 28px);
+    }
+    .show-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: clamp(20px, 2.6vw, 28px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .show-price {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      color: var(--cyan);
+    }
+    .show-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .show-list li::before {
+      content: "⚡ ";
+      color: var(--lime);
+    }
+
+    /* FAQ & Booking */
+    .booking-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(28px, 4vw, 52px);
+      align-items: start;
+    }
+    details.faq-stage {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    details.faq-stage summary {
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--cyan);
+    }
+    details.faq-stage p {
+      margin-top: 10px;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    .stage-form {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: clamp(20px, 3vw, 32px);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .s-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .s-field label {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--cyan);
+    }
+    .s-field input, .s-field select, .s-field textarea {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.93rem;
+    }
+    .stage-msg {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      background: rgba(0, 240, 255, 0.14);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-size: 0.9rem;
+    }
+    .stage-msg.show {
+      display: block;
+    }
+
+    .site-footer {
+      padding: 44px 0;
+      background: #040507;
+      border-top: 1px solid var(--border);
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid, .dmx-grid, .pipeline-grid, .show-grid, .booking-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .pipeline-sticky {
+        position: static;
+      }
+    }
+    @media (max-width: 560px) {
+      .rig-stats, .cue-pads {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Chuyển đến nội dung chính</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#main" class="brand" aria-label="kineticStage Show Design — Trang chủ">
+        <div class="brand-cube" aria-hidden="true">DMX</div>
+        <div class="brand-text">
+          <strong>kineticStage</strong>
+          <span>Concert Stage · Timecode Lighting · 3D VJ Visuals</span>
+        </div>
+      </a>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a href="#ban-dieu-khien-dmx">Bàn Điều Khiển DMX &amp; Visual</a>
+        <a href="#quy-trinh-timecode">Quy Trình Pre-Viz 3D</a>
+        <a href="#goi-san-xuat">Gói Thiết Kế Show</a>
+        <a href="#booking-show">Nhận Pitch Deck &amp; Báo Giá</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="timecode-tag">● SMPTE TIMECODE 01:14:28:19 · GRANDMA3 &amp; DISGUISE GX3</div>
+          <h1>Kiến tạo đại cảnh thị giác <em>bùng nổ</em> theo từng nhịp Beat</h1>
+          <p class="hero-lead">
+            Từ đại nhạc hội SVĐ 40.000 khán giả, EDM Festival đến Live Concert cá nhân của nghệ sĩ — kineticStage thiết kế cấu trúc sân khấu cơ khí chuyển động, sản xuất đồ họa Notch/Unreal Engine thời gian thực và lập trình ánh sáng đồng bộ tuyệt đối theo SMPTE Timecode.
+          </p>
+          <div class="hero-actions">
+            <a href="#ban-dieu-khien-dmx" class="btn">Thử Bàn Điều Khiển Ánh Sáng DMX</a>
+            <a href="#goi-san-xuat" class="btn btn-ghost">Xem Hồ Sơ Năng Lực &amp; Báo Giá</a>
+          </div>
+          <div class="rig-stats">
+            <div>
+              <strong>64 Universe</strong>
+              <span>Mạng điều khiển sACN / Art-Net</span>
+            </div>
+            <div>
+              <strong>8K 60fps</strong>
+              <span>Visual LED Disguise &amp; Resolume</span>
+            </div>
+            <div>
+              <strong>120+ Shows</strong>
+              <span>Arena Concert &amp; Music Festival</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-rig-card">
+          <div class="stage-svg-wrap">
+            <svg viewBox="0 0 520 390" role="img" aria-label="Sân khấu Concert 3D với dàn đèn Beam, Laser và màn hình LED khổng lồ">
+              <defs>
+                <linearGradient id="beamCyan" x1="50%" y1="0%" x2="50%" y2="100%">
+                  <stop offset="0%" stop-color="#00F0FF" stop-opacity="0.85"/>
+                  <stop offset="100%" stop-color="#00F0FF" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="beamPink" x1="50%" y1="0%" x2="50%" y2="100%">
+                  <stop offset="0%" stop-color="#FF2A85" stop-opacity="0.8"/>
+                  <stop offset="100%" stop-color="#FF2A85" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <rect width="520" height="390" fill="#05060A"/>
+              <!-- Truss System Top -->
+              <rect x="40" y="28" width="440" height="14" fill="none" stroke="#475569" stroke-width="2"/>
+              <!-- Volumetric Laser & Sharpy Beams -->
+              <polygon points="90,42 20,360 150,360" fill="url(#beamCyan)"/>
+              <polygon points="180,42 110,360 250,360" fill="url(#beamPink)"/>
+              <polygon points="260,42 190,360 330,360" fill="url(#beamCyan)"/>
+              <polygon points="340,42 270,360 410,360" fill="url(#beamPink)"/>
+              <polygon points="430,42 370,360 500,360" fill="url(#beamCyan)"/>
+              <!-- Giant Center LED Wall -->
+              <rect x="115" y="95" width="290" height="165" fill="#0D111C" stroke="#00F0FF" stroke-width="2.5"/>
+              <circle cx="260" cy="177" r="52" fill="none" stroke="#FF2A85" stroke-width="4"/>
+              <polygon points="260,130 305,210 215,210" fill="none" stroke="#C8FF29" stroke-width="3"/>
+              <!-- Stage Deck -->
+              <polygon points="60,295 460,295 505,365 15,365" fill="#101522" stroke="#00F0FF" stroke-width="2"/>
+              <text x="260" y="340" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#C8FF29">TIMECODE LOCKED · 128 BPM · UNIVERSES 01-32</text>
+            </svg>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:12px; font-family:var(--font-mono); font-size:0.74rem; color:var(--text-muted);">
+            <span>PRE-VIZ: DErience ARENA TOUR 2026</span>
+            <span style="color:var(--lime);">SYNC: MA3 + RESOLUME</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive DMX & VJ Stage Console -->
+    <section id="ban-dieu-khien-dmx" class="section">
+      <div class="container">
+        <div class="section-head">
+          <div class="timecode-tag">● BÀN MÔ PHỎNG GRANDMA3 &amp; RESOLUME ARENA</div>
+          <h2>Bàn Điều Khiển Ánh Sáng Sân Khấu DMX &amp; Visual Tương Tác</h2>
+          <p>
+            Bấm chọn các Cue cảnh diễn (Scene Cues), đẩy cần Fader điều chỉnh góc quét đèn Beam (Pan/Tilt), mật độ khói Haze và bắn pháo lửa CO2/Pyro trực tiếp trên sân khấu mô phỏng.
+          </p>
+        </div>
+
+        <div class="dmx-grid">
+          <div class="dmx-viewport">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px; font-family:var(--font-mono); font-size:0.78rem;">
+              <span id="tcClockText" style="color:var(--lime);">TC: 01:08:42:15 · CUE 01: CYBER MATRIX</span>
+              <button type="button" class="btn" id="pyroBlastBtn" style="padding:6px 14px; font-size:0.78rem; background:var(--magenta); border-color:var(--magenta); color:#fff;">🔥 BẮN CỘT LỬA PYRO &amp; CO2</button>
+            </div>
+            <canvas id="stageCanvas" width="760" height="475" aria-label="Mô phỏng sân khấu ánh sáng DMX, màn hình LED 3D và pháo lửa concert"></canvas>
+          </div>
+
+          <div class="dmx-desk">
+            <div class="fader-block">
+              <span class="fader-title">1. CHỌN CẢNH DIỄN TIMECODE (EXECUTION CUES)</span>
+              <div class="cue-pads" role="group" aria-label="Chọn cảnh ánh sáng sân khấu">
+                <button type="button" class="cue-pad active" data-cue="cyber">CUE 1: Cyber Laser</button>
+                <button type="button" class="cue-pad" data-cue="drop">CUE 2: Bass Drop</button>
+                <button type="button" class="cue-pad" data-cue="ballad">CUE 3: Gold Ballad</button>
+              </div>
+            </div>
+
+            <div class="fader-block">
+              <label for="tiltFader">2. GÓC QUÉT DÀN ĐÈN BEAM PAN/TILT (<span id="tiltVal">0</span>°)</label>
+              <input type="range" id="tiltFader" min="-45" max="45" value="0">
+            </div>
+
+            <div class="fader-block">
+              <label for="hazeFader">3. ĐỘ DÀY KHÓI HAZER &amp; CÔNG SUẤT LASER (<span id="hazeVal">85</span>%)</label>
+              <input type="range" id="hazeFader" min="20" max="100" value="85">
+            </div>
+
+            <div class="fader-block">
+              <label for="scaleSelect">4. QUY MÔ SÂN KHẤU &amp; HỆ THỐNG ĐÈN</label>
+              <select id="scaleSelect" style="width:100%; padding:10px 12px; background:var(--bg-panel); border:1px solid var(--border-strong); border-radius:8px; color:var(--text); font-family:var(--font-sans);">
+                <option value="club">Showcase / Indoor Theater (80 Fixtures · 120m² LED)</option>
+                <option value="arena" selected>Arena Concert 15.000 khán giả (240 Fixtures · 450m² LED)</option>
+                <option value="festival">Mega Music Festival 40.000 khán giả (520 Fixtures · Kinetic Rig)</option>
+              </select>
+            </div>
+
+            <div style="background:var(--bg-panel); padding:14px 16px; border-radius:10px; border:1px solid var(--border-strong); display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <span style="font-size:0.75rem; color:var(--text-muted); display:block;">Chi phí Thiết kế, Visual &amp; Lập trình Timecode:</span>
+                <strong id="showBudgetText" style="font-family:var(--font-display); font-size:1.25rem; color:var(--cyan);">185.000.000 VNĐ</strong>
+              </div>
+              <a href="#booking-show" class="btn" style="padding:9px 14px; font-size:0.82rem;">Nhận Báo Giá</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scrollytelling Pre-Viz Workflow -->
+    <section id="quy-trinh-timecode" class="section">
+      <div class="container pipeline-grid">
+        <div class="pipeline-sticky">
+          <div class="timecode-tag">● PRE-VISUALIZATION STUDIO</div>
+          <h2 style="font-family:var(--font-display); font-size:clamp(1.5rem, 2.6vw, 2.1rem); margin-bottom:14px;">
+            Duyệt Toàn Bộ Show Diễn Bằng Thực Tế Ảo Trước Khi Lắp Dựng Truss
+          </h2>
+          <p style="color:var(--text-muted); margin-bottom:18px;">
+            Thời gian thuê sân vận động vô cùng đắt đỏ. Phòng Pre-Viz của kineticStage cho phép Tổng đạo diễn và Nghệ sĩ xem trước 100% kịch bản đèn, laser, bàn nâng thủy lực và Visual LED ngay tại studio trước ngày bấm máy 2 tuần.
+          </p>
+          <div style="padding:16px; background:var(--bg-panel); border-radius:12px; border:1px solid var(--border-strong);">
+            <strong style="color:var(--lime);">Chuẩn file kỹ thuật quốc tế:</strong>
+            <p style="font-size:0.88rem; color:var(--text-muted); margin-top:4px;">Xuất đầy đủ bản vẽ Vectorworks, Patch List MVR, sơ đồ tải trọng Rigging và Pixel Map cho mọi nhà thầu thiết bị.</p>
+          </div>
+        </div>
+
+        <div class="pipeline-steps">
+          <article class="pipe-card">
+            <span>PHASE 01 · STAGE ARCHITECTURE &amp; VECTORWORKS 3D</span>
+            <h3>Thiết kế kết cấu sân khấu &amp; tính toán tải trọng Truss</h3>
+            <p>Phác thảo ý tưởng nghệ thuật gắn liền với tính khả thi kỹ thuật: chiều cao cổng Layer, tải trọng điểm treo pa-lăng và góc nhìn khán đài không điểm mù.</p>
+          </article>
+          <article class="pipe-card">
+            <span>PHASE 02 · NOTCH VFX &amp; UNREAL ENGINE LED CONTENT</span>
+            <h3>Sản xuất đồ họa màn hình LED 3D Naked-Eye &amp; AR</h3>
+            <p>Thiết kế từng phân cảnh Visual theo cốt truyện âm nhạc, hỗ trợ hiệu ứng tương tác chuyển động (Real-time Tracking) theo bước chân ca sĩ trên sân khấu.</p>
+          </article>
+          <article class="pipe-card">
+            <span>PHASE 03 · SMPTE TIMECODE PROGRAMMING (DEPENCE R3)</span>
+            <h3>Lập trình từng nhịp chớp Strobe khớp đến 1/30 giây</h3>
+            <p>Nhận मल्टी-track Stems từ Giám đốc Âm nhạc (Music Director), lập trình cue list trên bàn GrandMA3 kết nối phần mềm mô phỏng Depence R3.</p>
+          </article>
+          <article class="pipe-card">
+            <span>PHASE 04 · FOH OPERATION &amp; LIVE SHOW CALLING</span>
+            <h3>Vận hành bàn điều khiển trực tiếp tại khu vực FOH</h3>
+            <p>Đội ngũ Lighting Designer (LD) và VJ trực tiếp ngồi bàn FOH cùng hệ thống dự phòng (Hot-Backup) kép, đảm bảo đêm diễn vận hành hoàn hảo.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Packages -->
+    <section id="goi-san-xuat" class="section">
+      <div class="container">
+        <div class="section-head">
+          <div class="timecode-tag">● BẢNG GIÁ DỊCH VỤ SÁNG TẠO &amp; KỸ THUẬT</div>
+          <h2>Gói Thiết Kế Sân Khấu, Visual VJ &amp; Lập Trình Timecode</h2>
+          <p>Phối hợp trơn tru với mọi đơn vị cho thuê thiết bị âm thanh ánh sáng (Rental House) tại Hà Nội, TP.HCM và toàn quốc.</p>
+        </div>
+
+        <div class="show-grid">
+          <article class="show-card">
+            <div>
+              <span class="timecode-tag" style="margin-bottom:10px;">VISUAL VJ &amp; PIXEL MAP</span>
+              <h3 style="font-family:var(--font-display); font-size:1.25rem; margin-bottom:6px;">Gói Sản Xuất Visual LED Concert</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:12px;">Thiết kế trọn bộ Visual 2D/3D cho đêm nhạc từ 15–20 bài hát kèm VJ vận hành.</p>
+              <div class="show-price">Từ 85.000.000 VNĐ</div>
+            </div>
+            <ul class="show-list">
+              <li>Thiết kế Key Visual mở màn (Intro) + 15 bộ Loop 3D</li>
+              <li>Chia Pixel Map chuẩn xác cho mọi cấu hình LED dị hình</li>
+              <li>01 VJ chính + Media Server Resolume Arena tại hiện trường</li>
+            </ul>
+            <a href="#booking-show" class="btn btn-ghost">Nhận Báo Giá Visual</a>
+          </article>
+
+          <article class="show-card" style="border-color:var(--cyan); box-shadow:0 12px 40px rgba(0,240,255,0.14);">
+            <div>
+              <span class="timecode-tag" style="margin-bottom:10px; background:var(--cyan); color:#07080C;">FULL SHOW DIRECTION</span>
+              <h3 style="font-family:var(--font-display); font-size:1.25rem; margin-bottom:6px;">Thiết Kế Sân Khấu &amp; Ánh Sáng Timecode</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:12px;">Giải pháp toàn diện từ bản vẽ 3D sân khấu, lập trình GrandMA3 đến vận hành đêm diễn.</p>
+              <div class="show-price">Từ 185.000.000 VNĐ</div>
+            </div>
+            <ul class="show-list">
+              <li>Bản vẽ kỹ thuật Vectorworks + Video Pre-Viz Depence R3</li>
+              <li>Lập trình SMPTE Timecode cho toàn bộ danh sách bài hát</li>
+              <li>Lighting Director &amp; Laser Operator trực tiếp bấm máy</li>
+            </ul>
+            <a href="#booking-show" class="btn">Đặt Lịch Họp Kịch Bản</a>
+          </article>
+
+          <article class="show-card">
+            <div>
+              <span class="timecode-tag" style="margin-bottom:10px;">KINETIC &amp; FESTIVAL</span>
+              <h3 style="font-family:var(--font-display); font-size:1.25rem; margin-bottom:6px;">Tổ Hợp Sân Khấu Cơ Khí &amp; EDM</h3>
+              <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:12px;">Thiết kế hệ thống tời Kinetic Winch, trần LED di động và đồng bộ pháo hoa Pyro.</p>
+              <div class="show-price">Báo Giá Theo Dự Án</div>
+            </div>
+            <ul class="show-list">
+              <li>Điều khiển ma trận tời cơ khí DMX an toàn tuyệt đối</li>
+              <li>Đồng bộ Timecode giữa Âm thanh, Đèn, Laser &amp; Pháo điện</li>
+              <li>Giám sát kỹ thuật trưởng (Technical Director) xuyên suốt</li>
+            </ul>
+            <a href="#booking-show" class="btn btn-ghost">Liên Hệ Đạo Diễn Kỹ Thuật</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ & Booking -->
+    <section id="booking-show" class="section">
+      <div class="container booking-grid">
+        <div>
+          <div class="timecode-tag">● TECHNICAL FAQ</div>
+          <h2 style="font-family:var(--font-display); font-size:clamp(1.45rem, 2.5vw, 2rem); margin-bottom:20px;">
+            Giải Đáp Kỹ Thuật Cho Nhà Tổ Chức Sự Kiện
+          </h2>
+          <details class="faq-stage" open>
+            <summary>Cần chuẩn bị gì để chạy hệ thống SMPTE Timecode cho ban nhạc Live?</summary>
+            <p>Music Director chỉ cần xuất 1 đường tín hiệu LTC (Linear Timecode) từ phần mềm Ableton Live / Pro Tools tại khu vực Monitor đưa xuống FOH. Bàn GrandMA3 và hệ thống Resolume sẽ tự động khóa khung hình theo từng bài.</p>
+          </details>
+          <details class="faq-stage">
+            <summary>kineticStage là đơn vị thiết kế hay cho thuê thiết bị phần cứng?</summary>
+            <p>Chúng tôi là Studio Thiết kế Sân khấu, Sản xuất Visual &amp; Lập trình Ánh sáng độc lập, đồng thời sở hữu hệ thống bàn điều khiển GrandMA3, Media Server và có mạng lưới đối tác thiết bị hàng đầu để tối ưu ngân sách cho khách hàng.</p>
+          </details>
+          <details class="faq-stage">
+            <summary>Thời gian tối thiểu để thiết kế và lập trình cho một Concert 20 bài là bao lâu?</summary>
+            <p>Lý tưởng nhất là từ 3 đến 4 tuần trước ngày diễn để hoàn thiện bản vẽ 3D, sản xuất Visual và lập trình Timecode tại phòng Pre-Viz.</p>
+          </details>
+        </div>
+
+        <form class="stage-form" id="stageForm" aria-label="Biểu mẫu yêu cầu thiết kế sân khấu và báo giá sản xuất">
+          <h3 style="font-family:var(--font-display); font-size:1.3rem;">Gửi Brief Sự Kiện &amp; Nhận Showreel 2026</h3>
+          <p style="font-size:0.9rem; color:var(--text-muted);">Đội ngũ Technical Director sẽ phản hồi kèm bản phác thảo hướng tiếp cận kỹ thuật trong 2 giờ làm việc.</p>
+
+          <div class="s-field">
+            <label for="prodName">Họ tên Đạo diễn / Producer *</label>
+            <input type="text" id="prodName" required placeholder="Ví dụ: Đạo diễn Trần Bảo / Agency X">
+          </div>
+          <div class="s-field">
+            <label for="prodContact">Số điện thoại Zalo hoặc Email *</label>
+            <input type="text" id="prodContact" required placeholder="producer@agency.vn hoặc 0902 369 888">
+          </div>
+          <div class="s-field">
+            <label for="prodEvent">Loại hình chương trình</label>
+            <select id="prodEvent">
+              <option value="Live Concert Nghệ Sĩ / Music Festival">Live Concert Nghệ Sĩ / Music Festival</option>
+              <option value="Brand Launch / Đại Sự Kiện Doanh Nghiệp">Brand Launch / Đại Sự Kiện Doanh Nghiệp</option>
+              <option value="Countdown / Lễ Hội Ánh Sáng Ngoài Trời">Countdown / Lễ Hội Ánh Sáng Ngoài Trời</option>
+            </select>
+          </div>
+          <div class="s-field">
+            <label for="prodNote">Địa điểm dự kiến, ngày diễn &amp; quy mô khán giả</label>
+            <textarea id="prodNote" rows="3" placeholder="Ví dụ: Nhà thi đấu Phú Thọ tháng 12/2026, quy mô 6.000 khán giả..."></textarea>
+          </div>
+          <button type="submit" class="btn">Gửi Brief Tới kineticStage</button>
+          <div class="stage-msg" id="stageFormMsg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong style="color:var(--cyan); font-family:var(--font-display); font-size:1.05rem;">kineticStage — Concert Stage, Timecode DMX &amp; Visual Studio</strong>
+        <p>Thảo Điền, TP. Thủ Đức, TP. Hồ Chí Minh &amp; Tây Hồ, Hà Nội · Hotline: 0902 369 777</p>
+      </div>
+      <p>© 2026 kineticStage. Thiết kế concept — thương hiệu giả định.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('stageCanvas');
+      const ctx = canvas.getContext('2d');
+      const cuePads = Array.from(document.querySelectorAll('.cue-pad'));
+      const tiltFader = document.getElementById('tiltFader');
+      const tiltVal = document.getElementById('tiltVal');
+      const hazeFader = document.getElementById('hazeFader');
+      const hazeVal = document.getElementById('hazeVal');
+      const scaleSelect = document.getElementById('scaleSelect');
+      const showBudgetText = document.getElementById('showBudgetText');
+      const tcClockText = document.getElementById('tcClockText');
+      const pyroBlastBtn = document.getElementById('pyroBlastBtn');
+
+      let activeCue = 'cyber';
+      let tiltDeg = 0;
+      let hazePct = 85;
+      let pyroTimer = 0;
+
+      const cueConfigs = {
+        cyber: { tc: 'TC: 01:08:42:15 · CUE 01: CYBER MATRIX', c1: '#00F0FF', c2: '#C8FF29', bg: '#050811' },
+        drop: { tc: 'TC: 01:24:10:00 · CUE 02: BASS DROP STROBE', c1: '#FF2A85', c2: '#00F0FF', bg: '#12050D' },
+        ballad: { tc: 'TC: 01:52:05:22 · CUE 03: GOLDEN KINETIC', c1: '#FBBF24', c2: '#F97316', bg: '#110D05' }
+      };
+
+      const scaleBudgets = {
+        club: '95.000.000 VNĐ',
+        arena: '185.000.000 VNĐ',
+        festival: '360.000.000 VNĐ'
+      };
+
+      function drawConcertStage() {
+        const w = canvas.width;
+        const h = canvas.height;
+        const cfg = cueConfigs[activeCue];
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.fillStyle = cfg.bg;
+        ctx.fillRect(0, 0, w, h);
+
+        // Giant LED Backdrop Visual
+        ctx.fillStyle = '#090C15';
+        ctx.strokeStyle = cfg.c1;
+        ctx.lineWidth = 2.5;
+        ctx.fillRect(140, 82, 480, 210);
+        ctx.strokeRect(140, 82, 480, 210);
+
+        // Animated/Geometric VJ Graphic inside LED Wall
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(140, 82, 480, 210);
+        ctx.clip();
+        for (let r = 25; r <= 185; r += 32) {
+          ctx.strokeStyle = r % 64 === 0 ? cfg.c2 : cfg.c1;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(w / 2 + tiltDeg * 1.4, 187, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // Top Rigging Truss
+        ctx.strokeStyle = '#64748B';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(60, 42);
+        ctx.lineTo(w - 60, 42);
+        ctx.stroke();
+
+        // 10 Moving-Head Volumetric Beams
+        const beamAlpha = (hazePct / 100) * 0.55;
+        for (let i = 0; i < 10; i++) {
+          const fx = 95 + i * 63;
+          const targetX = fx + tiltDeg * 4.2 + (i % 2 === 0 ? -35 : 35);
+          const grad = ctx.createLinearGradient(fx, 42, targetX, 385);
+          grad.addColorStop(0, i % 2 === 0 ? cfg.c1 : cfg.c2);
+          grad.addColorStop(1, 'transparent');
+
+          ctx.save();
+          ctx.globalAlpha = beamAlpha;
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.moveTo(fx - 4, 42);
+          ctx.lineTo(fx + 4, 42);
+          ctx.lineTo(targetX + 58, 395);
+          ctx.lineTo(targetX - 58, 395);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+
+          // Fixture Lens Point
+          ctx.fillStyle = '#FFF';
+          ctx.beginPath();
+          ctx.arc(fx, 42, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Pyro & CO2 Flame Jets if triggered
+        if (pyroTimer > 0) {
+          for (const px of [185, 295, 465, 575]) {
+            const pGrad = ctx.createLinearGradient(px, 340, px, 130);
+            pGrad.addColorStop(0, '#FFF');
+            pGrad.addColorStop(0.35, '#F97316');
+            pGrad.addColorStop(1, 'rgba(255, 42, 133, 0)');
+            ctx.fillStyle = pGrad;
+            ctx.beginPath();
+            ctx.moveTo(px - 18, 340);
+            ctx.lineTo(px + 18, 340);
+            ctx.lineTo(px + 34, 135);
+            ctx.lineTo(px - 34, 135);
+            ctx.closePath();
+            ctx.fill();
+          }
+          pyroTimer--;
+          if (pyroTimer > 0) requestAnimationFrame(drawConcertStage);
+        }
+
+        // Stage Deck & Crowd Silhouettes
+        ctx.fillStyle = '#0B0E17';
+        ctx.strokeStyle = cfg.c1;
+        ctx.lineWidth = 2;
+        ctx.fillRect(80, 340, w - 160, 28);
+        ctx.strokeRect(80, 340, w - 160, 28);
+
+        // Audience heads at bottom
+        ctx.fillStyle = '#030407';
+        for (let cx = 25; cx < w; cx += 28) {
+          ctx.beginPath();
+          ctx.arc(cx, 442 + (cx % 3) * 6, 16, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function updateConsole() {
+        const cfg = cueConfigs[activeCue];
+        tiltVal.textContent = tiltDeg;
+        hazeVal.textContent = hazePct;
+        tcClockText.textContent = cfg.tc;
+        showBudgetText.textContent = scaleBudgets[scaleSelect.value];
+        drawConcertStage();
+      }
+
+      cuePads.forEach((pad) => {
+        pad.addEventListener('click', () => {
+          cuePads.forEach((p) => p.classList.remove('active'));
+          pad.classList.add('active');
+          activeCue = pad.dataset.cue;
+          updateConsole();
+        });
+      });
+
+      tiltFader.addEventListener('input', () => {
+        tiltDeg = Number(tiltFader.value);
+        updateConsole();
+      });
+
+      hazeFader.addEventListener('input', () => {
+        hazePct = Number(hazeFader.value);
+        updateConsole();
+      });
+
+      scaleSelect.addEventListener('change', updateConsole);
+
+      pyroBlastBtn.addEventListener('click', () => {
+        pyroTimer = 28;
+        drawConcertStage();
+      });
+
+      const stageForm = document.getElementById('stageForm');
+      const stageFormMsg = document.getElementById('stageFormMsg');
+      stageForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('prodName').value.trim() || 'Quý đối tác';
+        stageFormMsg.textContent = `Cảm ơn ${name}! Đội ngũ Technical Director của kineticStage đã nhận Brief và sẽ gửi Showreel + báo giá dự toán trong 2 giờ.`;
+        stageFormMsg.classList.add('show');
+      });
+
+      updateConsole();
+    })();
+  </script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

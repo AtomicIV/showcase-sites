@@ -1,0 +1,2034 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lịch trị liệu — Lá Sen Spa</title>
+<meta name="description" content="Phần mềm điều phối Lá Sen Spa: timeline ngang theo phòng và kỹ thuật viên, kéo thả dời lịch, báo trùng lịch, gói liệu trình và hoa hồng tự tính.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%234D6B45'/%3E%3Cpath d='M20 21 L23 6.6 A14.5 14.5 0 1 1 17 6.6 Z' fill='%23F3ECE0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--serif:'Cormorant Garamond',Georgia,serif;--sans:'Mulish',system-ui,sans-serif;--ease:cubic-bezier(.16,1,.3,1);--r:16px;--hd:176px;--rh:62px}
+:root,[data-theme=light]{--bg:#F3ECE0;--bg-2:#EBE2D2;--panel:#FBF7F0;--panel-2:#F5EFE4;--line:rgba(70,58,34,.12);--line-2:rgba(70,58,34,.22);--text:#2A2B22;--muted:#625E4F;--dim:#787261;--leaf:#4D6B45;--leaf-2:#3D5737;--leaf-ink:#FBF7F0;--leaf-soft:rgba(77,107,69,.12);--lotus:#B0566A;--gold:#9C7A43;--red:#B23A2A;--red-soft:rgba(178,58,42,.12);--c-body:#5E7D55;--c-face:#BC6576;--c-head:#3F7680;--c-herb:#A9802F;--shadow:0 22px 50px -28px rgba(60,45,20,.38);--grid:rgba(70,58,34,.10);--grid-2:rgba(70,58,34,.05);color-scheme:light}
+[data-theme=dark]{--bg:#121611;--bg-2:#171C16;--panel:#1B211A;--panel-2:#222920;--line:rgba(232,222,196,.09);--line-2:rgba(232,222,196,.17);--text:#EEE7D7;--muted:#B5AE9A;--dim:#959079;--leaf:#9CBF8A;--leaf-2:#B4D4A2;--leaf-ink:#12170F;--leaf-soft:rgba(156,191,138,.13);--lotus:#E9A1AD;--gold:#D6B47C;--red:#F27D66;--red-soft:rgba(242,125,102,.14);--c-body:#8FB581;--c-face:#E39AA7;--c-head:#7DB3BA;--c-herb:#D9B267;--shadow:0 26px 60px -30px rgba(0,0,0,.85);--grid:rgba(232,222,196,.09);--grid-2:rgba(232,222,196,.04);color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--text);font:400 14.5px/1.55 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:clip}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--leaf);outline-offset:2px;border-radius:6px}
+h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.12;margin:0;letter-spacing:-.005em}
+p{margin:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.num{font-variant-numeric:tabular-nums lining-nums}
+svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.skip{position:absolute;left:12px;top:-60px;z-index:200;background:var(--leaf);color:var(--leaf-ink);padding:8px 14px;border-radius:10px;text-decoration:none}
+.skip:focus{top:10px}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+.eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;border-radius:999px;font-weight:700;font-size:13.5px;white-space:nowrap;border:1px solid var(--line-2);background:var(--panel);transition:background .2s,border-color .2s,color .2s}
+.btn:hover{border-color:var(--leaf)}
+.btn.pri{background:var(--leaf);color:var(--leaf-ink);border-color:var(--leaf)}
+.btn.pri:hover{background:var(--leaf-2)}
+.btn.warn{color:var(--red);border-color:color-mix(in srgb,var(--red) 40%,transparent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn .cnt{min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--leaf-soft);color:var(--leaf);font-size:11.5px;display:grid;place-items:center}
+.ib{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--muted);position:relative;transition:background .2s,color .2s}
+.ib:hover{background:var(--leaf-soft);color:var(--text)}
+.seg{position:relative;display:inline-flex;padding:3px;border-radius:999px;background:var(--bg-2);border:1px solid var(--line)}
+.seg button{position:relative;z-index:1;height:32px;padding:0 14px;border-radius:999px;font-weight:700;font-size:13px;color:var(--muted);white-space:nowrap;transition:color .25s}
+.seg button[aria-pressed=true]{color:var(--leaf-ink)}
+.seg .thumb{position:absolute;top:3px;left:0;height:32px;border-radius:999px;background:var(--leaf);z-index:0}
+
+/* ---------- masthead ---------- */
+.top{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:22px;height:70px;padding:0 28px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;flex:none}
+.brand svg{width:36px;height:36px;color:var(--leaf)}
+.brand b{display:block;font:italic 600 25px/1 var(--serif);letter-spacing:-.01em}
+.brand small{display:block;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-top:3px;font-weight:700}
+.nav{position:relative;display:flex;gap:4px;margin-left:12px}
+.nav button{display:flex;align-items:center;gap:7px;height:70px;padding:0 13px;font-weight:600;color:var(--muted);font-size:14px;transition:color .2s}
+.nav button i{font:italic 600 15px var(--serif);color:var(--gold)}
+.nav button:hover,.nav button[aria-current=page]{color:var(--text)}
+.nav-ink{position:absolute;bottom:-1px;left:0;height:2px;background:var(--leaf);border-radius:2px;pointer-events:none}
+.nav-foot{display:none}
+.top-act{margin-left:auto;display:flex;align-items:center;gap:6px}
+.search{display:flex;align-items:center;gap:10px;height:38px;padding:0 10px 0 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--panel);color:var(--dim);font-size:13px;min-width:230px}
+.search kbd{margin-left:auto;font:600 11px var(--sans);border:1px solid var(--line-2);border-radius:6px;padding:2px 6px}
+.dotb{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--lotus);border:2px solid var(--bg)}
+.me{display:flex;align-items:center;gap:9px;margin-left:6px;padding-left:12px;border-left:1px solid var(--line)}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12px;color:#fff;flex:none}
+.me b{display:block;font-size:13px;line-height:1.2}
+.me small{display:block;font-size:11.5px;color:var(--dim)}
+.menu-btn{display:none}
+.nav-back{display:none}
+
+/* ---------- views ---------- */
+main{padding:26px 28px 30px;min-height:calc(100vh - 140px)}
+.view{display:none}
+.view.active{display:block}
+.vhead{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:20px;position:relative}
+.vhead h1{font-size:44px;font-weight:600}
+.vhead h1 em{font-style:italic;color:var(--leaf)}
+.vhead h1:focus{outline:none}
+.vhead .sub{color:var(--muted);margin-top:6px;max-width:60ch}
+.vhead .grow{flex:1}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.card h2{font-size:24px}
+.card .ch{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.card .ch p{color:var(--dim);font-size:12.5px}
+.vhead>*:not(.leafdeco){position:relative}
+.leafdeco{position:absolute;right:-10px;top:-46px;width:220px;height:220px;color:var(--leaf);opacity:.07;pointer-events:none}
+
+/* stats row */
+.stats{display:flex;gap:0;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow:hidden}
+.stats>div{padding:12px 20px;border-left:1px solid var(--line);min-width:0}
+.stats>div:first-child{border-left:0}
+.stats dt{font-size:11.5px;color:var(--dim);font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.stats dd{margin:2px 0 0;font:600 28px/1.15 var(--serif);white-space:nowrap}
+.stats dd small{font:600 12px var(--sans);color:var(--muted);margin-left:4px}
+.up{color:var(--leaf)}.down{color:var(--red)}
+
+/* ---------- timeline view ---------- */
+.lich{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:22px;align-items:start}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tools .grow{flex:1}
+.legend{display:flex;gap:6px;flex-wrap:wrap}
+.legend button{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--muted);border:1px solid var(--line);transition:opacity .2s,background .2s}
+.legend button::before{content:'';width:9px;height:9px;border-radius:3px;background:var(--cc)}
+.legend button[aria-pressed=false]{opacity:.45;text-decoration:line-through}
+.tl-box{position:relative;overflow-x:auto;overflow-y:hidden;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overscroll-behavior-x:contain;scrollbar-width:thin}
+.tl{position:relative}
+.tl-axis{display:flex;height:40px;border-bottom:1px solid var(--line)}
+.tl-corner{position:sticky;left:0;z-index:4;width:var(--hd);flex:none;display:flex;align-items:center;padding:0 16px;background:var(--panel);border-right:1px solid var(--line);font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.tl-hours{position:relative;flex:1}
+.tl-hours span{position:absolute;top:12px;font-size:11.5px;font-weight:700;color:var(--dim);transform:translateX(-50%)}
+.tl-hours span:first-child{transform:translateX(4px)}
+.tl-body{position:relative}
+.tl-row{display:flex;height:var(--rh);border-bottom:1px solid var(--line)}
+.tl-row:last-child{border-bottom:0}
+.tl-rh{position:sticky;left:0;z-index:4;width:var(--hd);flex:none;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--panel);border-right:1px solid var(--line);min-width:0}
+.tl-rh .av{width:30px;height:30px;font-size:11px}
+.tl-rh b{display:block;font-size:13.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-rh small{display:block;font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-rh .rn{font:italic 600 22px/1 var(--serif);color:var(--gold);width:22px;flex:none}
+.tl-rh>div{min-width:0}
+.tl-lane{position:relative;flex:1;cursor:copy;background-image:linear-gradient(to right,var(--grid) 1px,transparent 1px),linear-gradient(to right,var(--grid-2) 1px,transparent 1px);background-size:var(--hw) 100%,calc(var(--hw) / 2) 100%}
+.tl-lane.off{cursor:not-allowed;background-color:var(--panel-2)}
+.tl-lane .shift{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,transparent 0 7px,var(--grid) 7px 8px);pointer-events:none}
+.tl-lane .mt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--dim);background:repeating-linear-gradient(135deg,transparent 0 9px,var(--grid) 9px 11px)}
+.tl-layer{position:absolute;top:0;bottom:0;left:var(--hd);right:0;pointer-events:none;z-index:2}
+.bk{position:absolute;height:calc(var(--rh) - 12px);pointer-events:auto;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:1px;padding:0 12px 0 8px;border-radius:9px;overflow:hidden;background:color-mix(in srgb,var(--cc) 19%,var(--panel));border:1px solid color-mix(in srgb,var(--cc) 34%,transparent);border-left:3px solid var(--cc);cursor:grab;touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:opacity .25s,box-shadow .2s,background .2s}
+.bk b{font-size:12.5px;font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.bk small{font-size:11px;color:var(--muted);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.bk .bk-p{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--cc) 22%,transparent);pointer-events:none}
+.bk .bk-h{position:absolute;right:0;top:0;bottom:0;width:12px;cursor:ew-resize;touch-action:none;display:grid;place-items:center}
+.bk .bk-h::after{content:'';width:3px;height:16px;border-radius:2px;border-left:1px solid var(--cc);border-right:1px solid var(--cc);opacity:.7}
+.bk .tick{position:absolute;right:16px;top:7px;width:14px;height:14px;color:var(--cc)}
+.bk.st-done{background:color-mix(in srgb,var(--cc) 10%,var(--panel));border-style:dashed;border-color:color-mix(in srgb,var(--cc) 50%,transparent);border-left:3px solid color-mix(in srgb,var(--cc) 75%,transparent);cursor:default;filter:saturate(.75)}
+.bk.st-done b{opacity:.85}
+.bk.st-done small{opacity:.9}
+.bk .ck{color:var(--cc);font-weight:900;margin-right:3px}
+.tl-layer .past{position:absolute;left:0;top:0;bottom:0;background:var(--grid-2);pointer-events:none}
+.bk.st-done .bk-h{display:none}
+.bk.sel{box-shadow:0 0 0 2px var(--text);z-index:3}
+.bk:focus-visible{outline:2px solid var(--leaf);outline-offset:2px}
+.bk.tiny{padding:0;align-items:center}
+.bk.tiny b{font-size:11.5px;letter-spacing:.02em}
+.bk.tiny .bk-h::after{display:none}
+.tl-hours span.hid{visibility:hidden}
+.bk.req::before{content:'';position:absolute;right:5px;bottom:6px;width:5px;height:5px;border-radius:50%;background:var(--lotus)}
+.bk.ls-dim{opacity:.22}
+.bk.ls-drag{z-index:10;cursor:grabbing;box-shadow:0 14px 30px -10px rgba(40,30,10,.45);background:color-mix(in srgb,var(--cc) 26%,var(--panel))}
+.bk.ls-bad{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--red) 14%,var(--panel)) 0 7px,color-mix(in srgb,var(--red) 32%,var(--panel)) 7px 14px);border:2px solid var(--red);border-left-width:3px}
+.bk.ls-clash{outline:2px dashed var(--red);outline-offset:1px;animation:clash .7s ease-in-out infinite alternate}
+@keyframes clash{to{outline-offset:4px}}
+.rm .bk.ls-clash{animation:none}
+.bk.ls-new{animation:pop .9s var(--ease)}
+@keyframes pop{0%{box-shadow:0 0 0 0 var(--leaf)}100%{box-shadow:0 0 0 14px transparent}}
+.now{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--lotus);z-index:5;pointer-events:none}
+.now::before{content:'';position:absolute;top:-4px;left:-4px;width:10px;height:10px;border-radius:50%;background:var(--lotus)}
+.tl-hours .now-tag{position:absolute;top:9px;z-index:5;transform:translateX(-50%);background:var(--lotus);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;pointer-events:none;white-space:nowrap}
+.dragtip{position:fixed;z-index:90;left:0;top:0;pointer-events:none;background:var(--text);color:var(--bg);padding:8px 12px;border-radius:10px;font-size:12.5px;max-width:280px;box-shadow:var(--shadow);visibility:hidden}
+.dragtip b{display:block;font-size:13px}
+.dragtip .bad{display:block;color:#FFB4A6;font-weight:700;margin-top:3px}
+[data-theme=dark] .dragtip .bad{color:var(--red)}
+.tl-hint{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12.5px;color:var(--dim)}
+.tl-hint kbd{font:700 11px var(--sans);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;color:var(--muted)}
+
+/* rail */
+.rail{display:grid;gap:18px}
+.detail .empty{color:var(--dim);text-align:center;padding:22px 6px}
+.detail .empty svg{width:46px;height:46px;color:var(--gold);opacity:.6;margin-bottom:6px}
+.dt-head{display:flex;align-items:flex-start;gap:10px}
+.dt-head h2{font-size:28px;line-height:1.1}
+.dt-head .grow{flex:1;min-width:0}
+.dt-x{display:none}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:11.5px;font-weight:800;background:color-mix(in srgb,var(--pc) 14%,transparent);color:var(--pc);white-space:nowrap}
+.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;margin:16px 0;font-size:13.5px}
+.dl dt{color:var(--dim)}
+.dl dd{margin:0;font-weight:600;text-align:right}
+.dt-act{display:flex;gap:8px;flex-wrap:wrap}
+.dt-act .btn{flex:1}
+.comm-total{font:600 38px/1.05 var(--serif);margin:2px 0}
+.comm-sub{font-size:12.5px;color:var(--muted)}
+.comm-list{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:11px}
+.comm-list li{display:grid;grid-template-columns:30px 1fr auto;gap:4px 10px;align-items:center;padding:4px;border-radius:10px;transition:background .5s}
+.comm-list li.flash{background:var(--leaf-soft)}
+.comm-list .av{width:30px;height:30px;font-size:11px;grid-row:span 2}
+.comm-list b{font-size:13px}
+.comm-list b small{font-weight:600;color:var(--dim);margin-left:4px}
+.comm-list .amt{font-weight:800;font-size:13px;text-align:right}
+.cbar{grid-column:2/4;height:6px;border-radius:9px;background:var(--bg-2);display:flex;overflow:hidden}
+.cbar i{display:block;height:100%;background:var(--leaf)}
+.cbar i+i{background:repeating-linear-gradient(135deg,var(--leaf) 0 2px,transparent 2px 5px);opacity:.55}
+.comm-key{display:flex;gap:14px;font-size:11.5px;color:var(--dim);margin-top:12px}
+.comm-key span::before{content:'';display:inline-block;width:10px;height:6px;border-radius:3px;background:var(--leaf);margin-right:6px;vertical-align:middle}
+.comm-key span+span::before{background:repeating-linear-gradient(135deg,var(--leaf) 0 2px,transparent 2px 5px)}
+
+/* ---------- overlays ---------- */
+.ov{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px}
+.ov[hidden]{display:none}
+.ov-back{position:absolute;inset:0;background:rgba(30,26,16,.42);backdrop-filter:blur(3px)}
+.modal{position:relative;width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow)}
+.modal header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.modal header h2{font-size:30px;flex:1}
+.modal .lead{color:var(--muted);margin-bottom:16px;font-size:13.5px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f.full{grid-column:1/-1}
+.f>span{font-size:12.5px;font-weight:700;color:var(--muted)}
+.f input:not([type=checkbox]),.f select,.f textarea{height:42px;padding:0 12px;border-radius:11px;border:1px solid var(--line-2);background:var(--panel-2);width:100%;min-width:0}
+.f textarea{height:76px;padding:10px 12px;resize:vertical}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 3px var(--leaf-soft)}
+.f [aria-invalid=true]{border-color:var(--red)!important;box-shadow:0 0 0 3px var(--red-soft)!important}
+.err{font-style:normal;font-size:12px;font-weight:700;color:var(--red);min-height:0}
+.err:empty{display:none}
+.chk{display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600}
+.chk input{width:18px;height:18px;accent-color:var(--leaf)}
+.form-err{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--red-soft);color:var(--red);font-weight:700;font-size:13px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.form-err:empty{display:none}
+.form-err button{text-decoration:underline;font-weight:800;color:inherit}
+.modal footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.pop{position:fixed;z-index:70;width:340px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:16px}
+.pop[hidden]{display:none}
+.pop h2{font-size:22px;margin-bottom:8px}
+.pop ul{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:340px;overflow:auto}
+.pop li{display:flex;gap:10px;padding:9px 6px;border-radius:10px;font-size:13px}
+.pop li .tm{color:var(--dim);font-size:11.5px;white-space:nowrap;margin-left:auto}
+.pop li button{display:flex;gap:10px;width:100%;text-align:left;align-items:flex-start;padding:4px;border-radius:8px}
+.pop li button:hover{background:var(--leaf-soft)}
+.pop .nb{width:8px;height:8px;border-radius:50%;background:var(--lotus);margin-top:6px;flex:none}
+.pop .nb.read{background:var(--line-2)}
+.pop .foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px}
+.pop .foot button{font-weight:800;color:var(--leaf)}
+.pop .none{color:var(--dim);font-size:13px;padding:10px 4px}
+.palette{position:fixed;z-index:95;top:12vh;left:50%;width:min(620px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--line-2);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;visibility:hidden}
+.pal-back{position:fixed;inset:0;z-index:94;background:rgba(30,26,16,.36);opacity:0;visibility:hidden}
+.pal-in{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.pal-in input{flex:1;border:0;background:none;font-size:16px;outline:none;min-width:0}
+.pal-in kbd{font:700 11px var(--sans);border:1px solid var(--line-2);border-radius:6px;padding:2px 6px;color:var(--dim)}
+.pal-list{list-style:none;margin:0;padding:8px;max-height:min(420px,60vh);overflow:auto}
+.pal-g{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);padding:10px 10px 4px}
+.pal-o{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;cursor:pointer;font-size:14px}
+.pal-o[aria-selected=true]{background:var(--leaf-soft)}
+.pal-o small{margin-left:auto;color:var(--dim);font-size:12px;white-space:nowrap}
+.pal-o mark{background:none;color:var(--leaf);font-weight:800}
+.pal-empty{padding:22px;color:var(--dim);text-align:center}
+.toasts{position:fixed;right:20px;bottom:20px;z-index:99;display:grid;gap:10px;width:min(380px,calc(100vw - 24px));transition:bottom .3s}
+.has-bar .toasts{bottom:84px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 14px;border-radius:14px;background:var(--text);color:var(--bg);box-shadow:var(--shadow);font-size:13.5px;overflow:hidden;position:relative}
+.toast .tico{color:var(--tc);flex:none}
+.toast>span{flex:1}
+.toast .tundo{font-weight:800;color:var(--tc);padding:4px 8px;border-radius:8px}
+.toast .tx{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;opacity:.7}
+.toast .tp{position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--tc);transform-origin:left}
+.tip{position:fixed;z-index:85;left:0;top:0;pointer-events:none;background:var(--text);color:var(--bg);padding:8px 11px;border-radius:10px;font-size:12.5px;line-height:1.4;box-shadow:var(--shadow);opacity:0;white-space:nowrap}
+.tip b{font-size:13.5px}
+
+/* ---------- packages ---------- */
+.pk-stats{margin-bottom:18px}
+@media (min-width:921px){#pkStats>div,#hhStats>div{flex:1}}
+.tbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.tsearch{display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-radius:12px;border:1px solid var(--line-2);background:var(--panel);min-width:260px;color:var(--dim)}
+.tsearch input{border:0;background:none;outline:none;flex:1;min-width:0;color:var(--text)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{height:32px;padding:0 12px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--muted);border:1px solid var(--line);background:var(--panel)}
+.chips button[aria-pressed=true]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.chips button span{opacity:.6;margin-left:4px}
+.msort{display:none}
+.tbl-wrap{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);padding:0 12px;height:44px;border-bottom:1px solid var(--line);background:var(--panel-2);white-space:nowrap}
+th button{display:inline-flex;align-items:center;gap:5px;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit}
+th button svg{width:13px;height:13px;opacity:.35;transition:transform .25s,opacity .2s}
+th[aria-sort=ascending] button svg{opacity:1}
+th[aria-sort=descending] button svg{opacity:1;transform:rotate(180deg)}
+td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr{transition:background .2s}
+tbody tr:hover{background:var(--panel-2)}
+tbody tr.on{background:var(--leaf-soft)}
+tbody tr.flash{animation:rowflash 1.6s ease}
+@keyframes rowflash{0%{background:color-mix(in srgb,var(--gold) 30%,transparent)}}
+td small{display:block;color:var(--dim);font-size:12px}
+td b{font-weight:700}
+.c-chk{width:44px}
+.c-chk input,th input{width:17px;height:17px;accent-color:var(--leaf)}
+.dots{display:flex;gap:3px;flex-wrap:wrap;max-width:140px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--line-2)}
+.dots i.u{background:var(--leaf)}
+.tfoot{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);flex-wrap:wrap}
+.tfoot .grow{flex:1}
+.pager{display:flex;gap:4px}
+.pager button{min-width:32px;height:32px;border-radius:9px;font-weight:700;font-size:13px;color:var(--muted)}
+.pager button[aria-current=page]{background:var(--leaf);color:var(--leaf-ink)}
+.pager button:disabled{opacity:.35;cursor:default}
+.tempty{text-align:center;padding:46px 16px!important;color:var(--muted)}
+.tempty svg{width:60px;height:60px;color:var(--gold);opacity:.55}
+.tempty h3{font-size:24px;margin:6px 0 4px;color:var(--text)}
+.tempty .btn{margin-top:12px}
+.bulk{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:22px;z-index:60;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 18px;border-radius:999px;background:var(--text);color:var(--bg);box-shadow:var(--shadow);visibility:hidden;max-width:calc(100vw - 24px)}
+.bulk b{white-space:nowrap;margin-right:6px}
+.bulk .btn{background:transparent;color:var(--bg);border-color:color-mix(in srgb,var(--bg) 25%,transparent);height:34px;padding:0 13px}
+.bulk .btn:hover{border-color:var(--bg)}
+.bulk .ib{color:var(--bg);width:34px;height:34px}
+
+/* ---------- commission ---------- */
+.hh-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;margin-top:18px}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:260px;overflow:visible}
+.chart .ax{font:600 11px var(--sans);fill:var(--dim)}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .ln{fill:none;stroke:var(--leaf);stroke-width:2.2;stroke-linejoin:round}
+.chart .guide{stroke:var(--line-2);stroke-dasharray:3 3}
+.chart .hit{fill:transparent;cursor:crosshair}
+.mix{display:flex;height:16px;border-radius:9px;overflow:hidden;gap:2px;margin:6px 0 14px}
+.mix i{display:block;height:100%;background:var(--cc)}
+.mix-l{list-style:none;margin:0;padding:0;display:grid;gap:9px;font-size:13.5px}
+.mix-l li{display:flex;align-items:center;gap:10px}
+.mix-l li::before{content:'';width:10px;height:10px;border-radius:3px;background:var(--cc)}
+.mix-l li span{margin-left:auto;font-weight:800}
+.mix-l li small{color:var(--dim);width:56px;text-align:right}
+.rules{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:grid;gap:6px}
+.rules b{color:var(--text)}
+.kbars{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.kbars li{display:grid;grid-template-columns:150px 1fr 110px;gap:12px;align-items:center;font-size:13px;cursor:default}
+.kbars .tr{display:block;height:22px;border-radius:7px;background:var(--bg-2);overflow:hidden}
+.kbars .fl{display:block;height:100%;border-radius:7px;background:linear-gradient(90deg,color-mix(in srgb,var(--leaf) 55%,transparent),var(--leaf));width:0}
+.kbars li:hover .fl{background:var(--lotus)}
+.kbars .v{text-align:right;font-weight:800}
+.kbars small{color:var(--dim);display:block;font-size:11.5px}
+.ctbl td,.ctbl th{padding-left:10px;padding-right:10px}
+.ctbl .r{text-align:right}
+
+/* ---------- settings ---------- */
+.set{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;max-width:1100px}
+.set-nav{position:sticky;top:96px;align-self:start;display:grid;gap:4px}
+.set-nav a{display:block;padding:9px 12px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:600}
+.set-nav a:hover{background:var(--leaf-soft);color:var(--text)}
+.sec{scroll-margin-top:90px}
+.sec+.sec{margin-top:18px}
+.sec h2{font-size:26px;margin-bottom:4px}
+.sec>p{color:var(--muted);font-size:13px;margin-bottom:16px}
+.fgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.rooms{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rooms li{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line)}
+.rooms li:last-child{border-bottom:0}
+.rooms li div{flex:1;min-width:0}
+.rooms small{display:block;color:var(--dim);font-size:12px}
+.sw{position:relative;width:44px;height:26px;flex:none}
+.sw input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.sw i{position:absolute;inset:0;border-radius:99px;background:var(--line-2);transition:background .2s}
+.sw i::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--panel);transition:translate .25s var(--ease)}
+.sw input:checked+i{background:var(--red)}
+.sw input:checked+i::after{translate:18px 0}
+.sw input:focus-visible+i{outline:2px solid var(--leaf);outline-offset:2px}
+.savebar{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:22px;z-index:60;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 20px;border-radius:999px;background:var(--text);color:var(--bg);box-shadow:var(--shadow);visibility:hidden;max-width:calc(100vw - 24px)}
+.savebar span{white-space:nowrap}
+.savebar .btn{height:34px}
+.savebar .btn:not(.pri){background:transparent;color:var(--bg);border-color:color-mix(in srgb,var(--bg) 25%,transparent)}
+
+footer.foot{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;padding:16px 28px 22px;border-top:1px solid var(--line);font-size:12.5px;color:var(--dim)}
+footer.foot em{font-family:var(--serif);font-size:15px;color:var(--muted)}
+
+/* ---------- responsive ---------- */
+@media (max-width:1280px){
+  .lich{grid-template-columns:minmax(0,1fr)}
+  .rail{grid-template-columns:1fr 1fr;align-items:start}
+  .search{min-width:0}.search span{display:none}.search kbd{display:none}
+  .me div{display:none}
+}
+@media (max-width:1060px){
+  .hh-grid{grid-template-columns:1fr}
+  .nav button{padding:0 9px}
+}
+@media (max-width:920px){
+  .top{padding:0 14px;gap:8px;height:62px;backdrop-filter:none;background:var(--bg)}
+  .menu-btn{display:grid}
+  .nav{position:fixed;left:0;top:0;bottom:0;z-index:75;width:min(300px,84vw);margin:0;flex-direction:column;gap:2px;padding:76px 14px 20px;background:var(--panel);border-right:1px solid var(--line);transform:translateX(-102%);transition:transform .38s var(--ease),visibility 0s .38s;visibility:hidden}
+  .nav button{height:50px;border-radius:12px;padding:0 14px;font-size:16px}
+  .nav button[aria-current=page]{background:var(--leaf-soft)}
+  .nav-ink{display:none}
+  .nav-foot{display:block;margin-top:auto;font-size:12px;color:var(--dim);padding:0 14px}
+  .app.nav-open .nav{transform:none;visibility:visible;transition:transform .38s var(--ease)}
+  .nav-back{display:block;position:fixed;inset:0;z-index:74;background:rgba(30,26,16,.4);opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .3s}
+  .app.nav-open .nav-back{opacity:1;visibility:visible;transition:opacity .3s}
+  .nav-x{position:absolute;top:14px;right:14px}
+  .me{display:none}
+  main{padding:20px 16px 26px}
+  .vhead h1{font-size:36px}
+  .detail{position:fixed;left:0;right:0;bottom:0;z-index:65;border-radius:22px 22px 0 0;max-height:72dvh;overflow:auto;box-shadow:0 -20px 50px -20px rgba(30,20,5,.4);transform:translateY(105%);visibility:hidden;transition:transform .4s var(--ease),visibility 0s .4s}
+  .detail.open{transform:none;visibility:visible;transition:transform .4s var(--ease)}
+  .dt-x{display:grid}
+  .rail{grid-template-columns:1fr}
+  .stats{flex-wrap:wrap}
+  .stats>div{flex:1 1 45%;border-left:0;border-top:1px solid var(--line)}
+  .stats>div:nth-child(-n+2){border-top:0}
+  .stats>div:nth-child(even){border-left:1px solid var(--line)}
+  .set{grid-template-columns:1fr}
+  .set-nav{display:none}
+  footer.foot{padding:16px}
+}
+@media (min-width:921px){.nav .nav-x{display:none}}
+@media (max-width:720px){
+  :root{--hd:108px;--rh:58px}
+  .brand small{display:none}
+  .brand b{font-size:22px}
+  .top-act .ib.hide-s{display:none}
+  .vhead{margin-bottom:14px}
+  .vhead h1{font-size:32px}
+  .leafdeco{display:none}
+  .stats dd{font-size:23px}
+  .stats>div{padding:10px 14px}
+  .tl-rh{padding:0 10px;gap:8px}
+  .tl-rh .rn{display:none}
+  .tl-rh .av{display:none}
+  .has-bar .toasts{bottom:128px}
+  .tl-corner{padding:0 10px}
+  .bk .bk-h{width:20px}
+  .tl-hint{display:none}
+  .tools .grow{display:none}
+  .tools .lbl{display:none}
+  .fgrid,.fgrid3{grid-template-columns:1fr}
+  .modal{padding:20px;border-radius:20px}
+  .ov{align-items:end;padding:0}
+  .ov .modal{width:100%;border-radius:22px 22px 0 0;max-height:92dvh}
+  .tsearch{min-width:0;flex:1 1 100%}
+  .chips{flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none;padding-bottom:2px}
+  .chips button{flex:none}
+  .msort{display:flex}
+  .tbl-wrap{background:none;border:0;overflow:visible}
+  .pk thead{display:none}
+  .pk,.pk tbody{display:block}
+  .pk tr{display:grid;grid-template-columns:32px 1fr auto;gap:4px 10px;padding:14px;margin-bottom:10px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+  .pk td{border:0;padding:0}
+  .pk td:nth-child(1){grid-row:span 3}
+  .pk td:nth-child(2){grid-column:2}
+  .pk td:nth-child(7){grid-column:3;grid-row:1;text-align:right}
+  .pk td:nth-child(3),.pk td:nth-child(4),.pk td:nth-child(5){grid-column:2/4}
+  .pk td:nth-child(6){grid-column:2/4;font-weight:800}
+  .pk td:nth-child(4) small{display:inline;margin-left:8px}
+  .pk tr.temptyr{display:block}
+  .tfoot{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+  .bulk{left:12px;right:12px;width:auto;bottom:12px;border-radius:18px;flex-wrap:wrap;padding:10px;justify-content:center}
+  .bulk b{width:100%;text-align:center}
+  .bulk .btn .lbl{display:none}
+  .kbars li{grid-template-columns:96px 1fr 84px;gap:8px}
+  .ctbl .hide-s{display:none}
+  .savebar{left:12px;right:12px;width:auto;bottom:12px;border-radius:18px;flex-wrap:wrap;justify-content:center;padding:10px}
+  .savebar span{width:100%;text-align:center}
+  .toasts{right:12px;bottom:12px}
+  .pop{left:12px!important;right:12px;width:auto}
+}
+.ckhit{display:inline-flex;vertical-align:middle;cursor:pointer}
+/* Below desktop: readable text (≥12px) and finger-sized tap targets (≥40px). */
+@media (max-width:1100px){
+  .eyebrow,.btn .cnt,.brand small,.search kbd,.me small,.stats dt,.tl-corner,.tl-hours span,.tl-rh .av,.tl-rh small,.bk small,.bk.tiny b,.tl-hours .now-tag,.tl-hint kbd,.pill,.comm-list .av,.comm-key,.pop li .tm,.pal-in kbd,.pal-g,th,.kbars small{font-size:12px}
+  .stats dt{white-space:normal;letter-spacing:.04em}
+  .comm-list b small,.mix-l li small,.dl small{font-size:12px}
+}
+@media (pointer:coarse),(max-width:820px){
+  .ib,.search{min-width:40px;height:40px}
+  .ib{width:40px}
+  .btn,.seg button,.seg .thumb,.legend button,.chips button{height:40px}
+  .pager button{min-width:40px;height:40px}
+  .ckhit{display:inline-grid;place-items:center;width:40px;height:40px;margin:-11px}
+}
+.rm *{scroll-behavior:auto!important}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Bỏ qua tới nội dung chính</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-leaf" viewBox="0 0 40 40"><path d="M20 20.5 L23.4 4.4 A16 16 0 1 1 16.6 4.4 Z" fill="currentColor" stroke="none"/><path d="M20 20.5 L8 12 M20 20.5 L5 24 M20 20.5 L12 33.5 M20 20.5 L26 35.5 M20 20.5 L34.5 27 M20 20.5 L33 11.5" style="stroke:var(--bg)" stroke-width="1.2" opacity=".55" fill="none"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17"/></symbol>
+  <symbol id="i-pkg" viewBox="0 0 24 24"><path d="M12 3c3 3 4.5 6 4.5 9a4.5 4.5 0 0 1-9 0C7.5 9 9 6 12 3Z"/><path d="M5 13c-1 4 2 8 7 8s8-4 7-8"/></symbol>
+  <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M14.8 9.2c-.5-.9-1.6-1.4-2.8-1.4-1.6 0-2.8.8-2.8 2.1 0 3 5.8 1.4 5.8 4.3 0 1.3-1.3 2.2-3 2.2-1.3 0-2.4-.5-2.9-1.5M12 6v1.8M12 16.4v1.8"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17.2v.3"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+  <symbol id="i-chevl" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="i-cal2" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3v4M16 3v4M3.5 10h17M12 13v4M10 15h4"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <header class="top" id="top">
+    <button class="ib menu-btn" id="menuBtn" type="button" aria-label="Mở menu" aria-expanded="false" aria-controls="nav"><svg class="i"><use href="#i-menu"/></svg></button>
+    <a class="brand" href="#view-lich" aria-label="Lá Sen Spa — về lịch trị liệu"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span><b>Lá Sen</b><small>Spa · Thảo Điền</small></span></a>
+    <nav class="nav" id="nav" aria-label="Điều hướng chính">
+      <button class="ib nav-x" id="navX" type="button" aria-label="Đóng menu"><svg class="i"><use href="#i-x"/></svg></button>
+      <button type="button" data-go="lich"><i>I</i>Lịch trị liệu</button>
+      <button type="button" data-go="lieu-trinh"><i>II</i>Gói liệu trình</button>
+      <button type="button" data-go="hoa-hong"><i>III</i>Hoa hồng</button>
+      <button type="button" data-go="thiet-lap"><i>IV</i>Thiết lập</button>
+      <span class="nav-ink" id="navInk"></span>
+      <p class="nav-foot">Lá Sen Spa · Chi nhánh Thảo Điền<br>Thiết kế concept — thương hiệu giả định.</p>
+    </nav>
+    <div class="nav-back" id="navBack"></div>
+    <div class="top-act">
+      <button class="search" id="searchBtn" type="button" aria-label="Tìm nhanh và chạy lệnh (Ctrl K)"><svg class="i"><use href="#i-search"/></svg><span>Tìm khách, lịch, lệnh…</span><kbd>Ctrl K</kbd></button>
+      <button class="ib" id="bellBtn" type="button" aria-label="Thông báo" aria-expanded="false" aria-controls="bellPop"><svg class="i"><use href="#i-bell"/></svg><span class="dotb" id="bellDot"></span></button>
+      <button class="ib" id="themeBtn" type="button" aria-label="Chuyển giao diện tối"><svg class="i"><use href="#i-moon" id="themeIco"/></svg></button>
+      <div class="me"><span class="av" style="background:#9C7A43">MV</span><div><b>Mai Vy</b><small>Lễ tân trưởng</small></div></div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- I. Timeline -->
+    <section class="view" id="view-lich" aria-labelledby="h-lich">
+      <div class="vhead" data-in>
+        <svg class="leafdeco" aria-hidden="true"><use href="#i-leaf"/></svg>
+        <div>
+          <p class="eyebrow" id="todayLbl">Hôm nay</p>
+          <h1 id="h-lich" tabindex="-1">Lịch trị liệu <em>trong ngày</em></h1>
+        </div>
+        <div class="grow"></div>
+        <dl class="stats" id="dayStats"></dl>
+      </div>
+      <div class="lich">
+        <div>
+          <div class="tools" data-in>
+            <div class="seg" id="modeSeg" role="group" aria-label="Góc nhìn timeline"><span class="thumb"></span><button type="button" data-mode="room" aria-pressed="true">Theo phòng</button><button type="button" data-mode="ktv" aria-pressed="false">Theo KTV</button></div>
+            <div class="legend" id="legend" role="group" aria-label="Lọc theo nhóm dịch vụ"></div>
+            <div class="grow"></div>
+            <button class="btn" id="histBtn" type="button" aria-expanded="false" aria-controls="histPop" aria-label="Nhật ký thay đổi"><svg class="i"><use href="#i-hist"/></svg><span class="lbl">Nhật ký</span></button>
+            <button class="btn" id="undoBtn" type="button" disabled aria-label="Hoàn tác thay đổi gần nhất (Ctrl Z)"><svg class="i"><use href="#i-undo"/></svg><span class="lbl">Hoàn tác</span><span class="cnt num" id="undoCnt">0</span></button>
+            <button class="btn pri" id="newBkBtn" type="button"><svg class="i"><use href="#i-plus"/></svg>Đặt lịch</button>
+          </div>
+          <div class="tl-box" id="tlBox" data-in>
+            <div class="tl" id="tl">
+              <div class="tl-axis"><div class="tl-corner" id="tlCorner">Phòng</div><div class="tl-hours" id="tlHours"></div></div>
+              <div class="tl-body" id="tlBody"><div id="tlRows"></div><div class="tl-layer" id="tlLayer"></div></div>
+            </div>
+          </div>
+          <p class="tl-hint" data-in><span>Kéo khối để dời giờ hoặc đổi hàng · kéo mép phải để đổi thời lượng (bước 15 phút)</span><span>Bàn phím: <kbd>←</kbd><kbd>→</kbd> dời · <kbd>↑</kbd><kbd>↓</kbd> đổi hàng · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> thời lượng · <kbd>Enter</kbd> thả · <kbd>Ctrl Z</kbd> hoàn tác</span></p>
+        </div>
+        <aside class="rail" aria-label="Chi tiết và hoa hồng">
+          <section class="card detail" id="detail" aria-labelledby="dtTitle"></section>
+          <section class="card comm" aria-labelledby="commH" data-in>
+            <p class="eyebrow">Tự tính theo dịch vụ hoàn thành</p>
+            <h2 id="commH" style="margin-top:4px">Hoa hồng KTV hôm nay</h2>
+            <p class="comm-total num" id="commTotal">0 ₫</p>
+            <p class="comm-sub" id="commSub"></p>
+            <ol class="comm-list" id="commList"></ol>
+            <p class="comm-key"><span>Đã chốt</span><span>Dự kiến (chưa xong)</span></p>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <!-- II. Packages -->
+    <section class="view" id="view-lieu-trinh" aria-labelledby="h-lieu-trinh">
+      <div class="vhead" data-in>
+        <div><p class="eyebrow">Khách hàng thân thiết</p><h1 id="h-lieu-trinh" tabindex="-1">Gói <em>liệu trình</em></h1><p class="sub">Theo dõi số buổi đã dùng, hạn sử dụng và giá trị còn lại của từng gói khách đã mua.</p></div>
+        <div class="grow"></div>
+        <button class="btn pri" id="newPkBtn" type="button"><svg class="i"><use href="#i-plus"/></svg>Bán gói mới</button>
+      </div>
+      <dl class="stats pk-stats" id="pkStats" data-in></dl>
+      <div class="tbar" data-in>
+        <label class="tsearch"><svg class="i"><use href="#i-search"/></svg><input id="pkQ" type="search" placeholder="Tìm tên khách, SĐT, mã gói…" aria-label="Tìm gói liệu trình" autocomplete="off"></label>
+        <div class="chips" id="pkChips" role="group" aria-label="Lọc theo trạng thái"></div>
+        <label class="f msort"><span class="sr">Sắp xếp</span><select id="pkSortM" aria-label="Sắp xếp danh sách"><option value="st:1">Cần chú ý trước</option><option value="exp:1">Hạn dùng gần nhất</option><option value="name:1">Tên khách A–Z</option><option value="prog:-1">Dùng nhiều nhất</option><option value="left:-1">Giá trị còn lại cao nhất</option></select></label>
+      </div>
+      <div class="tbl-wrap" data-in>
+        <table class="pk" id="pkTable">
+          <thead><tr>
+            <th class="c-chk"><input type="checkbox" id="pkAll" aria-label="Chọn tất cả gói trên trang này"></th>
+            <th data-k="name"><button type="button">Khách hàng<svg class="i"><use href="#i-arrow"/></svg></button></th>
+            <th data-k="pkg"><button type="button">Liệu trình<svg class="i"><use href="#i-arrow"/></svg></button></th>
+            <th data-k="prog"><button type="button">Tiến độ<svg class="i"><use href="#i-arrow"/></svg></button></th>
+            <th data-k="exp"><button type="button">Hạn dùng<svg class="i"><use href="#i-arrow"/></svg></button></th>
+            <th data-k="left"><button type="button">Còn lại<svg class="i"><use href="#i-arrow"/></svg></button></th>
+            <th data-k="st"><button type="button">Trạng thái<svg class="i"><use href="#i-arrow"/></svg></button></th>
+          </tr></thead>
+          <tbody id="pkBody"></tbody>
+        </table>
+        <div class="tfoot"><span id="pkInfo"></span><span class="grow"></span><div class="pager" id="pkPager" role="group" aria-label="Phân trang"></div></div>
+      </div>
+    </section>
+
+    <!-- III. Commission -->
+    <section class="view" id="view-hoa-hong" aria-labelledby="h-hoa-hong">
+      <div class="vhead" data-in>
+        <div><p class="eyebrow">Doanh thu dịch vụ</p><h1 id="h-hoa-hong" tabindex="-1">Hoa hồng <em>&amp; doanh thu</em></h1><p class="sub">Hoa hồng tính theo bậc KTV trên giá dịch vụ đã hoàn thành, cộng thưởng khi khách chỉ định.</p></div>
+        <div class="grow"></div>
+        <div class="seg" id="rangeSeg" role="group" aria-label="Khoảng thời gian"><span class="thumb"></span><button type="button" data-r="7" aria-pressed="false">7 ngày</button><button type="button" data-r="30" aria-pressed="true">30 ngày</button><button type="button" data-r="90" aria-pressed="false">90 ngày</button></div>
+      </div>
+      <dl class="stats" id="hhStats" data-in></dl>
+      <div class="hh-grid">
+        <section class="card" data-in aria-labelledby="revH">
+          <div class="ch"><h2 id="revH">Doanh thu theo ngày</h2><p id="revSub"></p></div>
+          <div class="chart" id="revChart"></div>
+        </section>
+        <section class="card" data-in aria-labelledby="mixH">
+          <div class="ch"><h2 id="mixH">Cơ cấu dịch vụ</h2></div>
+          <div class="mix" id="mixBar"></div>
+          <ul class="mix-l" id="mixList"></ul>
+          <div class="rules" id="rules"></div>
+        </section>
+        <section class="card" data-in aria-labelledby="kbH">
+          <div class="ch"><h2 id="kbH">Hoa hồng theo KTV</h2><p id="kbSub"></p></div>
+          <ul class="kbars" id="kBars"></ul>
+        </section>
+        <section class="card" data-in aria-labelledby="ctH">
+          <div class="ch"><h2 id="ctH">Bảng kê hôm nay</h2><p>Đồng bộ với timeline</p></div>
+          <div style="overflow-x:auto"><table class="ctbl"><thead><tr><th>KTV</th><th class="r">Xong</th><th class="r hide-s">Doanh thu</th><th class="r">Hoa hồng</th></tr></thead><tbody id="ctBody"></tbody></table></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- IV. Settings -->
+    <section class="view" id="view-thiet-lap" aria-labelledby="h-thiet-lap">
+      <div class="vhead" data-in><div><p class="eyebrow">Chi nhánh Thảo Điền</p><h1 id="h-thiet-lap" tabindex="-1">Thiết <em>lập</em></h1><p class="sub">Thay đổi tỷ lệ hoa hồng sẽ tính lại ngay trên timeline và báo cáo.</p></div></div>
+      <div class="set">
+        <nav class="set-nav" aria-label="Mục thiết lập"><a href="#s-info">Thông tin chi nhánh</a><a href="#s-comm">Hoa hồng</a><a href="#s-rooms">Phòng trị liệu</a><a href="#s-notify">Nhắc lịch</a></nav>
+        <form id="setForm" novalidate>
+          <section class="card sec" id="s-info" data-in><h2>Thông tin chi nhánh</h2><p>Hiển thị trên phiếu dịch vụ và tin nhắn gửi khách.</p>
+            <div class="fgrid">
+              <label class="f"><span>Tên chi nhánh</span><input id="stName" aria-describedby="stNameE"><em class="err" id="stNameE"></em></label>
+              <label class="f"><span>Hotline</span><input id="stPhone" inputmode="tel" aria-describedby="stPhoneE"><em class="err" id="stPhoneE"></em></label>
+              <label class="f full"><span>Địa chỉ</span><input id="stAddr" aria-describedby="stAddrE"><em class="err" id="stAddrE"></em></label>
+            </div>
+          </section>
+          <section class="card sec" id="s-comm" data-in><h2>Hoa hồng kỹ thuật viên</h2><p>Phần trăm trên giá dịch vụ hoàn thành. Bậc cao không được thấp hơn bậc dưới.</p>
+            <div class="fgrid3">
+              <label class="f"><span>Bậc 1 · KTV mới (%)</span><input id="stT1" type="number" min="0" max="30" step="1" inputmode="numeric" aria-describedby="stT1E"><em class="err" id="stT1E"></em></label>
+              <label class="f"><span>Bậc 2 · KTV chính (%)</span><input id="stT2" type="number" min="0" max="30" step="1" inputmode="numeric" aria-describedby="stT2E"><em class="err" id="stT2E"></em></label>
+              <label class="f"><span>Bậc 3 · KTV trưởng (%)</span><input id="stT3" type="number" min="0" max="30" step="1" inputmode="numeric" aria-describedby="stT3E"><em class="err" id="stT3E"></em></label>
+              <label class="f"><span>Thưởng khách chỉ định (₫/lượt)</span><input id="stBonus" type="number" min="0" max="200000" step="5000" inputmode="numeric" aria-describedby="stBonusE"><em class="err" id="stBonusE"></em></label>
+            </div>
+          </section>
+          <section class="card sec" id="s-rooms" data-in><h2>Phòng trị liệu</h2><p>Phòng đang bảo trì sẽ bị khóa trên timeline, không nhận lịch mới.</p><ul class="rooms" id="roomSet"></ul></section>
+          <section class="card sec" id="s-notify" data-in><h2>Nhắc lịch</h2><p>Tin nhắn gửi tự động trước giờ hẹn.</p>
+            <div class="fgrid">
+              <label class="f"><span>Gửi nhắc trước</span><select id="stRemind"><option value="60">1 giờ</option><option value="120">2 giờ</option><option value="1440">1 ngày</option></select></label>
+              <label class="chk" style="align-self:end;height:42px"><input type="checkbox" id="stZalo"> Gửi kèm tin Zalo OA</label>
+            </div>
+          </section>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot"><span><em>Lá Sen Spa</em> · Chi nhánh Thảo Điền · Phần mềm điều phối trị liệu</span><span>Thiết kế concept — thương hiệu giả định.</span></footer>
+</div>
+
+<!-- booking modal -->
+<div class="ov" id="bkModal" role="dialog" aria-modal="true" aria-labelledby="bkTitle" hidden>
+  <div class="ov-back" data-close></div>
+  <form class="modal" id="bkForm" novalidate>
+    <header><h2 id="bkTitle">Đặt lịch trị liệu</h2><button type="button" class="ib" data-close aria-label="Đóng hộp thoại"><svg class="i"><use href="#i-x"/></svg></button></header>
+    <p class="lead">Hệ thống kiểm tra trùng lịch KTV, phòng và ca làm trước khi lưu.</p>
+    <div class="fgrid">
+      <label class="f"><span>Tên khách</span><input id="bkName" autocomplete="off" placeholder="VD: Nguyễn Lan Anh" aria-describedby="bkNameE"><em class="err" id="bkNameE"></em></label>
+      <label class="f"><span>Số điện thoại</span><input id="bkPhone" inputmode="tel" autocomplete="off" placeholder="09x xxx xxxx" aria-describedby="bkPhoneE"><em class="err" id="bkPhoneE"></em></label>
+      <label class="f full"><span>Dịch vụ</span><select id="bkSvc" aria-describedby="bkSvcE"></select><em class="err" id="bkSvcE"></em></label>
+      <label class="f"><span>Kỹ thuật viên</span><select id="bkKtv"></select></label>
+      <label class="f"><span>Phòng</span><select id="bkRoom"></select></label>
+      <label class="f"><span>Giờ bắt đầu</span><select id="bkTime" aria-describedby="bkTimeE"></select><em class="err" id="bkTimeE"></em></label>
+      <label class="chk" style="align-self:end;height:42px"><input type="checkbox" id="bkReq"> Khách chỉ định KTV</label>
+    </div>
+    <p class="form-err" id="bkClash" role="alert"></p>
+    <footer><button type="button" class="btn" data-close>Hủy</button><button type="submit" class="btn pri"><svg class="i"><use href="#i-check"/></svg>Lưu lịch hẹn</button></footer>
+  </form>
+</div>
+
+<!-- package modal -->
+<div class="ov" id="pkModal" role="dialog" aria-modal="true" aria-labelledby="pkTitle" hidden>
+  <div class="ov-back" data-close></div>
+  <form class="modal" id="pkForm" novalidate>
+    <header><h2 id="pkTitle">Bán gói liệu trình</h2><button type="button" class="ib" data-close aria-label="Đóng hộp thoại"><svg class="i"><use href="#i-x"/></svg></button></header>
+    <p class="lead">Gói có hạn dùng tính từ ngày bắt đầu theo quy định của từng liệu trình.</p>
+    <div class="fgrid">
+      <label class="f"><span>Tên khách</span><input id="pfName" autocomplete="off" aria-describedby="pfNameE"><em class="err" id="pfNameE"></em></label>
+      <label class="f"><span>Số điện thoại</span><input id="pfPhone" inputmode="tel" autocomplete="off" aria-describedby="pfPhoneE"><em class="err" id="pfPhoneE"></em></label>
+      <label class="f full"><span>Liệu trình</span><select id="pfPkg" aria-describedby="pfPkgE"></select><em class="err" id="pfPkgE"></em></label>
+      <label class="f"><span>Ngày bắt đầu</span><input id="pfDate" type="text" inputmode="numeric" maxlength="10" placeholder="dd/mm/yyyy" autocomplete="off" aria-describedby="pfDateE"><em class="err" id="pfDateE"></em></label>
+      <label class="f"><span>KTV phụ trách</span><select id="pfKtv"></select></label>
+      <label class="f full"><span>Ghi chú <small id="pfNoteC" style="color:var(--dim);font-weight:600">0/160</small></span><textarea id="pfNote" aria-describedby="pfNoteE"></textarea><em class="err" id="pfNoteE"></em></label>
+    </div>
+    <footer><button type="button" class="btn" data-close>Hủy</button><button type="submit" class="btn pri"><svg class="i"><use href="#i-check"/></svg>Lưu gói</button></footer>
+  </form>
+</div>
+
+<div class="pop" id="bellPop" hidden role="region" aria-label="Thông báo"><h2>Thông báo</h2><ul id="bellList"></ul><div class="foot"><span id="bellCnt"></span><button type="button" id="bellRead">Đánh dấu đã đọc</button></div></div>
+<div class="pop" id="histPop" hidden role="region" aria-label="Nhật ký thay đổi"><h2>Nhật ký thay đổi</h2><ul id="histList"></ul><div class="foot"><span>Bấm một dòng để quay về trước thay đổi đó</span></div></div>
+<div class="bulk" id="bulk" role="region" aria-label="Thao tác hàng loạt"><b id="bulkN">0 gói</b>
+  <button class="btn" type="button" id="bRemind" aria-label="Gửi nhắc lịch"><svg class="i"><use href="#i-send"/></svg><span class="lbl">Nhắc lịch</span></button>
+  <button class="btn" type="button" id="bExtend" aria-label="Gia hạn 30 ngày"><svg class="i"><use href="#i-cal2"/></svg><span class="lbl">Gia hạn 30 ngày</span></button>
+  <button class="btn" type="button" id="bPause" aria-label="Tạm dừng gói"><svg class="i"><use href="#i-pause"/></svg><span class="lbl">Tạm dừng</span></button>
+  <button class="btn" type="button" id="bDel" aria-label="Xóa gói"><svg class="i"><use href="#i-trash"/></svg><span class="lbl">Xóa</span></button>
+  <button class="ib" type="button" id="bClear" aria-label="Bỏ chọn"><svg class="i"><use href="#i-x"/></svg></button>
+</div>
+<div class="savebar" id="savebar" role="region" aria-label="Lưu thiết lập"><span>Bạn có thay đổi chưa lưu</span><button class="btn" type="button" id="setReset">Hủy thay đổi</button><button class="btn pri" type="button" id="setSave">Lưu thiết lập</button></div>
+<div class="pal-back" id="palBack"></div>
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Bảng lệnh">
+  <div class="pal-in"><svg class="i"><use href="#i-search"/></svg><input id="palInput" type="text" role="combobox" aria-expanded="true" aria-controls="palList" aria-autocomplete="list" aria-label="Tìm kiếm hoặc chạy lệnh" placeholder="Gõ tên khách, dịch vụ hoặc lệnh…" autocomplete="off"><kbd>Esc</kbd></div>
+  <ul class="pal-list" id="palList" role="listbox" aria-label="Kết quả"></ul>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="dragtip" id="dragTip" aria-hidden="true"></div>
+<p class="sr" id="live" aria-live="assertive"></p>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+(() => {
+'use strict'
+const G = window.gsap
+G.config({ nullTargetWarn: false })
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+// ?static freezes the now-line and every self-updating element so QA (tools/deep.cjs) compares layout only.
+const STATIC = /\bstatic\b/.test(location.search)
+const root = document.documentElement
+if (RM) { root.classList.add('rm'); G.globalTimeline.timeScale(50) }
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const store = {
+  get(k) { try { return localStorage.getItem(k) } catch { return null } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch { /* private mode */ } },
+}
+const savedTheme = store.get('lasen-theme')
+if (savedTheme === 'light' || savedTheme === 'dark') root.dataset.theme = savedTheme
+
+/* ---------- helpers ---------- */
+function mulberry(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
+const nf = new Intl.NumberFormat('vi-VN')
+const vnd = (n) => nf.format(Math.round(n)) + ' ₫'
+const compact = (n) => n >= 1e9 ? (n / 1e9).toFixed(2).replace('.', ',') + ' tỷ' : n >= 1e6 ? (n / 1e6).toFixed(n >= 1e8 ? 0 : 1).replace('.', ',') + ' tr' : n >= 1e3 ? Math.round(n / 1e3) + 'k' : String(Math.round(n))
+const pct = (v) => (v > 0 ? '+' : '') + v.toFixed(1).replace('.', ',') + '%'
+const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v))
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const pad2 = (n) => String(n).padStart(2, '0')
+const hm = (m) => pad2(Math.floor(m / 60)) + ':' + pad2(m % 60)
+const initials = (n) => { const p = n.split(' '); return (p[p.length - 2]?.[0] || '') + p[p.length - 1][0] }
+const short = (n) => n.split(' ').slice(-2).join(' ')
+const DAY = 864e5
+const NOW = new Date()
+const TODAY = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate()).getTime()
+const dmy = (t) => { const d = new Date(t); return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() }
+const WD = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+const phoneFmt = (p) => p.slice(0, 4) + ' ' + p.slice(4, 7) + ' ' + p.slice(7)
+const PHONE_RE = /^0(3|5|7|8|9)\d{8}$/
+const live = (msg) => { const el = $('#live'); el.textContent = ''; setTimeout(() => (el.textContent = msg), 30) }
+function roll(el, to, fmt, dur = 0.9) {
+  const from = el._v ?? 0
+  el._v = to
+  if (RM || from === to) { el.textContent = fmt(to); return }
+  const o = { v: from }
+  G.to(o, { v: to, duration: dur, ease: 'power3.out', overwrite: true, onUpdate: () => (el.textContent = fmt(o.v)) })
+}
+
+/* ---------- domain ---------- */
+const OPEN = 540, CLOSE = 1260, SPAN = CLOSE - OPEN, STEP = 15
+const realMin = NOW.getHours() * 60 + NOW.getMinutes()
+// Outside opening hours the board would be all past or all future, so pin a demo clock and say so.
+const DEMO = realMin < 600 || realMin > 1080
+let nowMin = DEMO ? 860 : realMin
+const CATS = {
+  body: { l: 'Massage & body', sh: 'Massage', c: 'var(--c-body)' },
+  face: { l: 'Chăm sóc da mặt', sh: 'Da mặt', c: 'var(--c-face)' },
+  head: { l: 'Gội & bấm huyệt', sh: 'Gội & huyệt', c: 'var(--c-head)' },
+  herb: { l: 'Thảo dược & xông', sh: 'Thảo dược', c: 'var(--c-herb)' },
+}
+const SVC = [
+  { id: 's1', n: 'Massage đá nóng', sh: 'Đá nóng', cat: 'body', dur: 90, p: 650000 },
+  { id: 's2', n: 'Massage cổ vai gáy', sh: 'Cổ vai gáy', cat: 'body', dur: 60, p: 420000 },
+  { id: 's3', n: 'Chăm sóc da mặt lá sen', sh: 'Da mặt lá sen', cat: 'face', dur: 75, p: 580000 },
+  { id: 's4', n: 'Gội đầu dưỡng sinh', sh: 'Gội dưỡng sinh', cat: 'head', dur: 45, p: 250000 },
+  { id: 's5', n: 'Xông hơi thảo dược', sh: 'Xông thảo dược', cat: 'herb', dur: 30, p: 180000 },
+  { id: 's6', n: 'Tắm bùn khoáng', sh: 'Bùn khoáng', cat: 'herb', dur: 60, p: 450000 },
+  { id: 's7', n: 'Liệu trình thải độc toàn thân', sh: 'Thải độc', cat: 'body', dur: 120, p: 1150000 },
+  { id: 's8', n: 'Bấm huyệt bàn chân', sh: 'Bấm huyệt chân', cat: 'head', dur: 45, p: 300000 },
+  { id: 's9', n: 'Nâng cơ mặt thảo mộc', sh: 'Nâng cơ mặt', cat: 'face', dur: 60, p: 690000 },
+]
+const SBY = Object.fromEntries(SVC.map((s) => [s.id, s]))
+const ROOMS = [
+  { id: 'r1', n: 'Sen Hồng', t: 'Phòng đơn · bồn sục', ok: ['body', 'face', 'head'] },
+  { id: 'r2', n: 'Sen Trắng', t: 'Phòng đơn', ok: ['body', 'face'] },
+  { id: 'r3', n: 'Phòng Trúc', t: 'Phòng đơn · giường gội', ok: ['head', 'face', 'body'] },
+  { id: 'r4', n: 'Đá Muối', t: 'Vách đá muối hồng', ok: ['body', 'herb'] },
+  { id: 'r5', n: 'Liên Hoa', t: 'Phòng đôi · ban công', ok: ['body', 'face', 'head'] },
+  { id: 'r6', n: 'Xông Thảo Mộc', t: 'Phòng xông · bồn bùn', ok: ['herb'] },
+]
+const RBY = Object.fromEntries(ROOMS.map((r) => [r.id, r]))
+const KTV = [
+  { id: 'k1', n: 'Lương Ngọc Hạnh', tier: 3, shift: [540, 1020], c: '#5E7D55' },
+  { id: 'k2', n: 'Trần Thu Hà', tier: 2, shift: [540, 1020], c: '#BC6576' },
+  { id: 'k3', n: 'Đinh Minh Thư', tier: 2, shift: [600, 1080], c: '#3F7680' },
+  { id: 'k4', n: 'Hồ Bảo Châu', tier: 1, shift: [660, 1260], c: '#A9802F' },
+  { id: 'k5', n: 'Vương Kim Ngân', tier: 3, shift: [780, 1260], c: '#7A5C8E' },
+  { id: 'k6', n: 'Lê Thanh Tâm', tier: 1, shift: [780, 1260], c: '#B0664A' },
+  { id: 'k7', n: 'Phạm Diệu Linh', tier: 2, shift: [540, 1020], c: '#4C6E9A' },
+  { id: 'k8', n: 'Tô Phương Uyên', tier: 1, shift: [720, 1260], c: '#6E8A3A' },
+]
+const KBY = Object.fromEntries(KTV.map((k) => [k.id, k]))
+const KSKILL = { k1: ['s1', 's7', 's2', 's9'], k2: ['s3', 's9', 's4'], k3: ['s2', 's8', 's4', 's1'], k4: ['s5', 's6', 's4', 's8'], k5: ['s7', 's1', 's3', 's9'], k6: ['s4', 's8', 's5', 's2'], k7: ['s3', 's9', 's2'], k8: ['s6', 's5', 's1', 's8'] }
+const SET = { name: 'Lá Sen Spa — Thảo Điền', phone: '02838123456', addr: '18 đường Thảo Điền, phường An Khánh, TP. Hồ Chí Minh', t1: 10, t2: 12, t3: 15, bonus: 30000, remind: '120', zalo: true }
+const tierPct = (k) => SET['t' + KBY[k].tier]
+const CUST = ['Nguyễn Lan Anh', 'Trần Mỹ Duyên', 'Lê Thảo Nguyên', 'Phạm Quỳnh Như', 'Võ Hoài Thương', 'Đặng Ngọc Diệp', 'Huỳnh Bích Trâm', 'Bùi Khánh Vân', 'Đỗ Minh Khang', 'Hồ Gia Huy', 'Ngô Tường Vi', 'Lý Thanh Trúc', 'Trịnh Hải Yến', 'Mai Anh Thư', 'Phan Thùy Dung', 'Tô Kiều Oanh', 'La Mỹ Tiên', 'Châu Bảo Ngọc', 'Dương Quốc Thịnh', 'Lương Hồng Nhung', 'Vương Tuệ Nhi', 'Tạ Phương Linh', 'Kiều Diễm My', 'Quách Ngọc Trâm', 'Nghiêm Thu Thảo', 'Âu Gia Hân', 'Lạc Minh Châu', 'Thái Bảo Anh', 'Doãn Khánh Linh', 'Mạc Thanh Hương', 'Cao Hoàng Yến', 'Giang Ngọc Mai', 'Hà Thúy Vy', 'Ông Nhã Phương', 'Kha Tú Uyên', 'Lâm Diệu Hiền', 'Phùng Thảo Ly', 'Triệu Ngọc Bích', 'Văn Hải Đăng', 'Ninh Bảo Trân', 'Khúc Mai Hương', 'Lục Thanh Tú', 'Đào Phương Nghi', 'Hứa Minh Tuyết', 'Bạch Gia Linh', 'Tăng Ngọc Hoa', 'Viên Thu Trang', 'Sơn Kim Chi']
+const priceOf = (b) => Math.round(SBY[b.s].p * b.dur / SBY[b.s].dur / 10000) * 10000
+const commOf = (b) => Math.round(priceOf(b) * tierPct(b.ktv) / 100 / 1000) * 1000 + (b.req ? SET.bonus : 0)
+const ST = { booked: { l: 'Đã đặt', c: 'var(--c-head)' }, live: { l: 'Đang phục vụ', c: 'var(--lotus)' }, done: { l: 'Hoàn thành', c: 'var(--leaf)' } }
+
+let BK = []
+function seedBookings() {
+  const r = mulberry(707)
+  const busy = (room, a, e) => BK.some((o) => o.room === room && o.start < e && a < o.start + o.dur)
+  let n = 0, ci = 0
+  for (const k of KTV) {
+    let t = k.shift[0] + [0, 15, 30, 45][Math.floor(r() * 4)]
+    for (let guard = 0; guard < 40; guard++) {
+      const sk = KSKILL[k.id], s = SBY[sk[Math.floor(r() * sk.length)]]
+      if (t + s.dur > k.shift[1]) break
+      const rooms = ROOMS.filter((x) => x.ok.includes(s.cat) && !busy(x.id, t, t + s.dur))
+      if (!rooms.length) { t += STEP; continue }
+      const room = rooms[Math.floor(r() * rooms.length)]
+      const name = CUST[ci++ % CUST.length]
+      BK.push({ id: 'b' + ++n, name, phone: '09' + Math.floor(10000000 + r() * 89999999), s: s.id, dur: s.dur, start: t, room: room.id, ktv: k.id, req: r() < 0.32, st: 'booked' })
+      t += s.dur + [15, 30, 30, 45, 60, 90][Math.floor(r() * 6)]
+    }
+  }
+  BK.forEach((b) => (b.st = b.start + b.dur <= nowMin ? 'done' : b.start <= nowMin ? 'live' : 'booked'))
+}
+seedBookings()
+const byId = (id) => BK.find((b) => b.id === id)
+
+/* ---------- conflicts ---------- */
+function conflicts(b, c) {
+  const out = [], end = c.start + c.dur, R = RBY[c.room], K = KBY[c.ktv]
+  if (c.start < OPEN || end > CLOSE) out.push({ msg: 'Ngoài giờ mở cửa 09:00–21:00' })
+  if (R.off) out.push({ msg: 'Phòng ' + R.n + ' đang bảo trì' })
+  if (c.start < K.shift[0] || end > K.shift[1]) out.push({ msg: 'Ngoài ca của ' + short(K.n) + ' (' + hm(K.shift[0]) + '–' + hm(K.shift[1]) + ')' })
+  if (b.st === 'booked' && c.start < nowMin && c.start !== b.start) out.push({ msg: 'Không xếp lịch vào giờ đã qua' })
+  if (b.st === 'live' && end <= nowMin) out.push({ msg: 'Không thể kết thúc trước giờ hiện tại' })
+  for (const o of BK) {
+    if (o.id === b.id || !(o.start < end && c.start < o.start + o.dur)) continue
+    const when = short(o.name) + ' ' + hm(o.start) + '–' + hm(o.start + o.dur)
+    if (o.room === c.room) out.push({ id: o.id, msg: 'Trùng phòng ' + R.n + ': ' + when })
+    else if (o.ktv === c.ktv) out.push({ id: o.id, msg: 'Trùng lịch KTV ' + short(K.n) + ': ' + when })
+  }
+  return out
+}
+
+/* ---------- toasts ---------- */
+function toast(msg, { type = 'ok', undo } = {}) {
+  const ico = { ok: 'i-check', warn: 'i-alert', info: 'i-leaf' }[type]
+  const c = { ok: '#9CCB86', warn: '#FF9C86', info: '#E9B8C0' }[type]
+  const el = document.createElement('div')
+  el.className = 'toast'
+  el.style.setProperty('--tc', c)
+  el.innerHTML = '<svg class="i tico"><use href="#' + ico + '"/></svg><span>' + msg + '</span>' + (undo ? '<button type="button" class="tundo">Hoàn tác</button>' : '') + '<button type="button" class="tx" aria-label="Đóng thông báo"><svg class="i" style="width:15px;height:15px"><use href="#i-x"/></svg></button><span class="tp"></span>'
+  const box = $('#toasts')
+  box.appendChild(el)
+  while (box.children.length > 3) box.firstChild.remove()
+  const kill = () => { if (el._gone) return; el._gone = true; G.to(el, { opacity: 0, x: 30, duration: 0.3, ease: 'power2.in', onComplete: () => el.remove() }) }
+  el.querySelector('.tx').addEventListener('click', kill)
+  if (undo) el.querySelector('.tundo').addEventListener('click', () => { undo(); kill() })
+  G.from(el, { y: 20, opacity: 0, duration: 0.45, ease: 'expo.out' })
+  const bar = G.fromTo(el.querySelector('.tp'), { scaleX: 1 }, { scaleX: 0, duration: undo ? 6 : 4, ease: 'none', onComplete: kill })
+  el.addEventListener('pointerenter', () => bar.pause())
+  el.addEventListener('pointerleave', () => bar.resume())
+}
+
+/* ---------- theme ---------- */
+function syncThemeBtn() {
+  const d = root.dataset.theme === 'dark'
+  $('#themeIco').setAttribute('href', d ? '#i-sun' : '#i-moon')
+  $('#themeBtn').setAttribute('aria-label', d ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối')
+}
+function setTheme(t) {
+  const apply = () => { root.dataset.theme = t; store.set('lasen-theme', t); syncThemeBtn() }
+  if (!document.startViewTransition || RM) return apply()
+  const r0 = $('#themeBtn').getBoundingClientRect(), x = r0.left + r0.width / 2, y = r0.top + r0.height / 2
+  const rad = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+  document.startViewTransition(apply).ready.then(() => {
+    root.animate({ clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + rad + 'px at ' + x + 'px ' + y + 'px)'] }, { duration: 650, easing: 'cubic-bezier(.16,1,.3,1)', pseudoElement: '::view-transition-new(root)' })
+  }).catch(() => {})
+}
+$('#themeBtn').addEventListener('click', () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'))
+syncThemeBtn()
+
+/* ---------- segmented controls ---------- */
+function moveThumb(seg, instant) {
+  const on = $('[aria-pressed=true]', seg), th = $('.thumb', seg)
+  if (!on || !seg.offsetWidth) return
+  G.to(th, { x: on.offsetLeft - 3, width: on.offsetWidth, duration: instant || RM ? 0 : 0.45, ease: 'expo.out' })
+}
+
+/* =====================================================================
+   I. TIMELINE
+   ===================================================================== */
+const box = $('#tlBox'), tlEl = $('#tl'), layer = $('#tlLayer'), rowsEl = $('#tlRows')
+let mode = store.get('lasen-mode') === 'ktv' ? 'ktv' : 'room'
+let HW = 75, RH = 62, HD = 176
+const cats = new Set(Object.keys(CATS))
+let selId = null
+const rows = () => (mode === 'room' ? ROOMS : KTV)
+const rowOf = (b) => rows().findIndex((x) => x.id === (mode === 'room' ? b.room : b.ktv))
+const pxm = () => HW / 60
+
+function measure() {
+  const cs = getComputedStyle(root)
+  HD = parseFloat(cs.getPropertyValue('--hd')) || 176
+  RH = parseFloat(cs.getPropertyValue('--rh')) || 62
+  const w = box.clientWidth
+  if (!w) return false
+  HW = Math.max(innerWidth < 720 ? 92 : 66, (w - HD) / 12)
+  tlEl.style.setProperty('--hw', HW + 'px')
+  tlEl.style.width = HD + HW * 12 + 'px'
+  return true
+}
+function renderAxis() {
+  let h = ''
+  for (let i = 0; i < 12; i++) h += '<span style="left:' + i * HW + 'px">' + pad2(9 + i) + ':00</span>'
+  $('#tlHours').innerHTML = h
+  $('#tlCorner').textContent = mode === 'room' ? 'Phòng' : 'Kỹ thuật viên'
+}
+function renderRows() {
+  rowsEl.innerHTML = rows().map((x, i) => {
+    let head, lane = ''
+    if (mode === 'room') {
+      const used = BK.filter((b) => b.room === x.id).reduce((a, b) => a + b.dur, 0)
+      head = '<span class="rn">' + (i + 1) + '</span><div><b>' + x.n + '</b><small>' + (x.off ? 'Đang bảo trì' : x.t + ' · ' + Math.round(used / SPAN * 100) + '%') + '</small></div>'
+      if (x.off) lane = '<span class="mt">Bảo trì — không nhận lịch</span>'
+    } else {
+      head = '<span class="av" style="background:' + x.c + '">' + initials(x.n) + '</span><div><b>' + short(x.n) + '</b><small>Bậc ' + x.tier + ' · ' + hm(x.shift[0]) + '–' + hm(x.shift[1]) + '</small></div>'
+      if (x.shift[0] > OPEN) lane += '<span class="shift" style="left:0;width:' + (x.shift[0] - OPEN) * pxm() + 'px"></span>'
+      if (x.shift[1] < CLOSE) lane += '<span class="shift" style="left:' + (x.shift[1] - OPEN) * pxm() + 'px;right:0"></span>'
+    }
+    return '<div class="tl-row"><div class="tl-rh">' + head + '</div><div class="tl-lane' + (x.off ? ' off' : '') + '" data-row="' + i + '">' + lane + '</div></div>'
+  }).join('')
+}
+function blockHTML(b) {
+  const s = SBY[b.s], r = rowOf(b)
+  if (r < 0) return ''
+  const left = (b.start - OPEN) * pxm(), w = b.dur * pxm() - 3
+  const other = mode === 'room' ? short(KBY[b.ktv].n) : RBY[b.room].n
+  // Narrow blocks (30–45 min) only have room for the given name and duration.
+  // Pick the longest label that really fits, so text never clips to a meaningless fragment;
+  // the full details live in the aria-label, drag tooltip and side panel.
+  const tiny = w < 44, room = w - (tiny ? 8 : 26)
+  const fits = (t, f) => textW(t, f) <= room
+  const nm = tiny ? initials(b.name) : [short(b.name), b.name.split(' ').pop(), initials(b.name)].find((t) => fits(t, F_B)) || initials(b.name)
+  const ck = b.st === 'done' && w <= 110 ? '✓ ' : ''
+  const sub = tiny ? '' : [s.sh + ' · ' + other, s.sh, b.dur + '′'].map((t) => ck + t).find((t) => fits(t, F_S)) || ''
+  const prog = b.st === 'live' ? '<span class="bk-p" style="width:' + clamp((nowMin - b.start) / b.dur * 100, 0, 100) + '%"></span>' : ''
+  const lbl = b.name + ', ' + s.n + ', ' + hm(b.start) + ' đến ' + hm(b.start + b.dur) + ', phòng ' + RBY[b.room].n + ', KTV ' + KBY[b.ktv].n + ', ' + ST[b.st].l + (b.req ? ', khách chỉ định' : '')
+  return '<button type="button" class="bk st-' + b.st + (tiny ? ' tiny' : '') + (b.req ? ' req' : '') + (b.id === selId ? ' sel' : '') + (cats.has(s.cat) ? '' : ' ls-dim') + '" data-id="' + b.id + '" style="--cc:' + CATS[s.cat].c + ';left:' + left + 'px;top:' + (r * RH + 6) + 'px;width:' + w + 'px" aria-label="' + esc(lbl) + '">' + prog +
+    (b.st === 'done' && w > 110 ? '<svg class="i tick"><use href="#i-check"/></svg>' : '') + '<b>' + esc(nm) + '</b>' + (sub ? '<small>' + (ck ? '<span class="ck" aria-hidden="true">✓</span>' + esc(sub.slice(2)) : esc(sub)) + '</small>' : '') + (b.st !== 'done' ? '<span class="bk-h" aria-hidden="true"></span>' : '') + '</button>'
+}
+const F_B = '800 12.5px Mulish, system-ui, sans-serif', F_S = '400 11px Mulish, system-ui, sans-serif'
+const mctx = document.createElement('canvas').getContext('2d')
+const textW = (t, f) => { mctx.font = f; return mctx.measureText(t).width * 1.06 }
+// Hide any hour label the now-tag would sit on, so the axis never reads as broken.
+function clearAxis() {
+  const tag = $('#tlHours .now-tag'); if (!tag) return
+  const t = tag.getBoundingClientRect()
+  $$('#tlHours span:not(.now-tag)').forEach((s) => { s.classList.remove('hid'); const r = s.getBoundingClientRect(); s.classList.toggle('hid', r.right > t.left - 4 && r.left < t.right + 4) })
+}
+function renderBlocks() {
+  const focused = document.activeElement?.closest?.('.bk')?.dataset.id
+  const x = (nowMin - OPEN) * pxm()
+  layer.innerHTML = '<span class="past" style="width:' + x + 'px"></span>' + BK.map(blockHTML).join('') + '<span class="now" style="left:' + x + 'px"></span>'
+  $('#tlHours .now-tag')?.remove()
+  $('#tlHours').insertAdjacentHTML('beforeend', '<span class="now-tag" style="left:' + x + 'px">' + hm(nowMin) + (DEMO ? ' · giờ minh họa' : '') + '</span>')
+  clearAxis()
+  // Re-rendering replaces the buttons; give keyboard users their focus back.
+  if (focused) layer.querySelector('[data-id="' + focused + '"]')?.focus({ preventScroll: true })
+}
+function renderTimeline() {
+  if (!measure()) return
+  renderAxis(); renderRows(); renderBlocks()
+}
+function flipRender() {
+  const first = {}
+  $$('.bk', layer).forEach((el) => (first[el.dataset.id] = { x: el.offsetLeft, y: el.offsetTop }))
+  renderTimeline()
+  if (RM) return
+  $$('.bk', layer).forEach((el) => {
+    const f = first[el.dataset.id]
+    if (!f) G.from(el, { opacity: 0, scale: 0.85, duration: 0.5, ease: 'back.out(2)', clearProps: 'transform,opacity' })
+    else if (f.x !== el.offsetLeft || f.y !== el.offsetTop) G.from(el, { x: f.x - el.offsetLeft, y: f.y - el.offsetTop, duration: 0.65, ease: 'expo.inOut', clearProps: 'transform' })
+  })
+}
+function refreshAll(flip) {
+  flip ? flipRender() : renderTimeline()
+  renderDetail(); renderRail(); renderStats()
+  if (current === 'hoa-hong') renderToday()
+}
+
+/* legend filter */
+$('#legend').innerHTML = Object.entries(CATS).map(([k, c]) => '<button type="button" data-cat="' + k + '" aria-pressed="true" aria-label="Lọc nhóm ' + c.l + '" style="--cc:' + c.c + '">' + c.sh + '</button>').join('')
+$('#legend').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-cat]'); if (!b) return
+  const k = b.dataset.cat
+  cats.has(k) ? cats.delete(k) : cats.add(k)
+  if (!cats.size) Object.keys(CATS).forEach((x) => cats.add(x))
+  $$('#legend button').forEach((x) => x.setAttribute('aria-pressed', cats.has(x.dataset.cat)))
+  $$('.bk', layer).forEach((el) => el.classList.toggle('ls-dim', !cats.has(SBY[byId(el.dataset.id).s].cat)))
+})
+
+/* mode switch */
+function setMode(m) {
+  if (m === mode) return
+  mode = m; store.set('lasen-mode', m)
+  $$('#modeSeg button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.mode === m))
+  moveThumb($('#modeSeg'))
+  flipRender()
+  if (!RM) G.from('.tl-rh', { x: -12, opacity: 0, duration: 0.45, stagger: 0.03, ease: 'expo.out', clearProps: 'transform,opacity' })
+  live('Đang xem timeline ' + (m === 'room' ? 'theo phòng' : 'theo kỹ thuật viên'))
+}
+$('#modeSeg').addEventListener('click', (e) => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode) })
+
+/* ---------- undo history ---------- */
+const HIST = []
+function snap(label) {
+  HIST.push({ label, data: JSON.stringify(BK), at: hm(STATIC ? nowMin : Math.min(1439, new Date().getHours() * 60 + new Date().getMinutes())) })
+  if (HIST.length > 40) HIST.shift()
+  syncUndo()
+}
+function syncUndo() {
+  $('#undoBtn').disabled = !HIST.length
+  $('#undoCnt').textContent = HIST.length
+  if (!$('#histPop').hidden) renderHist()
+}
+function undo(steps = 1) {
+  if (!HIST.length) return
+  let h
+  for (let i = 0; i < steps && HIST.length; i++) h = HIST.pop()
+  BK = JSON.parse(h.data)
+  if (selId && !byId(selId)) selId = null
+  syncUndo()
+  if (current !== 'lich') go('lich')
+  refreshAll(true)
+  toast('Đã hoàn tác: ' + h.label, { type: 'info' })
+  live('Đã hoàn tác ' + h.label)
+}
+$('#undoBtn').addEventListener('click', () => undo())
+function renderHist() {
+  $('#histList').innerHTML = HIST.length ? HIST.slice().reverse().map((h, i) => '<li><button type="button" data-n="' + (i + 1) + '"><svg class="i" style="color:var(--gold)"><use href="#i-undo"/></svg><span>' + esc(h.label) + '</span><span class="tm">' + h.at + '</span></button></li>').join('') : '<li class="none">Chưa có thay đổi nào trong phiên làm việc.</li>'
+}
+$('#histList').addEventListener('click', (e) => { const b = e.target.closest('[data-n]'); if (b) { closePop(); undo(+b.dataset.n) } })
+
+/* ---------- commit helpers ---------- */
+function moveLabel(b, c) {
+  const parts = []
+  if (c.start !== b.start) parts.push(hm(b.start) + ' → ' + hm(c.start))
+  if (c.dur !== b.dur) parts.push(b.dur + '′ → ' + c.dur + '′')
+  if (c.room !== b.room) parts.push(RBY[b.room].n + ' → ' + RBY[c.room].n)
+  if (c.ktv !== b.ktv) parts.push(short(KBY[b.ktv].n) + ' → ' + short(KBY[c.ktv].n))
+  return short(b.name) + ': ' + parts.join(', ')
+}
+function commit(b, c) {
+  const label = moveLabel(b, c)
+  snap(label)
+  Object.assign(b, { start: c.start, dur: c.dur, room: c.room, ktv: c.ktv })
+  refreshAll(false)
+  const el = layer.querySelector('[data-id="' + b.id + '"]')
+  if (el) { el.classList.add('ls-new'); setTimeout(() => el.classList.remove('ls-new'), 900) }
+  toast('Đã cập nhật lịch — ' + esc(label), { undo: () => undo() })
+  live('Đã lưu. ' + label)
+}
+
+/* ---------- drag / resize (pointer, touch long-press, keyboard) ---------- */
+const tipEl = $('#dragTip')
+let drag = null, swallowClick = false
+function candFor(d, dxMin, rowIdx) {
+  const b = d.b, c = { start: b.start, dur: b.dur, room: b.room, ktv: b.ktv }
+  if (d.mode === 'move') {
+    c.start = clamp(Math.round((b.start + dxMin) / STEP) * STEP, OPEN, CLOSE - b.dur)
+    const R = rows()[clamp(rowIdx, 0, rows().length - 1)]
+    if (mode === 'room') c.room = R.id; else c.ktv = R.id
+  } else c.dur = clamp(Math.round((b.dur + dxMin) / STEP) * STEP, 30, Math.min(240, CLOSE - b.start))
+  return c
+}
+function showCand(d, c, px, py) {
+  const issues = conflicts(d.b, c)
+  d.c = c; d.issues = issues
+  const dx = (c.start - d.b.start) * pxm(), dy = (rows().findIndex((x) => x.id === (mode === 'room' ? c.room : c.ktv)) - d.row) * RH
+  G.to(d.el, { x: dx, y: dy, duration: RM ? 0 : 0.12, ease: 'power2.out', overwrite: 'auto' })
+  if (d.mode === 'resize') d.el.style.width = c.dur * pxm() - 3 + 'px'
+  d.el.classList.toggle('ls-bad', issues.length > 0)
+  $$('.ls-clash', layer).forEach((x) => x.classList.remove('ls-clash'))
+  issues.forEach((i) => i.id && layer.querySelector('[data-id="' + i.id + '"]')?.classList.add('ls-clash'))
+  const where = mode === 'room' ? RBY[c.room].n : short(KBY[c.ktv].n)
+  tipEl.innerHTML = '<b>' + hm(c.start) + ' – ' + hm(c.start + c.dur) + ' · ' + c.dur + ' phút</b>' + where + ' · ' + vnd(priceOf({ s: d.b.s, dur: c.dur })) + (issues.length ? '<span class="bad">⚠ ' + esc(issues[0].msg) + (issues.length > 1 ? ' (+' + (issues.length - 1) + ')' : '') + '</span>' : '')
+  if (px == null) { const r = d.el.getBoundingClientRect(); px = r.left + dx * 0; py = r.top }
+  const tw = tipEl.offsetWidth, th = tipEl.offsetHeight
+  G.set(tipEl, { x: clamp(px + 14, 8, innerWidth - tw - 8), y: clamp(py - th - 14, 8, innerHeight - th - 8), visibility: 'visible' })
+  return issues
+}
+function lockMsg(b, m) {
+  if (b.st === 'done') return 'Lịch của ' + short(b.name) + ' đã hoàn thành — không thể dời.'
+  if (b.st === 'live' && m === 'move') return short(b.name) + ' đang trong phòng — chỉ kéo giãn thời lượng được.'
+  return ''
+}
+function begin(d) {
+  const msg = lockMsg(d.b, d.mode)
+  if (msg) { toast(msg, { type: 'warn' }); if (!RM) G.fromTo(d.el, { x: -4 }, { x: 0, duration: 0.4, ease: 'elastic.out(1,.3)', clearProps: 'transform' }); return false }
+  d.active = true
+  d.row = rowOf(d.b)
+  d.el.classList.add('ls-drag')
+  select(d.b.id, true)
+  return true
+}
+function finish(ok) {
+  const d = drag; drag = null
+  if (!d) return
+  clearTimeout(d.timer)
+  tipEl.style.visibility = 'hidden'
+  $$('.ls-clash', layer).forEach((x) => x.classList.remove('ls-clash'))
+  if (!d.active) return
+  swallowClick = true; setTimeout(() => (swallowClick = false), 60)
+  const c = d.c, b = d.b
+  const changed = c && (c.start !== b.start || c.dur !== b.dur || c.room !== b.room || c.ktv !== b.ktv)
+  if (ok && changed && !d.issues.length) { commit(b, c); return }
+  if (ok && changed) { toast('Không thể dời: ' + esc(d.issues[0].msg), { type: 'warn' }); live('Không thể dời. ' + d.issues[0].msg) }
+  else if (d.kbd && !ok) live('Đã hủy di chuyển')
+  d.el.classList.remove('ls-drag', 'ls-bad')
+  G.to(d.el, { x: 0, y: 0, duration: RM ? 0 : 0.45, ease: 'back.out(1.6)', clearProps: 'transform' })
+  if (d.mode === 'resize') d.el.style.width = b.dur * pxm() - 3 + 'px'
+}
+layer.addEventListener('pointerdown', (e) => {
+  const el = e.target.closest('.bk')
+  if (!el || e.button > 0 || drag) return
+  const b = byId(el.dataset.id)
+  const m = e.target.closest('.bk-h') ? 'resize' : 'move'
+  drag = { el, b, mode: m, x0: e.clientX, y0: e.clientY, sl0: box.scrollLeft, type: e.pointerType, active: false, pid: e.pointerId }
+  if (m === 'resize') { e.preventDefault(); if (!begin(drag)) { drag = null; return } showCand(drag, candFor(drag, 0, 0), e.clientX, e.clientY) }
+  else if (e.pointerType === 'touch') {
+    // Touch: a short press-and-hold picks the block up, so a plain swipe still scrolls the timeline.
+    drag.timer = setTimeout(() => {
+      if (!drag || drag.active) return
+      if (begin(drag)) { try { navigator.vibrate?.(12) } catch { /* unsupported */ } showCand(drag, candFor(drag, 0, rowOf(b)), drag.x0, drag.y0) } else drag = null
+    }, 260)
+  }
+})
+addEventListener('pointermove', (e) => {
+  const d = drag
+  if (!d || d.kbd || e.pointerId !== d.pid) return
+  const dist = Math.hypot(e.clientX - d.x0, e.clientY - d.y0)
+  if (!d.active) {
+    if (d.type === 'touch') { if (dist > 8) { clearTimeout(d.timer); drag = null } return }
+    if (dist < 4) return
+    if (!begin(d)) { drag = null; return }
+  }
+  const br = box.getBoundingClientRect()
+  if (e.clientX > br.right - 36) box.scrollLeft += 10
+  else if (e.clientX < br.left + HD + 24) box.scrollLeft -= 10
+  const dxPx = e.clientX - d.x0 + (box.scrollLeft - d.sl0)
+  const rowIdx = Math.floor((e.clientY - layer.getBoundingClientRect().top) / RH)
+  showCand(d, candFor(d, dxPx / pxm(), rowIdx), e.clientX, e.clientY)
+})
+addEventListener('pointerup', (e) => { if (drag && !drag.kbd && e.pointerId === drag.pid) finish(true) })
+addEventListener('pointercancel', (e) => { if (drag && !drag.kbd && e.pointerId === drag.pid) finish(false) })
+// Once a touch drag is live, stop the browser from panning the timeline underneath it.
+box.addEventListener('touchmove', (e) => { if (drag?.active) e.preventDefault() }, { passive: false })
+layer.addEventListener('contextmenu', (e) => { if (e.target.closest('.bk')) e.preventDefault() })
+layer.addEventListener('click', (e) => {
+  const el = e.target.closest('.bk')
+  if (!el || swallowClick) return
+  select(el.dataset.id)
+})
+layer.addEventListener('keydown', (e) => {
+  const el = e.target.closest('.bk'); if (!el) return
+  const b = byId(el.dataset.id)
+  const arrows = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }
+  if (arrows[e.key]) {
+    e.preventDefault()
+    const m = e.shiftKey && arrows[e.key][0] ? 'resize' : 'move'
+    if (drag && (!drag.kbd || drag.mode !== m)) return
+    if (!drag) {
+      drag = { el, b, mode: m, kbd: true, active: false, c: { start: b.start, dur: b.dur, room: b.room, ktv: b.ktv }, issues: [] }
+      if (!begin(drag)) { drag = null; return }
+    }
+    const [dx, dy] = arrows[e.key], d = drag, c = { ...d.c }
+    if (m === 'resize') c.dur = clamp(c.dur + dx * STEP, 30, Math.min(240, CLOSE - c.start))
+    else {
+      c.start = clamp(c.start + dx * STEP, OPEN, CLOSE - c.dur)
+      const ri = clamp(rows().findIndex((x) => x.id === (mode === 'room' ? c.room : c.ktv)) + dy, 0, rows().length - 1)
+      if (mode === 'room') c.room = rows()[ri].id; else c.ktv = rows()[ri].id
+    }
+    const r = el.getBoundingClientRect()
+    const issues = showCand(d, c, r.left + (c.start - b.start) * pxm(), r.top + (rows().findIndex((x) => x.id === (mode === 'room' ? c.room : c.ktv)) - d.row) * RH)
+    live(hm(c.start) + ' đến ' + hm(c.start + c.dur) + ', ' + (mode === 'room' ? RBY[c.room].n : KBY[c.ktv].n) + (issues.length ? '. Cảnh báo: ' + issues[0].msg : '. Nhấn Enter để thả, Esc để hủy'))
+  } else if ((e.key === 'Enter' || e.key === ' ') && drag?.kbd) { e.preventDefault(); finish(true) }
+  else if (e.key === 'Escape' && drag?.kbd) { e.preventDefault(); e.stopPropagation(); finish(false) }
+})
+layer.addEventListener('focusout', (e) => { if (drag?.kbd && e.target === drag.el) finish(false) })
+rowsEl.addEventListener('click', (e) => {
+  const lane = e.target.closest('.tl-lane'); if (!lane) return
+  const R = rows()[+lane.dataset.row]
+  if (R.off) return toast('Phòng ' + R.n + ' đang bảo trì.', { type: 'warn' })
+  const t = clamp(Math.floor(((e.clientX - lane.getBoundingClientRect().left) / pxm() + OPEN) / STEP) * STEP, OPEN, CLOSE - 30)
+  openBk(mode === 'room' ? { room: R.id, start: t } : { ktv: R.id, start: t })
+})
+
+/* ---------- detail ---------- */
+const mqS = matchMedia('(max-width: 920px)')
+function select(id, quiet) {
+  selId = id
+  $$('.bk', layer).forEach((x) => x.classList.toggle('sel', x.dataset.id === id))
+  renderDetail()
+  if (!quiet && mqS.matches) openSheet()
+}
+function openSheet() { $('#detail').classList.add('open'); setTimeout(() => $('#detail .dt-x')?.focus(), 60) }
+function closeSheet() {
+  const d = $('#detail'); if (!d.classList.contains('open')) return false
+  d.classList.remove('open')
+  layer.querySelector('[data-id="' + selId + '"]')?.focus({ preventScroll: true })
+  return true
+}
+function renderDetail() {
+  const b = selId && byId(selId), el = $('#detail')
+  if (!b) {
+    el.innerHTML = '<div class="dt-head"><div class="grow"><p class="eyebrow">Lịch đang chọn</p><h2 id="dtTitle">Chưa chọn lịch</h2></div><button class="ib dt-x" type="button" aria-label="Đóng chi tiết"><svg class="i"><use href="#i-x"/></svg></button></div><div class="empty"><svg aria-hidden="true"><use href="#i-leaf"/></svg><p>Chọn một khối trên timeline để xem chi tiết, đổi trạng thái hoặc hủy lịch.</p></div>'
+    return
+  }
+  const s = SBY[b.s], K = KBY[b.ktv]
+  const acts = { booked: '<button class="btn pri" type="button" data-act="live"><svg class="i"><use href="#i-check"/></svg>Khách đã đến</button>', live: '<button class="btn pri" type="button" data-act="done"><svg class="i"><use href="#i-check"/></svg>Hoàn thành</button>', done: '<button class="btn" type="button" data-act="live"><svg class="i"><use href="#i-undo"/></svg>Mở lại</button>' }[b.st]
+  el.innerHTML = '<div class="dt-head"><div class="grow"><span class="pill" style="--pc:' + ST[b.st].c + '">' + ST[b.st].l + '</span><h2 id="dtTitle" style="margin-top:8px">' + esc(b.name) + '</h2><p style="color:var(--dim);font-size:13px">' + phoneFmt(b.phone) + (b.req ? ' · <span style="color:var(--lotus);font-weight:700">Khách chỉ định KTV</span>' : '') + '</p></div><button class="ib dt-x" type="button" aria-label="Đóng chi tiết"><svg class="i"><use href="#i-x"/></svg></button></div>' +
+    '<dl class="dl"><dt>Dịch vụ</dt><dd>' + s.n + '</dd><dt>Thời gian</dt><dd class="num">' + hm(b.start) + ' – ' + hm(b.start + b.dur) + ' · ' + b.dur + ' phút</dd><dt>Phòng</dt><dd>' + RBY[b.room].n + '</dd><dt>Kỹ thuật viên</dt><dd>' + K.n + ' · Bậc ' + K.tier + '</dd><dt>Giá dịch vụ</dt><dd class="num">' + vnd(priceOf(b)) + '</dd><dt>Hoa hồng KTV</dt><dd class="num" style="color:var(--leaf)">' + vnd(commOf(b)) + ' <small style="color:var(--dim);font-weight:600">(' + tierPct(b.ktv) + '%' + (b.req ? ' + thưởng' : '') + ')</small></dd></dl>' +
+    '<div class="dt-act">' + acts + (b.st !== 'done' ? '<button class="btn warn" type="button" data-act="cancel"><svg class="i"><use href="#i-trash"/></svg>Hủy lịch</button>' : '') + '</div>'
+}
+$('#detail').addEventListener('click', (e) => {
+  if (e.target.closest('.dt-x')) { closeSheet(); return }
+  const a = e.target.closest('[data-act]'); if (!a) return
+  const b = byId(selId); if (!b) return
+  const act = a.dataset.act
+  if (act === 'cancel') {
+    snap('Hủy lịch ' + short(b.name) + ' ' + hm(b.start))
+    BK = BK.filter((x) => x !== b); selId = null
+    closeSheet(); refreshAll(true)
+    toast('Đã hủy lịch của ' + esc(b.name) + '.', { type: 'warn', undo: () => undo() })
+    return
+  }
+  const before = commOf(b)
+  snap((act === 'done' ? 'Hoàn thành ' : act === 'live' && b.st === 'done' ? 'Mở lại ' : 'Check-in ') + short(b.name))
+  const was = b.st
+  b.st = act
+  refreshAll(false)
+  if (act === 'done') {
+    toast('Hoàn thành ' + esc(SBY[b.s].sh) + ' · hoa hồng +' + vnd(before) + ' cho ' + esc(short(KBY[b.ktv].n)), { undo: () => undo() })
+    flashK(b.ktv)
+  } else toast(was === 'done' ? 'Đã mở lại lịch, hoa hồng chuyển về dự kiến.' : esc(short(b.name)) + ' đã đến — chuyển sang đang phục vụ.', { undo: () => undo() })
+  if (mqS.matches) setTimeout(() => $('#detail [data-act]')?.focus(), 30)
+  else $('#detail [data-act]')?.focus()
+})
+function flashK(k) {
+  const li = $('#commList [data-k="' + k + '"]'); if (!li) return
+  li.classList.add('flash'); setTimeout(() => li.classList.remove('flash'), 1400)
+}
+
+/* ---------- commission rail + stats ---------- */
+function kSums() {
+  return KTV.map((k) => {
+    const mine = BK.filter((b) => b.ktv === k.id)
+    const done = mine.filter((b) => b.st === 'done')
+    return { k, n: done.length, all: mine.length, rev: done.reduce((a, b) => a + priceOf(b), 0), done: done.reduce((a, b) => a + commOf(b), 0), proj: mine.filter((b) => b.st !== 'done').reduce((a, b) => a + commOf(b), 0) }
+  })
+}
+function renderRail() {
+  const S = kSums(), max = Math.max(...S.map((x) => x.done + x.proj), 1)
+  const tot = S.reduce((a, x) => a + x.done, 0), proj = S.reduce((a, x) => a + x.proj, 0)
+  roll($('#commTotal'), tot, vnd)
+  $('#commSub').textContent = S.reduce((a, x) => a + x.n, 0) + ' lượt hoàn thành · dự kiến thêm ' + vnd(proj)
+  const list = $('#commList')
+  if (list.children.length !== S.length) list.innerHTML = S.map((x) => '<li data-k="' + x.k.id + '"><span class="av" style="background:' + x.k.c + '">' + initials(x.k.n) + '</span><b>' + short(x.k.n) + '<small></small></b><span class="amt num"></span><span class="cbar"><i></i><i></i></span></li>').join('')
+  S.forEach((x) => {
+    const li = list.querySelector('[data-k="' + x.k.id + '"]')
+    li.querySelector('small').textContent = x.n + '/' + x.all + ' lượt · ' + tierPct(x.k.id) + '%'
+    roll(li.querySelector('.amt'), x.done, vnd, 0.7)
+    const [a, p] = li.querySelectorAll('.cbar i')
+    G.to(a, { width: x.done / max * 100 + '%', duration: RM ? 0 : 0.6, ease: 'expo.out' })
+    G.to(p, { width: x.proj / max * 100 + '%', duration: RM ? 0 : 0.6, ease: 'expo.out' })
+  })
+}
+function renderStats() {
+  const liveN = BK.filter((b) => b.st === 'live').length
+  const open = ROOMS.filter((r) => !r.off)
+  const used = BK.filter((b) => !RBY[b.room].off).reduce((a, b) => a + b.dur, 0)
+  const rev = BK.reduce((a, b) => a + priceOf(b), 0)
+  const el = $('#dayStats')
+  if (!el.children.length) el.innerHTML = '<div><dt>Lịch hẹn</dt><dd class="num" id="dsN"></dd></div><div><dt>Đang phục vụ</dt><dd class="num" id="dsL"></dd></div><div><dt>Công suất phòng</dt><dd class="num" id="dsU"></dd></div><div><dt>Doanh thu dự kiến</dt><dd class="num" id="dsR"></dd></div>'
+  roll($('#dsN'), BK.length, (v) => String(Math.round(v)))
+  roll($('#dsL'), liveN, (v) => String(Math.round(v)))
+  roll($('#dsU'), open.length ? used / (open.length * SPAN) * 100 : 0, (v) => Math.round(v) + '%')
+  roll($('#dsR'), rev, compact)
+}
+const d0 = new Date(TODAY)
+$('#todayLbl').textContent = WD[d0.getDay()] + ' · ' + dmy(TODAY) + (DEMO ? ' · giờ minh họa ' + hm(nowMin) : '')
+
+/* ---------- booking form ---------- */
+const bkModal = $('#bkModal')
+const opt = (v, l, sel) => '<option value="' + v + '"' + (sel ? ' selected' : '') + '>' + l + '</option>'
+$('#bkSvc').innerHTML = opt('', 'Chọn dịch vụ…') + SVC.map((s) => opt(s.id, s.n + ' · ' + s.dur + ' phút · ' + vnd(s.p))).join('')
+$('#bkKtv').innerHTML = opt('auto', 'Tự xếp KTV trống') + KTV.map((k) => opt(k.id, k.n + ' (Bậc ' + k.tier + ')')).join('')
+let tOpts = ''
+for (let t = OPEN; t <= CLOSE - 30; t += STEP) tOpts += opt(t, hm(t))
+$('#bkTime').innerHTML = tOpts
+function fillRooms() { $('#bkRoom').innerHTML = opt('auto', 'Tự xếp phòng trống') + ROOMS.map((r) => opt(r.id, r.n + (r.off ? ' — bảo trì' : ''))).join('') }
+fillRooms()
+function setErr(input, msg) {
+  input.setAttribute('aria-invalid', msg ? 'true' : 'false')
+  const e = document.getElementById(input.getAttribute('aria-describedby')); if (e) e.textContent = msg || ''
+  return !msg
+}
+const vName = (v) => !v.trim() ? 'Vui lòng nhập họ tên khách' : /\d/.test(v) ? 'Họ tên không được chứa chữ số' : v.trim().split(/\s+/).length < 2 ? 'Nhập đủ họ và tên' : ''
+const vPhone = (v) => !v.trim() ? 'Vui lòng nhập số điện thoại' : !PHONE_RE.test(v.replace(/[\s.]/g, '')) ? 'Số di động gồm 10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09' : ''
+function openBk(pre = {}) {
+  const f = $('#bkForm')
+  f.reset(); fillRooms()
+  $$('[aria-invalid]', f).forEach((x) => setErr(x, ''))
+  $('#bkClash').innerHTML = ''
+  if (pre.ktv) $('#bkKtv').value = pre.ktv
+  if (pre.room) $('#bkRoom').value = pre.room
+  const t = pre.start ?? clamp(Math.ceil((nowMin + 15) / STEP) * STEP, OPEN, CLOSE - 30)
+  $('#bkTime').value = clamp(t, OPEN, CLOSE - 30)
+  openModal(bkModal, $('#bkName'))
+}
+$('#newBkBtn').addEventListener('click', () => openBk())
+$('#bkName').addEventListener('blur', (e) => setErr(e.target, vName(e.target.value)))
+$('#bkPhone').addEventListener('blur', (e) => setErr(e.target, vPhone(e.target.value)))
+$('#bkSvc').addEventListener('change', (e) => setErr(e.target, e.target.value ? '' : 'Chọn một dịch vụ'))
+function resolveBk() {
+  const s = SBY[$('#bkSvc').value], start = +$('#bkTime').value
+  const ks = $('#bkKtv').value === 'auto' ? KTV.map((k) => k.id) : [$('#bkKtv').value]
+  const rs = $('#bkRoom').value === 'auto' ? ROOMS.filter((r) => r.ok.includes(s.cat)).map((r) => r.id) : [$('#bkRoom').value]
+  const tmp = { id: null, st: 'booked' }
+  let first = null
+  for (const k of ks) for (const r of rs) {
+    const c = { start, dur: s.dur, room: r, ktv: k }, iss = conflicts(tmp, c)
+    if (!iss.length) return { c }
+    if (!first) first = { c, iss }
+  }
+  // Suggest the next start where the same choice is free.
+  for (let t = start + STEP; t <= CLOSE - s.dur; t += STEP) for (const k of ks) for (const r of rs) {
+    if (!conflicts(tmp, { start: t, dur: s.dur, room: r, ktv: k }).length) return { iss: first.iss, next: t }
+  }
+  return { iss: first.iss }
+}
+$('#bkForm').addEventListener('submit', (e) => {
+  e.preventDefault()
+  const ok = [setErr($('#bkName'), vName($('#bkName').value)), setErr($('#bkPhone'), vPhone($('#bkPhone').value)), setErr($('#bkSvc'), $('#bkSvc').value ? '' : 'Chọn một dịch vụ')]
+  $('#bkClash').innerHTML = ''
+  if (ok.includes(false)) { $('#bkForm [aria-invalid=true]')?.focus(); return }
+  const r = resolveBk()
+  if (!r.c) {
+    $('#bkClash').innerHTML = '<svg class="i"><use href="#i-alert"/></svg><span>' + esc(r.iss[0].msg) + '.</span>' + (r.next ? '<button type="button" id="bkNext">Dời sang ' + hm(r.next) + '</button>' : '')
+    $('#bkNext')?.addEventListener('click', () => { $('#bkTime').value = r.next; $('#bkClash').innerHTML = ''; $('#bkTime').focus() })
+    return
+  }
+  const id = 'b' + (Date.now() % 1e7)
+  const name = $('#bkName').value.trim().replace(/\s+/g, ' ')
+  snap('Đặt lịch ' + short(name) + ' ' + hm(r.c.start))
+  BK.push({ id, name, phone: $('#bkPhone').value.replace(/[\s.]/g, ''), s: $('#bkSvc').value, ...r.c, req: $('#bkReq').checked, st: r.c.start <= nowMin ? 'live' : 'booked' })
+  closeModal(bkModal)
+  if (current !== 'lich') go('lich')
+  selId = id
+  refreshAll(true)
+  const el = layer.querySelector('[data-id="' + id + '"]')
+  if (el) { box.scrollTo({ left: Math.max(0, el.offsetLeft - 60), behavior: RM ? 'auto' : 'smooth' }); el.classList.add('ls-new') }
+  toast('Đã đặt lịch cho ' + esc(name) + ' lúc ' + hm(r.c.start) + ' · ' + RBY[r.c.room].n + ' · ' + esc(short(KBY[r.c.ktv].n)), { undo: () => undo() })
+})
+
+/* ---------- modal plumbing ---------- */
+const openModals = []
+function openModal(m, focusEl) {
+  m.hidden = false
+  m._ret = document.activeElement
+  openModals.push(m)
+  $('#app').inert = true
+  G.fromTo($('.ov-back', m), { opacity: 0 }, { opacity: 1, duration: 0.25 })
+  G.fromTo($('.modal', m), { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: RM ? 0 : 0.45, ease: 'expo.out', clearProps: 'transform' })
+  setTimeout(() => focusEl?.focus(), 40)
+}
+function closeModal(m) {
+  const i = openModals.indexOf(m); if (i < 0) return
+  openModals.splice(i, 1)
+  m.hidden = true
+  if (!openModals.length) $('#app').inert = false
+  m._ret?.focus?.()
+}
+$$('.ov').forEach((m) => {
+  m.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeModal(m) })
+  m.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return
+    const f = $$('input,select,textarea,button', m).filter((x) => !x.disabled && x.offsetParent)
+    if (!f.length) return
+    if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus() }
+    else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus() }
+  })
+})
+
+/* ---------- popovers (bell, history) ---------- */
+let popOpen = null
+function placePop(pop, btn) {
+  const r = btn.getBoundingClientRect()
+  pop.style.top = r.bottom + 10 + 'px'
+  pop.style.left = clamp(r.right - 340, 12, innerWidth - 352) + 'px'
+}
+function openPop(pop, btn) {
+  closePop(); closeSheet()
+  popOpen = { pop, btn }
+  pop.hidden = false
+  placePop(pop, btn)
+  btn.setAttribute('aria-expanded', 'true')
+  G.fromTo(pop, { y: -8, opacity: 0 }, { y: 0, opacity: 1, duration: RM ? 0 : 0.35, ease: 'expo.out' })
+  setTimeout(() => $('button', pop)?.focus(), 30)
+}
+function closePop(refocus) {
+  if (!popOpen) return false
+  popOpen.pop.hidden = true
+  popOpen.btn.setAttribute('aria-expanded', 'false')
+  if (refocus) popOpen.btn.focus()
+  popOpen = null
+  return true
+}
+const NOTES = [
+  { t: 'Khách Âu Gia Hân đặt lịch online: Da mặt lá sen lúc ' + hm(Math.min(1170, Math.ceil((nowMin + 70) / 15) * 15)), at: 6 },
+  { t: 'KTV Hồ Bảo Châu xin đổi ca chiều thứ Hai tới sang ca sáng', at: 22 },
+  { t: 'Gói "Mẹ sau sinh 15 buổi" của chị Mạc Thanh Hương còn 9 ngày hết hạn', at: 48 },
+  { t: 'Phòng Xông Thảo Mộc đã thay mẻ lá xông mới', at: 95 },
+]
+let unread = true
+function renderBell() {
+  $('#bellList').innerHTML = NOTES.map((n) => '<li><span class="nb' + (unread ? '' : ' read') + '"></span><span>' + esc(n.t) + '</span><span class="tm">' + n.at + ' phút trước</span></li>').join('')
+  $('#bellCnt').textContent = unread ? NOTES.length + ' chưa đọc' : 'Đã đọc hết'
+  $('#bellDot').style.display = unread ? '' : 'none'
+  $('#bellBtn').setAttribute('aria-label', unread ? 'Thông báo (' + NOTES.length + ' chưa đọc)' : 'Thông báo')
+}
+renderBell()
+$('#bellBtn').addEventListener('click', (e) => { e.stopPropagation(); popOpen?.pop.id === 'bellPop' ? closePop() : openPop($('#bellPop'), $('#bellBtn')) })
+$('#bellRead').addEventListener('click', () => { unread = false; renderBell() })
+$('#histBtn').addEventListener('click', (e) => { e.stopPropagation(); if (popOpen?.pop.id === 'histPop') return closePop(); renderHist(); openPop($('#histPop'), $('#histBtn')) })
+document.addEventListener('pointerdown', (e) => { if (popOpen && !popOpen.pop.contains(e.target) && !popOpen.btn.contains(e.target)) closePop() })
+
+/* =====================================================================
+   II. PACKAGES TABLE
+   ===================================================================== */
+const PKGS = [
+  { n: 'Thải độc toàn thân 10 buổi', b: 10, p: 9900000, m: 6 },
+  { n: 'Da mặt lá sen 6 buổi', b: 6, p: 3200000, m: 3 },
+  { n: 'Đá nóng thư giãn 8 buổi', b: 8, p: 4800000, m: 4 },
+  { n: 'Cổ vai gáy 12 buổi', b: 12, p: 4500000, m: 4 },
+  { n: 'Mẹ sau sinh 15 buổi', b: 15, p: 12500000, m: 3 },
+  { n: 'Gội dưỡng sinh 10 buổi', b: 10, p: 2200000, m: 3 },
+]
+const PST = { active: { l: 'Đang dùng', c: 'var(--leaf)' }, soon: { l: 'Sắp hết hạn', c: 'var(--gold)' }, expired: { l: 'Hết hạn', c: 'var(--red)' }, done: { l: 'Hoàn tất', c: 'var(--c-head)' }, pause: { l: 'Tạm dừng', c: 'var(--dim)' } }
+let PK = []
+;(() => {
+  const r = mulberry(3131)
+  for (let i = 0; i < 47; i++) {
+    const pi = Math.floor(r() * PKGS.length), P = PKGS[pi]
+    // Spread expiry around today so every status shows up: a few lapsed, some due soon, most running.
+    const q = r(), exp = TODAY + (q < 0.1 ? -Math.floor(4 + r() * 40) : q < 0.3 ? Math.floor(1 + r() * 20) : Math.floor(24 + r() * 140)) * DAY
+    const startD = exp - P.m * 30 * DAY
+    const age = clamp((TODAY - startD) / (P.m * 30 * DAY), 0, 1)
+    const used = r() < 0.1 ? P.b : Math.min(P.b - 1, Math.max(0, Math.round(P.b * age * (0.6 + r() * 0.5))))
+    PK.push({ id: 'LT-' + (2400 + i * 7), name: CUST[(i * 5 + 3) % CUST.length], phone: '09' + Math.floor(10000000 + r() * 89999999), pkg: pi, used, start: startD, exp, ktv: KTV[Math.floor(r() * KTV.length)].id, pause: r() < 0.06 })
+  }
+})()
+const pkSt = (p) => p.pause ? 'pause' : p.used >= PKGS[p.pkg].b ? 'done' : p.exp < TODAY ? 'expired' : p.exp - TODAY <= 21 * DAY ? 'soon' : 'active'
+const pkLeft = (p) => PKGS[p.pkg].p * (PKGS[p.pkg].b - p.used) / PKGS[p.pkg].b
+const pkS = { q: '', f: 'all', k: 'st', dir: 1, page: 1, per: 10, sel: new Set() }
+const ST_ORDER = ['soon', 'expired', 'active', 'pause', 'done']
+function pkRows() {
+  const q = norm(pkS.q.trim())
+  let a = PK.filter((p) => (pkS.f === 'all' || pkSt(p) === pkS.f) && (!q || norm(p.name + ' ' + p.phone + ' ' + p.id + ' ' + PKGS[p.pkg].n).includes(q)))
+  const key = { name: (p) => norm(p.name.split(' ').pop() + p.name), pkg: (p) => PKGS[p.pkg].n, prog: (p) => p.used / PKGS[p.pkg].b, exp: (p) => p.exp, left: pkLeft, st: (p) => ST_ORDER.indexOf(pkSt(p)) * 1e13 + p.exp }[pkS.k]
+  a.sort((x, y) => { const u = key(x), v = key(y); return (u < v ? -1 : u > v ? 1 : 0) * pkS.dir })
+  return a
+}
+function renderPkStats() {
+  const act = PK.filter((p) => ['active', 'soon'].includes(pkSt(p)))
+  const el = $('#pkStats')
+  if (!el.children.length) el.innerHTML = '<div><dt>Gói đang hoạt động</dt><dd class="num" id="psA"></dd></div><div><dt>Buổi còn lại</dt><dd class="num" id="psB"></dd></div><div><dt>Giá trị chưa sử dụng</dt><dd class="num" id="psV"></dd></div><div><dt>Hết hạn trong 21 ngày</dt><dd class="num" id="psS"></dd></div>'
+  roll($('#psA'), act.length, (v) => String(Math.round(v)))
+  roll($('#psB'), act.reduce((a, p) => a + PKGS[p.pkg].b - p.used, 0), (v) => String(Math.round(v)))
+  roll($('#psV'), act.reduce((a, p) => a + pkLeft(p), 0), compact)
+  roll($('#psS'), PK.filter((p) => pkSt(p) === 'soon').length, (v) => String(Math.round(v)))
+}
+function renderChips() {
+  const cnt = { all: PK.length }
+  PK.forEach((p) => (cnt[pkSt(p)] = (cnt[pkSt(p)] || 0) + 1))
+  $('#pkChips').innerHTML = [['all', 'Tất cả'], ...Object.entries(PST).map(([k, v]) => [k, v.l])].map(([k, l]) => '<button type="button" data-f="' + k + '" aria-pressed="' + (pkS.f === k) + '">' + l + '<span>' + (cnt[k] || 0) + '</span></button>').join('')
+}
+function renderPk(anim) {
+  const all = pkRows(), pages = Math.max(1, Math.ceil(all.length / pkS.per))
+  pkS.page = clamp(pkS.page, 1, pages)
+  const rowsP = all.slice((pkS.page - 1) * pkS.per, pkS.page * pkS.per)
+  const body = $('#pkBody')
+  if (!rowsP.length) {
+    body.innerHTML = '<tr class="temptyr"><td colspan="7" class="tempty"><svg aria-hidden="true"><use href="#i-leaf"/></svg><h3>Không có gói nào khớp</h3><p>Thử từ khóa khác hoặc bỏ bộ lọc trạng thái.</p><button class="btn" type="button" id="pkReset">Xóa bộ lọc</button></td></tr>'
+    $('#pkReset').addEventListener('click', () => { pkS.q = ''; pkS.f = 'all'; $('#pkQ').value = ''; renderChips(); renderPk(true); $('#pkQ').focus() })
+  } else body.innerHTML = rowsP.map((p) => {
+    const P = PKGS[p.pkg], st = pkSt(p), days = Math.round((p.exp - TODAY) / DAY)
+    return '<tr data-id="' + p.id + '" class="' + (pkS.sel.has(p.id) ? 'on' : '') + (p.id === pkS.flash ? ' flash' : '') + '"><td class="c-chk"><label class="ckhit"><input type="checkbox" ' + (pkS.sel.has(p.id) ? 'checked ' : '') + 'aria-label="Chọn gói ' + p.id + ' của ' + esc(p.name) + '"></label></td>' +
+      '<td><b>' + esc(p.name) + '</b><small>' + phoneFmt(p.phone) + ' · ' + p.id + '</small></td>' +
+      '<td>' + P.n + '<small>KTV ' + short(KBY[p.ktv].n) + '</small></td>' +
+      '<td><span class="dots" aria-hidden="true">' + Array.from({ length: P.b }, (_, i) => '<i' + (i < p.used ? ' class="u"' : '') + '></i>').join('') + '</span><small>' + p.used + '/' + P.b + ' buổi</small></td>' +
+      '<td class="num">' + dmy(p.exp) + '<small>' + (days < 0 ? 'quá hạn ' + -days + ' ngày' : days === 0 ? 'hết hạn hôm nay' : 'còn ' + days + ' ngày') + '</small></td>' +
+      '<td class="num">' + vnd(pkLeft(p)) + '</td>' +
+      '<td><span class="pill" style="--pc:' + PST[st].c + '">' + PST[st].l + '</span></td></tr>'
+  }).join('')
+  pkS.flash = null
+  const from = all.length ? (pkS.page - 1) * pkS.per + 1 : 0
+  $('#pkInfo').textContent = 'Hiển thị ' + from + '–' + Math.min(all.length, pkS.page * pkS.per) + ' trên ' + all.length + ' gói'
+  let pg = '<button type="button" data-p="' + (pkS.page - 1) + '" aria-label="Trang trước"' + (pkS.page === 1 ? ' disabled' : '') + '><svg class="i"><use href="#i-chevl"/></svg></button>'
+  for (let i = 1; i <= pages; i++) pg += '<button type="button" data-p="' + i + '" aria-label="Trang ' + i + '"' + (i === pkS.page ? ' aria-current="page"' : '') + '>' + i + '</button>'
+  pg += '<button type="button" data-p="' + (pkS.page + 1) + '" aria-label="Trang sau"' + (pkS.page === pages ? ' disabled' : '') + '><svg class="i"><use href="#i-chev"/></svg></button>'
+  $('#pkPager').innerHTML = pg
+  $$('#pkTable th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === pkS.k ? (pkS.dir > 0 ? 'ascending' : 'descending') : 'none'))
+  const ids = rowsP.map((p) => p.id), n = ids.filter((id) => pkS.sel.has(id)).length
+  $('#pkAll').checked = n > 0 && n === ids.length
+  $('#pkAll').indeterminate = n > 0 && n < ids.length
+  syncBulk()
+  if (anim && !RM) G.from('#pkBody tr', { y: 8, opacity: 0, duration: 0.4, stagger: 0.025, ease: 'expo.out', clearProps: 'transform,opacity' })
+}
+$('#pkQ').addEventListener('input', (e) => { pkS.q = e.target.value; pkS.page = 1; renderPk() })
+$('#pkChips').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (!b) return; pkS.f = b.dataset.f; pkS.page = 1; renderChips(); renderPk(true) })
+$('#pkTable thead').addEventListener('click', (e) => {
+  const th = e.target.closest('th[data-k]'); if (!th || !e.target.closest('button')) return
+  pkS.dir = pkS.k === th.dataset.k ? -pkS.dir : 1; pkS.k = th.dataset.k; renderPk(true)
+})
+$('#pkSortM').addEventListener('change', (e) => { const [k, d] = e.target.value.split(':'); pkS.k = k; pkS.dir = +d; renderPk(true) })
+$('#pkPager').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (!b || b.disabled) return; pkS.page = +b.dataset.p; renderPk(true) })
+$('#pkBody').addEventListener('change', (e) => {
+  const tr = e.target.closest('tr[data-id]'); if (!tr) return
+  e.target.checked ? pkS.sel.add(tr.dataset.id) : pkS.sel.delete(tr.dataset.id)
+  renderPk()
+})
+$('#pkAll').addEventListener('change', (e) => {
+  const ids = pkRows().slice((pkS.page - 1) * pkS.per, pkS.page * pkS.per).map((p) => p.id)
+  ids.forEach((id) => (e.target.checked ? pkS.sel.add(id) : pkS.sel.delete(id)))
+  renderPk()
+})
+let bulkShown = false
+function syncBulk() {
+  pkS.sel.forEach((id) => { if (!PK.some((p) => p.id === id)) pkS.sel.delete(id) })
+  const show = current === 'lieu-trinh' && pkS.sel.size > 0
+  $('#bulkN').textContent = 'Đã chọn ' + pkS.sel.size + ' gói'
+  if (show === bulkShown) return
+  bulkShown = show
+  document.body.classList.toggle('has-bar', bulkShown || saveShown)
+  const bar = $('#bulk')
+  if (show) { G.set(bar, { visibility: 'visible' }); G.fromTo(bar, { yPercent: 140, opacity: 0 }, { yPercent: 0, opacity: 1, duration: RM ? 0 : 0.5, ease: 'expo.out' }) }
+  else G.to(bar, { yPercent: 140, opacity: 0, duration: RM ? 0 : 0.3, ease: 'power2.in', onComplete: () => { if (!bulkShown) G.set(bar, { visibility: 'hidden' }) } })
+}
+function pkBulk(label, fn, type = 'ok') {
+  const before = JSON.stringify(PK), n = pkS.sel.size
+  PK.filter((p) => pkS.sel.has(p.id)).forEach(fn)
+  PK = PK.filter((p) => !p._del)
+  const restore = () => { PK = JSON.parse(before); renderChips(); renderPk(true); renderPkStats(); toast('Đã hoàn tác thao tác với ' + n + ' gói.', { type: 'info' }) }
+  if (label.startsWith('Đã xóa')) pkS.sel.clear()
+  renderChips(); renderPk(); renderPkStats()
+  toast(label.replace('{n}', n), { type, undo: restore })
+}
+$('#bRemind').addEventListener('click', () => toast('Đã gửi tin nhắc lịch cho ' + pkS.sel.size + ' khách qua SMS' + (SET.zalo ? ' và Zalo OA' : '') + '.'))
+$('#bExtend').addEventListener('click', () => pkBulk('Đã gia hạn 30 ngày cho {n} gói.', (p) => { p.exp = Math.max(p.exp, TODAY) + 30 * DAY }))
+$('#bPause').addEventListener('click', () => pkBulk('Đã tạm dừng {n} gói.', (p) => { p.pause = true }, 'info'))
+$('#bDel').addEventListener('click', () => pkBulk('Đã xóa {n} gói khỏi danh sách.', (p) => { p._del = true }, 'warn'))
+$('#bClear').addEventListener('click', () => { pkS.sel.clear(); renderPk() })
+
+/* package form */
+const pkModal = $('#pkModal')
+$('#pfPkg').innerHTML = opt('', 'Chọn liệu trình…') + PKGS.map((P, i) => opt(i, P.n + ' · ' + vnd(P.p) + ' · hạn ' + P.m + ' tháng')).join('')
+$('#pfKtv').innerHTML = KTV.map((k) => opt(k.id, k.n)).join('')
+// Start date is a dd/mm/yyyy text field (native date inputs show mm/dd/yyyy on English systems).
+const dmyDay = (t) => { const d = new Date(t); return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() }
+const parseDmy = (s) => { const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(s).trim()); if (!m) return NaN; const d = new Date(+m[3], +m[2] - 1, +m[1]); return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? d.getTime() : NaN }
+function vDate(v) {
+  if (!v.trim()) return 'Nhập ngày bắt đầu (dd/mm/yyyy)'
+  const t = parseDmy(v)
+  if (isNaN(t)) return 'Ngày không hợp lệ — nhập theo dạng dd/mm/yyyy, ví dụ ' + dmyDay(TODAY)
+  if (t < TODAY - 30 * DAY) return 'Không ghi lùi quá 30 ngày'
+  if (t > TODAY + 60 * DAY) return 'Ngày bắt đầu không quá 60 ngày tới'
+  return ''
+}
+const vNote = (v) => v.length > 160 ? 'Ghi chú tối đa 160 ký tự' : ''
+$('#newPkBtn').addEventListener('click', () => {
+  const f = $('#pkForm'); f.reset()
+  $$('[aria-invalid]', f).forEach((x) => setErr(x, ''))
+  $('#pfDate').value = dmyDay(TODAY); $('#pfNoteC').textContent = '0/160'
+  openModal(pkModal, $('#pfName'))
+})
+$('#pfName').addEventListener('blur', (e) => setErr(e.target, vName(e.target.value)))
+$('#pfPhone').addEventListener('blur', (e) => setErr(e.target, vPhone(e.target.value)))
+$('#pfDate').addEventListener('change', (e) => setErr(e.target, vDate(e.target.value)))
+$('#pfDate').addEventListener('input', (e) => { if (e.inputType && e.inputType.startsWith('delete')) return; const el = e.target, v = el.value.replace(/\D/g, '').slice(0, 8); el.value = v.length > 4 ? v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4) : v.length > 2 ? v.slice(0, 2) + '/' + v.slice(2) : v })
+$('#pfNote').addEventListener('input', (e) => { $('#pfNoteC').textContent = e.target.value.length + '/160'; setErr(e.target, vNote(e.target.value)) })
+$('#pkForm').addEventListener('submit', (e) => {
+  e.preventDefault()
+  const ok = [setErr($('#pfName'), vName($('#pfName').value)), setErr($('#pfPhone'), vPhone($('#pfPhone').value)), setErr($('#pfPkg'), $('#pfPkg').value === '' ? 'Chọn một liệu trình' : ''), setErr($('#pfDate'), vDate($('#pfDate').value)), setErr($('#pfNote'), vNote($('#pfNote').value))]
+  if (ok.includes(false)) { $('#pkForm [aria-invalid=true]')?.focus(); return }
+  const start = parseDmy($('#pfDate').value)
+  const P = PKGS[+$('#pfPkg').value]
+  const id = 'LT-' + (2800 + PK.length * 3)
+  const name = $('#pfName').value.trim().replace(/\s+/g, ' ')
+  PK.unshift({ id, name, phone: $('#pfPhone').value.replace(/[\s.]/g, ''), pkg: +$('#pfPkg').value, used: 0, start, exp: start + P.m * 30 * DAY, ktv: $('#pfKtv').value, pause: false })
+  closeModal(pkModal)
+  pkS.q = ''; pkS.f = 'all'; pkS.k = 'st'; pkS.dir = 1; $('#pkQ').value = ''
+  pkS.flash = id
+  const idx = pkRows().findIndex((p) => p.id === id); pkS.page = Math.floor(idx / pkS.per) + 1
+  renderChips(); renderPk(); renderPkStats()
+  toast('Đã bán gói ' + P.n + ' cho ' + esc(name) + '.', { undo: () => { PK = PK.filter((p) => p.id !== id); renderChips(); renderPk(); renderPkStats(); toast('Đã hủy gói vừa tạo.', { type: 'info' }) } })
+})
+
+/* =====================================================================
+   III. COMMISSION & REVENUE
+   ===================================================================== */
+const HISTD = []
+;(() => {
+  const r = mulberry(9090)
+  const base = { 1: 1.5e6, 2: 2.05e6, 3: 2.6e6 }
+  for (let d = 180; d >= 1; d--) {
+    const t = TODAY - d * DAY, dow = new Date(t).getDay()
+    const f = [1.3, 0.78, 0.86, 0.92, 1.0, 1.14, 1.38][dow] * (1 + 0.16 * (180 - d) / 180)
+    const k = KTV.map((x, i) => ((i + d) % 7 === 0 ? 0 : base[x.tier] * f * (0.72 + r() * 0.56)))
+    HISTD.push({ t, k })
+  }
+})()
+function series(n) {
+  const today = { t: TODAY, k: KTV.map((x) => BK.filter((b) => b.ktv === x.id).reduce((a, b) => a + priceOf(b), 0)), today: true }
+  const all = HISTD.concat([today])
+  return { cur: all.slice(-n), prev: all.slice(-2 * n, -n) }
+}
+let range = 30, revCur = null, revMax = 0
+const M = 90
+// Average ticket drifts a little day to day, so visits are not just revenue / constant.
+const visOf = (d) => Math.round(d.k.reduce((a, b) => a + b, 0) / (470000 + (Math.round(d.t / DAY) * 7 % 11) * 9000))
+function cr(p0, p1, p2, p3, t) { const t2 = t * t, t3 = t2 * t; return 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3) }
+function resample(a) {
+  const n = a.length, out = []
+  for (let j = 0; j < M; j++) { const x = j / (M - 1) * (n - 1), i = Math.min(Math.floor(x), n - 2), t = x - i; out.push(Math.max(0, cr(a[Math.max(i - 1, 0)], a[i], a[i + 1], a[Math.min(i + 2, n - 1)], t))) }
+  return out
+}
+function niceCeil(v) { const e = Math.pow(10, Math.floor(Math.log10(v))), f = v / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e }
+const CH = { W: 600, H: 260, l: 48, r: 12, t: 14, b: 30 }
+function chartSkeleton() {
+  const el = $('#revChart'), W = el.clientWidth
+  if (!W) return false
+  CH.W = W
+  el.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + CH.H + '" role="img" aria-label="Biểu đồ doanh thu theo ngày"><defs><linearGradient id="lsArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--leaf);stop-opacity:.28"/><stop offset="1" style="stop-color:var(--leaf);stop-opacity:0"/></linearGradient></defs><g class="gy"></g><g class="gx"></g><path class="ar" fill="url(#lsArea)"/><path class="ln"/><line class="guide" y1="' + CH.t + '" y2="' + (CH.H - CH.b) + '" style="visibility:hidden"/><circle class="dot" r="5" stroke-width="2.5" style="fill:var(--panel);stroke:var(--lotus);visibility:hidden"/><rect class="hit" x="' + CH.l + '" y="0" width="' + (W - CH.l - CH.r) + '" height="' + CH.H + '"/></svg>'
+  const svg = $('svg', el), hit = $('.hit', svg)
+  const move = (e) => {
+    const S = series(range).cur, pr = svg.getBoundingClientRect()
+    const x = (e.clientX - pr.left) * (CH.W / pr.width)
+    const i = clamp(Math.round((x - CH.l) / (CH.W - CH.l - CH.r) * (S.length - 1)), 0, S.length - 1)
+    const v = S[i].k.reduce((a, b) => a + b, 0)
+    const px = CH.l + i / (S.length - 1) * (CH.W - CH.l - CH.r), py = yOf(v)
+    $('.guide', svg).setAttribute('x1', px); $('.guide', svg).setAttribute('x2', px); $('.guide', svg).style.visibility = 'visible'
+    const dot = $('.dot', svg); dot.setAttribute('cx', px); dot.setAttribute('cy', py); dot.style.visibility = 'visible'
+    const d = new Date(S[i].t)
+    showTip('<b>' + compact(v) + ' ₫</b><br>' + WD[d.getDay()] + ', ' + dmy(S[i].t) + (S[i].today ? ' · dự kiến' : '') + '<br>' + visOf(S[i]) + ' lượt khách', pr.left + px * pr.width / CH.W, pr.top + py * pr.height / CH.H)
+  }
+  hit.addEventListener('pointermove', move)
+  hit.addEventListener('pointerdown', move)
+  hit.addEventListener('pointerleave', () => { hideTip(); $('.guide', svg).style.visibility = 'hidden'; $('.dot', svg).style.visibility = 'hidden' })
+  return true
+}
+const yOf = (v) => CH.H - CH.b - v / revMax * (CH.H - CH.t - CH.b)
+function drawRev(arr) {
+  const svg = $('#revChart svg'); if (!svg) return
+  const w = CH.W - CH.l - CH.r
+  let d = ''
+  arr.forEach((v, j) => (d += (j ? 'L' : 'M') + (CH.l + j / (M - 1) * w).toFixed(1) + ' ' + yOf(v).toFixed(1)))
+  $('.ln', svg).setAttribute('d', d)
+  $('.ar', svg).setAttribute('d', d + 'L' + (CH.l + w) + ' ' + (CH.H - CH.b) + 'L' + CH.l + ' ' + (CH.H - CH.b) + 'Z')
+}
+function axes(S) {
+  const svg = $('#revChart svg'), w = CH.W - CH.l - CH.r
+  let gy = ''
+  for (let i = 0; i <= 4; i++) { const v = revMax / 4 * i, y = yOf(v); gy += '<line class="gl" x1="' + CH.l + '" x2="' + (CH.W - CH.r) + '" y1="' + y + '" y2="' + y + '"/><text class="ax" x="' + (CH.l - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + (i ? compact(v) : '0') + '</text>' }
+  $('.gy', svg).innerHTML = gy
+  const ticks = Math.min(S.length, CH.W < 480 ? 4 : 6)
+  let gx = ''
+  for (let i = 0; i < ticks; i++) { const j = Math.round(i / (ticks - 1) * (S.length - 1)), x = CH.l + j / (S.length - 1) * w; gx += '<text class="ax" x="' + x + '" y="' + (CH.H - 8) + '" text-anchor="' + (i === 0 ? 'start' : i === ticks - 1 ? 'end' : 'middle') + '">' + dmy(S[j].t).slice(0, 5) + '</text>' }
+  $('.gx', svg).innerHTML = gx
+}
+let revTween = null
+function renderRev(animate) {
+  if (!$('#revChart svg') && !chartSkeleton()) return
+  const S = series(range).cur, tot = S.map((d) => d.k.reduce((a, b) => a + b, 0))
+  const target = resample(tot), newMax = niceCeil(Math.max(...tot) * 1.08)
+  revTween?.kill()
+  if (!revCur && animate && !RM) { revCur = new Array(M).fill(0); revMax = newMax }
+  if (!animate || RM || !revCur) { revCur = target; revMax = newMax; axes(S); drawRev(revCur); return }
+  const from = revCur.slice(), m0 = revMax, o = { p: 0 }
+  revTween = G.to(o, { p: 1, duration: 0.9, ease: 'expo.inOut', onUpdate: () => { revMax = m0 + (newMax - m0) * o.p; revCur = from.map((v, i) => v + (target[i] - v) * o.p); drawRev(revCur) }, onComplete: () => axes(S) })
+  axes(S)
+}
+function renderHH(animate) {
+  const { cur, prev } = series(range)
+  const sum = (A, f) => A.reduce((a, d) => a + d.k.reduce((x, v, i) => x + f(v, i), 0), 0)
+  const rev = sum(cur, (v) => v), rev0 = sum(prev, (v) => v)
+  const com = sum(cur, (v, i) => v * tierPct(KTV[i].id) / 100), com0 = sum(prev, (v, i) => v * tierPct(KTV[i].id) / 100)
+  const vis = cur.reduce((a, d) => a + visOf(d), 0), vis0 = prev.reduce((a, d) => a + visOf(d), 0)
+  const el = $('#hhStats')
+  if (!el.children.length) el.innerHTML = ['Doanh thu dịch vụ', 'Hoa hồng chi trả', 'Lượt khách', 'Trung bình / lượt'].map((l, i) => '<div><dt>' + l + '</dt><dd class="num"><span id="hs' + i + '"></span><small id="hd' + i + '"></small></dd></div>').join('')
+  const kp = [[rev, rev0, compact], [com, com0, compact], [vis, vis0, (v) => nf.format(Math.round(v))], [rev / vis, rev0 / vis0, compact]]
+  kp.forEach(([v, v0, f], i) => { roll($('#hs' + i), v, f); const ch = (v - v0) / v0 * 100, s = $('#hd' + i); s.textContent = pct(ch); s.className = ch >= 0 ? 'up' : 'down' })
+  $('#revSub').textContent = range + ' ngày gần nhất · điểm cuối là hôm nay (dự kiến)'
+  renderRev(animate)
+  // service mix: each KTV's revenue split by the services they usually do
+  const mix = { body: 0, face: 0, head: 0, herb: 0 }
+  KTV.forEach((k, i) => { const v = cur.reduce((a, d) => a + d.k[i], 0), sk = KSKILL[k.id]; sk.forEach((s, j) => (mix[SBY[s].cat] += v * (sk.length - j) / (sk.length * (sk.length + 1) / 2))) })
+  const mt = Object.values(mix).reduce((a, b) => a + b, 0)
+  const bar = $('#mixBar')
+  if (!bar.children.length) {
+    bar.innerHTML = Object.keys(CATS).map((c) => '<i data-c="' + c + '" style="--cc:' + CATS[c].c + ';width:25%"></i>').join('')
+    $('#mixList').innerHTML = Object.keys(CATS).map((c) => '<li style="--cc:' + CATS[c].c + '">' + CATS[c].l + '<span class="num" data-v="' + c + '"></span><small class="num" data-p="' + c + '"></small></li>').join('')
+    $$('#mixBar i').forEach((i) => { i.addEventListener('pointerenter', (e) => { const c = i.dataset.c; showTip('<b>' + CATS[c].l + '</b><br>' + compact(i._v) + ' ₫ · ' + Math.round(i._v / i._t * 100) + '%', e.clientX, e.clientY) }); i.addEventListener('pointerleave', hideTip) })
+  }
+  Object.keys(CATS).forEach((c) => {
+    const i = $('#mixBar [data-c="' + c + '"]'); i._v = mix[c]; i._t = mt
+    G.to(i, { width: mix[c] / mt * 100 + '%', duration: RM || !animate ? 0 : 0.8, ease: 'expo.inOut' })
+    roll($('#mixList [data-v="' + c + '"]'), mix[c], compact, 0.8)
+    $('#mixList [data-p="' + c + '"]').textContent = Math.round(mix[c] / mt * 100) + '%'
+  })
+  $('#rules').innerHTML = '<b>Quy tắc hoa hồng hiện hành</b><span>Bậc 1 · KTV mới: ' + SET.t1 + '% · Bậc 2 · KTV chính: ' + SET.t2 + '% · Bậc 3 · KTV trưởng: ' + SET.t3 + '%</span><span>Thưởng khách chỉ định: ' + vnd(SET.bonus) + ' mỗi lượt</span>'
+  // per-KTV commission bars
+  const K = KTV.map((k, i) => { const v = cur.reduce((a, d) => a + d.k[i], 0); return { k, v, c: v * tierPct(k.id) / 100 } }).sort((a, b) => b.c - a.c)
+  const kmax = Math.max(...K.map((x) => x.c))
+  const ul = $('#kBars')
+  if (!ul.children.length) {
+    ul.innerHTML = KTV.map((k) => '<li data-k="' + k.id + '"><span><b>' + short(k.n) + '</b><small>Bậc ' + k.tier + '</small></span><span class="tr"><span class="fl"></span></span><span class="v num"></span></li>').join('')
+    $$('#kBars li').forEach((li) => { li.addEventListener('pointermove', (e) => { const x = li._d; showTip('<b>' + x.k.n + '</b><br>Doanh thu ' + compact(x.v) + ' ₫<br>Hoa hồng ' + vnd(x.c) + ' (' + tierPct(x.k.id) + '%)', e.clientX, e.clientY) }); li.addEventListener('pointerleave', hideTip) })
+  }
+  $('#kbSub').textContent = range + ' ngày · xếp theo hoa hồng'
+  const firsts = {}
+  $$('#kBars li').forEach((li) => (firsts[li.dataset.k] = li.offsetTop))
+  K.forEach((x) => { const li = $('#kBars [data-k="' + x.k.id + '"]'); li._d = x; ul.appendChild(li) })
+  K.forEach((x) => {
+    const li = $('#kBars [data-k="' + x.k.id + '"]')
+    G.to($('.fl', li), { width: x.c / kmax * 100 + '%', duration: RM || !animate ? 0 : 0.8, ease: 'expo.inOut' })
+    roll($('.v', li), x.c, compact, 0.8)
+    if (animate && !RM && firsts[x.k.id] !== li.offsetTop) G.from(li, { y: firsts[x.k.id] - li.offsetTop, duration: 0.7, ease: 'expo.inOut', clearProps: 'transform' })
+  })
+  renderToday()
+}
+function renderToday() {
+  const S = kSums()
+  $('#ctBody').innerHTML = S.map((x) => '<tr><td><b>' + short(x.k.n) + '</b><small>Bậc ' + x.k.tier + ' · ' + tierPct(x.k.id) + '%</small></td><td class="r num">' + x.n + '/' + x.all + '</td><td class="r num hide-s">' + compact(x.rev) + '</td><td class="r num"><b>' + vnd(x.done) + '</b><small>+' + compact(x.proj) + ' dự kiến</small></td></tr>').join('')
+}
+$('#rangeSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-r]'); if (!b || +b.dataset.r === range) return
+  range = +b.dataset.r
+  $$('#rangeSeg button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  moveThumb($('#rangeSeg'))
+  renderHH(true)
+})
+const tip = $('#tip')
+function showTip(html, x, y) {
+  tip.innerHTML = html
+  const w = tip.offsetWidth, h = tip.offsetHeight
+  G.set(tip, { x: clamp(x - w / 2, 8, innerWidth - w - 8), y: y - h - 14 < 8 ? y + 18 : y - h - 14, opacity: 1 })
+}
+function hideTip() { G.set(tip, { opacity: 0 }) }
+
+/* =====================================================================
+   IV. SETTINGS
+   ===================================================================== */
+const F = { name: '#stName', phone: '#stPhone', addr: '#stAddr', t1: '#stT1', t2: '#stT2', t3: '#stT3', bonus: '#stBonus', remind: '#stRemind', zalo: '#stZalo' }
+let roomOff = {}
+function loadSet() {
+  Object.entries(F).forEach(([k, s]) => { const el = $(s); el.type === 'checkbox' ? (el.checked = SET[k]) : (el.value = SET[k]) })
+  roomOff = Object.fromEntries(ROOMS.map((r) => [r.id, !!r.off]))
+  $('#roomSet').innerHTML = ROOMS.map((r) => '<li><div><b>' + r.n + '</b><small>' + r.t + '</small></div><span class="sw"><input type="checkbox" data-room="' + r.id + '" aria-label="Phòng ' + r.n + ' đang bảo trì"' + (r.off ? ' checked' : '') + '><i></i></span></li>').join('')
+  $$('#setForm [aria-invalid]').forEach((x) => setErr(x, ''))
+}
+function readSet() {
+  const v = {}
+  Object.entries(F).forEach(([k, s]) => { const el = $(s); v[k] = el.type === 'checkbox' ? el.checked : el.value })
+  $$('#roomSet input').forEach((i) => (v['room_' + i.dataset.room] = i.checked))
+  return v
+}
+const savedSnap = () => JSON.stringify({ ...Object.fromEntries(Object.keys(F).map((k) => [k, typeof SET[k] === 'boolean' ? SET[k] : String(SET[k])])), ...Object.fromEntries(ROOMS.map((r) => ['room_' + r.id, !!r.off])) })
+let saveShown = false
+function syncSave() {
+  const dirty = current === 'thiet-lap' && JSON.stringify(readSet()) !== savedSnap()
+  if (dirty === saveShown) return
+  saveShown = dirty
+  document.body.classList.toggle('has-bar', bulkShown || saveShown)
+  const bar = $('#savebar')
+  if (dirty) { G.set(bar, { visibility: 'visible' }); G.fromTo(bar, { yPercent: 140, opacity: 0 }, { yPercent: 0, opacity: 1, duration: RM ? 0 : 0.5, ease: 'expo.out' }) }
+  else G.to(bar, { yPercent: 140, opacity: 0, duration: RM ? 0 : 0.3, onComplete: () => { if (!saveShown) G.set(bar, { visibility: 'hidden' }) } })
+}
+$('#setForm').addEventListener('input', syncSave)
+$('#setForm').addEventListener('change', syncSave)
+$('#setForm').addEventListener('submit', (e) => { e.preventDefault(); $('#setSave').click() })
+const vInt = (v, lo, hi, what) => v === '' ? 'Nhập ' + what : !/^\d+$/.test(v) ? what[0].toUpperCase() + what.slice(1) + ' phải là số nguyên' : +v < lo || +v > hi ? 'Trong khoảng ' + nf.format(lo) + '–' + nf.format(hi) : ''
+function validateSet() {
+  const v = readSet(), ok = []
+  ok.push(setErr($('#stName'), v.name.trim().length < 3 ? 'Tên chi nhánh tối thiểu 3 ký tự' : ''))
+  ok.push(setErr($('#stPhone'), !/^0\d{9,10}$/.test(v.phone.replace(/[\s.]/g, '')) ? 'Hotline gồm 10–11 chữ số, bắt đầu bằng 0' : ''))
+  ok.push(setErr($('#stAddr'), v.addr.trim().length < 8 ? 'Vui lòng nhập địa chỉ đầy đủ' : ''))
+  const t = [v.t1, v.t2, v.t3].map((x, i) => vInt(x, 0, 30, 'tỷ lệ bậc ' + (i + 1)))
+  if (!t[1] && !t[0] && +v.t2 < +v.t1) t[1] = 'Không thấp hơn bậc 1 (' + v.t1 + '%)'
+  if (!t[2] && !t[1] && +v.t3 < +v.t2) t[2] = 'Không thấp hơn bậc 2 (' + v.t2 + '%)'
+  ok.push(setErr($('#stT1'), t[0]), setErr($('#stT2'), t[1]), setErr($('#stT3'), t[2]))
+  const bErr = vInt(v.bonus, 0, 200000, 'mức thưởng') || (+v.bonus % 1000 ? 'Làm tròn đến nghìn đồng' : '')
+  ok.push(setErr($('#stBonus'), bErr))
+  return ok.includes(false) ? null : v
+}
+$$('#setForm input').forEach((i) => i.addEventListener('blur', () => { if (i.getAttribute('aria-invalid') === 'true') validateSet() }))
+$('#setSave').addEventListener('click', () => {
+  const v = validateSet()
+  if (!v) { $('#setForm [aria-invalid=true]')?.focus(); toast('Vui lòng sửa các trường được đánh dấu.', { type: 'warn' }); return }
+  const prevSet = { ...SET }, prevOff = Object.fromEntries(ROOMS.map((r) => [r.id, !!r.off]))
+  Object.assign(SET, { name: v.name.trim(), phone: v.phone.replace(/[\s.]/g, ''), addr: v.addr.trim(), t1: +v.t1, t2: +v.t2, t3: +v.t3, bonus: +v.bonus, remind: v.remind, zalo: v.zalo })
+  ROOMS.forEach((r) => (r.off = v['room_' + r.id]))
+  const apply = () => { loadSet(); syncSave(); renderRail(); renderStats(); renderDetail(); fillRooms(); if (current === 'lich') renderTimeline() }
+  apply()
+  toast('Đã lưu thiết lập. Hoa hồng đã được tính lại.', { undo: () => { Object.assign(SET, prevSet); ROOMS.forEach((r) => (r.off = prevOff[r.id])); apply(); toast('Đã khôi phục thiết lập trước đó.', { type: 'info' }) } })
+})
+$('#setReset').addEventListener('click', () => { loadSet(); syncSave() })
+$('.set-nav').addEventListener('click', (e) => {
+  const a = e.target.closest('a'); if (!a) return
+  e.preventDefault()
+  const t = $(a.getAttribute('href'))
+  scrollTo({ top: t.getBoundingClientRect().top + scrollY - 86, behavior: RM ? 'auto' : 'smooth' })
+})
+loadSet()
+
+/* =====================================================================
+   SHELL: nav, router, palette, keys
+   ===================================================================== */
+const app = $('#app'), nav = $('#nav'), menuBtn = $('#menuBtn')
+function setNav(open) {
+  app.classList.toggle('nav-open', open)
+  menuBtn.setAttribute('aria-expanded', open)
+  menuBtn.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  nav.inert = mqS.matches && !open
+  $('main').inert = mqS.matches && open
+  if (open) setTimeout(() => ($('#nav [aria-current=page]') || $('#nav [data-go]')).focus(), 60)
+}
+menuBtn.addEventListener('click', () => setNav(!app.classList.contains('nav-open')))
+$('#navX').addEventListener('click', () => { setNav(false); menuBtn.focus() })
+$('#navBack').addEventListener('click', () => { setNav(false); menuBtn.focus() })
+mqS.addEventListener('change', () => { setNav(false); closeSheet(); moveInk(true) })
+nav.inert = mqS.matches
+
+function moveInk(instant) {
+  const on = $('#nav [aria-current=page]'), ink = $('#navInk')
+  if (!on || mqS.matches) return
+  G.to(ink, { x: on.offsetLeft + 13, width: on.offsetWidth - 26, duration: instant || RM ? 0 : 0.5, ease: 'expo.out' })
+}
+const VIEWS = { lich: 'Lịch trị liệu', 'lieu-trinh': 'Gói liệu trình', 'hoa-hong': 'Hoa hồng & doanh thu', 'thiet-lap': 'Thiết lập' }
+let current = null
+function go(view, { first = false } = {}) {
+  if (!VIEWS[view]) view = 'lich'
+  if (mqS.matches) setNav(false)
+  if (view === current) return
+  if (drag) finish(false)
+  const prev = current
+  current = view
+  $$('#nav [data-go]').forEach((b) => (b.dataset.go === view ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')))
+  moveInk(first)
+  document.title = VIEWS[view] + ' — Lá Sen Spa'
+  try { history.replaceState(null, '', location.pathname + location.search + '#' + view) } catch { /* file:// */ }
+  hideTip(); closePop(); closeSheet()
+  if (prev) $('#view-' + prev).classList.remove('active')
+  const v = $('#view-' + view)
+  v.classList.add('active')
+  window.scrollTo(0, 0)
+  if (view === 'lich') { renderTimeline(); renderDetail(); renderRail(); renderStats(); moveThumb($('#modeSeg'), true) }
+  if (view === 'lieu-trinh') { renderChips(); renderPk(); renderPkStats() }
+  if (view === 'hoa-hong') { revTween?.kill(); if (!$('#revChart svg')) chartSkeleton(); renderHH(!first); moveThumb($('#rangeSeg'), true) }
+  if (view === 'thiet-lap') loadSet()
+  syncBulk(); syncSave()
+  if (!first) {
+    if (!RM) G.fromTo($$('[data-in]', v), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.04, ease: 'expo.out', clearProps: 'transform,opacity' })
+    $('#h-' + view).focus({ preventScroll: true })
+  }
+}
+$$('[data-go]').forEach((b) => b.addEventListener('click', () => go(b.dataset.go)))
+$('.brand').addEventListener('click', (e) => { e.preventDefault(); go('lich') })
+addEventListener('hashchange', () => { const h = location.hash.slice(1); if (VIEWS[h] && h !== current) go(h) })
+
+/* palette */
+const palette = $('#palette'), palBack = $('#palBack'), palInput = $('#palInput'), palList = $('#palList')
+let palOpen = false, palIdx = 0, palItems = [], palRet = null
+G.set(palette, { xPercent: -50 })
+function commands() {
+  const ico = { lich: 'i-cal', 'lieu-trinh': 'i-pkg', 'hoa-hong': 'i-coin', 'thiet-lap': 'i-gear' }
+  return [
+    ...Object.entries(VIEWS).map(([k, l]) => ({ g: 'Điều hướng', l: 'Mở ' + l, i: ico[k], run: () => go(k) })),
+    { g: 'Lệnh', l: 'Đặt lịch trị liệu mới', i: 'i-plus', run: () => { go('lich'); setTimeout(() => openBk(), 120) } },
+    { g: 'Lệnh', l: mode === 'room' ? 'Xem timeline theo kỹ thuật viên' : 'Xem timeline theo phòng', i: 'i-cal', run: () => { go('lich'); setMode(mode === 'room' ? 'ktv' : 'room') } },
+    ...(HIST.length ? [{ g: 'Lệnh', l: 'Hoàn tác: ' + HIST[HIST.length - 1].label, i: 'i-undo', run: () => undo() }] : []),
+    { g: 'Lệnh', l: 'Bán gói liệu trình mới', i: 'i-pkg', run: () => { go('lieu-trinh'); setTimeout(() => $('#newPkBtn').click(), 120) } },
+    { g: 'Lệnh', l: 'Chuyển giao diện ' + (root.dataset.theme === 'dark' ? 'sáng' : 'tối'), i: root.dataset.theme === 'dark' ? 'i-sun' : 'i-moon', run: () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark') },
+    ...BK.slice().sort((a, b) => a.start - b.start).map((b) => ({ g: 'Lịch hôm nay', l: hm(b.start) + ' · ' + b.name, sub: SBY[b.s].sh + ' · ' + RBY[b.room].n, i: 'i-cal', run: () => focusBk(b.id) })),
+    ...PK.map((p) => ({ g: 'Gói liệu trình', l: p.name + ' · ' + p.id, sub: PKGS[p.pkg].n, i: 'i-pkg', run: () => { go('lieu-trinh'); pkS.q = p.id; pkS.f = 'all'; $('#pkQ').value = p.id; renderChips(); renderPk(true) } })),
+  ]
+}
+function focusBk(id) {
+  go('lich')
+  if (!byId(id)) return
+  select(id)
+  const el = layer.querySelector('[data-id="' + id + '"]')
+  if (el) { box.scrollTo({ left: Math.max(0, el.offsetLeft - 80), behavior: RM ? 'auto' : 'smooth' }); el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest' }) }
+}
+function hl(label, q) {
+  if (!q) return esc(label)
+  const i = norm(label).indexOf(q)
+  return i < 0 ? esc(label) : esc(label.slice(0, i)) + '<mark>' + esc(label.slice(i, i + q.length)) + '</mark>' + esc(label.slice(i + q.length))
+}
+function renderPal() {
+  const q = norm(palInput.value.trim()), all = commands()
+  palItems = (q ? all.filter((c) => norm(c.l + ' ' + (c.sub || '')).includes(q)) : all.filter((c) => c.g === 'Điều hướng' || c.g === 'Lệnh').concat(all.filter((c) => c.g === 'Lịch hôm nay' && c.l.slice(0, 5) >= hm(nowMin - 30)).slice(0, 4))).slice(0, 40)
+  palIdx = clamp(palIdx, 0, Math.max(0, palItems.length - 1))
+  if (!palItems.length) { palList.innerHTML = '<li class="pal-empty" role="presentation">Không tìm thấy kết quả cho “' + esc(palInput.value) + '”</li>'; palInput.removeAttribute('aria-activedescendant'); return }
+  let g = '', h = ''
+  palItems.forEach((c, i) => {
+    if (c.g !== g) { g = c.g; h += '<li class="pal-g" role="presentation">' + g + '</li>' }
+    h += '<li class="pal-o" role="option" id="po-' + i + '" data-i="' + i + '" aria-selected="' + (i === palIdx) + '"><svg class="i"><use href="#' + c.i + '"/></svg><span>' + hl(c.l, q) + '</span>' + (c.sub ? '<small>' + esc(c.sub) + '</small>' : '') + '</li>'
+  })
+  palList.innerHTML = h
+  palInput.setAttribute('aria-activedescendant', 'po-' + palIdx)
+}
+function setPalIdx(i) {
+  palIdx = clamp(i, 0, palItems.length - 1)
+  $$('.pal-o', palList).forEach((o) => o.setAttribute('aria-selected', +o.dataset.i === palIdx))
+  palInput.setAttribute('aria-activedescendant', 'po-' + palIdx)
+  $('#po-' + palIdx)?.scrollIntoView({ block: 'nearest' })
+}
+function openPal() {
+  if (palOpen) return
+  if (drag) finish(false)
+  palOpen = true; palRet = document.activeElement
+  palInput.value = ''; palIdx = 0; renderPal()
+  app.inert = true
+  G.set([palette, palBack], { visibility: 'visible' })
+  G.to(palBack, { opacity: 1, duration: 0.2 })
+  G.fromTo(palette, { opacity: 0, y: -10, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: RM ? 0 : 0.35, ease: 'expo.out' })
+  setTimeout(() => palInput.focus(), 20)
+}
+function closePal(run) {
+  if (!palOpen) return
+  palOpen = false
+  app.inert = openModals.length > 0
+  G.to(palBack, { opacity: 0, duration: 0.18, onComplete: () => G.set(palBack, { visibility: 'hidden' }) })
+  G.to(palette, { opacity: 0, duration: 0.15, onComplete: () => G.set(palette, { visibility: 'hidden' }) })
+  if (run) setTimeout(run, 80)
+  else palRet?.focus?.()
+}
+palInput.addEventListener('input', () => { palIdx = 0; renderPal() })
+palInput.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); setPalIdx(palIdx + 1) }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setPalIdx(palIdx - 1) }
+  else if (e.key === 'Enter') { e.preventDefault(); const c = palItems[palIdx]; if (c) closePal(c.run) }
+})
+palList.addEventListener('pointermove', (e) => { const o = e.target.closest('.pal-o'); if (o && +o.dataset.i !== palIdx) setPalIdx(+o.dataset.i) })
+palList.addEventListener('click', (e) => { const o = e.target.closest('.pal-o'); if (o) closePal(palItems[+o.dataset.i].run) })
+palBack.addEventListener('click', () => closePal())
+palette.addEventListener('keydown', (e) => { if (e.key === 'Tab') { e.preventDefault(); palInput.focus() } })
+$('#searchBtn').addEventListener('click', openPal)
+
+addEventListener('keydown', (e) => {
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palOpen ? closePal() : openPal(); return }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !typing && !palOpen && !openModals.length) { e.preventDefault(); undo(); return }
+  if (e.key === '/' && !typing && !palOpen && !openModals.length) { e.preventDefault(); openPal(); return }
+  if (e.key === 'Escape') {
+    if (palOpen) closePal()
+    else if (openModals.length) closeModal(openModals[openModals.length - 1])
+    else if (drag) finish(false)
+    else if (popOpen) closePop(true)
+    else if (closeSheet()) { /* closed the detail sheet */ }
+    else if (app.classList.contains('nav-open')) { setNav(false); menuBtn.focus() }
+  }
+})
+
+/* ---------- resize + live clock ---------- */
+let rzT
+addEventListener('resize', () => {
+  clearTimeout(rzT)
+  rzT = setTimeout(() => {
+    moveInk(true); if (popOpen) placePop(popOpen.pop, popOpen.btn)
+    if (current === 'lich') { renderTimeline(); moveThumb($('#modeSeg'), true) }
+    if (current === 'hoa-hong') { $('#revChart').innerHTML = ''; revCur = null; chartSkeleton(); renderRev(false); moveThumb($('#rangeSeg'), true) }
+  }, 150)
+})
+if (!STATIC && !DEMO) setInterval(() => {
+  const m = new Date().getHours() * 60 + new Date().getMinutes()
+  if (m === nowMin || m > CLOSE) return
+  nowMin = m
+  if (current === 'lich' && !drag) {
+    const x = (nowMin - OPEN) * pxm()
+    $('.now', layer)?.style.setProperty('left', x + 'px'); $('.past', layer)?.style.setProperty('width', x + 'px')
+    const tag = $('#tlHours .now-tag'); if (tag) { tag.style.left = x + 'px'; tag.textContent = hm(nowMin); clearAxis() }
+    $$('.bk.st-live', layer).forEach((el) => { const b = byId(el.dataset.id), p = $('.bk-p', el); if (b && p) p.style.width = clamp((nowMin - b.start) / b.dur * 100, 0, 100) + '%' })
+  }
+}, 30000)
+
+/* ---------- boot ---------- */
+$$('#modeSeg button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.mode === mode))
+const initial = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'lich'
+const firstLive = BK.filter((b) => b.st === 'live').sort((a, b) => a.start - b.start)[0]
+if (firstLive && !mqS.matches) selId = firstLive.id
+go(initial, { first: true })
+const fontsLate = document.fonts && document.fonts.status !== 'loaded'
+document.fonts?.ready.then(() => {
+  moveInk(true); moveThumb($('#modeSeg'), true); moveThumb($('#rangeSeg'), true); clearAxis()
+  // Labels were fitted with a fallback font; refit once the intro has finished.
+  if (fontsLate) setTimeout(() => { if (current === 'lich' && !drag) renderBlocks() }, 1500)
+})
+// Open the timeline scrolled so "now" sits near the left edge on narrow screens.
+if (box.scrollWidth > box.clientWidth) box.scrollLeft = Math.max(0, (nowMin - OPEN) * pxm() - 90)
+if (!RM) {
+  const tl = G.timeline({ defaults: { ease: 'expo.out' } })
+  tl.from(mqS.matches ? '.top > *:not(.nav-back):not(.nav)' : '.top > *:not(.nav-back)', { y: -10, opacity: 0, duration: 0.5, stagger: 0.04, clearProps: 'transform,opacity' }, 0)
+    .from('.view.active [data-in]', { y: 18, opacity: 0, duration: 0.6, stagger: 0.05, clearProps: 'transform,opacity' }, 0.08)
+  if (initial === 'lich') tl.from('#tlLayer .bk', { scaleX: 0, transformOrigin: '0% 50%', opacity: 0, duration: 0.45, stagger: { amount: 0.4 }, clearProps: 'transform,opacity' }, 0.35)
+    .from('#tlLayer .now, #tlHours .now-tag', { opacity: 0, duration: 0.4 }, 0.5)
+}
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

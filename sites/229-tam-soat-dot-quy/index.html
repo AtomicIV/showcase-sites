@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroVascular Center — Trung Tâm Tầm Soát Đột Quỵ Sớm Bằng MRI 3.0 Tesla & AI Mạch Máu</title>
+<meta name="description" content="NeuroVascular Center ứng dụng máy chụp MRI 3.0 Tesla dựng hình cây mạch máu não 3D (Circle of Willis) không cần tiêm thuốc cản từ trong 15 phút, phát hiện sớm túi phình 1.5mm.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23091426'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%2338BDF8' stroke-width='2.5'/%3E%3Cpath d='M20 38c6-12 10-18 12-22 2 4 6 10 12 22' fill='none' stroke='%23F43F5E' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='24' r='4.5' fill='%23F43F5E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#091426; --bg2:#11223E; --rose:#F43F5E; --sky:#38BDF8;
+  --skyL:#7DD3FC; --cream:#F1F5F9; --muted:#94A3B8; --paper:#F4F8FB;
+  --ink:#091426; --line:rgba(56,189,248,.22);
+  --head:"Space Grotesk", sans-serif;
+  --body:"Be Vietnam Pro", sans-serif;
+  --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--cream);font-family:var(--body);font-size:17px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--rose);color:#fff;padding:10px 16px;z-index:400;font-weight:600;border-radius:6px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.6vw,64px)}
+h1 em,h2 em{font-style:normal;color:var(--sky)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--sky)}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--rose);box-shadow:0 0 12px 2px rgba(244,63,94,.8)}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border:1px solid var(--rose);background:var(--rose);color:#fff;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;cursor:pointer;transition:transform .35s var(--ease),background .3s}
+.btn:hover{background:#FB7185;border-color:#FB7185;transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--cream);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--sky);color:var(--sky)}
+.btn.sm{min-height:42px;padding:0 18px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(9,20,38,.93);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:23px;font-weight:700;color:var(--cream)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--sky)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--cream);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:50px;padding:0 12px;font-family:var(--head);font-size:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--rose)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 55% at 76% 25%,rgba(56,189,248,.16),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(244,63,94,.14),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(38px,5.3vw,74px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:49ch;color:var(--muted);font-size:18px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:34px;color:var(--sky)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-shrine{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 35px 75px -30px rgba(0,0,0,.85)}
+.hero-shrine canvas{width:100%;height:auto;border-radius:10px;cursor:crosshair}
+.hero-shrine-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Pinned MRI 3.0 Tesla Non-Contrast 3D TOF Angiography */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:48px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:240px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--rose)}
+.pstep h3{font-size:clamp(24px,2.4vw,35px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:44ch}
+.pr-vis{background:#050B16;border:1px solid var(--line);border-radius:18px;padding:20px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--sky)}
+
+/* Interactive Widget: Stroke Risk Assessment & 3D Circle of Willis Simulator */
+.cabinet{padding:128px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:48px}
+.sec-head p{color:var(--muted)}
+.cab-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.cab-stage{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:20px}
+.cab-stage canvas{width:100%;height:auto;border-radius:10px;background:#040A14}
+.cab-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--sky);cursor:pointer}
+.cab-info{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:26px;display:grid;gap:16px}
+.art-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.a-btn{padding:11px 12px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left}
+.a-btn .mono{font-size:10px;color:var(--sky);display:block}
+.a-btn b{font-family:var(--head);font-size:15px;display:block;margin-top:2px}
+.a-btn[aria-pressed="true"]{border-color:var(--sky);background:rgba(56,189,248,.16)}
+.motif-decode{padding:16px;background:rgba(244,63,94,.14);border-left:3px solid var(--rose);border-radius:8px;font-size:14px}
+
+/* Screening Pillars */
+.dynasty{padding:120px 0;background:var(--paper);color:var(--ink)}
+.dynasty .kick{color:var(--rose)}
+.dynasty h2 em{color:var(--rose)}
+.dynasty .sec-head p{color:#475569}
+.dyn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.dcard{background:#fff;border:1px solid rgba(9,20,38,.12);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.dcard .mono{color:var(--rose)}
+.dcard h3{font-size:22px}
+.dcard p{color:#475569;font-size:15px}
+
+/* Neuro Imaging Tech */
+.scan{padding:120px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.scan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.scard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.scard .mono{color:var(--sky)}
+.scard h3{font-size:23px}
+.scard p{color:var(--muted);font-size:15px}
+
+/* Booking CTA */
+.cta{padding:120px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(244,63,94,.2),transparent 70%),var(--bg);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:46px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--cream)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--sky)}
+
+footer{background:#040A13;border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.cab-shell,.scan-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .dyn-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.cab-controls,.art-tabs,.dyn-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="NeuroVascular Center Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="#38BDF8" stroke-width="2"/><path d="M10 21c3-7 5-10 6-12 1 2 3 5 6 12" fill="none" stroke="#F43F5E" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="12" r="2.5" fill="#F43F5E"/></svg>
+      NeuroVascular Center
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">MRI 3.0 Tesla 15 Phút</a></li>
+        <li><a href="#cabinet">Mô Phỏng Mạch Máu Não 3D</a></li>
+        <li><a href="#dynasty">Hạng Mục Tầm Soát</a></li>
+        <li><a href="#scan">AI Phát Hiện Túi Phình</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#visit">Đặt Lịch Tầm Soát Đột Quỵ</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Dựng Hình Cây Mạch Máu 3D Không Tiêm Thuốc</a>
+  <a href="#cabinet">Đánh Giá Nguy Cơ & Đa Giác Willis 3D</a>
+  <a href="#dynasty">4 Trụ Cột Tầm Soát Đột Quỵ Sớm</a>
+  <a href="#scan">Công Nghệ MRI 3.0 Tesla & AI</a>
+  <a href="#visit">Đặt Lịch Chụp MRI Không Chờ Đợi</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Trung Tâm Chẩn Đoán Hình Ảnh Thần Kinh – Mạch Máu · MRI 3.0 Tesla Silent</p>
+        <h1 id="hero-h"><span class="mask"><span>Chặn đứng đột quỵ</span></span><span class="mask"><span>trước <em>giờ vàng cấp cứu.</em></span></span></h1>
+        <p class="hero-lead hf">80% ca đột quỵ có thể phòng ngừa hoàn toàn nếu phát hiện sớm dị dạng mạch máu và mảng xơ vữa. NeuroVascular Center ứng dụng chuỗi xung TOF-3D trên máy MRI 3.0 Tesla dựng hình toàn bộ cây mạch máu não trong 15 phút mà không cần tiêm thuốc tương phản từ, phát hiện chính xác túi phình nhỏ tới 1.5mm.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#cabinet">Đánh Giá Nguy Cơ & Xoay Mạch Máu 3D</a>
+          <a class="btn ghost" href="#process">Quy Trình Chụp MRI 15 Phút</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>1.5 mm</strong><span>Ngưỡng phát hiện vi túi phình mạch não</span></div>
+          <div><strong>0%</strong><span>Không tia X · Không tiêm thuốc cản từ</span></div>
+          <div><strong>15 Phút</strong><span>Thời gian chụp MRI 3.0 Tesla êm ái</span></div>
+        </div>
+      </div>
+      <div class="hero-shrine hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Mô hình 3D Đa giác mạch máu não Willis với điểm cảnh báo vi túi phình màu đỏ trên nhánh động mạch thông trước"></canvas>
+        <div class="hero-shrine-meta">
+          <span>Di chuột để xoay 360° cây mạch máu não Đa giác Willis</span>
+          <span style="color:var(--rose)">AI Aneurysm Detector · Độ nhạy 99.1%</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Chẩn đoán không xâm lấn thế hệ mới</p>
+        <h2 id="pr-h">Dựng hình mạch máu não 3D<br><em>không tiêm thuốc trong 15 phút</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Phút 01 – 04 · Chuỗi xung Khuếch tán DWI & FLAIR Phân giải Cao</p>
+            <h3>Phát hiện các ổ nhồi máu não thầm lặng (Silent Infarcts)</h3>
+            <p>Nhiều người có các vi nhồi máu nhỏ sâu trong chất trắng mà không hề có triệu chứng yếu liệt. Từ trường 3.0 Tesla quét lát cắt 0.8mm nhận diện sớm tổn thương thiếu máu cục bộ mạn tính.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Phút 05 – 10 · Chụp Mạch máu Thời gian Bay 3D-TOF (Time-of-Flight)</p>
+            <h3>Tái tạo cây mạch máu não hoàn toàn không cần tiêm Gadolinium</h3>
+            <p>Tận dụng tín hiệu dòng máu đang chảy tự nhiên để dựng hình 3D vòng nối Đa giác Willis, an toàn tuyệt đối cho người lớn tuổi, người suy giảm chức năng thận hoặc có cơ địa dị ứng thuốc.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Phút 11 – 13 · Chuỗi xung Nhạy từ SWI (Susceptibility Weighted)</p>
+            <h3>Tầm soát vi xuất huyết não & Dị dạng thông động-tĩnh mạch (AVM)</h3>
+            <p>Phát hiện những chấm lắng đọng Hemosiderin siêu nhỏ cảnh báo nguy cơ vỡ mạch máu não ở bệnh nhân tăng huyết áp lâu năm hoặc dùng thuốc kháng đông.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Phút 14 – 15 · AI NeuroVasc Phân tích Tự động & Hội chẩn Bác sĩ</p>
+            <h3>Đo đường kính cổ túi phình & Lưu lượng tưới máu não ASL</h3>
+            <p>Trí tuệ nhân tạo khoanh vùng các điểm phình giãn hoặc hẹp lòng mạch từ 1.5mm, giúp Hội đồng Bác sĩ Ngoại Thần kinh và Tim mạch đưa ra phác đồ dự phòng ngay lập tức.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Chuỗi xung MRI: <b id="pSeq">DWI / FLAIR · Lát cắt 0.8mm</b></span>
+          <span>Độ phân giải mạch: <b id="pRes">3D-TOF Không thuốc</b></span>
+          <span>Cảnh báo AI: <b id="pAi">Đang quét Đa giác Willis</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cabinet" id="cabinet" aria-labelledby="cab-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Công cụ phân tầng nguy cơ đột quỵ</p>
+          <h2 id="cab-h" style="margin-top:16px">Đánh giá yếu tố nguy cơ &<br><em>mô phỏng mạch máu não 3D</em></h2>
+        </div>
+        <p class="rv">Chọn nhóm tuổi của bạn, điều chỉnh chỉ số Huyết áp tâm thu (mmHg) và góc xoay mô hình Đa giác Willis để quan sát vị trí thường gặp của túi phình mạch não, mảng xơ vữa động mạch cảnh và gợi ý gói tầm soát MRI.</p>
+      </div>
+      <div class="cab-shell">
+        <div class="cab-stage">
+          <canvas id="cabC" width="680" height="400" role="img" aria-label="Mô hình 3D mạch máu não Đa giác Willis xoay theo góc nhìn hiển thị áp lực dòng chảy và túi phình"></canvas>
+          <div class="cab-controls">
+            <div class="sl-row">
+              <label for="bpR"><span>Huyết áp tâm thu thường ngày (mmHg)</span><b id="vBp">145 mmHg</b></label>
+              <input id="bpR" type="range" min="105" max="185" step="5" value="145">
+            </div>
+            <div class="sl-row">
+              <label for="rotR"><span>Góc xoay cây mạch máu não 3D (0° – 360°)</span><b id="vRot">35°</b></label>
+              <input id="rotR" type="range" min="0" max="360" step="5" value="35">
+            </div>
+          </div>
+        </div>
+        <div class="cab-info">
+          <span class="mono" style="color:var(--sky)">Chọn nhóm tuổi & Tiền sử chuyển hóa</span>
+          <div class="art-tabs" id="ageTabs" role="group" aria-label="Chọn nhóm tuổi">
+            <button type="button" class="a-btn" data-a="0" aria-pressed="true">
+              <span class="mono">Đột quỵ người trẻ</span>
+              <b>30 – 44 tuổi</b>
+            </button>
+            <button type="button" class="a-btn" data-a="1" aria-pressed="false">
+              <span class="mono">Nhóm nguy cơ trung bình</span>
+              <b>45 – 59 tuổi</b>
+            </button>
+            <button type="button" class="a-btn" data-a="2" aria-pressed="false">
+              <span class="mono">Ưu tiên tầm soát định kỳ</span>
+              <b>Trên 60 tuổi</b>
+            </button>
+          </div>
+          <div>
+            <span class="mono" style="color:var(--rose)" id="wMeta">Điểm nguy cơ mạch máu tham khảo: 6.8 / 10 · Áp lực thành mạch cao</span>
+            <h3 id="wTitle" style="font-size:23px;margin:6px 0 8px">Tăng Áp Lực Dòng Chảy Tại Ngã Ba Động Mạch Não Giữa (MCA)</h3>
+            <p id="wDesc" style="color:var(--muted);font-size:15px">Khi huyết áp tâm thu thường xuyên vượt ngưỡng 140 mmHg, lực xé dòng máu (Wall Shear Stress) đập mạnh vào các ngã rẽ của Đa giác Willis, làm mỏng lớp đàn hồi thành mạch.</p>
+          </div>
+          <div class="motif-decode" id="wDecode" role="status" aria-live="polite">
+            <strong>Gói tầm soát khuyến nghị:</strong> Gói Tầm soát Đột quỵ Chuyên sâu (MRI 3.0 Tesla Sọ não – Mạch máu não 3D-TOF + Siêu âm Doppler Động mạch cảnh + Điện tâm đồ Holter 24h tầm soát rung nhĩ).
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dynasty" id="dynasty" aria-labelledby="dy-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Tầm soát khép kín trong 120 phút</p>
+          <h2 id="dy-h" style="margin-top:16px">Bốn mắt xích truy tìm nguyên nhân</h2>
+        </div>
+        <p class="rv">Đột quỵ không chỉ xuất phát từ não mà còn bắt nguồn từ cục máu đông ở tim và mảng xơ vữa động mạch cổ.</p>
+      </div>
+      <div class="dyn-grid">
+        <article class="dcard rv">
+          <span class="mono">01 · Brain & MRA 3.0 Tesla</span>
+          <h3>Chụp Cộng Hưởng Từ Mạch Máu Não</h3>
+          <p>Khảo sát nhu mô não, hệ động mạch cảnh trong, động mạch đốt sống thân nền và các xoang tĩnh mạch não không tiêm thuốc.</p>
+        </article>
+        <article class="dcard rv">
+          <span class="mono">02 · Carotid Duplex Ultrasound</span>
+          <h3>Siêu Âm Doppler Động Mạch Cảnh</h3>
+          <p>Đo bề dày lớp nội – trung mạc (IMT), phát hiện mảng xơ vữa mềm dễ bong tróc và đo vận tốc dòng máu lên não.</p>
+        </article>
+        <article class="dcard rv">
+          <span class="mono">03 · Patch Holter ECG 72h</span>
+          <h3>Miếng Dán Tầm Soát Rung Nhĩ Ẩn</h3>
+          <p>Rung nhĩ cơn là thủ phạm gây ra 25% ca đột quỵ tắc mạch lớn. Miếng dán ngực không dây ghi nhận mọi nhịp loạn suốt 3 ngày.</p>
+        </article>
+        <article class="dcard rv">
+          <span class="mono">04 · Lipoprotein(a) & Homocysteine</span>
+          <h3>Sinh Hóa Mạch Máu & Đông Máu Chuyên Sâu</h3>
+          <p>Định lượng mỡ máu di truyền Lp(a), ApoB, hs-CRP và Homocysteine để can thiệp hạ mỡ máu mục tiêu chuẩn ESC châu Âu.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="scan" id="scan" aria-labelledby="sc-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trải nghiệm chụp MRI nhẹ nhàng</p>
+          <h2 id="sc-h" style="margin-top:16px">Xoá bỏ nỗi sợ lồng chụp hẹp & ồn</h2>
+        </div>
+        <p class="rv">Hệ thống MRI 3.0 Tesla thế hệ mới nhất được thiết kế thân thiện cho cả người mắc hội chứng sợ không gian hẹp.</p>
+      </div>
+      <div class="scan-grid">
+        <article class="scard rv">
+          <span class="mono">01 · 70cm Wide-Bore Gantry</span>
+          <h3>Khoang Máy Rộng 70cm & Chiếu Phim Thư Giãn</h3>
+          <p>Khoang chụp thoáng đãng tích hợp gương phản chiếu xem phong cảnh thiên nhiên và hệ thống thông khí mát mẻ.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">02 · Quiet Suite Acoustic Tech</span>
+          <h3>Công Nghệ Giảm Ồn Từ Trường Tới 82%</h3>
+          <p>Làm dịu tiếng gõ xung từ trường xuống mức êm ái như tiếng mưa rơi, giúp khách hàng nằm yên thoải mái trong 15 phút.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">03 · Same-Day Neuro Consultation</span>
+          <h3>Nhận Kết Quả & Đọc Phim 3D Sau 45 Phút</h3>
+          <p>Bác sĩ Chẩn đoán Hình ảnh Thần kinh và Bác sĩ Nội Thần kinh trực tiếp xoay mô hình mạch máu 3D giải thích từng nhánh mạch cho bạn.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="visit" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Bảo vệ trí tuệ và sinh mệnh cho chính bạn & cha mẹ</p>
+        <h2 id="cta-h" style="margin-top:14px">Đặt lịch Tầm soát Đột quỵ MRI 3.0 Tesla<br><em>Không chờ đợi · Hoàn tất trong 2 giờ</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="vName">Họ và tên người tầm soát</label>
+            <input id="vName" type="text" placeholder="Ông Nguyễn Văn Thành (58 tuổi)" required>
+          </div>
+          <div>
+            <label for="vPhone">Số điện thoại liên hệ đặt lịch</label>
+            <input id="vPhone" type="tel" placeholder="0913 904 221" required>
+          </div>
+          <div>
+            <label for="vSymp">Triệu chứng hoặc yếu tố nguy cơ hiện có</label>
+            <select id="vSymp">
+              <option value="checkup">Tầm soát chủ động (Có tăng huyết áp / Mỡ máu / Tiểu đường)</option>
+              <option value="headache">Đau đầu mạn tính, chóng mặt, rối loạn tiền đình, tê nửa người</option>
+              <option value="family">Gia đình có người thân từng bị đột quỵ hoặc túi phình mạch não</option>
+            </select>
+          </div>
+          <div>
+            <label for="vPkg">Gói tầm soát mong muốn</label>
+            <select id="vPkg">
+              <option value="mri">Chụp MRI 3.0 Tesla Sọ não & Mạch máu não 3D-TOF (15 phút)</option>
+              <option value="full">Gói Tầm soát Đột quỵ Toàn diện (MRI 3.0T + Mạch cảnh + Tim mạch)</option>
+              <option value="vip">Gói Gia đình (Ưu đãi khi đăng ký từ 2 người trở lên)</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Xác Nhận Khung Giờ Chụp MRI 3.0 Tesla</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">NeuroVascular Center</a>
+      <ul class="f-nav">
+        <li><a href="#process">MRI 3.0 Tesla</a></li>
+        <li><a href="#cabinet">Mô Phỏng Mạch Máu 3D</a></li>
+        <li><a href="#dynasty">Gói Tầm Soát</a></li>
+        <li><a href="#scan">AI Mạch Máu</a></li>
+        <li><a href="#visit">Đặt Lịch</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> NeuroVascular Center · Trung tâm Tầm soát Đột quỵ & Hình ảnh học Thần kinh Mạch máu</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  function drawCircleOfWillis(ctx, w, h, rotDeg = 35, bp = 145) {
+    ctx.fillStyle = '#040A14';
+    ctx.fillRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2 + 10;
+    const rad = (rotDeg * Math.PI) / 180;
+    const shift = Math.sin(rad) * 38;
+
+    // Subtle MRI axial slice ring
+    ctx.strokeStyle = 'rgba(56,189,248,.16)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 185, 155, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 3D Circle of Willis arterial polygon & branches
+    const highBp = bp >= 140;
+    ctx.strokeStyle = highBp ? '#38BDF8' : '#7DD3FC';
+    ctx.lineWidth = 4.2;
+    ctx.lineCap = 'round';
+
+    // Basilar artery trunk
+    ctx.beginPath();
+    ctx.moveTo(cx - shift * 0.3, cy + 125);
+    ctx.lineTo(cx, cy + 32);
+    // Left & Right Posterior Cerebral (PCA)
+    ctx.moveTo(cx, cy + 32); ctx.lineTo(cx - 85 + shift * 0.4, cy + 15);
+    ctx.moveTo(cx, cy + 32); ctx.lineTo(cx + 85 + shift * 0.4, cy + 15);
+    // Internal Carotid & Middle Cerebral (MCA) bifurcations
+    ctx.moveTo(cx - 48 + shift * 0.2, cy + 32);
+    ctx.lineTo(cx - 42 + shift * 0.5, cy - 38);
+    ctx.lineTo(cx - 128 + shift * 0.7, cy - 68);
+    ctx.moveTo(cx + 48 + shift * 0.2, cy + 32);
+    ctx.lineTo(cx + 42 + shift * 0.5, cy - 38);
+    ctx.lineTo(cx + 128 + shift * 0.7, cy - 68);
+    // Anterior Communicating Artery (AComA) bridge
+    ctx.moveTo(cx - 42 + shift * 0.5, cy - 38);
+    ctx.lineTo(cx, cy - 65);
+    ctx.lineTo(cx + 42 + shift * 0.5, cy - 38);
+    ctx.stroke();
+
+    // Highlight AI-detected 1.5mm micro-aneurysm hotspot at bifurcation
+    const ax = cx + 42 + shift * 0.5, ay = cy - 38;
+    const pulseR = highBp ? 24 : 15;
+    const ag = ctx.createRadialGradient(ax, ay, 2, ax, ay, pulseR);
+    ag.addColorStop(0, 'rgba(244,63,94,.95)');
+    ag.addColorStop(1, 'rgba(244,63,94,0)');
+    ctx.fillStyle = ag;
+    ctx.beginPath(); ctx.arc(ax, ay, pulseR, 0, Math.PI * 2); ctx.fill();
+
+    ctx.strokeStyle = '#F43F5E';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(ax - 18, ay - 18, 36, 36);
+
+    ctx.fillStyle = '#F1F5F9';
+    ctx.font = '600 11px "JetBrains Mono", monospace';
+    ctx.fillText(`3D-TOF MRA · ĐA GIÁC WILLIS (GÓC ${Math.round(rotDeg)}°)`, 28, 38);
+    ctx.fillStyle = '#F43F5E';
+    ctx.fillText(`AI ROI: NGÃ BA ĐỘNG MẠCH · BP ${bp} mmHg`, ax + 24, ay + 4);
+  }
+
+  // Hero Canvas
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  drawCircleOfWillis(heroX, 580, 420, 30, 145);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    const nx = (e.clientX - r.left) / r.width;
+    drawCircleOfWillis(heroX, 580, 420, nx * 360, 145);
+  });
+
+  // Pinned 15-Minute MRI 3.0T Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const PIN_STEPS = [
+    ['Phút 1–4 · DWI & FLAIR 0.8mm', 'Nhu mô chất trắng', 'Không ổ nhồi máu cũ', 15],
+    ['Phút 5–10 · Dựng mạch 3D-TOF', 'Không tiêm thuốc từ', 'Dựng cây Đa giác Willis', 95],
+    ['Phút 11–13 · Xung nhạy từ SWI', 'Tầm soát vi xuất huyết', 'Kiểm tra dị dạng AVM', 185],
+    ['Phút 14–15 · AI NeuroVasc 3D', 'Độ phân giải 1.5mm', 'Khoanh vùng điểm phình', 275]
+  ];
+  function renderPin(p) {
+    const step = p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3;
+    const [sq, rs, ai, deg] = PIN_STEPS[step];
+    drawCircleOfWillis(pinX, 660, 440, deg + p * 60, 142);
+    $('#pSeq').textContent = sq;
+    $('#pRes').textContent = rs;
+    $('#pAi').textContent = ai;
+  }
+  renderPin(0);
+
+  // Interactive Widget: Stroke Risk & 3D Circle of Willis
+  const AGE_INFO = [
+    {
+      title: 'Tầm Soát Đột Quỵ Người Trẻ (30 – 44 Tuổi): Dị Dạng Mạch Bẩm Sinh',
+      desc: 'Đột quỵ ở người dưới 45 tuổi thường liên quan đến túi phình mạch máu não bẩm sinh, dị dạng thông động-tĩnh mạch (AVM) hoặc bóc tách động mạch đốt sống cổ.',
+      pkg: 'Gói Tầm soát Mạch máu não Chuyên biệt MRI 3.0 Tesla 3D-TOF (15 phút, không tiêm thuốc cản từ) kèm xét nghiệm mỡ máu di truyền Lp(a).'
+    },
+    {
+      title: 'Phân Tầng Nguy Cơ Trung Niên (45 – 59 Tuổi): Tăng Huyết Áp & Xơ Vữa',
+      desc: 'Khi huyết áp tâm thu vượt ngưỡng 135–140 mmHg kết hợp rối loạn mỡ máu, thành động mạch cảnh và động mạch não giữa bắt đầu hình thành mảng xơ vữa.',
+      pkg: 'Gói Tầm soát Đột quỵ Chuyên sâu (MRI 3.0 Tesla Sọ não – Mạch máu não + Siêu âm Doppler Động mạch cảnh + Xét nghiệm sinh hóa mạch máu).'
+    },
+    {
+      title: 'Bảo Vệ Toàn Diện Trên 60 Tuổi: Hẹp Mạch Nội Sọ & Rung Nhĩ Ẩn',
+      desc: 'Tầm soát đồng thời nguy cơ hẹp động mạch nội sọ, các ổ nhồi máu não thầm lặng làm suy giảm trí nhớ và cục máu đông từ buồng tim do rung nhĩ.',
+      pkg: 'Gói Tầm soát Đột quỵ Toàn diện VIP (MRI 3.0 Tesla + Siêu âm Tim & Mạch cảnh + Miếng dán Holter điện tâm đồ 72 giờ).'
+    }
+  ];
+
+  const cabC = $('#cabC'), cabX = cabC.getContext('2d');
+  let curAge = 0, curBp = 145, curRot = 35;
+
+  function updateRiskWidget() {
+    drawCircleOfWillis(cabX, 680, 400, curRot, curBp);
+    const riskScore = Math.min(9.6, Math.max(2.1, ((curBp - 100) / 12) + curAge * 1.6 + 1.8)).toFixed(1);
+    const a = AGE_INFO[curAge];
+    $('#vBp').textContent = `${curBp} mmHg`;
+    $('#vRot').textContent = `${curRot}°`;
+    $('#wMeta').textContent = `Chỉ số nguy cơ mạch máu tham khảo: ${riskScore} / 10 · Huyết áp: ${curBp} mmHg`;
+    $('#wTitle').textContent = a.title;
+    $('#wDesc').textContent = a.desc;
+    $('#wDecode').innerHTML = `<strong>Gói tầm soát khuyến nghị:</strong> ${a.pkg}`;
+  }
+
+  $$('#ageTabs .a-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curAge = +btn.dataset.a;
+      $$('#ageTabs .a-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === curAge));
+      updateRiskWidget();
+    });
+  });
+  $('#bpR').addEventListener('input', (e) => { curBp = +e.target.value; updateRiskWidget(); });
+  $('#rotR').addEventListener('input', (e) => { curRot = +e.target.value; updateRiskWidget(); });
+  updateRiskWidget();
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#vName').value.trim();
+    $('#ctaOk').textContent = n ? `Cảm ơn ${n}! Bộ phận Điều phối MRI 3.0 Tesla NeuroVascular sẽ liên hệ trong 10 phút để giữ lịch chụp ưu tiên không chờ đợi.` : 'Vui lòng nhập họ tên và số điện thoại liên hệ.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.1, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 28, duration: 0.9, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

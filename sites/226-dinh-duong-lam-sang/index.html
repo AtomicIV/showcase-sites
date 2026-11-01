@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NutriLife Medical — Viện Dinh Dưỡng Lâm Sàng, Kiểm Soát Tiểu Đường & Giảm Cân Y Khoa</title>
+<meta name="description" content="NutriLife Medical ứng dụng cảm biến đo đường huyết liên tục CGM, phân tích thành phần cơ thể InBody 970 và đo tiêu hao năng lượng gián tiếp Indirect Calorimetry để kiểm soát tiểu đường và giảm mỡ nội tạng.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23143323'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%23E2F0E3' stroke-width='2.5'/%3E%3Cpath d='M32 13v38M32 32l16-10' stroke='%23E86F38' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Bricolage+Grotesque:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F9F4; --bg2:#E2F0E3; --ink:#143323; --orange:#E86F38;
+  --orangeD:#C85722; --green:#236B46; --muted:#476353; --light:#F4F9F4;
+  --line:rgba(20,51,35,.14);
+  --head:"Bricolage Grotesque", sans-serif;
+  --body:"Be Vietnam Pro", sans-serif;
+  --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--orange);color:#fff;padding:10px 16px;z-index:400;font-weight:600;border-radius:6px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.5vw,62px)}
+h1 em,h2 em{font-style:normal;color:var(--orange)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--orangeD)}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px 2px rgba(232,111,56,.6)}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border:1px solid var(--orange);background:var(--orange);color:#fff;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;cursor:pointer;transition:transform .35s var(--ease),background .3s}
+.btn:hover{background:var(--orangeD);border-color:var(--orangeD);transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--orange);color:var(--orangeD)}
+.btn.sm{min-height:42px;padding:0 18px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(244,249,244,.94);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:24px;font-weight:700;color:var(--ink)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--orangeD)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--ink);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease);box-shadow:0 24px 48px rgba(20,51,35,.12)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:50px;padding:0 12px;font-family:var(--head);font-size:20px;border-bottom:1px solid var(--line)}
+.mmenu a:last-child{border:0;color:var(--orangeD)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 55% at 76% 26%,rgba(232,111,56,.16),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(226,240,227,.95),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(38px,5.2vw,74px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:49ch;color:var(--muted);font-size:18px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:34px;color:var(--orangeD)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-shrine{background:var(--ink);color:var(--light);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 35px 75px -30px rgba(20,51,35,.35)}
+.hero-shrine canvas{width:100%;height:auto;border-radius:12px;cursor:crosshair}
+.hero-shrine-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:rgba(244,249,244,.75)}
+
+/* Pinned Postprandial Glucose Curve Comparison */
+.process{position:relative;background:var(--ink);color:var(--light);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.process .kick{color:var(--orange)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:48px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:240px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--orange)}
+.pstep h3{font-size:clamp(24px,2.4vw,35px);margin:8px 0 12px;color:var(--light)}
+.pstep p{color:rgba(244,249,244,.76);max-width:44ch}
+.pr-vis{background:#0C2116;border:1px solid rgba(244,249,244,.14);border-radius:18px;padding:20px}
+.pr-vis canvas{width:100%;height:auto;border-radius:12px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:rgba(244,249,244,.7)}
+.pr-meter b{color:var(--orange)}
+
+/* Interactive Widget: Medical Plate Builder & 120-min CGM Curve */
+.cabinet{padding:128px 0;background:var(--bg2)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:48px}
+.sec-head p{color:var(--muted)}
+.cab-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.cab-stage{background:var(--ink);color:var(--light);border:1px solid var(--line);border-radius:20px;padding:22px}
+.cab-stage canvas{width:100%;height:auto;border-radius:12px;background:#0B1E14}
+.cab-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:rgba(244,249,244,.8)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--orange);cursor:pointer}
+.cab-info{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:28px;display:grid;gap:16px}
+.art-tabs{display:grid;grid-template-columns:1fr;gap:10px}
+.a-btn{padding:12px 16px;border:1px solid var(--line);background:var(--bg2);border-radius:10px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center}
+.a-btn .mono{font-size:10px;color:var(--orangeD);display:block}
+.a-btn b{font-family:var(--head);font-size:18px}
+.a-btn[aria-pressed="true"]{border-color:var(--orange);background:rgba(232,111,56,.16)}
+.motif-decode{padding:16px;background:rgba(232,111,56,.13);border-left:3px solid var(--orange);border-radius:8px;font-size:14px}
+
+/* Clinical Nutrition Programs */
+.dynasty{padding:120px 0;background:var(--bg)}
+.dyn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.dcard{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.dcard .mono{color:var(--orangeD)}
+.dcard h3{font-size:22px}
+.dcard p{color:var(--muted);font-size:15px}
+
+/* Metabolic Diagnostic Tech */
+.scan{padding:120px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.scan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.scard{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.scard .mono{color:var(--orangeD)}
+.scard h3{font-size:23px}
+.scard p{color:var(--muted);font-size:15px}
+
+/* Consultation CTA */
+.cta{padding:120px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(232,111,56,.2),transparent 70%),var(--bg);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:46px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--ink)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--orangeD)}
+
+footer{background:var(--ink);color:var(--light);border-top:1px solid var(--line);padding:52px 0 34px}
+footer .logo{color:var(--light)}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:rgba(244,249,244,.72)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(244,249,244,.12);font-family:var(--mono);font-size:12px;color:rgba(244,249,244,.65)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.cab-shell,.scan-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .dyn-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.cab-controls,.dyn-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="NutriLife Medical Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="#143323" stroke-width="2.2"/><path d="M16 3v26M16 16l11-7" stroke="#E86F38" stroke-width="2.5"/></svg>
+      NutriLife Medical
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Đường Cong Glucose CGM</a></li>
+        <li><a href="#cabinet">Thiết Kế Đĩa Ăn Y Khoa</a></li>
+        <li><a href="#dynasty">Phác Đồ Lâm Sàng</a></li>
+        <li><a href="#scan">Đo Chuyển Hóa</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#visit">Đặt Lịch Khám Dinh Dưỡng</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">So Sánh Đường Cong Glucose Máu</a>
+  <a href="#cabinet">Thiết Kế Đĩa Ăn & Mô Phỏng CGM</a>
+  <a href="#dynasty">Kiểm Soát Tiểu Đường & Giảm Mỡ</a>
+  <a href="#scan">Đo InBody 970 & Calorimetry</a>
+  <a href="#visit">Đặt Lịch Bác Sĩ Dinh Dưỡng</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Viện Dinh Dưỡng Lâm Sàng & Nội Tiết Chuyển Hóa</p>
+        <h1 id="hero-h"><span class="mask"><span>Ổn định đường huyết,</span></span><span class="mask"><span>giảm mỡ nội tạng <em>chuẩn y khoa.</em></span></span></h1>
+        <p class="hero-lead hf">Không nhịn ăn cực đoan hay dùng thực phẩm chức năng truyền miệng. NutriLife Medical kết hợp cảm biến theo dõi đường huyết liên tục 24/7 (CGM), đo tiêu hao năng lượng nghỉ qua hơi thở (RMR) và thiết kế thực đơn chuẩn món Việt giúp đảo ngược tiền tiểu đường, gan nhiễm mỡ và béo phì chuyển hóa.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#cabinet">Thiết Kế Đĩa Ăn & Xem Đường Cong CGM</a>
+          <a class="btn ghost" href="#process">Vì Sao Thứ Tự Ăn Quyết Định Đỉnh Đường?</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>-1,4%</strong><span>Mức giảm HbA1c trung bình sau 12 tuần</span></div>
+          <div><strong>94%</strong><span>Giảm mỡ nội tạng mà không mất khối cơ</span></div>
+          <div><strong>288 Lần</strong><span>Đo đường huyết tự động mỗi ngày qua CGM</span></div>
+        </div>
+      </div>
+      <div class="hero-shrine hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Biểu đồ so sánh đỉnh đường huyết sau ăn và đĩa dinh dưỡng cân bằng chất xơ, đạm và tinh bột phức"></canvas>
+        <div class="hero-shrine-meta">
+          <span>Di chuột để xem phản ứng Glucose máu từ 0 đến 120 phút sau ăn</span>
+          <span style="color:var(--orange)">CGM Time-in-Range (70–140 mg/dL): 96%</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Sinh lý học hấp thu sau bữa ăn</p>
+        <h2 id="pr-h">Đường cong Glucose máu<br><em>theo thứ tự ăn uống</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Phút 0 – 30 · Sai lầm phổ biến: Ăn Tinh bột trắng đầu tiên khi đói</p>
+            <h3>Đỉnh đường huyết tăng vọt (Glucose Spike &gt; 185 mg/dL)</h3>
+            <p>Khi ăn cơm trắng, bún, phở ngay lúc bụng rỗng, tinh bột thủy phân cực nhanh làm đường huyết vọt lên chỉ sau 30 phút, kích thích tuyến tụy tiết lượng lớn Insulin gây tích tụ mỡ nội tạng.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Phút 30 – 60 · Quy tắc NutriLife: Ăn Rau xanh & Chất xơ hòa tan trước</p>
+            <h3>Tạo "màng lưới cellulose" lót thành ruột non</h3>
+            <p>Khởi đầu bữa ăn bằng 150g rau lá xanh giúp lớp chất xơ trương nở tạo thành màng lưới sinh học làm chậm tốc độ phân tử đường đi qua niêm mạc ruột vào máu tới 42%.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Phút 60 – 90 · Tiếp nối bằng Đạm nạc, Chất béo tốt rồi mới đến Tinh bột phức</p>
+            <h3>Kích thích hormone GLP-1 tự nhiên & No lâu suốt 5 giờ</h3>
+            <p>Protein từ cá, ức gà, đậu phụ và dầu ô-liu làm chậm tốc độ làm rỗng dạ dày, kích thích tiết GLP-1 nội sinh giúp đường cong Glucose chỉ nhô nhẹ ở mức 125 mg/dL.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Phút 90 – 120 · Hạ cánh êm ái: Không tụt đường huyết phản ứng</p>
+            <h3>Tỉnh táo buổi chiều, không thèm đồ ngọt và đốt mỡ liên tục</h3>
+            <p>Tránh được hiện tượng tụt đường huyết phản ứng sau ăn 2 giờ (Reactive Hypoglycemia), chấm dứt cơn buồn ngủ sau bữa trưa và mở khóa quá trình oxy hóa mỡ thừa.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Giai đoạn sau ăn: <b id="pTime">Phút 30 · Hấp thu</b></span>
+          <span>Ăn tinh bột trước: <b id="pSpike">188 mg/dL (Đỉnh cao)</b></span>
+          <span>Ăn Rau → Đạm → Cơm: <b id="pFlat">124 mg/dL (Ổn định)</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cabinet" id="cabinet" aria-labelledby="cab-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Công cụ hoạch định bữa ăn lâm sàng</p>
+          <h2 id="cab-h" style="margin-top:16px">Thiết kế đĩa ăn chuẩn Y khoa &<br><em>mô phỏng đường cong CGM</em></h2>
+        </div>
+        <p class="rv">Chọn mục tiêu điều trị của bạn và kéo thanh tỷ lệ Chất xơ / Đạm trên đĩa ăn để xem ngay hình thái đĩa ăn Harvard Medical Plate, tổng năng lượng Calo và đường cong đường huyết 120 phút sau ăn.</p>
+      </div>
+      <div class="cab-shell">
+        <div class="cab-stage">
+          <canvas id="cabC" width="680" height="400" role="img" aria-label="Bàn xoay đĩa ăn y khoa chia tỷ lệ rau xanh, đạm, tinh bột và biểu đồ đường huyết CGM 120 phút"></canvas>
+          <div class="cab-controls">
+            <div class="sl-row">
+              <label for="fibR"><span>Tỷ lệ Rau xanh & Chất xơ trên đĩa (%)</span><b id="vFib">50%</b></label>
+              <input id="fibR" type="range" min="15" max="65" step="5" value="50">
+            </div>
+            <div class="sl-row">
+              <label for="proR"><span>Tỷ lệ Đạm sinh học cao (Cá, Ức gà, Đậu) (%)</span><b id="vPro">30%</b></label>
+              <input id="proR" type="range" min="15" max="45" step="5" value="30">
+            </div>
+          </div>
+        </div>
+        <div class="cab-info">
+          <span class="mono" style="color:var(--orangeD)">Chọn mục tiêu điều trị dinh dưỡng của bạn</span>
+          <div class="art-tabs" id="goalTabs" role="group" aria-label="Chọn mục tiêu dinh dưỡng">
+            <button type="button" class="a-btn" data-g="0" aria-pressed="true">
+              <div>
+                <span class="mono">Tiền tiểu đường · Đái tháo đường Týp 2</span>
+                <b>Kiểm soát đường huyết & Giảm HbA1c</b>
+              </div>
+              <span class="mono">Low-GL</span>
+            </button>
+            <button type="button" class="a-btn" data-g="1" aria-pressed="false">
+              <div>
+                <span class="mono">Gan nhiễm mỡ · Kháng Insulin</span>
+                <b>Giảm mỡ nội tạng & Bảo toàn cơ</b>
+              </div>
+              <span class="mono">High-Protein</span>
+            </button>
+            <button type="button" class="a-btn" data-g="2" aria-pressed="false">
+              <div>
+                <span class="mono">Dinh dưỡng Ngoại khoa & Ung bướu</span>
+                <b>Phục hồi thể trạng sau phẫu thuật</b>
+              </div>
+              <span class="mono">Immuno-Nutri</span>
+            </button>
+          </div>
+          <div>
+            <span class="mono" style="color:var(--green)" id="wMeta">Năng lượng bữa ăn: 520 kcal · Đỉnh đường huyết dự kiến: 122 mg/dL</span>
+            <h3 id="wTitle" style="font-size:23px;margin:6px 0 8px">Đĩa Ăn Kiểm Soát Đường Huyết (50% Xơ – 30% Đạm – 20% Cơm Lứt)</h3>
+            <p id="wDesc" style="color:var(--muted);font-size:15px">Giữ biên độ dao động đường huyết sau ăn dưới +30 mg/dL so với lúc đói, giúp giảm tải cho tế bào Beta tuyến tụy và cải thiện độ nhạy Insulin chỉ sau 14 ngày đeo CGM.</p>
+          </div>
+          <div class="motif-decode" id="wDecode" role="status" aria-live="polite">
+            <strong>Thực đơn mẫu chuẩn món Việt:</strong> 1 đĩa rau cải luộc + canh bầu nấu tôm (ăn trước) → 120g cá thu áp chảo + 1/2 bìa đậu phụ → 2/3 chén cơm gạo lứt hạt sen ăn sau cùng.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dynasty" id="dynasty" aria-labelledby="dy-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Điều trị bằng thực phẩm như thuốc</p>
+          <h2 id="dy-h" style="margin-top:16px">Bốn chuyên khoa dinh dưỡng</h2>
+        </div>
+        <p class="rv">Mỗi phác đồ đều được Bác sĩ Chuyên khoa Dinh dưỡng và Nội tiết hội chẩn dựa trên xét nghiệm máu toàn diện.</p>
+      </div>
+      <div class="dyn-grid">
+        <article class="dcard rv">
+          <span class="mono">01 · Diabetes & Gestational GDM</span>
+          <h3>Đái Tháo Đường Týp 2 & Tiểu Đường Thai Kỳ</h3>
+          <p>Kiểm soát đường huyết mẹ bầu an toàn không cần tiêm Insulin, bảo vệ thai nhi khỏi nguy cơ thai to và hạ đường huyết sơ sinh.</p>
+        </article>
+        <article class="dcard rv">
+          <span class="mono">02 · Medical Weight Management</span>
+          <h3>Giảm Cân Y Khoa & Trị Gan Nhiễm Mỡ</h3>
+          <p>Giảm từ 4–6 kg mỡ tinh khiết trong 8 tuần dựa trên tỷ lệ trao đổi chất thực tế, không gây rụng tóc, chảy xệ da hay hiệu ứng tăng cân ngược Yo-Yo.</p>
+        </article>
+        <article class="dcard rv">
+          <span class="mono">03 · Renal, Gout & Dyslipidemia</span>
+          <h3>Dinh Dưỡng Bệnh Thận Mạn, Gout & Mỡ Máu</h3>
+          <p>Tính toán chính xác hàm lượng Đạm, Kali, Photpho và Purin từng bữa giúp bảo tồn mức lọc cầu thận eGFR và ngăn cơn Gout cấp.</p>
+        </article>
+        <article class="dcard rv">
+          <span class="mono">04 · Gut Microbiome & IBS</span>
+          <h3>Phục Hồi Hệ Vi Sinh Đường Ruột (Low-FODMAP)</h3>
+          <p>Điều trị hội chứng ruột kích thích, đầy hơi mạn tính và trào ngược dạ dày thực quản thông qua thực đơn nuôi dưỡng lợi khuẩn.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="scan" id="scan" aria-labelledby="sc-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Chẩn đoán chuyển hóa chính xác</p>
+          <h2 id="sc-h" style="margin-top:16px">Công nghệ đo lường lâm sàng</h2>
+        </div>
+        <p class="rv">Chấm dứt việc ước lượng Calo bằng công thức đại trà trên mạng nhờ hệ thống thiết bị phân tích y khoa chuyên sâu.</p>
+      </div>
+      <div class="scan-grid">
+        <article class="scard rv">
+          <span class="mono">01 · Continuous Glucose Monitor</span>
+          <h3>Cảm Biến Đường Huyết Liên Tục 14 Ngày</h3>
+          <p>Cảm biến siêu nhỏ gắn sau cánh tay không đau, đồng bộ điện thoại theo thời gian thực để biết chính xác món ăn nào làm bạn tăng đường huyết.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">02 · Indirect Calorimetry (RMR)</span>
+          <h3>Đo Tiêu Hao Năng Lượng Qua Khí Thở</h3>
+          <p>Đo thể tích Oxy tiêu thụ (VO2) và CO2 thải ra (VCO2) trong 15 phút nằm nghỉ để xác định chính xác từng kcal cơ thể bạn đốt mỗi ngày.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">03 · InBody 970 Multi-Frequency</span>
+          <h3>Phân Tích Mỡ Nội Tạng & Nước Ngoại Bào</h3>
+          <p>Sử dụng dòng điện 8 tần số 3MHz đo riêng biệt khối lượng cơ xương từng vùng, diện tích mỡ nội tạng (cm²) và góc pha tế bào.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="visit" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Hành trình ăn đúng để khỏe mạnh bền vững</p>
+        <h2 id="cta-h" style="margin-top:14px">Đặt lịch khám Dinh dưỡng Lâm sàng &<br><em>Đo chuyển hóa InBody 970 + CGM</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="vName">Họ và tên khách hàng</label>
+            <input id="vName" type="text" placeholder="Chị Phan Thanh Thảo" required>
+          </div>
+          <div>
+            <label for="vPhone">Số điện thoại liên hệ</label>
+            <input id="vPhone" type="tel" placeholder="0938 612 405" required>
+          </div>
+          <div>
+            <label for="vNeed">Mục tiêu sức khỏe ưu tiên</label>
+            <select id="vNeed">
+              <option value="weight">Giảm mỡ nội tạng, Giảm cân y khoa & Gan nhiễm mỡ</option>
+              <option value="diabetes">Kiểm soát Tiền tiểu đường / Đái tháo đường / Tiểu đường thai kỳ</option>
+              <option value="clinical">Dinh dưỡng bệnh lý (Mỡ máu, Gout, Thận, Sau phẫu thuật)</option>
+            </select>
+          </div>
+          <div>
+            <label for="vPkg">Gói thăm khám mong muốn</label>
+            <select id="vPkg">
+              <option value="cgm">Khám Bác sĩ + Đo InBody 970 + Gắn cảm biến CGM 14 ngày</option>
+              <option value="rmr">Khám Bác sĩ + Đo năng lượng hơi thở RMR + Thực đơn 30 ngày</option>
+              <option value="consult">Tư vấn kết quả xét nghiệm máu hiện có</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Xác Nhận Đặt Lịch Khám Dinh Dưỡng</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">NutriLife Medical</a>
+      <ul class="f-nav">
+        <li><a href="#process">Đường cong Glucose</a></li>
+        <li><a href="#cabinet">Thiết kế Đĩa ăn</a></li>
+        <li><a href="#dynasty">Phác đồ Lâm sàng</a></li>
+        <li><a href="#scan">Công nghệ CGM</a></li>
+        <li><a href="#visit">Đặt lịch</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> NutriLife Medical · Viện Dinh dưỡng Lâm sàng & Kiểm soát Chuyển hóa</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  function drawGlucoseComparison(ctx, w, h, progress = 1, fiberRatio = 50) {
+    ctx.fillStyle = '#0B1E14';
+    ctx.fillRect(0, 0, w, h);
+
+    // Target glucose range band (70 - 140 mg/dL)
+    ctx.fillStyle = 'rgba(35,107,70,.24)';
+    ctx.fillRect(36, 170, w - 72, 130);
+    ctx.strokeStyle = 'rgba(226,240,227,.2)';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(36, 170); ctx.lineTo(w - 36, 170);
+    ctx.moveTo(36, 300); ctx.lineTo(w - 36, 300);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const maxX = 36 + (w - 72) * Math.max(0.15, progress);
+
+    // Red/Orange curve: Refined carb first (high spike + crash)
+    ctx.strokeStyle = '#E86F38';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let x = 36; x <= maxX; x += 4) {
+      const u = (x - 36) / (w - 72);
+      const spike = Math.sin(u * Math.PI) * 165 * Math.exp(-u * 1.1);
+      const crash = u > 0.72 ? (u - 0.72) * 90 : 0;
+      const y = 265 - spike + crash;
+      x === 36 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Emerald curve: Veggie -> Protein -> Complex Carb order
+    const flatten = 0.28 + ((65 - fiberRatio) / 50) * 0.45;
+    ctx.strokeStyle = '#4ADE80';
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    for (let x = 36; x <= maxX; x += 4) {
+      const u = (x - 36) / (w - 72);
+      const gentle = Math.sin(u * Math.PI * 0.95) * (130 * flatten);
+      const y = 265 - gentle;
+      x === 36 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    ctx.fillStyle = '#F4F9F4';
+    ctx.font = '600 11px "JetBrains Mono", monospace';
+    ctx.fillText('NGƯỠNG AN TOÀN SAU ĂN (< 140 mg/dL)', 44, 162);
+    ctx.fillStyle = '#E86F38';
+    ctx.fillText('● ĂN TINH BỘT TRẮNG TRƯỚC (ĐỈNH 188 mg/dL)', 44, 42);
+    ctx.fillStyle = '#4ADE80';
+    ctx.fillText('● ĂN RAU XANH → ĐẠM → CƠM LỨT (124 mg/dL)', 44, 64);
+  }
+
+  // Hero Canvas
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  drawGlucoseComparison(heroX, 580, 420, 1, 50);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    const nx = (e.clientX - r.left) / r.width;
+    drawGlucoseComparison(heroX, 580, 420, Math.max(0.2, nx), 50);
+  });
+
+  // Pinned Glucose Curve Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const PIN_STEPS = [
+    ['Phút 0–30 · Hấp thu nhanh', '188 mg/dL (Tăng vọt)', '112 mg/dL (Êm dịu)'],
+    ['Phút 30–60 · Đỉnh đường huyết', '192 mg/dL (Tiết Insulin cao)', '124 mg/dL (Màng xơ bảo vệ)'],
+    ['Phút 60–90 · Hiệu ứng GLP-1', '154 mg/dL (Bắt đầu tụt)', '118 mg/dL (No lâu)'],
+    ['Phút 90–120 · Về nền ổn định', '68 mg/dL (Tụt đường phản ứng)', '96 mg/dL (Tỉnh táo, đốt mỡ)']
+  ];
+  function renderPin(p) {
+    const step = p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3;
+    drawGlucoseComparison(pinX, 660, 440, 0.25 + p * 0.75, 52);
+    $('#pTime').textContent = PIN_STEPS[step][0];
+    $('#pSpike').textContent = PIN_STEPS[step][1];
+    $('#pFlat').textContent = PIN_STEPS[step][2];
+  }
+  renderPin(0);
+
+  // Interactive Widget: Medical Plate + CGM Curve
+  const GOALS = [
+    {
+      title: 'Đĩa Ăn Kiểm Soát Đường Huyết & Tiền Tiểu Đường',
+      desc: 'Giữ biên độ dao động đường huyết sau ăn dưới +30 mg/dL so với lúc đói, giúp giảm tải cho tế bào Beta tuyến tụy và cải thiện độ nhạy Insulin.',
+      menu: '1 đĩa rau cải luộc + canh bầu nấu tôm (ăn trước) → 120g cá thu áp chảo + 1/2 bìa đậu phụ → 2/3 chén cơm gạo lứt hạt sen ăn sau cùng.'
+    },
+    {
+      title: 'Đĩa Ăn Giảm Mỡ Nội Tạng & Bảo Toàn Cơ Xương',
+      desc: 'Tăng tỷ lệ đạm sinh học cao và chất xơ hòa tan giúp tạo thâm hụt 400 kcal/ngày một cách tự nhiên mà không kích hoạt hormone gây đói Ghrelin.',
+      menu: 'Salad ức gà nướng dầu ô-liu & hạt bí xanh → 150g cá hồi hoặc thăn bò áp chảo → 80g khoai lang hấp nguyên vỏ.'
+    },
+    {
+      title: 'Đĩa Ăn Miễn Dịch Phục Hồi Sau Phẫu Thuật',
+      desc: 'Cung cấp giàu axit amin chuỗi nhánh (BCAA), Kẽm, Vitamin C và Omega-3 giúp đẩy nhanh tốc độ liền sẹo mô mềm và chống dị hóa cơ.',
+      menu: 'Súp bí đỏ bông cải xanh xay mịn → 140g cá chẽm hấp gừng hành + trứng hấp → Cháo yến mạch hạt sen dễ tiêu hóa.'
+    }
+  ];
+
+  const cabC = $('#cabC'), cabX = cabC.getContext('2d');
+  let curGoal = 0, curFib = 50, curPro = 30;
+
+  function updatePlateWidget() {
+    const carb = Math.max(5, 100 - curFib - curPro);
+    const w = 680, h = 400;
+    cabX.fillStyle = '#0B1E14';
+    cabX.fillRect(0, 0, w, h);
+
+    // Left side: Medical Plate Pie Chart
+    const px = 175, py = 205, pr = 118;
+    const slices = [
+      { pct: curFib, color: '#22C55E', label: `Xơ ${curFib}%` },
+      { pct: curPro, color: '#E86F38', label: `Đạm ${curPro}%` },
+      { pct: carb, color: '#FACC15', label: `Bột ${carb}%` }
+    ];
+    let startA = -Math.PI / 2;
+    slices.forEach((s) => {
+      const sweep = (s.pct / 100) * Math.PI * 2;
+      cabX.fillStyle = s.color;
+      cabX.beginPath();
+      cabX.moveTo(px, py);
+      cabX.arc(px, py, pr, startA, startA + sweep);
+      cabX.closePath();
+      cabX.fill();
+      startA += sweep;
+    });
+    cabX.fillStyle = '#0B1E14';
+    cabX.beginPath(); cabX.arc(px, py, 44, 0, Math.PI * 2); cabX.fill();
+    cabX.fillStyle = '#F4F9F4';
+    cabX.font = '600 11px "JetBrains Mono", monospace';
+    cabX.fillText('ĐĨA Y KHOA', px - 34, py + 4);
+
+    // Right side: 120-min CGM glucose response curve
+    const gx0 = 340, gx1 = 640, gyBase = 310;
+    cabX.strokeStyle = 'rgba(226,240,227,.2)';
+    cabX.strokeRect(gx0, 80, gx1 - gx0, 250);
+
+    const peakMg = Math.round(110 + carb * 1.45 - curFib * 0.35);
+    cabX.strokeStyle = peakMg > 145 ? '#E86F38' : '#4ADE80';
+    cabX.lineWidth = 3.2;
+    cabX.beginPath();
+    for (let x = gx0; x <= gx1; x += 4) {
+      const u = (x - gx0) / (gx1 - gx0);
+      const lift = Math.sin(u * Math.PI) * (peakMg - 88) * 1.6;
+      const y = gyBase - lift;
+      x === gx0 ? cabX.moveTo(x, y) : cabX.lineTo(x, y);
+    }
+    cabX.stroke();
+
+    const kcal = Math.round(curFib * 2.2 + curPro * 8.5 + carb * 9.2);
+    cabX.fillStyle = '#F4F9F4';
+    cabX.fillText(`ĐƯỜNG CONG CGM 120 PHÚT · ĐỈNH: ${peakMg} mg/dL`, gx0, 62);
+    cabX.fillStyle = '#4ADE80';
+    cabX.fillText(`XƠ ${curFib}% · ĐẠM ${curPro}% · TINH BỘT ${carb}%`, 44, 62);
+
+    const g = GOALS[curGoal];
+    $('#vFib').textContent = `${curFib}%`;
+    $('#vPro').textContent = `${curPro}%`;
+    $('#wMeta').textContent = `Năng lượng bữa ăn: ${kcal} kcal · Đỉnh đường huyết dự kiến: ${peakMg} mg/dL`;
+    $('#wTitle').textContent = `${g.title} (${curFib}% Xơ – ${curPro}% Đạm – ${carb}% Tinh bột)`;
+    $('#wDesc').textContent = g.desc;
+    $('#wDecode').innerHTML = `<strong>Thực đơn mẫu chuẩn món Việt:</strong> ${g.menu}`;
+  }
+
+  $$('#goalTabs .a-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curGoal = +btn.dataset.g;
+      $$('#goalTabs .a-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === curGoal));
+      updatePlateWidget();
+    });
+  });
+  $('#fibR').addEventListener('input', (e) => {
+    curFib = +e.target.value;
+    if (curFib + curPro > 95) { curPro = 95 - curFib; $('#proR').value = curPro; }
+    updatePlateWidget();
+  });
+  $('#proR').addEventListener('input', (e) => {
+    curPro = +e.target.value;
+    if (curFib + curPro > 95) { curFib = 95 - curPro; $('#fibR').value = curFib; }
+    updatePlateWidget();
+  });
+  updatePlateWidget();
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#vName').value.trim();
+    $('#ctaOk').textContent = n ? `Cảm ơn ${n}! Chuyên viên Dinh dưỡng NutriLife sẽ liên hệ trong 15 phút để hướng dẫn nhịn ăn sáng trước khi đo chuyển hóa.` : 'Vui lòng nhập họ tên và số điện thoại liên hệ.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.1, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 28, duration: 0.9, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

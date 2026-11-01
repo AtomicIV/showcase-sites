@@ -1,0 +1,875 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CallSense QA AI — Hệ thống AI Kiểm soát Chất lượng 100% Cuộc gọi Tổng đài & CSKH</title>
+<meta name="description" content="CallSense QA AI tự động nhận diện giọng nói tiếng Việt đa vùng miền, phân tích cảm xúc âm thanh và chấm điểm 100% cuộc gọi tổng đài CSKH, Telesales, Thu hồi nợ.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E0A1C'/%3E%3Cpath d='M12 32 V24 M20 42 V16 M28 48 V12 M36 40 V20 M44 46 V14 M52 36 V26' stroke='%232DD4BF' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='44' cy='14' r='4' fill='%23F97316'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Bricolage+Grotesque:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0E0A1C;
+  --bg2:#191230;
+  --bg3:#080511;
+  --paper:#F5F3FF;
+  --ink:#0E0A1C;
+  --pri:#2DD4BF;
+  --sec:#F97316;
+  --warn:#FACC15;
+  --text:#F8FAFC;
+  --muted:#A79EC0;
+  --mutedD:#4C4366;
+  --line:rgba(45,212,191,.22);
+  --head:"Bricolage Grotesque", sans-serif;
+  --body:"Be Vietnam Pro", sans-serif;
+  --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:700;border-radius:6px}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.4vw,58px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--pri);background:rgba(45,212,191,.09);border:1px solid var(--line);padding:6px 12px;border-radius:99px}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sec);box-shadow:0 0 10px 2px rgba(249,115,22,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;border-radius:8px;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .35s var(--ease),background .25s}
+.btn:hover{background:#5EEAD4;border-color:#5EEAD4}
+.btn.ghost{background:rgba(25,18,48,.75);color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--sec);color:var(--sec)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(14,10,28,.92);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--head);font-size:23px;font-weight:800;color:var(--text)}
+.logo span{color:var(--pri)}
+.logo svg{width:34px;height:34px;flex-shrink:0}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 13px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:19px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:122px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 78% 24%,rgba(45,212,191,.16),transparent 70%),radial-gradient(ellipse 50% 50% at 15% 82%,rgba(249,115,22,.15),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(36px,5.1vw,68px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:52ch;color:var(--muted);font-size:17.5px;margin-top:18px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3);cursor:crosshair}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+/* Pinned 100% Call QA vs 2% Random Sampling */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:245px;margin-top:22px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--sec)}
+.pstep h3{font-size:clamp(23px,2.4vw,35px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:46ch}
+.pr-vis{background:var(--bg3);border:1px solid var(--line);border-radius:16px;padding:18px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive Call Sentiment & QA Scorecard Widget */
+.widget{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.w-shell{display:grid;grid-template-columns:1.16fr .84fr;gap:28px;align-items:start}
+.w-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.w-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3)}
+.w-controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.sl-row label b{color:var(--pri)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.w-panel{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:16px}
+.call-tabs{display:grid;gap:10px}
+.c-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+.c-btn .mono{font-size:10.5px;color:var(--sec);display:block}
+.c-btn b{font-family:var(--head);font-size:18px;display:block;margin-top:2px}
+.c-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(45,212,191,.14)}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px}
+.kpi-card span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.kpi-card strong{font-family:var(--head);font-size:22px;color:var(--pri)}
+.qa-transcript{padding:14px;background:rgba(249,115,22,.12);border-left:3px solid var(--sec);border-radius:6px;font-size:14.5px;color:var(--text)}
+
+/* Use Cases (Light Contrast) */
+.usecases{padding:116px 0;background:var(--paper);color:var(--ink)}
+.usecases .kick{color:#0F766E;background:rgba(13,148,136,.1);border-color:rgba(13,148,136,.25)}
+.usecases h2 em{color:#EA580C}
+.usecases .sec-head p{color:var(--mutedD)}
+.uc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.ucard{background:#fff;border:1px solid rgba(14,10,28,.1);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.ucard .mono{color:#0F766E;font-weight:600}
+.ucard h3{font-size:21px;color:var(--ink)}
+.ucard p{color:var(--mutedD);font-size:15px}
+
+/* ASR & PBX Integration */
+.tech{padding:116px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.tcard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.tcard .mono{color:var(--pri)}
+.tcard h3{font-size:23px}
+.tcard p{color:var(--muted);font-size:15px}
+
+/* CTA */
+.cta{padding:116px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(45,212,191,.18),transparent 70%),var(--bg);border-top:1px solid var(--line)}
+.cta-box{max-width:860px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--pri)}
+
+footer{background:var(--bg3);border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-nav a:hover{color:var(--pri)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.w-shell,.tech-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .uc-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.w-controls,.kpi-grid,.uc-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 18px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="CallSense QA AI Trang chủ">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="8" fill="#191230" stroke="#2DD4BF" stroke-width="2"/><path d="M9 18 V14 M14 23 V11 M19 26 V8 M24 22 V13 M28 24 V10" stroke="#2DD4BF" stroke-width="2.5" stroke-linecap="round"/><circle cx="24" cy="10" r="2.5" fill="#F97316"/></svg>
+      CallSense<span>.QA</span>
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Kiểm Soát 100% Cuộc Gọi</a></li>
+        <li><a href="#analyzer">Phân Tích Cảm Xúc & Chấm Điểm</a></li>
+        <li><a href="#usecases">Ứng Dụng Ngành</a></li>
+        <li><a href="#tech">Tích Hợp Tổng Đài</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#poc">Chấm Thử 500 Giờ Ghi Âm</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Chấm Điểm 100% Cuộc Gọi Bằng AI</a>
+  <a href="#analyzer">Bảng Phân Tích Cảm Xúc & Chấm Điểm Mẫu</a>
+  <a href="#usecases">Giải Pháp Cho Ngân Hàng, Bảo Hiểm & Bán Lẻ</a>
+  <a href="#tech">Nhận Diện Tiếng Việt Đa Vùng Miền</a>
+  <a href="#poc">Đăng Ký PoC Miễn Phí</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">AI Speech Analytics & 100% Contact Center QA</p>
+        <h1 id="hero-h"><span class="mask"><span>Ngừng kiểm tra 2% ngẫu nhiên,</span></span><span class="mask"><span>chấm điểm <em>100% cuộc gọi tức thì.</em></span></span></h1>
+        <p class="hero-lead hf">Đội ngũ QA thủ công chỉ nghe kịp 2% lượng ghi âm mỗi tháng và bỏ lọt 98% rủi ro khủng hoảng. CallSense QA AI tự động gỡ băng tiếng Việt 3 miền, đo lường cao độ giọng nói (Pitch/Tone), phát hiện khách hàng giận dữ và chấm điểm tư vấn viên theo kịch bản chuẩn.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#analyzer">Nghe & Chấm Thử Cuộc Gọi Mẫu</a>
+          <a class="btn ghost" href="#process">Xem Cơ Chế Phát Hiện Vi Phạm</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>100%</strong><span>Cuộc gọi được AI nghe & chấm điểm</span></div>
+          <div><strong>96.8%</strong><span>Độ chính xác ASR tiếng Việt Bắc-Trung-Nam</span></div>
+          <div><strong>-75%</strong><span>Chi phí nhân sự nghe kiểm tra thủ công</span></div>
+        </div>
+      </div>
+      <div class="hero-stage hf">
+        <canvas id="heroC" width="600" height="420" role="img" aria-label="Biểu đồ sóng âm thanh hai kênh Agent và Khách hàng kèm cảnh báo cảm xúc giận dữ"></canvas>
+        <div class="hero-meta">
+          <span>Di chuột dọc sóng âm để xem biến thiên cảm xúc (Acoustic Sentiment)</span>
+          <span style="color:var(--sec)">REAL-TIME ALERT · ANGER DETECTED</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Quy trình thẩm định âm thanh đa tầng</p>
+        <h2 id="pr-h">Từ sóng âm thô đến<br><em>cảnh báo rủi ro trong 3 giây</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Tầng 01 · Tách Kênh Âm Thanh & Nhận Diện Phương Ngữ Việt</p>
+            <h3>Hiểu chính xác giọng Nghệ An, Huế, miền Tây và thuật ngữ ngành</h3>
+            <p>Mô hình Speech-to-Text chuyên biệt cho môi trường tổng đài nhiễu ồn, tách biệt kênh nói của Tư vấn viên (Agent) và Khách hàng (Customer), nhận diện từ viết tắt tài chính – ngân hàng.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Tầng 02 · Đo Lường Cảm Xúc Âm Học & Tốc Độ Nói</p>
+            <h3>Phát hiện tiếng thở dài, cướp lời (Talk-over) và khoảng lặng chết</h3>
+            <p>Không chỉ dựa vào câu chữ, AI phân tích tần số âm thanh để nhận diện khách hàng đang bức xúc hoặc tư vấn viên nói quá nhanh, ngắt lời khách, giữ máy quá 30 giây.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Tầng 03 · Chấm Điểm Tự Động Theo Bảng Tiêu Chí (Scorecard)</p>
+            <h3>Kiểm tra lời chào chuẩn, xác minh bảo mật KYC và kỹ năng chốt đơn</h3>
+            <p>Đối chiếu toàn bộ hội thoại với 25 tiêu chí bắt buộc của doanh nghiệp: có đọc đủ điều khoản miễn trừ trách nhiệm không, có tư vấn thêm sản phẩm chéo (Upsell) không.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Tầng 04 · Cảnh Báo Nóng Lên Quản Lý Khi Có Nguy Cơ Khiếu Nại</p>
+            <h3>Bắn thông báo tức thì khi phát hiện từ khóa "bóc phốt", "kiện", "hủy thẻ"</h3>
+            <p>Trưởng ca nhận được đoạn cắt âm thanh 15 giây gay cấn nhất qua Zalo/Teams để gọi lại xoa dịu khách hàng ngay trong giờ vàng, ngăn chặn khủng hoảng truyền thông.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Trạng thái AI: <b id="pSt">01 · Gỡ băng Đa vùng miền</b></span>
+          <span>Độ chính xác: <b id="pAcc">WER 3.2%</b></span>
+          <span>Tốc độ xử lý: <b id="pSpd">x40 Thời gian thực</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="widget" id="analyzer" aria-labelledby="w-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trình phân tích cuộc gọi tương tác</p>
+          <h2 id="w-h" style="margin-top:16px">Bảng phân tích Cảm xúc &<br><em>Chấm điểm Cuộc gọi mẫu trên Canvas</em></h2>
+        </div>
+        <p class="rv">Chọn 1 trong 3 kịch bản cuộc gọi thực tế, kéo thanh thời gian cuộc gọi (0%–100%) để xem sóng âm hai kênh, đường cong cảm xúc khách hàng và bảng chấm điểm 5 tiêu chí nghiệp vụ tự động.</p>
+      </div>
+      <div class="w-shell">
+        <div class="w-stage">
+          <canvas id="qaC" width="680" height="410" role="img" aria-label="Bảng phân tích sóng âm, đường cong cảm xúc khách hàng và điểm số 5 tiêu chí QA"></canvas>
+          <div class="w-controls">
+            <div class="sl-row">
+              <label for="timeR"><span>Vị trí thanh thời gian cuộc gọi</span><b id="vTime">01:42 / 03:00</b></label>
+              <input id="timeR" type="range" min="5" max="100" step="1" value="58">
+            </div>
+            <div class="sl-row">
+              <label for="strictR"><span>Độ khắt khe bộ tiêu chí QA</span><b id="vStrict">Chuẩn Ngân hàng (85đ)</b></label>
+              <input id="strictR" type="range" min="70" max="95" step="5" value="85">
+            </div>
+          </div>
+        </div>
+        <div class="w-panel">
+          <span class="mono" style="color:var(--pri)">Chọn kịch bản ghi âm cuộc gọi mẫu</span>
+          <div class="call-tabs" id="callTabs" role="group" aria-label="Chọn cuộc gọi mẫu">
+            <button type="button" class="c-btn" data-c="0" aria-pressed="true">
+              <span class="mono">CALL #FN-402 · TELESALES THẺ TÍN DỤNG</span>
+              <b>Tư vấn Tài chính & Mở thẻ VIP</b>
+            </button>
+            <button type="button" class="c-btn" data-c="1" aria-pressed="false">
+              <span class="mono">CALL #LG-819 · KHÁCH GIẬN DỮ VÌ GIAO TRỄ</span>
+              <b>Khiếu nại Giao hàng Thương mại điện tử</b>
+            </button>
+            <button type="button" class="c-btn" data-c="2" aria-pressed="false">
+              <span class="mono">CALL #VP-105 · GIA HẠN HỢP ĐỒNG BẢO HIỂM</span>
+              <b>Chăm sóc Khách hàng VIP (Retention)</b>
+            </button>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span>Tổng điểm QA tự động</span>
+              <strong id="kScore">88 / 100</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Cảm xúc khách tại mốc này</span>
+              <strong id="kMood" style="color:var(--sec)">Hài lòng (+0.74)</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Tỷ lệ cướp lời (Talk-over)</span>
+              <strong id="kTalk">2.1% (Đạt)</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Tuân thủ kịch bản pháp lý</span>
+              <strong id="kComp">5 / 5 Tiêu chí</strong>
+            </div>
+          </div>
+          <div class="qa-transcript" id="wTrans" role="status" aria-live="polite">
+            <strong>Gỡ băng tại [01:42]:</strong> <em>"Dạ em xin phép xác nhận lại biểu phí thường niên năm đầu được miễn 100% khi anh kích hoạt thẻ trong 30 ngày ạ."</em> — <b>Đạt chuẩn Minh bạch thông tin.</b>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="usecases" id="usecases" aria-labelledby="uc-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Tối ưu hiệu suất vận hành Contact Center</p>
+          <h2 id="uc-h" style="margin-top:16px">Giải quyết bài toán của <em>4 khối ngành</em></h2>
+        </div>
+        <p class="rv">Vừa bảo vệ thương hiệu trước rủi ro tuân thủ, vừa tìm ra công thức chốt đơn của những tư vấn viên xuất sắc nhất.</p>
+      </div>
+      <div class="uc-grid">
+        <article class="ucard rv">
+          <span class="mono">01 · Ngân hàng & Bảo hiểm</span>
+          <h3>Giám sát Tuân thủ Tư vấn Tài chính</h3>
+          <p>Đảm bảo 100% cuộc gọi tư vấn bảo hiểm nhân thọ và trái phiếu đọc đầy đủ điều khoản rủi ro theo quy định của Bộ Tài chính & NHNN.</p>
+        </article>
+        <article class="ucard rv">
+          <span class="mono">02 · Thu hồi nợ Chuẩn mực</span>
+          <h3>Ngăn chặn Ngôn từ Đe dọa Vi phạm</h3>
+          <p>Phát hiện tức thì hành vi nói nặng lời, gọi sai khung giờ quy định hoặc tiết lộ thông tin khoản vay cho bên thứ ba không đúng luật.</p>
+        </article>
+        <article class="ucard rv">
+          <span class="mono">03 · Telesales EdTech & BĐS</span>
+          <h3>Nhân bản Kịch bản Chốt Sale Đỉnh Cao</h3>
+          <p>Thống kê những cách xử lý từ chối ("Giá cao quá", "Để anh hỏi vợ") mang lại tỷ lệ chuyển đổi cao nhất để đào tạo lại cho nhân viên mới.</p>
+        </article>
+        <article class="ucard rv">
+          <span class="mono">04 · E-Commerce & Logistics</span>
+          <h3>Phân tích Nguyên nhân Gốc Rễ (VOC)</h3>
+          <p>Tổng hợp tiếng nói khách hàng từ hàng trăm nghìn cuộc gọi mỗi tuần để báo cáo Ban giám đốc về lỗi sản phẩm hoặc kho vận chậm trễ.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="tech" id="tech" aria-labelledby="te-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Hạ tầng Bảo mật & Kết nối Mở</p>
+          <h2 id="te-h" style="margin-top:16px">Triển khai <em>On-Premise</em> hoặc Cloud</h2>
+        </div>
+        <p class="rv">Tích hợp trong 48 giờ với mọi hệ thống tổng đài IP PBX và CRM phổ biến tại Việt Nam.</p>
+      </div>
+      <div class="tech-grid">
+        <article class="tcard rv">
+          <span class="mono">PII Masking & Nghị định 13</span>
+          <h3>Tự động Che Giấu Dữ Liệu Nhạy Cảm</h3>
+          <p>Làm mờ âm thanh (Beep masking) và ẩn chữ số CCCD, mã OTP, số thẻ tín dụng CVV trên bản gỡ băng để tuân thủ Nghị định 13/2023/NĐ-CP.</p>
+        </article>
+        <article class="tcard rv">
+          <span class="mono">Plug-and-Play SIP & Webhook</span>
+          <h3>Kết nối Genesys, Cisco, Stringee, CareSoft</h3>
+          <p>Đồng bộ tự động file ghi âm стерео 2 kênh hoặc nhận luồng âm thanh thời gian thực qua giao thức SIPREC / WebSocket độ trễ dưới 300ms.</p>
+        </article>
+        <article class="tcard rv">
+          <span class="mono">Auto-Coaching AI Agent</span>
+          <h3>Phiếu Nhận Xét Tự Động Cho Từng Agent</h3>
+          <p>Cuối mỗi ca làm việc, từng điện thoại viên nhận được bảng tổng kết ưu/nhược điểm cá nhân kèm đoạn ghi âm mẫu cần rút kinh nghiệm.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="poc" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Kiểm chứng độ chính xác trên chính file ghi âm của bạn</p>
+        <h2 id="cta-h" style="margin-top:14px">Đăng Ký Gói PoC Chấm Điểm Miễn Phí<br><em>500 Giờ Ghi Âm Tổng Đài Thực Tế</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="cName">Họ tên & Chức vụ</label>
+            <input id="cName" type="text" placeholder="Vũ Thanh Hằng — Giám đốc Dịch vụ Khách hàng" required>
+          </div>
+          <div>
+            <label for="cEmail">Email doanh nghiệp</label>
+            <input id="cEmail" type="email" placeholder="hang.vu@finbank.vn" required>
+          </div>
+          <div>
+            <label for="cSeats">Quy mô bàn điện thoại viên (Agent Seats)</label>
+            <select id="cSeats">
+              <option value="s1">Từ 20 – 80 bàn (Trung tâm CSKH / Telesales vừa)</option>
+              <option value="s2">Từ 81 – 300 bàn (Tổng đài Đa kênh quy mô lớn)</option>
+              <option value="s3">Trên 300 bàn (Ngân hàng / Tài chính / BPO)</option>
+            </select>
+          </div>
+          <div>
+            <label for="cDeploy">Mô hình lưu trữ mong muốn</label>
+            <select id="cDeploy">
+              <option value="cloud">Private Cloud tại Data Center Việt Nam (Viettel/VNPT)</option>
+              <option value="onprem">On-Premise cài đặt trên máy chủ GPU nội bộ</option>
+              <option value="hybrid">Hybrid API kết nối CRM hiện hữu</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Gửi Yêu Cầu Chạy Thử PoC 500 Giờ</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">CallSense<span>.QA</span></a>
+      <ul class="f-nav">
+        <li><a href="#process">Kiểm Soát 100%</a></li>
+        <li><a href="#analyzer">Phân Tích Cảm Xúc</a></li>
+        <li><a href="#usecases">Ứng Dụng</a></li>
+        <li><a href="#tech">Bảo Mật & Tích Hợp</a></li>
+        <li><a href="#poc">Đăng Ký PoC</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> CallSense Speech AI Vietnam · Giải pháp Kiểm soát Chất lượng Tổng đài bằng AI</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  // 1. Hero Canvas: Dual-Channel Acoustic Waveform & Anger Spike Detector
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  function drawHero(cursorX = 360) {
+    const w = 600, h = 420;
+    heroX.fillStyle = '#080511';
+    heroX.fillRect(0, 0, w, h);
+
+    // Top Header
+    heroX.fillStyle = '#191230';
+    heroX.fillRect(20, 20, 560, 42);
+    heroX.fillStyle = '#2DD4BF';
+    heroX.font = '600 11.5px "JetBrains Mono", monospace';
+    heroX.fillText('CHANNEL A: TƯ VẤN VIÊN (#AG-108)   |   CHANNEL B: KHÁCH HÀNG (MIỀN NAM)', 34, 46);
+
+    // Draw 48 waveform bars for Agent (Teal) & Customer (Orange spike)
+    for (let i = 0; i < 48; i++) {
+      const x = 32 + i * 11.2;
+      const isAngerZone = i >= 26 && i <= 36;
+      const agH = 14 + ((i * 19) % 42);
+      const cuH = isAngerZone ? 48 + ((i * 23) % 40) : 12 + ((i * 13) % 34);
+
+      // Agent top track
+      heroX.fillStyle = x <= cursorX ? '#2DD4BF' : 'rgba(45,212,191,0.28)';
+      heroX.fillRect(x, 145 - agH / 2, 6, agH);
+
+      // Customer bottom track
+      heroX.fillStyle = isAngerZone ? '#F97316' : x <= cursorX ? '#A78BFA' : 'rgba(167,139,250,0.25)';
+      heroX.fillRect(x, 265 - cuH / 2, 6, cuH);
+    }
+
+    // Playhead line
+    const px = Math.max(32, Math.min(560, cursorX));
+    heroX.strokeStyle = '#FACC15';
+    heroX.lineWidth = 2;
+    heroX.beginPath(); heroX.moveTo(px, 75); heroX.lineTo(px, 325); heroX.stroke();
+
+    // Anger Zone Highlight Box
+    heroX.strokeStyle = '#F97316';
+    heroX.setLineDash([5, 4]);
+    heroX.strokeRect(318, 210, 128, 110);
+    heroX.setLineDash([]);
+    heroX.fillStyle = '#F97316';
+    heroX.font = '600 10.5px "JetBrains Mono", monospace';
+    heroX.fillText('TĂNG CAO ĐỘ GIỌNG (+18dB · BỨC XÚC)', 318, 202);
+
+    // Bottom Live Transcript & Sentiment Score
+    heroX.fillStyle = '#191230';
+    heroX.fillRect(20, 340, 560, 60);
+    const inAnger = px >= 310 && px <= 455;
+    heroX.fillStyle = inAnger ? '#F97316' : '#2DD4BF';
+    heroX.font = '700 12px "JetBrains Mono", monospace';
+    heroX.fillText(
+      inAnger
+        ? 'CẢNH BÁO TỪ KHÓA RỦI RO: "TÔI ĐÃ ĐỢI 3 NGÀY CHƯA NHẬN ĐƯỢC HOÀN TIỀN!"'
+        : 'ĐIỂM TUÂN THỦ KỊCH BẢN: 94/100 · GIỌNG ĐIỆU TƯ VẤN VIÊN ĐIỀU ĐỘ (135 WPM)',
+      34,
+      366
+    );
+    heroX.fillStyle = '#A79EC0';
+    heroX.font = '500 11.5px "Be Vietnam Pro", sans-serif';
+    heroX.fillText('AI tự động gắn nhãn thời điểm 01:48 và gửi thông báo cho Trưởng ca xử lý.', 34, 388);
+  }
+  drawHero(370);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    drawHero(((e.clientX - r.left) / r.width) * 600);
+  });
+
+  // 2. Pinned 4-Stage Speech QA Pipeline Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const P_INFO = [
+    ['01 · Gỡ băng Đa vùng miền', 'WER 3.2%', 'x40 Thời gian thực'],
+    ['02 · Phân tích Cảm xúc Âm học', 'Pitch & Talk-over', 'Độ trễ 250ms'],
+    ['03 · Chấm 25 Tiêu chí Scorecard', '100% Cuộc gọi', 'Tự động hóa QA'],
+    ['04 · Cảnh báo Khủng hoảng Tức thì', 'Webhook Zalo/CRM', 'Ngăn khiếu nại']
+  ];
+  function renderPin(p) {
+    const w = 660, h = 440;
+    const step = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3;
+    pinX.fillStyle = '#080511';
+    pinX.fillRect(0, 0, w, h);
+
+    for (let i = 0; i < 4; i++) {
+      const x = 48 + i * 145;
+      pinX.fillStyle = i <= step ? '#2DD4BF' : '#191230';
+      pinX.fillRect(x, 38, 125, 8);
+      pinX.fillStyle = i === step ? '#F97316' : '#A79EC0';
+      pinX.font = '600 11px "JetBrains Mono", monospace';
+      pinX.fillText(`TẦNG 0${i + 1}`, x, 28);
+    }
+
+    if (step === 0) {
+      // 2% Manual vs 100% AI grid comparison
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('SO SÁNH ĐỘ PHỦ KIỂM SOÁT CHẤT LƯỢNG: 2% THỦ CÔNG VS 100% AI', 55, 88);
+      for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 12; c++) {
+          const idx = r * 12 + c;
+          pinX.fillStyle = idx < 2 ? '#F97316' : '#2DD4BF';
+          pinX.fillRect(55 + c * 46, 110 + r * 42, 36, 30);
+        }
+      }
+      pinX.fillStyle = '#F97316';
+      pinX.fillText('■ 2% Nghe thủ công truyền thống', 55, 355);
+      pinX.fillStyle = '#2DD4BF';
+      pinX.fillText('■ 100% Được CallSense AI gỡ băng & chấm điểm', 310, 355);
+    } else if (step === 1) {
+      // Acoustic Emotion Curve
+      pinX.strokeStyle = '#2DD4BF';
+      pinX.lineWidth = 3;
+      pinX.beginPath();
+      for (let x = 60; x <= 600; x += 15) {
+        const y = 215 + Math.sin(x * 0.03) * 55 + (x > 340 && x < 450 ? -65 : 0);
+        x === 60 ? pinX.moveTo(x, y) : pinX.lineTo(x, y);
+      }
+      pinX.stroke();
+      pinX.fillStyle = '#F97316';
+      pinX.font = '600 12px "JetBrains Mono", monospace';
+      pinX.fillText('PHÁT HIỆN NGẮT LỜI KHÁCH (TALK-OVER 4.2s) & TÔNG GIỌNG CĂNG THẲNG', 60, 370);
+    } else if (step === 2) {
+      // Automated Scorecard
+      const items = [
+        ['1. Chào chuẩn thương hiệu & Xưng tên', '100% ĐẠT', '#2DD4BF'],
+        ['2. Xác minh 3 thông tin bảo mật KYC', '100% ĐẠT', '#2DD4BF'],
+        ['3. Lắng nghe & Đồng cảm vấn đề', '92% ĐẠT', '#2DD4BF'],
+        ['4. Đọc đủ điều khoản lãi suất/phí phạt', 'CẢNH BÁO THIẾU', '#F97316'],
+        ['5. Chào kết thúc & Mời đánh giá CSAT', '98% ĐẠT', '#2DD4BF']
+      ];
+      items.forEach((it, i) => {
+        const y = 102 + i * 52;
+        pinX.fillStyle = '#191230';
+        pinX.fillRect(55, y, 550, 40);
+        pinX.fillStyle = '#F8FAFC';
+        pinX.font = '500 13px "Be Vietnam Pro", sans-serif';
+        pinX.fillText(it[0], 72, y + 25);
+        pinX.fillStyle = it[2];
+        pinX.font = '700 12px "JetBrains Mono", monospace';
+        pinX.fillText(it[1], 455, y + 25);
+      });
+    } else {
+      // Real-time Supervisor Escalation Card
+      pinX.fillStyle = '#191230';
+      pinX.strokeStyle = '#F97316';
+      pinX.lineWidth = 2;
+      pinX.fillRect(60, 95, 540, 245);
+      pinX.strokeRect(60, 95, 540, 245);
+      pinX.fillStyle = '#F97316';
+      pinX.font = '700 16px "JetBrains Mono", monospace';
+      pinX.fillText('CẢNH BÁO KHẨN CẤP CHO SUPERVISOR · RỦI RO RỜI BỎ DỊCH VỤ', 86, 142);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Từ khóa phát hiện: "Hủy hợp đồng", "Khiếu nại lên hội sở", "Quá bức xúc"', 86, 188);
+      pinX.fillText('• Hành động tự động: Đã tạo Ticket ưu tiên cao #VIP-902 trên Salesforce CRM', 86, 224);
+      pinX.fillStyle = '#2DD4BF';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('THỜI GIAN PHẢN ỨNG TRUNG BÌNH GIẢM TỪ 3 NGÀY XUỐNG 5 PHÚT', 86, 282);
+    }
+
+    $('#pSt').textContent = P_INFO[step][0];
+    $('#pAcc').textContent = P_INFO[step][1];
+    $('#pSpd').textContent = P_INFO[step][2];
+  }
+  renderPin(0.2);
+
+  // 3. Signature Interactive Widget: Call Sentiment & 5-Criteria QA Scorecard
+  const CALLS = [
+    {
+      name: 'Tư vấn Tài chính & Mở thẻ VIP',
+      durationSec: 180,
+      baseScores: [95, 92, 88, 94, 90],
+      talkOver: '1.8% (Rất tốt)',
+      curve: [0.2, 0.35, 0.5, 0.45, 0.72, 0.85],
+      segments: [
+        'Mở đầu chuẩn mực: Chào anh Minh, em gọi từ khối Khách hàng Ưu tiên...',
+        'Xác thực KYC & giới thiệu hạn mức tín dụng 200 triệu đồng không tài sản đảm bảo.',
+        'Giải thích rõ biểu phí thường niên và ưu đãi hoàn tiền 10% tại sân bay.',
+        'Khách hàng đồng ý mở thẻ và xác nhận địa chỉ nhận thẻ tại Quận 1.'
+      ]
+    },
+    {
+      name: 'Khiếu nại Giao hàng Thương mại điện tử',
+      durationSec: 210,
+      baseScores: [90, 68, 82, 86, 84],
+      talkOver: '6.4% (Cần lưu ý)',
+      curve: [-0.65, -0.78, -0.45, -0.1, 0.35, 0.55],
+      segments: [
+        'Khách hàng bức xúc lớn tiếng vì đơn hàng Hỏa tốc bị trễ 4 tiếng.',
+        'AI cảnh báo: Tư vấn viên hơi ngắt lời khách ở giây 0:52 nhưng đã kịp xin lỗi.',
+        'Tư vấn viên tra cứu lộ trình bưu cục, cấp ngay Voucher đền bù 100.000đ.',
+        'Cảm xúc khách hàng chuyển từ Giận dữ (-0.78) sang Hài lòng (+0.55) cuối cuộc gọi.'
+      ]
+    },
+    {
+      name: 'Chăm sóc Khách hàng VIP (Retention)',
+      durationSec: 160,
+      baseScores: [98, 96, 94, 92, 95],
+      talkOver: '0.9% (Xuất sắc)',
+      curve: [0.3, 0.48, 0.62, 0.75, 0.88, 0.92],
+      segments: [
+        'Chào hỏi cá nhân hóa theo lịch sử 5 năm gắn bó của khách hàng hạng Diamond.',
+        'Lắng nghe góp ý về thủ tục bồi thường viện phí trực tuyến trên ứng dụng.',
+        'Tặng gói khám sức khỏe tổng quát gia đình và hướng dẫn quyền lợi mới.',
+        'Khách hàng đánh giá 5 sao ngay trên tổng đài và tái tục hợp đồng năm tiếp theo.'
+      ]
+    }
+  ];
+  const CRIT_NAMES = ['Chào & KYC', 'Thái độ đồng cảm', 'Kiến thức SP', 'Tuân thủ Pháp lý', 'Chốt & CSAT'];
+
+  const qaC = $('#qaC'), qaX = qaC.getContext('2d');
+  let curCall = 0, timePct = 58, strictTarget = 85;
+
+  function renderQA() {
+    const w = 680, h = 410;
+    const c = CALLS[curCall];
+    qaX.fillStyle = '#080511';
+    qaX.fillRect(0, 0, w, h);
+
+    // Format time
+    const curSec = Math.round((timePct / 100) * c.durationSec);
+    const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    $('#vTime').textContent = `${fmt(curSec)} / ${fmt(c.durationSec)}`;
+    $('#vStrict').textContent = `Chuẩn đạt (${strictTarget}đ)`;
+
+    // Sentiment value at current timeline position
+    const segIdx = Math.min(c.curve.length - 1, Math.floor((timePct / 100) * c.curve.length));
+    const moodVal = c.curve[segIdx];
+    const moodText = moodVal < -0.2 ? `Giận dữ (${moodVal})` : moodVal < 0.25 ? `Trung tính (${moodVal})` : `Hài lòng (+${moodVal})`;
+
+    const avgScore = Math.round(c.baseScores.reduce((a, b) => a + b, 0) / 5);
+    const passCount = c.baseScores.filter((s) => s >= strictTarget).length;
+
+    $('#kScore').textContent = `${avgScore} / 100`;
+    $('#kMood').textContent = moodText;
+    $('#kMood').style.color = moodVal < -0.2 ? '#F97316' : '#2DD4BF';
+    $('#kTalk').textContent = c.talkOver;
+    $('#kComp').textContent = `${passCount} / 5 Tiêu chí`;
+
+    const transIdx = Math.min(3, Math.floor((timePct / 101) * 4));
+    $('#wTrans').innerHTML = `<strong>Gỡ băng tại [${fmt(curSec)}]:</strong> <em>"${c.segments[transIdx]}"</em>`;
+
+    // Top section of canvas: Waveform & Sentiment Curve
+    qaX.fillStyle = '#F8FAFC';
+    qaX.font = '600 11.5px "JetBrains Mono", monospace';
+    qaX.fillText(`BIỂU ĐỒ SÓNG ÂM & ĐƯỜNG CONG CẢM XÚC — ${c.name.toUpperCase()}`, 32, 30);
+
+    // Waveform bars
+    const waveW = 616;
+    for (let i = 0; i < 56; i++) {
+      const x = 32 + i * 11;
+      const pct = (i / 56) * 100;
+      const bh = 16 + ((i * 29 + curCall * 17) % 52);
+      const isNegative = curCall === 1 && i < 22;
+      qaX.fillStyle = pct <= timePct ? (isNegative ? '#F97316' : '#2DD4BF') : 'rgba(167,158,192,0.22)';
+      qaX.fillRect(x, 110 - bh / 2, 6, bh);
+    }
+
+    // Sentiment Smooth Curve overlay
+    qaX.strokeStyle = '#FACC15';
+    qaX.lineWidth = 2.5;
+    qaX.beginPath();
+    c.curve.forEach((v, i) => {
+      const x = 32 + (i / (c.curve.length - 1)) * waveW;
+      const y = 110 - v * 48;
+      i === 0 ? qaX.moveTo(x, y) : qaX.lineTo(x, y);
+    });
+    qaX.stroke();
+
+    // Playhead Scrub Line
+    const px = 32 + (timePct / 100) * waveW;
+    qaX.strokeStyle = '#F8FAFC';
+    qaX.lineWidth = 2;
+    qaX.beginPath(); qaX.moveTo(px, 48); qaX.lineTo(px, 172); qaX.stroke();
+
+    // Bottom section of canvas: 5 Criteria Bar Chart vs Threshold
+    qaX.fillStyle = '#A79EC0';
+    qaX.font = '600 11px "JetBrains Mono", monospace';
+    qaX.fillText(`BẢNG CHẤM ĐIỂM 5 TIÊU CHÍ QA TỰ ĐỘNG (NGƯỠNG CHUẨN: ${strictTarget} ĐIỂM)`, 32, 208);
+
+    c.baseScores.forEach((sc, i) => {
+      const y = 230 + i * 33;
+      qaX.fillStyle = '#F8FAFC';
+      qaX.font = '500 11.5px "Be Vietnam Pro", sans-serif';
+      qaX.fillText(CRIT_NAMES[i], 32, y + 14);
+
+      qaX.fillStyle = '#191230';
+      qaX.fillRect(180, y, 410, 18);
+
+      const pass = sc >= strictTarget;
+      qaX.fillStyle = pass ? '#2DD4BF' : '#F97316';
+      qaX.fillRect(180, y, (sc / 100) * 410, 18);
+
+      qaX.fillStyle = pass ? '#2DD4BF' : '#F97316';
+      qaX.font = '700 11px "JetBrains Mono", monospace';
+      qaX.fillText(`${sc}đ`, 602, y + 14);
+    });
+
+    // Strict threshold vertical line on bars
+    const thX = 180 + (strictTarget / 100) * 410;
+    qaX.strokeStyle = '#FACC15';
+    qaX.setLineDash([4, 4]);
+    qaX.beginPath(); qaX.moveTo(thX, 224); qaX.lineTo(thX, 390); qaX.stroke();
+    qaX.setLineDash([]);
+  }
+
+  function selectCall(idx) {
+    curCall = idx;
+    $$('#callTabs .c-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === idx));
+    renderQA();
+  }
+  selectCall(0);
+
+  $('#callTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.c-btn');
+    if (b) selectCall(+b.dataset.c);
+  });
+  $('#timeR').addEventListener('input', (e) => {
+    timePct = +e.target.value;
+    renderQA();
+  });
+  $('#strictR').addEventListener('input', (e) => {
+    strictTarget = +e.target.value;
+    renderQA();
+  });
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#cName').value.trim();
+    $('#ctaOk').textContent = n
+      ? `Cảm ơn ${n}! Đội ngũ Kỹ sư AI của CallSense sẽ liên hệ để kích hoạt gói PoC chấm điểm 500 giờ ghi âm miễn phí cho tổng đài của bạn.`
+      : 'Vui lòng nhập họ tên và email doanh nghiệp để đăng ký gói PoC.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.32 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.42, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

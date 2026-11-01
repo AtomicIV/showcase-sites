@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stride — Chinh phục cung đường đêm</title>
+<meta name="description" content="Stride là ứng dụng câu lạc bộ chạy bộ dành cho những người xỏ giày sau giờ làm: nhóm dẫn tốc giữ chuẩn nhịp, cung đường đủ sáng và đồng đội luôn chờ nhau ở góc phố. Tính tốc độ từng km và tham gia buổi chạy tối nay.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23121314'/%3E%3Cpath d='M14 46L30 18h10L24 46zM32 46l16-28h6L38 46z' fill='%23D4FF3A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --asph:#121314; --asph2:#1A1B1D; --asph3:#232528; --line:rgba(237,237,230,.13); --chalk:#EDEDE6; --grey:#A3A6A0; --lime:#D4FF3A; --lime-d:#AACC1F; --sodium:#FF8A3D;
+  --sans:"Archivo", system-ui, sans-serif; --mono:"JetBrains Mono", ui-monospace, monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--asph);color:var(--chalk);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--lime);color:var(--asph);padding:10px 16px;z-index:400;font-weight:700}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1280px,100% - 64px);margin-inline:auto}
+h1,h2,h3{margin:0;font-weight:900;font-style:italic;font-stretch:125%;text-transform:uppercase;line-height:1.08;letter-spacing:-.02em}
+h2{font-size:clamp(44px,5.6vw,92px)}
+h2 em,h3 em{font-style:italic;color:var(--lime)}
+p{margin:0}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--lime)}
+.kick::before{content:"";width:18px;height:3px;background:var(--lime);transform:skewX(-20deg)}
+.asph{position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:screen;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 3 -1.9'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23a)'/%3E%3C/svg%3E")}
+.mask{display:block;overflow:hidden;padding:.18em .2em .18em .04em;margin:-.18em -.2em -.18em -.04em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 26px;border:0;background:var(--lime);color:#0E0F10;font-weight:800;font-stretch:112%;font-size:16px;text-transform:uppercase;letter-spacing:.02em;text-decoration:none;cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);transform:translate(var(--mx),var(--my));transition:transform .4s var(--ease),background .25s,color .25s}
+.btn:hover{background:var(--chalk)}
+.btn.ghost{background:transparent;color:var(--chalk);box-shadow:inset 0 0 0 2px var(--chalk);clip-path:none;transform:translate(var(--mx),var(--my)) skewX(-10deg)}
+.btn.ghost>span{display:inline-block;transform:skewX(10deg)}
+.btn.ghost:hover{background:var(--chalk);color:#0E0F10}
+.btn.sm{min-height:44px;padding:0 20px;font-size:14px}
+.btn svg{width:18px;height:18px}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:90;transition:background .3s,box-shadow .3s}
+.nav.solid{background:rgba(18,19,20,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:74px;gap:20px}
+.logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-weight:900;font-style:italic;font-stretch:125%;font-size:26px;text-transform:uppercase;letter-spacing:-.02em;min-height:44px}
+.logo svg{width:34px;height:22px}
+.nav ul{display:flex;gap:2px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;text-decoration:none;font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.04em;transition:color .2s}
+.nav ul a:hover{color:var(--lime)}
+.menu-btn{display:none;width:48px;height:48px;border:2px solid var(--chalk);background:transparent;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--chalk);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;inset:0;z-index:89;background:var(--asph);padding:100px 20px 30px;display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateX(30px);transition:opacity .3s,visibility .3s,transform .4s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:64px;text-decoration:none;font-weight:900;font-style:italic;font-stretch:125%;text-transform:uppercase;font-size:34px;border-bottom:1px solid var(--line)}
+.mmenu a:hover{color:var(--lime)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:120px 0 0;overflow:hidden;background:radial-gradient(60% 50% at 88% 0%,rgba(255,138,61,.22),transparent 70%),radial-gradient(80% 60% at 10% 100%,rgba(212,255,58,.08),transparent 70%),var(--asph);display:flex;flex-direction:column}
+.hero .wrap{position:relative;z-index:3;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.7fr);gap:40px;align-items:end;flex:1}
+.h1{position:relative;font-size:clamp(58px,10vw,164px)}
+.h1 .ln{position:relative;display:block;white-space:nowrap;padding:.06em 0;margin:-.06em 0}
+.h1 .ln .t{position:relative;display:inline-block}
+.h1 .ln .gh{position:absolute;left:0;top:0;color:var(--lime);filter:blur(10px);opacity:.38;transform:translateX(-5%) scaleX(1.06);transform-origin:right center;pointer-events:none;white-space:nowrap}
+.h1 .ln:nth-child(3) .t{color:var(--lime)}
+.h1 .ln:nth-child(2){padding-left:.5em}
+.hero-lead{font-size:19px;color:#C9CBC4;max-width:44ch;margin:28px 0 30px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px}
+.next{position:relative;border:2px solid var(--chalk);padding:20px 20px 18px;background:rgba(18,19,20,.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);margin-bottom:24px}
+.next .lab{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--lime);text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.next .lab i{width:8px;height:8px;border-radius:50%;background:var(--lime);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.next .when{font-weight:900;font-style:italic;font-stretch:125%;font-size:34px;line-height:1;text-transform:uppercase;margin:12px 0 8px}
+.next .what{color:#C9CBC4;font-size:15px}
+.next .go{display:flex;gap:16px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;color:var(--grey)}
+.next .go b{color:var(--chalk);font-weight:600}
+.lanes{position:relative;z-index:2;height:34vh;min-height:220px;margin-top:20px;perspective:520px;perspective-origin:50% -30%;overflow:hidden}
+.plane{position:absolute;left:-30%;right:-30%;top:0;height:220%;transform:rotateX(64deg);transform-origin:50% 0;background:#B4442C}
+.plane::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(12.5% - 3px),rgba(237,237,230,.85) calc(12.5% - 3px) 12.5%)}
+.plane::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='1'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23r)'/%3E%3C/svg%3E");mix-blend-mode:multiply}
+.plane .fin{position:absolute;left:0;right:0;top:21%;height:22px;background:repeating-linear-gradient(90deg,var(--chalk) 0 22px,#0E0F10 22px 44px);opacity:.9}
+.plane .nums{position:absolute;left:0;right:0;top:24.5%;display:grid;grid-template-columns:repeat(8,1fr);font-weight:900;font-style:italic;font-stretch:125%;font-size:64px;color:rgba(237,237,230,.9);text-align:center}
+.lanes .fade{position:absolute;inset:0;background:linear-gradient(180deg,var(--asph) 0%,rgba(18,19,20,0) 45%,rgba(18,19,20,.2) 100%);pointer-events:none}
+.speed{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.speed i{position:absolute;height:2px;width:22vw;background:linear-gradient(90deg,transparent,var(--lime));opacity:.0;animation:zip 3.2s linear infinite}
+@keyframes zip{0%{transform:translateX(-30vw);opacity:0}10%{opacity:.7}60%{opacity:.5}100%{transform:translateX(130vw);opacity:0}}
+
+.ticker{position:relative;z-index:4;background:var(--lime);color:#0E0F10;overflow:hidden;border-top:2px solid #0E0F10;transform:skewY(-1.2deg);margin:-14px 0 0}
+.ticker .track{display:flex;width:max-content;animation:tick 26s linear infinite}
+.ticker span{display:inline-flex;align-items:center;gap:26px;padding:14px 26px 14px 0;font-weight:900;font-style:italic;font-stretch:125%;font-size:26px;text-transform:uppercase;white-space:nowrap}
+.ticker span::after{content:"";width:26px;height:6px;background:#0E0F10;transform:skewX(-30deg)}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* pinned couch to 10k */
+.c10{position:relative;background:var(--asph)}
+.c10-pin{position:relative;height:100vh;height:100svh;overflow:hidden}
+.floor{position:absolute;left:0;right:0;bottom:0;height:62%;perspective:420px;perspective-origin:50% -10%;overflow:hidden}
+.floor .plane2{position:absolute;left:-60%;right:-60%;top:0;height:260%;transform:rotateX(68deg);transform-origin:50% 0;background:#1C1D1F}
+.floor .plane2::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent calc(50% - 4.55%),rgba(212,255,58,.07) calc(50% - 4.55%) calc(50% + 4.55%),transparent calc(50% + 4.55%)),repeating-linear-gradient(90deg,transparent 0 calc(9.09% - 3px),rgba(237,237,230,.55) calc(9.09% - 3px) 9.09%);background-position:4.545% 0,4.545% 0}
+.floor .dash{position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(212,255,58,.75) 0 8px,transparent 8px 260px);background-position:0 var(--run,0px)}
+.floor .fade{position:absolute;inset:0;background:linear-gradient(180deg,var(--asph) 0%,rgba(18,19,20,.5) 30%,rgba(18,19,20,0) 70%)}
+.c10-in{position:relative;z-index:2;height:100%;width:min(1280px,100% - 64px);margin-inline:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-content:start;padding-top:120px}
+.c10 h2{margin-top:16px}
+.km{justify-self:end;text-align:right}
+.km b{display:block;font-weight:900;font-style:italic;font-stretch:125%;font-size:clamp(90px,13vw,200px);line-height:.8;color:var(--lime);font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.km span{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--grey)}
+.prog{grid-column:1/-1;height:6px;background:rgba(237,237,230,.12);position:relative;margin-top:6px}
+.prog i{position:absolute;inset:0;background:var(--lime);transform-origin:left;transform:scaleX(0)}
+.prog em{position:absolute;top:14px;white-space:nowrap;font-style:normal;font-family:var(--mono);font-size:12px;color:var(--grey);transform:translateX(-50%)}
+.weeks{position:relative;grid-column:1/-1;height:210px;margin-top:30px;max-width:620px}
+.wk{position:absolute;inset:0;background:rgba(18,19,20,.82);border-left:6px solid var(--lime);padding:20px 24px}
+.wk .n{font-family:var(--mono);font-size:13px;color:var(--lime);letter-spacing:.1em}
+.wk h3{font-size:clamp(32px,3.2vw,48px);margin:8px 0 10px}
+.wk p{color:#C9CBC4;max-width:48ch}
+
+/* pace calculator */
+.pace{padding:140px 0 130px;background:linear-gradient(180deg,var(--asph),var(--asph2))}
+.pace-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:50px}
+.pace-head p{color:#C9CBC4;max-width:40ch}
+.calc{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:24px}
+.panel{border:2px solid var(--line);background:var(--asph);padding:26px}
+.fld{margin-bottom:22px}
+.fld-l{display:block;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--grey);margin-bottom:10px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{min-height:46px;padding:0 16px;border:2px solid var(--line);background:transparent;cursor:pointer;font-weight:800;font-stretch:110%;text-transform:uppercase;font-size:15px;transition:border-color .2s,background .2s,color .2s}
+.seg button:hover{border-color:var(--chalk)}
+.seg button[aria-pressed="true"]{background:var(--lime);border-color:var(--lime);color:#0E0F10}
+.inrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.num{display:flex;align-items:center;border:2px solid var(--line);background:var(--asph2);min-height:52px}
+.num input{width:74px;min-height:48px;border:0;background:transparent;padding:0 0 0 14px;font-family:var(--mono);font-size:22px;font-weight:600;color:var(--chalk);-moz-appearance:textfield}
+.num input::-webkit-outer-spin-button,.num input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.num input:focus{outline:none}
+.num:focus-within{border-color:var(--lime)}
+.num span{padding:0 12px 0 4px;font-family:var(--mono);font-size:13px;color:var(--grey)}
+.num.wide input{width:96px}
+.result{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin:6px 0 22px;background:var(--line)}
+.result div{background:var(--asph);padding:14px 16px}
+.result b{display:block;font-weight:900;font-style:italic;font-stretch:125%;font-size:44px;line-height:1;color:var(--lime);font-variant-numeric:tabular-nums}
+.result span{font-family:var(--mono);font-size:12px;color:var(--grey);letter-spacing:.08em;text-transform:uppercase}
+.err{min-height:24px;color:var(--sodium);font-size:15px}
+.splits{max-height:300px;overflow:auto;border:2px solid var(--line);overscroll-behavior:contain}
+.splits table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:14px}
+.splits th{position:sticky;top:0;background:var(--asph3);text-align:left;font-weight:600;color:var(--grey);padding:10px 12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.splits td{padding:8px 12px;border-top:1px solid var(--line)}
+.splits td.bar{width:34%}
+.splits td.bar i{display:block;height:8px;background:var(--lime);transform:skewX(-20deg)}
+.splits tr.half td{border-top:2px solid var(--lime)}
+.map{position:relative;border:2px solid var(--line);background:#151617;display:flex;flex-direction:column}
+.map svg{width:100%;height:auto;flex:1}
+.map .route-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:16px 16px 0}
+.map-hud{display:grid;grid-template-columns:repeat(3,1fr);border-top:2px solid var(--line)}
+.map-hud div{padding:12px 16px;border-right:1px solid var(--line)}
+.map-hud div:last-child{border-right:0}
+.map-hud b{display:block;font-family:var(--mono);font-size:22px;font-weight:600;color:var(--chalk);font-variant-numeric:tabular-nums}
+.map-hud span{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--grey)}
+.runbar{display:flex;align-items:center;gap:14px;padding:12px 16px;border-top:2px solid var(--line)}
+.runbtn{flex:none;min-width:110px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:2px solid var(--lime);background:transparent;color:var(--lime);cursor:pointer;font-weight:800;text-transform:uppercase;font-size:14px}
+.runbtn:hover,.runbtn[aria-pressed="true"]{background:var(--lime);color:#0E0F10}
+.runbtn svg{width:16px;height:16px}
+.runbtn .ip{display:none}
+.runbtn[aria-pressed="true"] .ip{display:block}
+.runbtn[aria-pressed="true"] .ir{display:none}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;background:transparent;cursor:pointer;--p:0%}
+input[type=range]::-webkit-slider-runnable-track{height:6px;background:linear-gradient(90deg,var(--lime) var(--p),rgba(237,237,230,.15) var(--p))}
+input[type=range]::-moz-range-track{height:6px;background:rgba(237,237,230,.15)}
+input[type=range]::-moz-range-progress{height:6px;background:var(--lime)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:24px;margin-top:-9px;background:var(--chalk);clip-path:polygon(25% 0,100% 0,75% 100%,0 100%)}
+input[type=range]::-moz-range-thumb{width:20px;height:24px;border:0;border-radius:0;background:var(--chalk)}
+.map text{font-family:var(--mono);font-size:11px;letter-spacing:.1em;fill:#777B74}
+.map .kmt{fill:#0E0F10;font-size:10px;font-weight:600;letter-spacing:0}
+
+/* runs */
+.runs{padding:130px 0 120px;background:var(--asph2)}
+.runs-head{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:46px}
+.runs-head p{color:#C9CBC4;max-width:42ch;justify-self:end}
+.board{border-top:2px solid var(--chalk)}
+.run{display:grid;grid-template-columns:150px minmax(0,1.4fr) minmax(0,1fr) 170px;gap:24px;align-items:center;padding:24px 0;border-bottom:1px solid var(--line);transition:background .3s}
+.run:hover{background:rgba(212,255,58,.04)}
+.run .d{font-weight:900;font-style:italic;font-stretch:125%;text-transform:uppercase;line-height:.9}
+.run .d b{display:block;font-size:52px;color:var(--lime)}
+.run .d span{font-size:18px}
+.run h3{font-size:32px}
+.run .meta{font-family:var(--mono);font-size:13px;color:var(--grey);margin-top:8px}
+.groups{display:flex;flex-wrap:wrap;gap:6px}
+.groups span{padding:4px 10px;border:1px solid var(--line);font-family:var(--mono);font-size:13px;color:#C9CBC4}
+.join{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.join button{min-height:46px;min-width:150px;padding:0 16px;border:2px solid var(--chalk);background:transparent;cursor:pointer;font-weight:800;text-transform:uppercase;font-size:14px;transition:background .2s,color .2s,border-color .2s}
+.join button:hover{border-color:var(--lime);color:var(--lime)}
+.join button[aria-pressed="true"]{background:var(--lime);border-color:var(--lime);color:#0E0F10}
+.join small{font-family:var(--mono);font-size:12px;color:var(--grey)}
+
+/* app */
+.app{padding:140px 0;position:relative;overflow:hidden}
+.app-grid{display:grid;grid-template-columns:1fr 360px 1fr;gap:50px;align-items:center;margin-top:60px}
+.feat{display:grid;gap:50px}
+.feat article{position:relative;padding-left:22px;border-left:3px solid var(--lime)}
+.feat article h3{font-size:28px;margin-bottom:10px}
+.feat article p{color:#C9CBC4}
+.feat.r article{text-align:right;padding-left:0;padding-right:22px;border-left:0;border-right:3px solid var(--lime)}
+.phone{position:relative;width:100%;aspect-ratio:9/18.5;border-radius:44px;background:#0B0C0D;border:3px solid #33363A;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 10px #1E2023;padding:14px;overflow:hidden}
+.screen{position:relative;height:100%;border-radius:32px;background:#0E0F10;overflow:hidden;display:flex;flex-direction:column;padding:42px 20px 20px}
+.screen .notch{position:absolute;top:10px;left:50%;width:90px;height:24px;border-radius:14px;background:#000;transform:translateX(-50%)}
+.screen .s1{font-family:var(--mono);font-size:12px;color:var(--grey);letter-spacing:.1em;text-transform:uppercase}
+.screen .big{font-weight:900;font-style:italic;font-stretch:125%;font-size:84px;line-height:.9;color:var(--lime);letter-spacing:-.04em;margin:8px 0 2px}
+.screen .unit{font-family:var(--mono);font-size:13px;color:var(--grey)}
+.screen .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.screen .row div{background:#1A1B1D;padding:10px 12px}
+.screen .row b{display:block;font-family:var(--mono);font-size:20px;color:var(--chalk)}
+.screen .row span{font-family:var(--mono);font-size:11px;color:var(--grey)}
+.screen .mini{flex:none;aspect-ratio:200/140;background:#151617;position:relative;overflow:hidden}
+.screen .laps{flex:1;margin-top:12px;display:grid;align-content:start;gap:6px;font-family:var(--mono);font-size:13px;color:var(--grey)}
+.screen .laps p{display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid #222}
+.screen .laps b{color:var(--chalk);font-weight:600}
+.screen .mini svg{position:absolute;inset:0;width:100%;height:100%}
+.screen .crew{margin-top:12px;font-size:14px;color:#C9CBC4;display:flex;align-items:center;gap:8px}
+.screen .crew i{width:10px;height:10px;background:var(--lime);border-radius:50%;flex:none}
+
+/* pricing bibs */
+.price{padding:120px 0 120px;background:var(--asph2)}
+.price-head{text-align:center;margin-bottom:60px}
+.price-head p{color:#C9CBC4;margin:18px auto 0;max-width:46ch}
+.bibs{display:grid;grid-template-columns:repeat(2,minmax(0,460px));justify-content:center;gap:40px}
+.bib{position:relative;background:var(--chalk);color:#0E0F10;padding:28px 30px 30px;transform:rotate(-1.5deg);box-shadow:0 30px 60px rgba(0,0,0,.45);transition:transform .5s var(--ease)}
+.bib:nth-child(2){transform:rotate(1.5deg);background:var(--lime)}
+.bib:hover{transform:rotate(0) translateY(-6px)}
+.bib .pin{position:absolute;width:44px;height:16px}
+.bib .pin.a{top:12px;left:12px}.bib .pin.b{top:12px;right:12px;transform:scaleX(-1)}
+.bib .pin.c{bottom:12px;left:12px;transform:scaleY(-1)}.bib .pin.d{bottom:12px;right:12px;transform:scale(-1,-1)}
+.bib .hole{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--asph2)}
+.bib .top{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:0 40px}
+.bib .no{font-weight:900;font-style:italic;font-stretch:125%;font-size:110px;line-height:.85;text-align:center;letter-spacing:-.04em;margin:18px 0 6px}
+.bib h3{text-align:center;font-size:30px}
+.bib .amt{text-align:center;font-weight:800;font-size:20px;margin:8px 0 18px}
+.bib ul{list-style:none;margin:0 0 22px;padding:16px 0 0;border-top:2px dashed rgba(14,15,16,.35);display:grid;gap:8px;font-size:16px}
+.bib li{display:flex;gap:10px}
+.bib li::before{content:"";flex:none;width:12px;height:4px;margin-top:11px;background:#0E0F10;transform:skewX(-20deg)}
+.bib .btn{width:100%;background:#0E0F10;color:var(--chalk)}
+.bib .btn:hover{background:#2A2C30}
+
+/* faq */
+.faq{padding:120px 0 130px}
+.faq .wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px;align-items:start}
+.qa{border-bottom:1px solid var(--line)}
+.qa:first-child{border-top:2px solid var(--chalk)}
+.qa button{width:100%;min-height:72px;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:16px 0;background:none;border:0;cursor:pointer;text-align:left;font-weight:800;font-stretch:112%;font-size:22px;text-transform:uppercase;line-height:1.15}
+.qa button i{position:relative;flex:none;width:22px;height:22px}
+.qa button i::before,.qa button i::after{content:"";position:absolute;left:0;top:9px;width:22px;height:4px;background:var(--lime);transition:transform .4s var(--ease)}
+.qa button i::after{transform:rotate(90deg)}
+.qa button[aria-expanded="true"] i::after{transform:rotate(0)}
+.qa .ans{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
+.qa .ans>div{overflow:hidden}
+.qa .ans p{color:#C9CBC4;padding:0 40px 22px 0;max-width:60ch}
+.qa.open .ans{grid-template-rows:1fr}
+
+footer{padding:70px 0 40px;border-top:2px solid var(--lime);background:var(--asph)}
+footer .top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:40px}
+footer .big{font-weight:900;font-style:italic;font-stretch:125%;text-transform:uppercase;font-size:40px;line-height:.9;margin-top:14px}
+footer .big em{font-style:italic;color:var(--lime)}
+footer h4{margin:0 0 12px;font-family:var(--mono);font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--lime)}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:40px;text-decoration:none;color:#C9CBC4}
+footer li a:hover{color:var(--lime)}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:24px;border-top:1px solid var(--line);font-size:14px;color:var(--grey)}
+
+.rm .c10-pin{height:auto}
+.rm .c10-in{padding:110px 0 260px}
+.rm .weeks{height:auto;display:grid;gap:14px}
+.rm .wk{position:static}
+.rm .floor{height:240px}
+
+@media (prefers-reduced-motion:reduce){.ticker .track,.speed i,.next .lab i{animation:none}.speed{display:none}}
+@media (max-width:1060px){
+  .nav ul,.nav .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero .wrap{grid-template-columns:1fr;align-items:start}
+  .side{max-width:460px}
+  .calc{grid-template-columns:1fr}
+  .runs-head{grid-template-columns:1fr}
+  .runs-head p{justify-self:start}
+  .run{grid-template-columns:110px minmax(0,1fr);gap:14px 20px}
+  .run .groups,.run .join{grid-column:2}
+  .run .join{align-items:flex-start;flex-direction:row;align-items:center;gap:14px}
+  .app-grid{grid-template-columns:1fr;justify-items:center;gap:40px}
+  .phone{max-width:320px}
+  .feat,.feat.r{width:100%;max-width:560px;gap:30px}
+  .feat.r article{text-align:left;padding-right:0;padding-left:22px;border-right:0;border-left:3px solid var(--lime)}
+  .bibs{grid-template-columns:minmax(0,460px)}
+  .faq .wrap{grid-template-columns:1fr;gap:30px}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .wrap,.c10-in{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav .wrap{height:66px}
+  .hero{padding-top:96px;min-height:0}
+  .h1{font-size:clamp(42px,12vw,58px)}
+  .hero-lead{font-size:17px;margin:20px 0 24px}
+  .hero-cta .btn{flex:1 1 auto}
+  .next{margin:30px 0 0}
+  .next .when{font-size:28px}
+  .lanes{height:180px;min-height:0}
+  .plane .nums{font-size:34px}
+  .ticker span{font-size:20px}
+  .c10-in{grid-template-columns:1fr;padding-top:86px;gap:10px}
+  .km{justify-self:start;text-align:left}
+  .km b{font-size:84px}
+  .c10 h2{font-size:42px}
+  .weeks{height:230px;margin-top:20px}
+  .wk{padding:16px 18px}
+  .wk h3{font-size:28px}
+  .wk p{font-size:15px;line-height:1.5}
+  .floor{height:44%}
+  .pace{padding:100px 0 90px}
+  .pace-head{flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:30px}
+  .panel{padding:18px}
+  .num input{width:52px;padding-left:12px;font-size:20px}
+  .num.wide input{width:80px}
+  .seg button{padding:0 12px;font-size:14px}
+  .result b{font-size:34px}
+  .map-hud b{font-size:17px}
+  .map-hud div{padding:10px}
+  .runs{padding:80px 0 90px}
+  .run{grid-template-columns:1fr;gap:10px}
+  .run .groups,.run .join{grid-column:1}
+  .run .d{display:flex;align-items:baseline;gap:12px}
+  .run .d b{display:inline;font-size:40px}
+  .run h3{font-size:26px}
+  .app{padding:100px 0}
+  .app-grid{margin-top:40px}
+  .phone{max-width:290px}
+  .screen .big{font-size:70px}
+  .price{padding:100px 0}
+  .bib{padding:26px 18px 26px}
+  .bib .top{padding:0 36px;font-size:11px}
+  .bib .no{font-size:84px}
+  .qa button{font-size:18px}
+  .qa .ans p{padding-right:0}
+  .faq{padding:100px 0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Stride, trang chủ"><svg viewBox="0 0 34 22" aria-hidden="true"><path d="M2 21L12 1h8L10 21zM16 21L26 1h6L22 21z" fill="#D4FF3A"/></svg>Stride</a>
+    <nav aria-label="Menu chính"><ul><li><a href="#plan">Từ 0 đến 10K</a></li><li><a href="#pace">Tính Pace</a></li><li><a href="#runs">Lịch chạy</a></li><li><a href="#pricing">Thẻ CLB</a></li><li><a href="#faq">Hỏi đáp</a></li></ul></nav>
+    <a class="btn sm mag" href="#pricing">Tham gia miễn phí</a>
+    <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#plan">Từ 0 đến 10K</a><a href="#pace">Công cụ tính Pace</a><a href="#runs">Lịch chạy tuần này</a><a href="#pricing">Thẻ CLB</a><a href="#faq">Hỏi đáp</a>
+</div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="asph" aria-hidden="true"></div>
+  <div class="speed" aria-hidden="true"><i style="top:22%;animation-delay:0s"></i><i style="top:38%;animation-delay:1.1s;width:14vw"></i><i style="top:57%;animation-delay:2.2s"></i><i style="top:30%;animation-delay:.6s;width:9vw"></i></div>
+  <div class="wrap">
+    <div>
+      <p class="kick hf">Câu lạc bộ chạy bộ Stride · Sau giờ tan tầm</p>
+      <h1 class="h1" id="hero-h" style="margin-top:22px" aria-label="Chạy xuyên đêm."><span class="ln" aria-hidden="true"><span class="gh">Chạy</span><span class="t">Chạy</span></span><span class="ln" aria-hidden="true"><span class="gh">xuyên</span><span class="t">xuyên</span></span><span class="ln" aria-hidden="true"><span class="gh">đêm.</span><span class="t">đêm.</span></span></h1>
+    </div>
+    <div class="side">
+      <div class="next hf" id="nextRun"></div>
+      <p class="hero-lead hf" style="margin-top:0">Stride là ứng dụng dành cho những câu lạc bộ xỏ giày sau giờ làm: các nhóm dẫn tốc giữ chuẩn nhịp chạy, cung đường luôn sáng đèn, và đồng đội sẵn sàng chờ nhau ở mỗi góc phố.</p>
+      <div class="hero-cta hf"><a class="btn mag" href="#runs">Tìm buổi chạy tối nay</a><a class="btn ghost mag" href="#pace"><span>Tính tốc độ từng km</span></a></div>
+    </div>
+  </div>
+  <div class="lanes" aria-hidden="true"><div class="plane" id="heroPlane"><div class="fin"></div><div class="nums"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div></div><div class="fade"></div></div>
+</section>
+<div class="ticker" aria-hidden="true"><div class="track" id="ticker"></div></div>
+
+<section class="c10" id="plan" aria-labelledby="c10-h">
+  <div class="c10-pin" id="c10Pin">
+    <div class="floor" aria-hidden="true"><div class="plane2"><div class="dash" id="dash"></div></div><div class="fade"></div></div>
+    <div class="c10-in">
+      <div><p class="kick">Giáo án 10 tuần</p><h2 id="c10-h">Từ ghế sofa đến 10K,<br><em>dưới ánh đèn đêm</em></h2></div>
+      <div class="km" aria-hidden="true"><b id="kmNum">0.0</b><span>km bạn chinh phục qua từng tuần</span></div>
+      <div class="prog" aria-hidden="true"><i id="progBar"></i><em style="left:0%">tuần 1</em><em style="left:33%">tuần 4</em><em style="left:66%">tuần 7</em><em style="left:100%;transform:translateX(-100%)">tuần 10</em></div>
+      <div class="weeks">
+        <article class="wk"><p class="n">Tuần 01</p><h3>Chạy, đi bộ, <em>lặp lại</em></h3><p>Chín mươi giây chạy bộ, hai phút đi bộ, lặp lại tám lần. Nhóm tốc độ của bạn là nhóm thư thả nhất mang tên Đom Đóm. Ai cũng bắt đầu từ đó.</p></article>
+        <article class="wk"><p class="n">Tuần 04</p><h3>5 km không <em>dừng bước</em></h3><p>5K liên tục đầu tiên của bạn trên vòng hồ bờ sông, theo sát người dẫn tốc mặc áo phản quang phát sáng. Chẳng ai nhìn đồng hồ. Mọi người đều vỗ tay ở vạch đích.</p></article>
+        <article class="wk"><p class="n">Tuần 07</p><h3>Thứ Ba <em>tăng tốc</em></h3><p>Hai mươi phút ở nhịp chạy thử thách vừa sức. Ứng dụng khẽ rung một nhịp khi bạn lệch tốc độ để bạn không phải liên tục cúi nhìn cổ tay.</p></article>
+        <article class="wk"><p class="n">Tuần 10</p><h3>Mười cây số <em>dưới ánh đèn</em></h3><p>Mười ki-lô-mét, bốn cây cầu, một vạch đích do chính câu lạc bộ kẻ bằng phấn trên đường. Rồi cả đội đi ăn phở đêm. Luôn có một bát phở nóng đang chờ.</p></article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pace" id="pace" aria-labelledby="pace-h">
+  <div class="wrap">
+    <div class="pace-head"><div><p class="kick">Công cụ tính Pace</p><h2 id="pace-h" class="split" style="margin-top:16px">Chọn mục tiêu.<br><em>Nhận bảng chia km.</em></h2></div><p class="reveal">Chọn một cự ly và thời gian hoàn thành mong muốn. Stride sẽ tính tốc độ chuẩn cho bạn, chia chi tiết từng ki-lô-mét và mô phỏng trực tiếp trên cung đường của câu lạc bộ để bạn hình dung nhịp chạy.</p></div>
+    <div class="calc">
+      <div class="panel reveal">
+        <div class="fld"><span class="fld-l" id="distL">Cự ly</span><div class="seg" role="group" aria-labelledby="distL" id="distSeg"></div>
+          <div class="inrow" style="margin-top:10px"><label class="num wide" for="distIn"><span class="sr">Cự ly tùy chỉnh theo ki-lô-mét</span><input id="distIn" type="number" min="1" max="100" step="0.1" inputmode="decimal" value="10"><span>km</span></label></div>
+        </div>
+        <div class="fld"><span class="fld-l" id="timeL">Thời gian mục tiêu</span><div class="inrow" role="group" aria-labelledby="timeL">
+          <label class="num" for="tH"><span class="sr">Giờ</span><input id="tH" type="number" min="0" max="12" step="1" inputmode="numeric" value="0"><span>g</span></label>
+          <label class="num" for="tM"><span class="sr">Phút</span><input id="tM" type="number" min="0" max="59" step="1" inputmode="numeric" value="55"><span>p</span></label>
+          <label class="num" for="tS"><span class="sr">Giây</span><input id="tS" type="number" min="0" max="59" step="1" inputmode="numeric" value="0"><span>s</span></label>
+        </div></div>
+        <div class="fld"><span class="fld-l" id="stratL">Chiến thuật phân phối sức</span><div class="seg" role="group" aria-labelledby="stratL" id="stratSeg"><button type="button" aria-pressed="true" data-s="0">Đều nhịp (Even)</button><button type="button" aria-pressed="false" data-s="0.06">Tăng tốc nửa sau (Negative)</button></div></div>
+        <div class="result" aria-live="polite"><div><b id="pKm">5:30</b><span>mỗi ki-lô-mét</span></div><div><b id="pMi">8:51</b><span>mỗi dặm (mile)</span></div></div>
+        <p class="err" id="err" role="status"></p>
+        <div class="splits" tabindex="0" aria-label="Bảng thời gian từng ki-lô-mét"><table><thead><tr><th scope="col">Km</th><th scope="col">Từng km</th><th scope="col">Tổng giờ</th><th scope="col"><span class="sr">Tốc độ tương đối</span></th></tr></thead><tbody id="splitBody"></tbody></table></div>
+      </div>
+      <div class="map reveal">
+        <div class="route-tabs seg" role="group" aria-label="Cung đường câu lạc bộ" id="routeSeg"></div>
+        <svg id="mapSvg" viewBox="40 70 550 330" role="img" aria-label="Bản đồ cung đường câu lạc bộ đã chọn kèm các cột mốc km và chấm người chạy"></svg>
+        <div class="map-hud" aria-hidden="true"><div><b id="hKm">0.00</b><span>km đã chạy</span></div><div><b id="hT">0:00:00</b><span>thời gian</span></div><div><b id="hP">5:30</b><span>pace /km</span></div></div>
+        <div class="runbar">
+          <button class="runbtn" id="runBtn" type="button" aria-pressed="false" aria-label="Chạy mô phỏng"><svg class="ir" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2v12l10-6z" fill="currentColor"/></svg><svg class="ip" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h4v12H3zM9 2h4v12H9z" fill="currentColor"/></svg>Chạy thử</button>
+          <label class="sr" for="runPos">Vị trí trên cung đường</label><input type="range" id="runPos" min="0" max="1000" step="1" value="0">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="runs" id="runs" aria-labelledby="runs-h">
+  <div class="wrap">
+    <div class="runs-head"><div><p class="kick">Lịch tuần này</p><h2 id="runs-h" class="split" style="margin-top:16px">Bốn buổi chạy,<br><em>cung đường sáng đèn</em></h2></div><p class="reveal">Mọi buổi chạy của câu lạc bộ đều có ít nhất ba nhóm tốc độ và một người khóa đuôi ở cuối đoàn. Hãy bấm điểm danh để người dẫn tốc biết cần chờ bao nhiêu thành viên.</p></div>
+    <div class="board" id="board"></div>
+    <p class="sr" id="runLive" aria-live="polite"></p>
+  </div>
+</section>
+
+<section class="app" id="app" aria-labelledby="app-h">
+  <div class="wrap">
+    <p class="kick">Ứng dụng di động</p>
+    <h2 id="app-h" class="split" style="margin-top:16px">Đồng đội của bạn,<br><em>ngay trong túi áo</em></h2>
+    <div class="app-grid">
+      <div class="feat">
+        <article class="reveal"><h3>Nhóm dẫn tốc <em>chuẩn từng nhịp</em></h3><p>Đồng hồ của người dẫn tốc phát tín hiệu trực tiếp tới điện thoại bạn. Khi bạn chạy lệch nhịp, Stride sẽ rung nhẹ một lần. Không tiếng đọc ồn ào bên tai.</p></article>
+        <article class="reveal"><h3>Chỉ chọn đường <em>đủ ánh sáng</em></h3><p>Mọi cung đường đều được khảo sát thực tế sau giờ lên đèn về hệ thống chiếu sáng, lối sang đường và mặt vỉa hè. Thành viên có thể báo đèn đường hỏng chỉ với hai lần chạm.</p></article>
+      </div>
+      <div class="phone reveal" aria-hidden="true">
+        <div class="screen"><span class="notch"></span>
+          <p class="s1">Vòng bờ sông · trực tiếp</p>
+          <p class="big" id="phPace">5:21</p><p class="unit">phút / km · Nhóm B (5:20)</p>
+          <div class="row"><div><b>4.62</b><span>km</span></div><div><b>24:41</b><span>thời gian</span></div></div>
+          <div class="mini"><svg viewBox="0 0 200 140" preserveAspectRatio="xMidYMid meet"><path d="M20 0L50 140M80 0L110 140M140 0L170 140M0 30L200 20M0 62L200 52M0 130L200 120" stroke="#222427" stroke-width="2"/><path d="M-10 100C40 90 70 120 120 110S190 80 220 90" stroke="#1B2A33" stroke-width="18" fill="none"/><path id="phRoute" d="M100 70C120 69 143 75 166 72C186 70 189 95 173 102C150 111 120 106 97 108C70 111 40 108 31 95C24 85 40 75 60 75C77 75 87 71 100 70Z" fill="none" stroke="#D4FF3A" stroke-width="3" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/><circle id="phDot" cx="100" cy="70" r="5" fill="#D4FF3A" stroke="#0E0F10" stroke-width="2"/></svg></div>
+          <div class="laps"><p><span>km 4</span><b>5:19</b></p><p><span>km 3</span><b>5:22</b></p><p><span>km 2</span><b>5:20</b></p><p><span>km 1</span><b>5:26</b></p></div>
+          <p class="crew"><i></i>14 người phía trước, 6 người phía sau, Jo khóa đuôi</p>
+        </div>
+      </div>
+      <div class="feat r">
+        <article class="reveal"><h3>Về nhà <em>an toàn</em></h3><p>Sau mỗi buổi chạy đêm, Stride hỏi bạn một lần xem đã về tới nhà chưa. Nếu sau một tiếng chưa phản hồi, ứng dụng sẽ gửi lời nhắc tới người bạn đồng hành bạn đã chọn.</p></article>
+        <article class="reveal"><h3>Giáo án <em>linh hoạt</em></h3><p>Bận việc tối Thứ Ba? Giáo án sẽ tự động sắp xếp lại lịch trong tuần thay vì khiến bạn thấy áp lực. Cuộc sống luôn có việc đột xuất, và những cơn mưa cũng vậy.</p></article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="price" id="pricing" aria-labelledby="price-h">
+  <div class="wrap">
+    <div class="price-head"><p class="kick">Gài số BIB lên áo</p><h2 id="price-h" class="split" style="margin-top:16px">Hai tấm BIB,<br><em>không điều khoản ẩn</em></h2><p class="reveal">Các buổi chạy câu lạc bộ luôn hoàn toàn miễn phí. Thẻ Club Pass dùng để trang bị áo phản quang cho người dẫn tốc, khảo sát cung đường và những bữa ăn khuya gắn kết.</p></div>
+    <div class="bibs" id="bibs"></div>
+  </div>
+</section>
+
+<section class="faq" id="faq" aria-labelledby="faq-h">
+  <div class="wrap">
+    <div><p class="kick">Câu hỏi thường gặp</p><h2 id="faq-h" class="split" style="margin-top:16px">Trước vòng chạy<br><em>đầu tiên của bạn</em></h2></div>
+    <div id="qas"></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo" href="#top"><svg viewBox="0 0 34 22" aria-hidden="true"><path d="M2 21L12 1h8L10 21zM16 21L26 1h6L22 21z" fill="#D4FF3A"/></svg>Stride</a><p class="big">Hẹn gặp bạn tại<br><em>bến thuyền</em></p></div>
+      <div><h4>Chạy bộ</h4><ul><li><a href="#runs">Lịch tuần này</a></li><li><a href="#plan">Từ 0 đến 10K</a></li><li><a href="#pace">Công cụ tính Pace</a></li></ul></div>
+      <div><h4>Câu lạc bộ</h4><ul><li><a href="#pricing">Thẻ Club Pass</a></li><li><a href="#app">Ứng dụng</a></li><li><a href="#faq">An toàn</a></li></ul></div>
+      <div><h4>Stride</h4><ul><li><a href="#top">Giới thiệu</a></li><li><a href="#faq">Mở câu lạc bộ mới</a></li><li><a href="#top">Báo chí</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Stride Run Co.</span><span>Thiết kế concept — thương hiệu giả định.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+$('#yr').textContent = new Date().getFullYear()
+
+/* ================= dates relative to today ================= */
+const DAY = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'], MON = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12']
+function nextDow(dow, after = new Date()) { const d = new Date(after); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + 1); while (d.getDay() !== dow) d.setDate(d.getDate() + 1); return d }
+const RUNS = [
+  { dow: 2, at: '19:00', n: 'Thứ Ba Tăng Tốc', km: 6.4, g: ['5:00', '5:45', '6:30'], meet: 'Bậc Thềm Bến Cảng', going: 38 },
+  { dow: 4, at: '19:30', n: 'Vòng Hồ Bờ Sông', km: 8.2, g: ['5:15', '6:00', '6:45'], meet: 'Nhà Thuyền', going: 46 },
+  { dow: 6, at: '08:00', n: 'Chạy Dài Qua Cầu', km: 16, g: ['5:30', '6:15'], meet: 'Tháp Đồng Hồ Chợ Cũ', going: 27 },
+  { dow: 0, at: '09:30', n: 'Đom Đóm 5K', km: 5, g: ['chạy-đi bộ', '7:30'], meet: 'Cổng Công Viên Hollis', going: 52 },
+].map((r) => ({ ...r, date: nextDow(r.dow) })).sort((a, b) => a.date - b.date)
+const fmtD = (d) => `${DAY[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`
+{
+  const r = RUNS.find((x) => x.dow === 4)
+  $('#nextRun').innerHTML = `<p class="lab"><i aria-hidden="true"></i>Đêm chạy tiếp theo</p><p class="when">${fmtD(r.date)} · ${r.at}</p><p class="what">${r.n}, ${r.km} km xuất phát từ ${r.meet}. Ba nhóm tốc độ, một người khóa đuôi.</p><p class="go"><span><b>${r.going}</b> tham gia</span><span><b>${r.g.length}</b> nhóm</span><span><b>${r.km}</b> km</span></p>`
+}
+$('#ticker').innerHTML = [0, 1].map(() => ['5K', '10K', 'Bán Marathon', 'Full Marathon', 'Vòng chạy đêm', 'Thứ Ba Tăng Tốc', 'Chào đón người mới'].map((t) => `<span>${t}</span>`).join('')).join('')
+
+/* ================= run board ================= */
+$('#board').innerHTML = RUNS.map((r, i) => `<article class="run reveal"><p class="d"><b>${DAY[r.date.getDay()]}</b><span>${r.date.getDate()} ${MON[r.date.getMonth()]} · ${r.at}</span></p><div><h3>${r.n}</h3><p class="meta">${r.km} km · tập trung tại ${r.meet}</p></div><div class="groups" aria-label="Nhóm tốc độ">${r.g.map((g) => `<span>${g}${g.includes(':') ? ' /km' : ''}</span>`).join('')}</div><div class="join"><button type="button" aria-pressed="false" data-i="${i}">Tham gia</button><small><span id="go${i}">${r.going}</span> người</small></div></article>`).join('')
+$('#board').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  const i = +b.dataset.i, on = b.getAttribute('aria-pressed') !== 'true'
+  b.setAttribute('aria-pressed', on); b.textContent = on ? 'Đã đăng ký' : 'Tham gia'
+  $(`#go${i}`).textContent = RUNS[i].going + (on ? 1 : 0)
+  $('#runLive').textContent = on ? `Bạn đã đăng ký buổi chạy ${RUNS[i].n} vào ${fmtD(RUNS[i].date)}. Người dẫn tốc sẽ chờ bạn.` : `Đã hủy đăng ký ${RUNS[i].n}.`
+  if (anim && on) G.fromTo(b, { scale: .9 }, { scale: 1, duration: .5, ease: 'back.out(3)' })
+})
+
+/* ================= pace calculator ================= */
+const DISTS = [{ n: '5K', km: 5, t: [0, 27, 30] }, { n: '10K', km: 10, t: [0, 55, 0] }, { n: 'Bán Marathon', km: 21.0975, t: [2, 0, 0] }, { n: 'Marathon', km: 42.195, t: [4, 15, 0] }]
+$('#distSeg').innerHTML = DISTS.map((d, i) => `<button type="button" aria-pressed="${i === 1}" data-i="${i}">${d.n}</button>`).join('')
+const ROUTES = [
+  { n: 'Vòng bờ sông', d: 'M300 250C360 246 430 266 500 258C560 251 572 330 522 352C452 382 362 366 292 372C212 380 122 370 94 332C72 298 120 262 180 262C230 262 262 252 300 250Z' },
+  { n: 'Cung số 8', d: 'M300 250C380 196 470 176 522 216C562 250 534 330 472 360C402 394 332 340 302 300C272 258 202 206 142 226C82 246 70 330 120 366C180 402 262 360 300 250Z' },
+  { n: 'Phố cổ', d: 'M300 250L300 192C300 142 262 108 222 98C162 82 110 120 118 170C126 216 190 222 240 192C268 176 300 186 302 212L300 250' },
+]
+$('#routeSeg').innerHTML = ROUTES.map((r, i) => `<button type="button" aria-pressed="${i === 0}" data-i="${i}">${r.n}</button>`).join('')
+const streets = []
+for (let x = -100; x < 700; x += 54) streets.push(`<path d="M${x} -20L${x + 90} 470" stroke="#202224" stroke-width="2"/>`)
+for (let y = 10; y < 460; y += 46) streets.push(`<path d="M-20 ${y}L620 ${y - 40}" stroke="#202224" stroke-width="2"/>`)
+const svgMap = $('#mapSvg')
+svgMap.innerHTML = `<rect width="600" height="440" fill="#151617"/>${streets.join('')}
+  <path d="M-20 214C80 190 140 236 230 214S420 150 620 176" stroke="#2C2F33" stroke-width="7" fill="none"/>
+  <path d="M-20 318C110 286 200 356 320 336S520 268 620 300" stroke="#18303A" stroke-width="40" fill="none"/>
+  <text x="430" y="296">BẾN SÔNG</text><text x="60" y="100">PHỐ CỔ</text><text x="480" y="160">ĐỒI CHỢ</text>
+  <rect x="390" y="86" width="150" height="46" rx="20" fill="#18241A"/><text x="412" y="114">CV HOLLIS</text>
+  <path id="routeGhost" fill="none" stroke="rgba(212,255,58,.22)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>
+  <path id="routeInk" fill="none" stroke="#D4FF3A" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+  <g id="kmMarks"></g>
+  <g transform="translate(300 250)"><rect x="-16" y="-7" width="32" height="14" fill="#EDEDE6"/><path d="M-16 -7h8v7h-8zM0 -7h8v7H0zM-8 0h8v7h-8zM8 0h8v7H8z" fill="#0E0F10"/></g>
+  <circle id="runGlow" r="16" fill="rgba(212,255,58,.25)"/><circle id="runDot" r="7" fill="#D4FF3A" stroke="#0E0F10" stroke-width="2"/>`
+const ink = $('#routeInk'), ghost = $('#routeGhost'), dot = $('#runDot'), glow = $('#runGlow')
+let D = 10, T = 3300, strat = 0, route = 0, cum = [0], len = 0, runP = 0, playing = false
+const pad = (n) => String(n).padStart(2, '0')
+const hms = (s) => { s = Math.round(s); return `${Math.floor(s / 3600)}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}` }
+const ms = (s) => { s = Math.round(s); return s >= 3600 ? hms(s) : `${Math.floor(s / 60)}:${pad(s % 60)}` }
+function readInputs() {
+  const h = +$('#tH').value || 0, m = +$('#tM').value || 0, s = +$('#tS').value || 0
+  const d = parseFloat($('#distIn').value)
+  if (!(d > 0) || d > 100) return 'Hãy chọn cự ly từ 1 đến 100 km.'
+  const t = h * 3600 + m * 60 + s
+  if (t <= 0) return 'Hãy nhập thời gian mục tiêu ước tính.'
+  if (t / d < 150) return 'Tốc độ này nhanh hơn cả kỷ lục thế giới. Hãy thử mục tiêu chậm hơn.'
+  if (t / d > 1200) return 'Tốc độ này chậm hơn đi bộ nhanh. Hãy thử mục tiêu nhanh hơn.'
+  D = d; T = t; return ''
+}
+function compute() {
+  const e = readInputs(); $('#err').textContent = e
+  if (e) return
+  const n = Math.ceil(D - 1e-9), segs = []
+  let wsum = 0
+  for (let i = 0; i < n; i++) { const l = Math.min(1, D - i), mid = i + l / 2, w = 1 + strat * 2 * (.5 - mid / D); segs.push({ l, w }); wsum += w * l }
+  cum = [0]; let acc = 0
+  segs.forEach((sg) => { sg.t = T * sg.w * sg.l / wsum; acc += sg.t; cum.push(acc) })
+  const pace = T / D
+  $('#pKm').textContent = ms(pace); $('#pMi').textContent = ms(pace * 1.609344)
+  const pmin = Math.min(...segs.map((s) => s.t / s.l)), pmax = Math.max(...segs.map((s) => s.t / s.l))
+  const half = Math.floor(n / 2)
+  $('#splitBody').innerHTML = segs.map((sg, i) => {
+    const p = sg.t / sg.l, rel = pmax - pmin < .5 ? .7 : .45 + .55 * (pmax - p) / (pmax - pmin)
+    return `<tr${i === half && n > 3 ? ' class="half"' : ''}><td>${i + 1 === n && sg.l < 1 ? (D).toFixed(2) : i + 1}</td><td>${ms(sg.t)}</td><td>${hms(cum[i + 1])}</td><td class="bar"><i style="width:${(rel * 100).toFixed(0)}%"></i></td></tr>`
+  }).join('')
+  drawRoute(false)
+}
+function drawRoute(resetRun = true) {
+  const d = ROUTES[route].d
+  ink.setAttribute('d', d); ghost.setAttribute('d', d)
+  len = ink.getTotalLength()
+  const step = D > 21.5 ? 5 : D > 12 ? 2 : 1, marks = []
+  for (let k = step; k < D - .15; k += step) { const p = ink.getPointAtLength(len * k / D); marks.push(`<g transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><circle r="10" fill="#EDEDE6"/><text class="kmt" text-anchor="middle" y="3.5">${k}</text></g>`) }
+  $('#kmMarks').innerHTML = marks.join('')
+  if (resetRun) setRun(0)
+  else setRun(runP)
+}
+function distAt(p) {
+  const t = p * T
+  let i = 0; while (i < cum.length - 2 && cum[i + 1] < t) i++
+  const segT = cum[i + 1] - cum[i], f = segT ? (t - cum[i]) / segT : 0, l = Math.min(1, D - i)
+  return { d: Math.min(D, i + f * l), pace: segT / l }
+}
+function setRun(p) {
+  runP = clamp(p)
+  const { d, pace } = distAt(runP)
+  const pt = ink.getPointAtLength(len * d / D)
+  dot.setAttribute('cx', pt.x.toFixed(1)); dot.setAttribute('cy', pt.y.toFixed(1)); glow.setAttribute('cx', pt.x.toFixed(1)); glow.setAttribute('cy', pt.y.toFixed(1))
+  ink.setAttribute('stroke-dashoffset', (1 - d / D).toFixed(4))
+  $('#hKm').textContent = d.toFixed(2); $('#hT').textContent = hms(runP * T); $('#hP').textContent = ms(pace)
+  const r = $('#runPos'); r.value = Math.round(runP * 1000); r.style.setProperty('--p', `${(runP * 100).toFixed(1)}%`)
+}
+let raf = 0, last = 0
+const SIM = 12000
+function tick(now) {
+  if (!playing) return
+  const dt = now - (last || now); last = now
+  setRun(runP + dt / SIM)
+  if (runP >= 1) { stopRun(); return }
+  raf = requestAnimationFrame(tick)
+}
+function startRun() {
+  if (reduce) { setRun(1); return }
+  if (runP >= 1) setRun(0)
+  playing = true; last = 0; $('#runBtn').setAttribute('aria-pressed', 'true'); $('#runBtn').setAttribute('aria-label', 'Tạm dừng mô phỏng')
+  raf = requestAnimationFrame(tick)
+}
+function stopRun() { playing = false; cancelAnimationFrame(raf); $('#runBtn').setAttribute('aria-pressed', 'false'); $('#runBtn').setAttribute('aria-label', 'Chạy mô phỏng') }
+$('#runBtn').addEventListener('click', () => (playing ? stopRun() : startRun()))
+$('#runPos').addEventListener('input', (e) => { stopRun(); setRun(+e.target.value / 1000) })
+$('#distSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  const d = DISTS[+b.dataset.i]
+  $$('#distSeg button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  $('#distIn').value = +d.km.toFixed(2); [$('#tH').value, $('#tM').value, $('#tS').value] = d.t
+  compute(); stopRun(); setRun(0); if (anim) startRun()
+})
+$('#stratSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  $$('#stratSeg button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  strat = +b.dataset.s; compute()
+})
+$('#routeSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  $$('#routeSeg button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  route = +b.dataset.i; stopRun(); drawRoute(true); if (anim) startRun()
+})
+const onField = () => { const d = parseFloat($('#distIn').value); $$('#distSeg button').forEach((x) => x.setAttribute('aria-pressed', Math.abs(DISTS[+x.dataset.i].km - d) < .01)); compute() }
+;['#distIn', '#tH', '#tM', '#tS'].forEach((s) => $(s).addEventListener('input', onField))
+compute(); setRun(reduce ? 1 : 0)
+
+/* ================= bibs + faq ================= */
+const PIN = '<svg class="pin {c}" viewBox="0 0 44 16" aria-hidden="true"><path d="M4 8h30a5 5 0 0 0 0-6H8" fill="none" stroke="#6B6E68" stroke-width="2" stroke-linecap="round"/><circle cx="5" cy="8" r="4" fill="#8A8D86"/></svg>'
+const BIBS = [
+  { no: '0001', h: 'Vận Động Viên', amt: 'Miễn phí trọn đời', li: ['Tham gia mọi buổi chạy CLB ở mọi thành phố', 'Công cụ tính pace và bản đồ cung đường', 'Giáo án Từ 0 đến 10K', 'Tính năng báo về nhà an toàn'], cta: 'Nhận số BIB ngay' },
+  { no: '0214', h: 'Thẻ Club Pass', amt: '$6 mỗi tháng · miễn phí tháng đầu', li: ['Nhóm dẫn tốc trực tiếp kèm báo rung giữ nhịp', 'Bản đồ đồng đội: ai đang ở phía trước và phía sau', 'Trọn bộ giáo án luyện tập, từ 5K đến Marathon', 'Ưu đãi phí đăng ký tại các giải chạy đối tác'], cta: 'Dùng thử tháng đầu miễn phí' },
+]
+$('#bibs').innerHTML = BIBS.map((b) => `<article class="bib reveal">${['a', 'b', 'c', 'd'].map((c) => PIN.replace('{c}', c)).join('')}<p class="top"><span>Stride · chuỗi chạy đêm</span><span>${new Date().getFullYear()}</span></p><p class="no" aria-hidden="true">${b.no}</p><h3>${b.h}</h3><p class="amt">${b.amt}</p><ul>${b.li.map((l) => `<li>${l}</li>`).join('')}</ul><a class="btn" href="#runs">${b.cta}</a></article>`).join('')
+const FAQ = [
+  ['Tôi chạy chậm lắm. Có sao không?', 'Hoàn toàn không sao. Mọi buổi chạy đều có nhóm chạy-đi bộ đan xen và một người khóa đuôi có nhiệm vụ duy nhất là về đích cuối cùng. Hầu hết thành viên đều bắt đầu từ nhóm Đom Đóm.'],
+  ['Tôi có cần đồng hồ chạy bộ chuyên dụng không?', 'Không cần. Điện thoại của bạn đã đảm nhiệm việc dẫn tốc và báo rung khi bạn lệch nhịp. Nếu bạn có đồng hồ thể thao, Stride vẫn đồng bộ tốt với các dòng phổ biến.'],
+  ['Chạy bộ vào ban đêm có an toàn không?', 'Các cung đường đều được kiểm tra thực tế khi lên đèn, mỗi buổi chạy luôn có người khóa đuôi, và tính năng báo về nhà an toàn sẽ nhắn cho bạn đồng hành nếu chưa thấy bạn phản hồi. Mặc trang phục sáng màu cũng giúp ích rất nhiều.'],
+  ['Làm sao để một câu lạc bộ tham gia Stride?', 'Bất kỳ nhóm nào từ năm người trở lên chạy cùng nhau hàng tuần đều có thể đăng ký. Chúng tôi hỗ trợ bạn lên cung đường sáng đèn và đào tạo miễn phí hai người dẫn tốc.'],
+  ['Tôi có thể hủy thẻ Club Pass bất cứ lúc nào không?', 'Có, chỉ với hai lần chạm và có hiệu lực vào cuối tháng. Giáo án cùng lịch sử chạy của bạn vẫn được giữ nguyên trên tài khoản miễn phí.'],
+]
+$('#qas').innerHTML = FAQ.map(([q, a], i) => `<div class="qa"><button type="button" aria-expanded="false" aria-controls="ans${i}" id="q${i}">${q}<i aria-hidden="true"></i></button><div class="ans" id="ans${i}" role="region" aria-labelledby="q${i}"><div><p>${a}</p></div></div></div>`).join('')
+$('#qas').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  const qa = b.parentElement, open = !qa.classList.contains('open')
+  qa.classList.toggle('open', open); b.setAttribute('aria-expanded', open)
+  setTimeout(() => window.ScrollTrigger && ScrollTrigger.refresh(), 500)
+})
+
+/* ================= nav, menu, lenis ================= */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  if (window.lenis) open ? window.lenis.stop() : window.lenis.start()
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .1 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t, { offset: 0 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .25}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .35}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+const kmNum = $('#kmNum'), progBar = $('#progBar'), dash = $('#dash')
+function c10At(p) { kmNum.textContent = (p * 10).toFixed(1); progBar.style.transform = `scaleX(${p.toFixed(4)})`; dash.style.setProperty('--run', `${(p * 2600).toFixed(1)}px`) }
+if (!anim) { c10At(1); return }
+
+/* ================= motion ================= */
+// hero: each line arrives at speed, motion blur trailing, then the blur settles behind it as a ghost
+const lines = $$('.h1 .ln')
+G.set(lines.map((l) => $('.t', l)), { xPercent: -140, skewX: -24, filter: 'blur(18px)' })
+G.set(lines.map((l) => $('.gh', l)), { xPercent: -160, opacity: 0, scaleX: 1.6 })
+G.set('.hf', { autoAlpha: 0, x: 40 })
+G.set('#heroPlane', { yPercent: 30 })
+const tl = G.timeline({ delay: .15 })
+lines.forEach((l, i) => {
+  tl.to($('.t', l), { xPercent: 0, skewX: 0, filter: 'blur(0px)', duration: .75, ease: 'expo.out' }, i * .12)
+    .to($('.gh', l), { xPercent: 0, opacity: .38, scaleX: 1.06, duration: 1.1, ease: 'expo.out' }, i * .12 + .05)
+})
+tl.to('#heroPlane', { yPercent: 0, duration: 1.2, ease: 'expo.out' }, 0)
+  .to('.hf', { autoAlpha: 1, x: 0, duration: .7, stagger: .08, ease: 'expo.out' }, .45)
+  .set(lines.map((l) => $('.t', l)), { clearProps: 'filter' })
+G.to('.h1 .gh', { xPercent: -4, scaleX: 1.2, opacity: .55, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+G.to('.h1', { xPercent: 6, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const ls = h.querySelectorAll('.mask>span'); G.set(ls, { xPercent: -30, skewX: -14, autoAlpha: 0 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(ls, { xPercent: 0, skewX: 0, autoAlpha: 1, duration: .8, stagger: .1, ease: 'expo.out' }) })
+})
+G.set('.reveal', { autoAlpha: 0, y: 34 })
+ScrollTrigger.batch('.reveal', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: .8, stagger: .08, ease: 'expo.out', clearProps: 'transform' }) })
+
+// pinned couch to 10k: lanes and km scrub, week copy swaps on the clock
+const wks = $$('.wk')
+let cur = -1, tw = []
+function setWk(i) {
+  if (i === cur) return
+  const prev = cur; cur = i
+  tw.forEach((t) => t.kill()); tw = []
+  wks.forEach((w, k) => { if (k !== i && k !== prev) G.set(w, { autoAlpha: 0 }) })
+  if (prev >= 0) tw.push(G.to(wks[prev], { autoAlpha: 0, x: 60, skewX: -8, duration: .25, ease: 'power2.in' }))
+  tw.push(G.fromTo(wks[i], { autoAlpha: 0, x: -80, skewX: -10 }, { autoAlpha: 1, x: 0, skewX: 0, duration: .55, delay: prev >= 0 ? .15 : 0, ease: 'expo.out' }))
+}
+G.set(wks, { autoAlpha: 0 })
+c10At(0); setWk(0)
+ScrollTrigger.create({
+  trigger: '.c10', start: 'top top', end: '+=260%', pin: '#c10Pin', scrub: true,
+  onUpdate(self) { const p = self.progress; c10At(p); setWk(p < .25 ? 0 : p < .5 ? 1 : p < .75 ? 2 : 3) },
+})
+// the map runs itself once when you reach it
+ScrollTrigger.create({ trigger: '.map', start: 'top 70%', once: true, onEnter: () => { if (!playing && runP === 0) startRun() } })
+// phone: live route crawl
+{ const pr = $('#phRoute'), pd = $('#phDot'), pl = pr.getTotalLength(), o = { p: 0 }
+  G.to(o, { p: 1, duration: 10, repeat: -1, ease: 'none', onUpdate: () => { pr.setAttribute('stroke-dashoffset', (1 - o.p).toFixed(4)); const q = pr.getPointAtLength(pl * o.p); pd.setAttribute('cx', q.x.toFixed(1)); pd.setAttribute('cy', q.y.toFixed(1)) } }) }
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

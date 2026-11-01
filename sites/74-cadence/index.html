@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadence — Mastering bằng AI, thẩm âm chuẩn phòng thu</title>
+<meta name="description" content="Cadence xử lý hậu kỳ bản nhạc của bạn như một kỹ sư thực thụ: cân bằng âm sắc, gắn kết dải động, tạo màu âm và nâng âm lượng chuẩn cho nền tảng nhạc số hoặc câu lạc bộ. Chọn thể loại và mục tiêu âm lượng, rồi nghe đối chiếu A/B trực tiếp.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23C8CBCE'/%3E%3Ccircle cx='32' cy='32' r='20' fill='%231C1D1F'/%3E%3Cpath d='M32 32L44 20' stroke='%23FFB238' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..700&family=Tektur:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --al:#C8CBCE; --al2:#B5B9BD; --al3:#E3E5E7; --steel:#1C1D1F; --steel2:#26282B; --steel3:#313438; --ink:#17181A; --ink2:#3E4246; --amber:#FFB238; --amber2:#FF8F1F; --cream:#F1E4C0; --red:#D8432E; --line:rgba(23,24,26,.18); --dline:rgba(241,228,192,.12); --pale:#C9C3B3;
+  --wide:"Tektur", system-ui, sans-serif; --sans:"Plus Jakarta Sans", system-ui, sans-serif; --mono:"JetBrains Mono", ui-monospace, monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --brushed:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='300'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.003 .9' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 -.05'/%3E%3C/filter%3E%3Crect width='600' height='300' filter='url(%23b)'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--al);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--amber2);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--steel);color:var(--cream);padding:10px 16px;z-index:400;border-radius:6px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1240px,100% - 64px);margin-inline:auto}
+h1,h2,h3{margin:0;font-family:var(--wide);font-weight:400;line-height:1.08;letter-spacing:-.01em;text-transform:uppercase}
+h2{font-size:clamp(30px,3.8vw,58px)}
+h2 em,h1 em{font-style:normal;color:var(--amber2)}
+p{margin:0}
+.metal{background:var(--brushed),linear-gradient(100deg,#B7BBBF 0%,#DADDDF 38%,#BDC1C5 62%,#D3D6D9 100%);background-size:600px 300px,100% 100%}
+.dark{background:var(--steel);color:var(--cream)}
+.engr{color:#2A2C2F;text-shadow:0 1px 0 rgba(255,255,255,.55),0 -1px 0 rgba(0,0,0,.18)}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--wide);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink2)}
+.kick i{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber),0 0 2px #fff inset}
+.dark .kick{color:var(--pale)}
+.screw{position:absolute;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F2F3F4,#8D9195 70%);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25),0 1px 1px rgba(255,255,255,.5)}
+.screw::after{content:"";position:absolute;left:3px;right:3px;top:6px;height:2px;background:#5E6266;transform:rotate(var(--sr,35deg))}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:54px;padding:0 26px;border:0;border-radius:10px;background:linear-gradient(180deg,#2C2E31,#16171A);color:var(--cream);font-family:var(--wide);font-size:12px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;cursor:pointer;box-shadow:0 2px 0 #000,0 8px 18px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.12);transform:translate(var(--mx),var(--my));transition:transform .4s var(--ease),box-shadow .3s}
+.btn i{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px var(--amber)}
+.btn:hover{box-shadow:0 2px 0 #000,0 12px 26px rgba(0,0,0,.3),0 0 0 3px rgba(255,178,56,.35),inset 0 1px 0 rgba(255,255,255,.12)}
+.btn.light{background:linear-gradient(180deg,#F1F2F3,#C3C7CB);color:var(--ink);box-shadow:0 2px 0 #7F8387,0 8px 18px rgba(0,0,0,.15),inset 0 1px 0 #fff}
+.btn.light i{background:#6A6E72;box-shadow:none}
+.btn.sm{min-height:44px;padding:0 18px;font-size:11px}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:90;transition:background .3s,box-shadow .3s}
+.nav.solid{background:rgba(200,203,206,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:20px}
+.logo{display:inline-flex;align-items:center;gap:12px;text-decoration:none;font-family:var(--wide);font-size:17px;letter-spacing:.14em;text-transform:uppercase;min-height:44px}
+.logo svg{width:30px;height:30px}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;text-decoration:none;font-weight:600;font-size:15px;border-radius:8px;transition:background .2s}
+.nav ul a:hover{background:rgba(255,255,255,.4)}
+.menu-btn{display:none;width:48px;height:48px;border-radius:10px;border:0;background:linear-gradient(180deg,#2C2E31,#16171A);cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--cream);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:12px;right:12px;top:82px;z-index:89;border-radius:16px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-12px);transition:opacity .3s,visibility .3s,transform .4s var(--ease);box-shadow:0 20px 40px rgba(0,0,0,.3)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 12px;text-decoration:none;font-family:var(--wide);font-size:15px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid rgba(241,228,192,.1)}
+.mmenu a::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:120px 0 60px;display:flex;align-items:center;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:50px;align-items:center}
+.hero h1{font-size:clamp(38px,4.8vw,74px);line-height:1.08}
+.hero-lead{font-size:19px;color:var(--ink2);max-width:42ch;margin:28px 0 34px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px}
+.face{position:relative;border-radius:22px;padding:30px 28px 28px;box-shadow:0 30px 60px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(0,0,0,.15)}
+.face .screw.a{left:12px;top:12px}.face .screw.b{right:12px;top:12px;--sr:-20deg}.face .screw.c{left:12px;bottom:12px;--sr:80deg}.face .screw.d{right:12px;bottom:12px;--sr:10deg}
+.face .plate{display:flex;justify-content:space-between;align-items:center;font-family:var(--wide);font-size:10px;letter-spacing:.24em;color:#2A2C2F;margin:0 10px 18px}
+.lamp{display:inline-flex;align-items:center;gap:8px}
+.lamp b{width:12px;height:12px;border-radius:50%;background:#6B4A12;box-shadow:inset 0 1px 2px rgba(0,0,0,.5);transition:background .4s,box-shadow .4s}
+.lamp.on b{background:var(--amber);box-shadow:0 0 14px var(--amber),0 0 3px #fff inset}
+.vus{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.vu{position:relative;aspect-ratio:240/160;border-radius:10px;overflow:hidden;background:radial-gradient(120% 90% at 50% 105%,#FFD486 0%,#F6E3B4 45%,#EADBB3 100%);box-shadow:inset 0 0 0 3px #1C1D1F,inset 0 6px 14px rgba(0,0,0,.35)}
+.vu.off{background:radial-gradient(120% 90% at 50% 105%,#E6DCC0 0%,#DCD2B6 60%,#D3C9AD 100%)}
+.vu svg{position:absolute;inset:0;width:100%;height:100%}
+.vu .ndl{transition:none}
+.vu text{font-family:var(--mono);fill:#2B2620}
+.knobs{display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding:0 6px}
+.knob{position:relative;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#4A4D51,#141517 70%);box-shadow:0 6px 12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.15)}
+.knob::before{content:"";position:absolute;inset:7px;border-radius:50%;background:repeating-conic-gradient(#2a2c2f 0 4deg,#1b1c1e 4deg 8deg)}
+.knob i{position:absolute;left:50%;top:9px;width:3px;height:18px;margin-left:-1.5px;background:var(--amber);border-radius:2px;box-shadow:0 0 6px var(--amber);transform-origin:50% 28px}
+.knob-l{font-family:var(--wide);font-size:9px;letter-spacing:.2em;color:#2A2C2F;text-align:center;margin-top:8px}
+
+/* readouts strip */
+.strip{padding:60px 0}
+.strip .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.ro{border-radius:12px;background:#0E0F10;padding:18px 20px;box-shadow:inset 0 0 0 1px rgba(241,228,192,.08)}
+.ro b{display:block;font-family:var(--mono);font-weight:600;font-size:38px;color:var(--amber);text-shadow:0 0 14px rgba(255,178,56,.55);letter-spacing:.02em;line-height:1.1}
+.ro span{display:block;margin-top:8px;color:var(--pale);font-size:15px}
+
+/* pinned chain */
+.chain{position:relative}
+.chain-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-rows:auto auto;align-content:center;width:min(1240px,100% - 64px);margin-inline:auto;padding:100px 0 40px;gap:24px}
+.chain-top{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:40px;align-items:center}
+.chain h2{margin:14px 0 22px}
+.cstep-box{position:relative;height:150px}
+.cstep{position:absolute;inset:0}
+.cstep .n{font-family:var(--mono);font-size:13px;color:var(--amber)}
+.cstep h3{font-size:22px;margin:6px 0 10px;color:var(--cream)}
+.cstep p{color:var(--pale);max-width:46ch}
+.scope{position:relative;border-radius:14px;background:#0B0C0D;box-shadow:inset 0 0 0 1px rgba(241,228,192,.1),inset 0 10px 30px rgba(0,0,0,.6);padding:16px;height:100%;min-height:200px;display:flex;flex-direction:column}
+.scope svg{flex:1;width:100%;height:100%;min-height:150px}
+.scope .lbls{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--pale)}
+.scope .lbls b{color:var(--amber);font-weight:600}
+.rack{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;position:relative}
+.mod{position:relative;border-radius:12px;padding:16px 16px 14px;background:linear-gradient(180deg,#2B2D31,#1E1F22);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 20px rgba(0,0,0,.35);transition:box-shadow .5s}
+.mod.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 20px rgba(0,0,0,.35),0 0 0 2px var(--amber),0 0 30px rgba(255,178,56,.25)}
+.mod .hd{display:flex;justify-content:space-between;align-items:center;font-family:var(--wide);font-size:11px;letter-spacing:.16em;color:var(--cream)}
+.mod .hd b{width:10px;height:10px;border-radius:50%;background:#5A3F10;transition:background .4s,box-shadow .4s}
+.mod.on .hd b,.mod.done .hd b{background:var(--amber);box-shadow:0 0 12px var(--amber)}
+.mod .ks{display:flex;justify-content:space-around;margin-top:14px}
+.mod .k{width:48px;height:48px}
+.mod .k i{top:6px;height:12px;transform-origin:50% 18px}
+.mod .k::before{inset:5px}
+.mod small{display:block;text-align:center;font-family:var(--mono);font-size:11px;color:var(--pale);margin-top:10px}
+
+/* desk */
+.desk-sec{padding:130px 0 120px}
+.desk-head{display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:end;margin-bottom:44px}
+.desk-head p{color:var(--ink2);max-width:46ch}
+.console{position:relative;border-radius:24px;padding:28px;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,.55fr);gap:24px;box-shadow:0 30px 60px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(0,0,0,.15)}
+.console .screw.a{left:10px;top:10px}.console .screw.b{right:10px;top:10px}.console .screw.c{left:10px;bottom:10px}.console .screw.d{right:10px;bottom:10px}
+.ctl{display:grid;gap:18px}
+.ctl-row{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-end}
+.grp-l{display:block;font-family:var(--wide);font-size:10px;letter-spacing:.2em;color:#2A2C2F;margin-bottom:8px}
+.sel{display:flex;flex-wrap:wrap;gap:6px}
+.sel button{min-height:44px;padding:0 14px;border:0;border-radius:8px;background:linear-gradient(180deg,#F4F5F6,#C9CDD0);box-shadow:0 2px 0 #8A8E92,inset 0 1px 0 #fff;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform .1s}
+.sel button::before{content:"";width:8px;height:8px;border-radius:50%;background:#7A6A4E;box-shadow:inset 0 1px 1px rgba(0,0,0,.4)}
+.sel button[aria-pressed="true"]{background:linear-gradient(180deg,#2C2E31,#16171A);color:var(--cream);box-shadow:0 1px 0 #000,inset 0 1px 0 rgba(255,255,255,.1);transform:translateY(1px)}
+.sel button[aria-pressed="true"]::before{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.transport{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.playk{width:64px;height:64px;border-radius:50%;border:0;cursor:pointer;background:radial-gradient(circle at 40% 30%,#3A3D41,#121315 75%);box-shadow:0 0 0 4px #9EA2A6,0 0 0 6px #6E7276,0 8px 16px rgba(0,0,0,.35);display:grid;place-items:center;color:var(--amber)}
+.playk svg{width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(255,178,56,.7))}
+.playk .ip{display:none}
+.playk[aria-pressed="true"] .ip{display:block}
+.playk[aria-pressed="true"] .ir{display:none}
+.ab{display:inline-flex;border-radius:10px;padding:4px;background:#16171A;box-shadow:inset 0 2px 4px rgba(0,0,0,.6)}
+.ab button{min-height:44px;min-width:86px;padding:0 14px;border:0;border-radius:7px;background:transparent;color:var(--pale);font-family:var(--wide);font-size:11px;letter-spacing:.12em;cursor:pointer;transition:background .2s,color .2s}
+.ab button[aria-pressed="true"]{background:var(--amber);color:#1A1307;box-shadow:0 0 16px rgba(255,178,56,.5)}
+.chk{display:inline-flex;align-items:center;gap:10px;min-height:44px;font-size:15px;font-weight:600;cursor:pointer}
+.chk input{width:22px;height:22px;accent-color:#16171A;margin:0}
+.meters{display:grid;grid-template-columns:1fr 1fr minmax(150px,.8fr);gap:14px;align-items:stretch}
+.leds{border-radius:10px;background:#0E0F10;padding:12px 14px;display:grid;gap:8px;align-content:center;box-shadow:inset 0 0 0 1px rgba(241,228,192,.08)}
+.leds div{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.leds span{font-family:var(--mono);font-size:11px;color:var(--pale);text-transform:uppercase;letter-spacing:.06em}
+.leds b{font-family:var(--mono);font-weight:600;font-size:20px;color:var(--amber);text-shadow:0 0 10px rgba(255,178,56,.5)}
+.spec{position:relative;border-radius:12px;background:#0B0C0D;box-shadow:inset 0 0 0 1px rgba(241,228,192,.1),inset 0 10px 30px rgba(0,0,0,.6);height:200px;overflow:hidden}
+.spec canvas{position:absolute;inset:0;width:100%;height:100%}
+.spec .tag{position:absolute;left:14px;top:10px;font-family:var(--mono);font-size:11px;color:var(--pale);letter-spacing:.06em}
+.spec .tag2{left:auto;right:14px}
+.notes{border-radius:16px;background:#111214;color:var(--cream);padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:inset 0 0 0 1px rgba(241,228,192,.08)}
+.notes h3{font-size:13px;letter-spacing:.14em;display:flex;align-items:center;gap:10px;color:var(--cream)}
+.notes h3 i{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber)}
+.notes ol{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.notes li{display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:15px;line-height:1.45;color:#E5DCC4}
+.notes li b{font-family:var(--mono);font-size:12px;color:var(--amber);padding-top:2px}
+.notes li em{font-style:normal;font-family:var(--mono);font-size:13px;color:var(--amber)}
+.notes .st{margin-top:auto;padding-top:12px;border-top:1px solid var(--dline);font-size:14px;color:var(--pale)}
+.warn{margin-top:14px;font-size:14px;color:var(--ink2)}
+
+/* patch bay */
+.bay{padding:130px 0 120px;position:relative}
+.bay-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:50px}
+.bay-head p{color:var(--pale);max-width:40ch}
+.bay-box{position:relative}
+.jacks{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;padding:18px;border-radius:14px;background:linear-gradient(180deg,#2B2D31,#1E1F22);box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.jack{display:flex;flex-direction:column-reverse;align-items:center;gap:8px;font-family:var(--wide);font-size:9px;letter-spacing:.16em;color:var(--pale);text-align:center}
+.jack i,.sock{position:relative;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,#050505 0 32%,#9EA2A6 34% 52%,#4A4D51 56% 100%);box-shadow:0 2px 3px rgba(0,0,0,.5)}
+.cables{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.cables path{fill:none;stroke-width:6;stroke-linecap:round;opacity:.9;transition:stroke .3s,filter .3s}
+.cables path.hot{filter:drop-shadow(0 0 6px rgba(255,178,56,.8))}
+.feats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:120px}
+.feat{position:relative;border-radius:14px;padding:22px 20px 22px;background:#25272A;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:transform .4s var(--ease),background .3s}
+.feat:hover,.feat:focus-within{transform:translateY(-6px);background:#2C2F33}
+.feat .sock{display:block;margin:-38px auto 18px}
+.feat h3{font-size:15px;letter-spacing:.06em;margin-bottom:10px;color:var(--cream)}
+.feat p{color:var(--pale);font-size:16px}
+.feat .lamp{margin-top:16px;font-family:var(--mono);font-size:12px;color:var(--pale)}
+
+/* pricing */
+.price{padding:130px 0 120px}
+.price-head{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:end;margin-bottom:40px}
+.price-head p{color:var(--ink2);max-width:44ch}
+.fader-row{display:flex;align-items:center;gap:24px;padding:20px 24px;border-radius:16px;margin-bottom:26px;box-shadow:inset 0 2px 6px rgba(0,0,0,.18),inset 0 -1px 0 rgba(255,255,255,.6)}
+.fader-row label{font-family:var(--wide);font-size:11px;letter-spacing:.16em;flex:none}
+.fader-row output{flex:none;min-width:150px;text-align:right;font-family:var(--mono);font-weight:600;font-size:20px}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:#16171A;box-shadow:inset 0 1px 2px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.6)}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:#16171A}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:40px;margin-top:-16px;border-radius:5px;background:linear-gradient(180deg,#F2F3F4 0 45%,#16171A 45% 55%,#C3C7CB 55%);box-shadow:0 3px 6px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-thumb{width:26px;height:40px;border:0;border-radius:5px;background:linear-gradient(180deg,#F2F3F4 0 45%,#16171A 45% 55%,#C3C7CB 55%)}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.plan{position:relative;border-radius:18px;padding:26px 24px;background:#16171A;color:var(--cream);display:flex;flex-direction:column;gap:14px;box-shadow:0 18px 36px rgba(0,0,0,.18);transition:box-shadow .4s,transform .4s var(--ease)}
+.plan.best{box-shadow:0 18px 36px rgba(0,0,0,.18),0 0 0 3px var(--amber),0 0 40px rgba(255,178,56,.3);transform:translateY(-6px)}
+.plan .tag{position:absolute;top:-12px;right:20px;padding:3px 12px;border-radius:999px;background:var(--amber);color:#1A1307;font-family:var(--wide);font-size:9px;letter-spacing:.16em;opacity:0;transition:opacity .3s}
+.plan.best .tag{opacity:1}
+.plan h3{font-size:16px;letter-spacing:.1em;color:var(--cream)}
+.plan .amt{font-family:var(--mono);font-weight:600;font-size:40px;color:var(--amber);line-height:1}
+.plan .amt small{font-size:14px;color:var(--pale);font-weight:400;margin-left:6px}
+.plan .calc{font-family:var(--mono);font-size:13px;color:var(--pale);padding:10px 12px;border-radius:8px;background:#0E0F10}
+.plan .calc b{color:var(--cream);font-weight:600}
+.plan ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;color:#E5DCC4;font-size:15px;flex:1}
+.plan li{display:flex;gap:10px}
+.plan li::before{content:"";flex:none;width:7px;height:7px;margin-top:8px;border-radius:50%;background:var(--amber)}
+.plan .btn{background:linear-gradient(180deg,#F1F2F3,#C3C7CB);color:var(--ink)}
+
+/* faq */
+.faq{padding:120px 0 130px}
+.faq .wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px;align-items:start}
+.qa{border-bottom:1px solid var(--dline)}
+.qa:first-child{border-top:1px solid var(--dline)}
+.qa button{width:100%;min-height:72px;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:16px 0;background:none;border:0;cursor:pointer;text-align:left;font-weight:600;font-size:20px;color:var(--cream)}
+.qa button i{position:relative;flex:none;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 40% 30%,#4A4D51,#141517 70%);transition:transform .45s var(--ease)}
+.qa button i::after{content:"";position:absolute;left:50%;top:4px;width:2px;height:9px;margin-left:-1px;background:var(--amber);box-shadow:0 0 5px var(--amber)}
+.qa button[aria-expanded="true"] i{transform:rotate(135deg)}
+.qa .ans{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
+.qa .ans>div{overflow:hidden}
+.qa .ans p{color:var(--pale);padding:0 50px 22px 0;max-width:62ch}
+.qa.open .ans{grid-template-rows:1fr}
+
+footer{padding:70px 0 40px}
+footer .top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:40px}
+footer h4{margin:0 0 12px;font-family:var(--wide);font-weight:400;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#2A2C2F}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:40px;text-decoration:none;color:var(--ink2)}
+footer li a:hover{color:var(--ink)}
+footer .tl{margin-top:12px;color:var(--ink2);max-width:32ch}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:24px;border-top:1px solid var(--line);font-size:14px;color:var(--ink2)}
+
+.rm .chain-pin{height:auto;padding:110px 0 80px}
+.rm .cstep-box{height:auto;display:grid;gap:22px}
+.rm .cstep{position:static}
+.rm .scope{height:auto;align-self:center}
+.rm .scope svg{flex:none;height:220px}
+
+@media (max-width:1060px){
+  .nav ul,.nav .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero .wrap{grid-template-columns:1fr}
+  .face{max-width:560px}
+  .strip .wrap{grid-template-columns:1fr 1fr}
+  .chain-top{grid-template-columns:1fr;gap:16px}
+  .desk-head,.price-head{grid-template-columns:1fr;gap:20px}
+  .console{grid-template-columns:1fr}
+  .jacks{grid-template-columns:repeat(4,1fr)}
+  .feats{grid-template-columns:1fr 1fr;margin-top:60px;gap:40px 16px}
+  .cables{display:none}
+  .plans{grid-template-columns:1fr;max-width:520px}
+  .faq .wrap{grid-template-columns:1fr;gap:30px}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .wrap,.chain-pin{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav .wrap{height:68px}
+  .mmenu{top:74px}
+  .hero{padding:96px 0 50px;min-height:0}
+  .hero h1{font-size:clamp(28px,7.8vw,38px)}
+  .hero-lead{font-size:17px;margin:20px 0 26px}
+  .face{padding:24px 16px 20px}
+  .vus{gap:10px}
+  .knob{width:56px;height:56px}
+  .knob i{height:14px;top:7px;transform-origin:50% 21px}
+  .strip{padding:40px 0}
+  .ro{padding:14px}
+  .ro b{font-size:26px}
+  .ro span{font-size:14px}
+  .chain-pin{padding:80px 0 20px;gap:12px;grid-template-rows:auto auto auto;align-content:start}
+  .chain h2{font-size:24px;margin:6px 0 10px}
+  .chain .kick{display:none}
+  .cstep-box{height:150px}
+  .cstep h3{font-size:16px;margin:2px 0 6px}
+  .cstep p{font-size:15px;line-height:1.45}
+  .scope{min-height:0;height:150px;padding:10px}
+  .scope svg{min-height:0}
+  .rack{grid-template-columns:repeat(4,1fr);gap:6px}
+  .mod{padding:8px 6px}
+  .mod .hd{font-size:8px;letter-spacing:.06em;justify-content:center;gap:5px}
+  .mod .hd b{width:7px;height:7px}
+  .mod .ks{margin-top:8px}
+  .mod .k{width:30px;height:30px}
+  .mod .k:nth-child(2){display:none}
+  .mod .k i{top:3px;height:8px;width:2px;transform-origin:50% 12px}
+  .mod .k::before{inset:3px}
+  .mod small{font-size:9px;margin-top:6px}
+  .desk-sec{padding:100px 0 90px}
+  .console{padding:18px 14px;border-radius:18px}
+  .meters{grid-template-columns:1fr 1fr}
+  .leds{grid-column:1/-1;grid-template-columns:1fr 1fr 1fr}
+  .leds div{flex-direction:column;align-items:flex-start;gap:2px}
+  .leds b{font-size:17px}
+  .spec{height:160px}
+  .spec .tag:not(.tag2){display:none}
+  .face .plate{font-size:8px;letter-spacing:.12em;margin:0 4px 14px}
+  .bay{padding:100px 0 90px}
+  .bay-head{flex-direction:column;align-items:flex-start;gap:16px}
+  .jacks{grid-template-columns:repeat(4,1fr);gap:14px 6px;padding:14px 8px}
+  .feats{grid-template-columns:1fr}
+  .price{padding:100px 0 90px}
+  .fader-row{flex-wrap:wrap;gap:6px 14px;padding:16px}
+  .fader-row input{flex-basis:100%}
+  .fader-row output{min-width:0;text-align:left}
+  .qa button{font-size:18px}
+  .qa .ans p{padding-right:0}
+  .faq{padding:90px 0}
+}
+/* room for the active module glow inside the clipped pin */
+.chain .chain-pin{padding-left:6px;padding-right:6px}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo engr" href="#top" aria-label="Cadence, trang chủ"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#1C1D1F"/><circle cx="16" cy="16" r="10" fill="none" stroke="#3A3D41" stroke-width="2" stroke-dasharray="2 2"/><path d="M16 16l6-7" stroke="#FFB238" stroke-width="3" stroke-linecap="round"/></svg>Cadence</a>
+    <nav aria-label="Điều hướng chính"><ul><li><a href="#chain">Chuỗi tín hiệu</a></li><li><a href="#desk">Bàn nghe A/B</a></li><li><a href="#features">Tính năng</a></li><li><a href="#pricing">Bảng giá</a></li><li><a href="#faq">Hỏi đáp</a></li></ul></nav>
+    <a class="btn sm mag" href="#pricing"><i aria-hidden="true"></i>Master bản nhạc</a>
+    <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+  </div>
+</header>
+<div class="mmenu dark" id="mmenu" aria-hidden="true">
+  <a href="#chain">Chuỗi tín hiệu</a><a href="#desk">Bàn nghe A/B</a><a href="#features">Tính năng</a><a href="#pricing">Bảng giá</a><a href="#faq">Hỏi đáp</a>
+</div>
+
+<main id="main">
+<section class="hero metal" id="top" aria-labelledby="hero-h">
+  <div class="wrap">
+    <div>
+      <p class="kick hf"><i aria-hidden="true"></i>Mastering bằng AI, chuẩn đôi tai</p>
+      <h1 id="hero-h" class="engr" style="margin-top:24px"><span class="mask"><span>Bản phối của bạn,</span></span><span class="mask"><span><em>hoàn thiện.</em></span></span></h1>
+      <p class="hero-lead hf">Cadence lắng nghe bản nhạc theo cách một kỹ sư mastering thực thụ làm việc, rồi cân bằng âm sắc, gắn kết dải động và đẩy âm lượng chuẩn xác cho bản phát hành. Tất cả chỉ mất khoảng thời gian pha một tách cà phê.</p>
+      <div class="hero-cta hf"><a class="btn mag" href="#desk"><i aria-hidden="true"></i>Nghe thử A/B</a><a class="btn light mag" href="#pricing"><i aria-hidden="true"></i>Xem bảng giá</a></div>
+    </div>
+    <div class="face metal" aria-hidden="true">
+      <span class="screw a"></span><span class="screw b"></span><span class="screw c"></span><span class="screw d"></span>
+      <p class="plate"><span>CADENCE · MẪU C-1</span><span class="lamp" id="heroLamp"><b></b>ĐANG NGHE</span></p>
+      <div class="vus"><div class="vu" id="hvuL"></div><div class="vu" id="hvuR"></div></div>
+      <div class="knobs">
+        <div><div class="knob"><i id="hk1"></i></div><p class="knob-l">ÂM SẮC</p></div>
+        <div><div class="knob"><i id="hk2"></i></div><p class="knob-l">GẮN KẾT</p></div>
+        <div><div class="knob"><i id="hk3"></i></div><p class="knob-l">MÀU ÂM</p></div>
+        <div><div class="knob"><i id="hk4"></i></div><p class="knob-l">ÂM LƯỢNG</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="strip dark" aria-label="Cadence qua những con số">
+  <div class="wrap">
+    <div class="ro reveal"><b>−14.0</b><span>LUFS cho nhạc số, hoặc −9 cho câu lạc bộ</span></div>
+    <div class="ro reveal"><b>04:10</b><span>thời gian chờ trung bình từ lúc tải lên đến khi hoàn tất</span></div>
+    <div class="ro reveal"><b>24/96</b><span>xuất file WAV, kèm MP3 và báo cáo độ lớn âm thanh</span></div>
+    <div class="ro reveal"><b>3</b><span>bản master miễn phí mỗi tháng, không cần thẻ</span></div>
+  </div>
+</section>
+
+<section class="chain dark" id="chain" aria-labelledby="chain-h">
+  <div class="chain-pin" id="chainPin">
+    <div class="chain-top">
+      <div>
+        <p class="kick"><i aria-hidden="true"></i>Chuỗi xử lý tín hiệu</p>
+        <h2 id="chain-h">Bốn tầng xử lý,<br><em>một lượt chạy</em></h2>
+        <div class="cstep-box">
+          <article class="cstep"><p class="n">01 · EQ</p><h3>Cân bằng âm sắc</h3><p>Cadence đối chiếu bản phối của bạn với hàng nghìn bản thu hoàn chỉnh cùng thể loại, rồi tinh chỉnh dải trầm, trung và cao về đúng vị trí hài hòa nhất.</p></article>
+          <article class="cstep"><p class="n">02 · Compressor</p><h3>Gắn kết tổng thể</h3><p>Nén bus nhẹ nhàng, tối đa chỉ vài decibel, giúp tiếng trống và nhạc cụ hòa quyện thành một chỉnh thể thống nhất thay vì rời rạc.</p></article>
+          <article class="cstep"><p class="n">03 · Saturation</p><h3>Thêm chút hơi ấm</h3><p>Một chút sóng hài kiểu băng từ làm dày những bản phối mỏng và giúp âm thanh trên loa nhỏ trở nên đầy đặn hơn. Bạn toàn quyền chọn mức độ.</p></article>
+          <article class="cstep"><p class="n">04 · Limiter</p><h3>Chốt chuẩn âm lượng</h3><p>Bộ giới hạn đỉnh trong suốt đưa bản nhạc đạt đúng âm lượng mục tiêu và giữ đỉnh thực dưới −1 dB để các nền tảng phát nhạc không tự ý ép nhỏ xuống.</p></article>
+        </div>
+      </div>
+      <div class="scope" aria-hidden="true"><p class="lbls"><span>DẠNG SÓNG · 3:12</span><span>TẦNG <b id="stageN">1</b>/4</span></p><svg id="wave" viewBox="0 0 600 200" preserveAspectRatio="none"></svg><p class="lbls"><span>TRƯỚC</span><span>SAU</span></p></div>
+    </div>
+    <div class="rack" aria-hidden="true" id="rack"></div>
+  </div>
+</section>
+
+<section class="desk-sec metal" id="desk" aria-labelledby="desk-h">
+  <div class="wrap">
+    <div class="desk-head"><div><p class="kick"><i aria-hidden="true"></i>Bàn nghe A/B</p><h2 id="desk-h" class="engr split" style="margin-top:16px">Chọn thể loại.<br><em>Gạt công tắc.</em></h2></div><p class="reveal">Một đoạn nhạc lặp ngắn được tạo trực tiếp trên trình duyệt cho từng thể loại, rồi chạy qua chuỗi xử lý của Cadence. Hãy chuyển đổi giữa Trước và Sau để nghe sự khác biệt; đồng hồ đo và phổ tần số cũng hiển thị trực quan. Âm thanh chỉ phát khi bạn nhấn nút.</p></div>
+    <div class="console metal reveal">
+      <span class="screw a" aria-hidden="true"></span><span class="screw b" aria-hidden="true"></span><span class="screw c" aria-hidden="true"></span><span class="screw d" aria-hidden="true"></span>
+      <div class="ctl">
+        <div class="ctl-row">
+          <div><span class="grp-l" id="genreL">THỂ LOẠI</span><div class="sel" role="group" aria-labelledby="genreL" id="genreSel"></div></div>
+        </div>
+        <div class="ctl-row">
+          <div><span class="grp-l" id="targetL">MỤC TIÊU ÂM LƯỢNG</span><div class="sel" role="group" aria-labelledby="targetL" id="targetSel"></div></div>
+          <div class="transport">
+            <button class="playk" id="playBtn" type="button" aria-pressed="false" aria-label="Phát đoạn nhạc lặp"><svg class="ir" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z" fill="currentColor"/></svg><svg class="ip" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg></button>
+            <div class="ab" role="group" aria-label="So sánh trước và sau"><button type="button" aria-pressed="false" data-ab="0">Trước</button><button type="button" aria-pressed="true" data-ab="1">Sau</button></div>
+            <label class="chk"><input type="checkbox" id="matchChk"> Cân bằng âm lượng</label>
+          </div>
+        </div>
+        <div class="meters">
+          <div class="vu off" id="dvuL"></div><div class="vu off" id="dvuR"></div>
+          <div class="leds" aria-hidden="true"><div><span>LUFS ≈</span><b id="lufsR">--.-</b></div><div><span>Đỉnh dB</span><b id="peakR">--.-</b></div><div><span>Nén GR</span><b id="grR">0.0</b></div></div>
+        </div>
+        <div class="spec" aria-hidden="true"><canvas id="spec"></canvas><span class="tag">PHỔ TẦN SỐ · 20 Hz – 20 kHz</span><span class="tag tag2" id="specTag">CHỜ</span></div>
+        <p class="sr" id="deskLive" aria-live="polite"></p>
+      </div>
+      <aside class="notes" aria-labelledby="notesH">
+        <h3 id="notesH"><i aria-hidden="true"></i>GHI CHÚ KỸ SƯ</h3>
+        <ol id="notes"></ol>
+        <p class="st" id="noteSt">Nhấn phát nhạc, sau đó bật tắt giữa Trước và Sau.</p>
+      </aside>
+    </div>
+    <p class="warn reveal">Nên dùng tai nghe để nghe rõ nhất. Hãy giữ âm lượng vừa phải: chế độ Sau có chủ đích lớn tiếng hơn, trừ khi bạn đánh dấu Cân bằng âm lượng.</p>
+  </div>
+</section>
+
+<section class="bay dark" id="features" aria-labelledby="bay-h">
+  <div class="wrap">
+    <div class="bay-head"><div><p class="kick"><i aria-hidden="true"></i>Bảng cắm cáp</p><h2 id="bay-h" class="split" style="margin-top:16px">Mọi quy trình<br><em>kết nối sẵn sàng</em></h2></div><p class="reveal">Từng công đoạn của một phiên mastering thực thụ được đấu nối gọn vào một lần tải file. Di chuột vào từng mô-đun để theo dõi đường cáp tín hiệu.</p></div>
+    <div class="bay-box" id="bayBox">
+      <div class="jacks reveal" aria-hidden="true" id="jacks"></div>
+      <svg class="cables" id="cables" aria-hidden="true"></svg>
+      <div class="feats" id="feats"></div>
+    </div>
+  </div>
+</section>
+
+<section class="price metal" id="pricing" aria-labelledby="price-h">
+  <div class="wrap">
+    <div class="price-head"><div><p class="kick"><i aria-hidden="true"></i>Bảng giá</p><h2 id="price-h" class="engr split" style="margin-top:16px">Trả theo từng bài,<br>hoặc <em>kéo cần gạt</em></h2></div><p class="reveal">Kéo thanh trượt theo số bản nhạc bạn hoàn thành mỗi tháng. Gói cước tiết kiệm nhất cho bạn sẽ tự động sáng đèn.</p></div>
+    <div class="fader-row metal reveal"><label for="tracks">SỐ BÀI / THÁNG</label><input type="range" id="tracks" min="1" max="40" step="1" value="6"><output for="tracks" id="tracksOut">6 bài</output></div>
+    <div class="plans" id="plans"></div>
+  </div>
+</section>
+
+<section class="faq dark" id="faq" aria-labelledby="faq-h">
+  <div class="wrap">
+    <div><p class="kick"><i aria-hidden="true"></i>Hỏi đáp</p><h2 id="faq-h" class="split" style="margin-top:16px">Trước khi bạn<br><em>xuất bản thu</em></h2></div>
+    <div id="qas"></div>
+  </div>
+</section>
+</main>
+
+<footer class="metal">
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo engr" href="#top"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#1C1D1F"/><path d="M16 16l6-7" stroke="#FFB238" stroke-width="3" stroke-linecap="round"/></svg>Cadence</a><p class="tl">Dịch vụ mastering dành cho những người hoàn thành bài nhạc lúc 2 giờ sáng và phát hành lúc 9 giờ.</p></div>
+      <div><h4>Sản phẩm</h4><ul><li><a href="#chain">Chuỗi tín hiệu</a></li><li><a href="#desk">Bàn nghe A/B</a></li><li><a href="#pricing">Bảng giá</a></li></ul></div>
+      <div><h4>Trợ giúp</h4><ul><li><a href="#faq">Hỏi đáp</a></li><li><a href="#features">Định dạng</a></li><li><a href="#faq">Bản quyền của bạn</a></li></ul></div>
+      <div><h4>Cadence</h4><ul><li><a href="#top">Giới thiệu</a></li><li><a href="#features">Kỹ sư âm thanh</a></li><li><a href="#pricing">Hãng đĩa</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Cadence Audio Labs</span><span>Thiết kế concept — thương hiệu giả định.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+const lerp = (a, b, t) => a + (b - a) * t
+const DPR = Math.min(2, devicePixelRatio || 1)
+$('#yr').textContent = new Date().getFullYear()
+
+/* ================= VU meters (no ids inside, safe to repeat) ================= */
+const vuPos = (db) => (Math.pow(10, db / 20) - .1) / (Math.pow(10, 3 / 20) - .1)
+const vuAng = (db) => -50 + 100 * clamp(vuPos(db))
+function vuSVG(label) {
+  const cx = 120, cy = 178, R = 132
+  const pt = (a, r) => { const t = (a - 90) * Math.PI / 180; return [cx + Math.cos(t) * r, cy + Math.sin(t) * r] }
+  const arc = (a0, a1, r) => { const [x0, y0] = pt(a0, r), [x1, y1] = pt(a1, r); return `M${x0.toFixed(1)} ${y0.toFixed(1)}A${r} ${r} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}` }
+  const ticks = [-20, -10, -7, -5, -3, -2, -1, 0, 1, 2, 3]
+  let s = `<path d="${arc(vuAng(-20), vuAng(0), R)}" fill="none" stroke="#2B2620" stroke-width="1.6"/><path d="${arc(vuAng(0), vuAng(3), R)}" fill="none" stroke="#D8432E" stroke-width="6"/>`
+  ticks.forEach((db) => {
+    const a = vuAng(db), [x1, y1] = pt(a, R), [x2, y2] = pt(a, R - (db % 5 === 0 || db >= -3 ? 12 : 7)), [tx, ty] = pt(a, R - 24)
+    s += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${db > 0 ? '#D8432E' : '#2B2620'}" stroke-width="1.6"/>`
+    if ([-20, -10, -7, -5, -3, 0, 3].includes(db)) s += `<text x="${tx.toFixed(1)}" y="${(ty + 4).toFixed(1)}" text-anchor="middle" font-size="11" ${db > 0 ? 'style="fill:#D8432E"' : ''}>${db > 0 ? '+' + db : db}</text>`
+  })
+  s += `<text x="120" y="112" text-anchor="middle" font-size="18" font-weight="600">VU</text><text x="20" y="146" font-size="11">${label}</text><text x="220" y="146" text-anchor="end" font-size="9">CADENCE</text>`
+  s += `<g class="ndl" style="transform-origin:120px 178px;transform:rotate(-50deg)"><line x1="120" y1="178" x2="120" y2="40" stroke="#17181A" stroke-width="2.2" stroke-linecap="round"/></g><rect x="0" y="150" width="240" height="10" fill="#1C1D1F"/>`
+  return `<svg viewBox="0 0 240 160" aria-hidden="true">${s}</svg>`
+}
+;['hvuL', 'hvuR', 'dvuL', 'dvuR'].forEach((id) => { $('#' + id).innerHTML = vuSVG(id.endsWith('L') ? 'L' : 'R') })
+const needle = (id) => $(`#${id} .ndl`)
+const setNeedle = (el, db) => { el.style.transform = `rotate(${vuAng(db).toFixed(2)}deg)` }
+
+/* hero: idle meters dance while visible */
+const hN = [needle('hvuL'), needle('hvuR')], hK = ['#hk1', '#hk2', '#hk3', '#hk4'].map((s) => $(s))
+const hState = [-20, -20]
+let heroOn = true, heroWarm = anim ? 0 : 1
+hK.forEach((k, i) => { k.style.transform = `rotate(${[-40, 20, -10, 60][i]}deg)` })
+function heroTick(t) {
+  const T = t / 1000
+  for (let c = 0; c < 2; c++) {
+    const target = -20 + heroWarm * (14 + 3 * Math.sin(T * 2.3 + c) + 2.2 * Math.sin(T * 5.7 + c * 2) + (Math.sin(T * 1.9) > .7 ? 2.5 : 0))
+    hState[c] = lerp(hState[c], target, .12)
+    setNeedle(hN[c], hState[c])
+  }
+}
+if (reduce) { hN.forEach((n) => setNeedle(n, -6)); $('#heroLamp').classList.add('on') }
+else {
+  const loop = (t) => { if (heroOn) heroTick(t); requestAnimationFrame(loop) }
+  requestAnimationFrame(loop)
+  new IntersectionObserver(([e]) => { heroOn = e.isIntersecting }).observe($('.hero'))
+}
+
+/* ================= pinned chain ================= */
+const MODS = [['EQ', ['TRẦM', 'CAO'], '+1.8 dB @ 90 Hz'], ['NÉN', ['NGƯỠNG', 'TỶ LỆ'], '2:1 · 2 dB GR'], ['BÃO HÒA', ['ĐỘ DÀY', 'HÒA TRỘN'], 'băng từ · 30%'], ['GIỚI HẠN', ['TRẦN', 'BÙ ÂM'], '−1.0 dBTP']]
+$('#rack').innerHTML = MODS.map(([n, ks, s]) => `<div class="mod"><p class="hd"><span>${n}</span><b></b></p><div class="ks">${ks.map(() => `<div class="knob k"><i></i></div>`).join('')}</div><small>${s}</small></div>`).join('')
+const mods = $$('.mod'), modKnobs = mods.map((m) => $$('.k i', m))
+let ws = 23; const wr = () => { ws = (ws * 16807) % 2147483647; return ws / 2147483647 }
+const N = 150
+const BEF = Array.from({ length: N }, (_, i) => { const sec = i / N; const env = sec < .12 ? .25 : sec < .35 ? .45 : sec < .5 ? .3 : sec < .8 ? .55 : .4; return clamp(env * (.35 + wr() * .9) + (wr() > .93 ? .35 : 0), .03, .98) })
+const AFT = BEF.map((b, i) => clamp(.62 + b * .42 - (i % 7 === 0 ? .04 : 0), .1, .93))
+const waveEl = $('#wave')
+function waveAt(p) {
+  const k = clamp(p * 1.15)
+  let d = ''
+  for (let i = 0; i < N; i++) { const h = lerp(BEF[i], AFT[i], k) * 92, x = (i + .5) * 600 / N; d += `M${x.toFixed(1)} ${(100 - h).toFixed(1)}V${(100 + h).toFixed(1)}` }
+  waveEl.innerHTML = `<line x1="0" x2="600" y1="8" y2="8" stroke="rgba(216,67,46,.5)" stroke-dasharray="4 6"/><line x1="0" x2="600" y1="192" y2="192" stroke="rgba(216,67,46,.5)" stroke-dasharray="4 6"/><path d="${d}" stroke="#FFB238" stroke-width="2.2" stroke-linecap="round" opacity=".9"/><line x1="0" x2="600" y1="100" y2="100" stroke="rgba(241,228,192,.2)"/>`
+  mods.forEach((m, i) => {
+    const local = clamp(p * 4 - i)
+    modKnobs[i].forEach((kn, j) => { kn.style.transform = `rotate(${(-135 + local * (150 + j * 60)).toFixed(1)}deg)` })
+    m.classList.toggle('done', p * 4 > i + 1)
+  })
+}
+function setMod(i) { mods.forEach((m, k) => m.classList.toggle('on', k === i)); $('#stageN').textContent = i + 1 }
+
+/* ================= the desk (signature) ================= */
+const GENRES = {
+  lofi: { n: 'Lo-fi', bpm: 78, swing: .18, k: '1000000000100000', s: '0000100000001000', h: 'x0x0x0x0x0x0x0x0', b: [0, null, null, null, null, null, null, 7, 0, null, null, null, 5, null, null, null], bw: 'sine', pw: 'triangle', chords: [[53, [0, 4, 7, 11]], [52, [0, 3, 7, 10]], [50, [0, 3, 7, 10]], [48, [0, 4, 7, 11]]], eq: { low: [100, 2.0], mid: [320, -1.5], high: [9000, -1.0] }, ratio: 2, drive: .4, dull: 4200, lines: ['tiếng trống kick bị khuất sau tiếng phím đàn', 'âm phòng bị ồm quanh tiếng snare', 'giữ dải cao dịu nhẹ để tiếng xì băng từ ấm áp'] },
+  house: { n: 'House', bpm: 124, swing: 0, k: '1000100010001000', s: '0000100000001000', h: '00x000x000x000x0', b: [null, null, 0, null, null, null, 0, null, null, null, 0, null, null, 7, 0, null], bw: 'sawtooth', pw: 'sawtooth', chords: [[45, [0, 3, 7]], [41, [0, 4, 7]], [48, [0, 4, 7]], [43, [0, 4, 7]]], eq: { low: [60, 1.2], mid: [300, -2.0], high: [10000, 2.0] }, ratio: 3, drive: .2, dull: 6000, lines: ['dải trầm sâu cần thêm sức nặng cho hệ thống loa lớn', 'hợp âm synth bị đục ở vùng giao thoa với bass', 'mở rộng dải cao để tiếng hi-hat lấp lánh'] },
+  indie: { n: 'Indie rock', bpm: 132, swing: 0, k: '1000000010100000', s: '0000100000001000', h: 'x0x0x0x0x0x0x0x0', b: [0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null, 0, null], bw: 'square', pw: 'sawtooth', chords: [[43, [0, 4, 7]], [50, [0, 4, 7]], [52, [0, 3, 7]], [48, [0, 4, 7]]], eq: { low: [80, 1.0], mid: [3000, 1.5], high: [11000, .8] }, ratio: 2.5, drive: .5, dull: 5000, lines: ['dải trầm hơi mỏng khi đặt cạnh tiếng guitar', 'dải tần giọng hát bị chìm nên được nâng độ hiện diện', 'thêm chút sáng cho tiếng chũm chọe mà không gây chói'] },
+  hiphop: { n: 'Hip-hop', bpm: 90, swing: .12, k: '1000000100100000', s: '0000100000001000', h: 'xxxxxxxxxxxxxxxx', b: [0, null, null, null, null, null, null, 0, null, null, 3, null, null, null, null, null], bw: 'sine', pw: 'triangle', chords: [[48, [0, 3, 7, 10]], [44, [0, 4, 7]], [51, [0, 4, 7]], [46, [0, 4, 7]]], eq: { low: [60, 3.0], mid: [450, -1.2], high: [12000, 1.5] }, ratio: 3, drive: .35, dull: 4800, lines: ['tiếng bass 808 cần lực đập rõ trên cả loa điện thoại', 'dọn khoảng trống ở dải trung trầm cho giọng rap', 'làm sắc nét tiếng hi-hat mà không bị xé âm'] },
+  ambient: { n: 'Ambient', bpm: 70, swing: 0, k: '0000000000000000', s: '0000000000000000', h: '0000000000000000', b: [0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null], bw: 'sine', pw: 'triangle', chords: [[50, [0, 7, 14, 16]], [46, [0, 7, 14, 16]], [48, [0, 7, 14, 17]], [43, [0, 7, 14, 16]]], eq: { low: [120, .5], mid: [700, -1.0], high: [10000, 2.5] }, ratio: 1.5, drive: .1, dull: 3800, lines: ['dải trầm vốn đã êm dịu, chỉ chạm rất nhẹ', 'hạ nhẹ vùng tần số nơi các lớp pad chồng lên nhau', 'mở thoáng không gian để đuôi reverb ngân tự nhiên'] },
+}
+const TARGETS = [{ n: 'Nhạc số', db: -14 }, { n: 'Sôi động', db: -11 }, { n: 'Câu lạc bộ', db: -9 }]
+let genre = 'lofi', target = TARGETS[0], abAfter = true, matchLv = false
+$('#genreSel').innerHTML = Object.entries(GENRES).map(([k, g]) => `<button type="button" aria-pressed="${k === genre}" data-g="${k}">${g.n}</button>`).join('')
+$('#targetSel').innerHTML = TARGETS.map((t, i) => `<button type="button" aria-pressed="${i === 0}" data-t="${i}">${t.n} ${t.db}</button>`).join('')
+const fmtDb = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)} dB`
+function notes() {
+  const g = GENRES[genre]
+  const L = [
+    [`Dải trầm <em>${fmtDb(g.eq.low[1])}</em> shelf tại ${g.eq.low[0]} Hz: ${g.lines[0]}.`],
+    [`Dải trung <em>${fmtDb(g.eq.mid[1])}</em> quanh ${g.eq.mid[0] >= 1000 ? g.eq.mid[0] / 1000 + ' kHz' : g.eq.mid[0] + ' Hz'}: ${g.lines[1]}.`],
+    [`Dải cao <em>${fmtDb(g.eq.high[1])}</em> trên ${g.eq.high[0] / 1000} kHz: ${g.lines[2]}.`],
+    [`Nén gắn kết tỷ lệ <em>${g.ratio}:1</em>, attack chậm để nhịp điệu giữ nguyên lực đập.`],
+    [`Độ bão hòa <em>${Math.round(g.drive * 100)}%</em> tạo ${g.drive > .3 ? 'hơi ấm rõ rệt' : 'chút sắc màu tinh tế'}.`],
+    [`Trần giới hạn <em>−1.0 dBTP</em>, tự động đẩy gain hướng tới <em>${target.db} LUFS</em> cho chuẩn ${target.n.toLowerCase()}.`],
+  ]
+  $('#notes').innerHTML = L.map((l, i) => `<li><b>0${i + 1}</b><span>${l[0]}</span></li>`).join('')
+  if (anim) G.fromTo('#notes li', { autoAlpha: 0, x: 12 }, { autoAlpha: 1, x: 0, duration: .45, stagger: .07, ease: 'power3.out' })
+}
+notes()
+
+let A = null, playing = false, step = 0, nextT = 0, timer = null
+function buildAudio() {
+  const C = window.AudioContext || window.webkitAudioContext
+  if (!C) return null
+  const ctx = new C()
+  const g = (v = 1) => { const n = ctx.createGain(); n.gain.value = v; return n }
+  const f = (type, fr, q = .7, gain = 0) => { const n = ctx.createBiquadFilter(); n.type = type; n.frequency.value = fr; n.Q.value = q; n.gain.value = gain; return n }
+  const len = ctx.sampleRate, nb = ctx.createBuffer(1, len, ctx.sampleRate), nd = nb.getChannelData(0)
+  for (let i = 0; i < len; i++) nd[i] = Math.random() * 2 - 1
+  const mix = g(.55)
+  // before: a little duller and quieter, like an unmastered bounce
+  const dull = f('lowpass', 5000), before = g(0)
+  mix.connect(dull); dull.connect(before)
+  // after: EQ > glue > saturation > makeup > limiter
+  const low = f('lowshelf', 100, .7, 0), mid = f('peaking', 320, 1, 0), high = f('highshelf', 9000, .7, 0)
+  const glue = ctx.createDynamicsCompressor(); glue.threshold.value = -20; glue.knee.value = 8; glue.attack.value = .03; glue.release.value = .25
+  const shaper = ctx.createWaveShaper(); shaper.oversample = '2x'
+  const makeup = g(1), limit = ctx.createDynamicsCompressor(); limit.threshold.value = -3; limit.knee.value = 0; limit.ratio.value = 20; limit.attack.value = .002; limit.release.value = .06
+  const trim = g(.89), after = g(1)
+  mix.connect(low); low.connect(mid); mid.connect(high); high.connect(glue); glue.connect(shaper); shaper.connect(makeup); makeup.connect(limit); limit.connect(trim); trim.connect(after)
+  const afterTap = ctx.createAnalyser(); afterTap.fftSize = 2048; limit.connect(afterTap)
+  const beforeTap = ctx.createAnalyser(); beforeTap.fftSize = 2048; dull.connect(beforeTap)
+  const out = g(1); before.connect(out); after.connect(out)
+  const split = ctx.createChannelSplitter(2), aL = ctx.createAnalyser(), aR = ctx.createAnalyser(), aF = ctx.createAnalyser()
+  aL.fftSize = aR.fftSize = 2048; aF.fftSize = 4096; aF.smoothingTimeConstant = .82
+  out.connect(split); split.connect(aL, 0); split.connect(aR, 1); out.connect(aF)
+  const vol = g(.6); out.connect(vol); vol.connect(ctx.destination)
+  return { ctx, g, f, nb, mix, dull, before, after, low, mid, high, glue, shaper, makeup, limit, trim, afterTap, beforeTap, aL, aR, aF, makeupDb: -8, msA: 0, msB: 0, matchK: 1 }
+}
+function curve(drive) {
+  const n = 1024, c = new Float32Array(n), k = 1 + drive * 6
+  // unity gain for quiet signals, so drive adds harmonics rather than level
+  for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * x) / k }
+  return c
+}
+function applyGenre() {
+  if (!A) return
+  const g = GENRES[genre], t = A.ctx.currentTime
+  A.low.frequency.setTargetAtTime(g.eq.low[0], t, .05); A.low.gain.setTargetAtTime(g.eq.low[1], t, .05)
+  A.mid.frequency.setTargetAtTime(g.eq.mid[0], t, .05); A.mid.gain.setTargetAtTime(g.eq.mid[1], t, .05)
+  A.high.frequency.setTargetAtTime(g.eq.high[0], t, .05); A.high.gain.setTargetAtTime(g.eq.high[1], t, .05)
+  A.glue.ratio.setTargetAtTime(g.ratio, t, .05)
+  A.shaper.curve = curve(g.drive)
+  A.dull.frequency.setTargetAtTime(g.dull, t, .05)
+}
+const BEFORE_LV = 1.6
+function applyAB() {
+  if (!A) return
+  const t = A.ctx.currentTime
+  A.before.gain.setTargetAtTime(abAfter ? 0 : BEFORE_LV, t, .03)
+  A.after.gain.setTargetAtTime(abAfter ? (matchLv ? A.matchK : 1) : 0, t, .03)
+}
+const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12)
+function voice(type, freq, t, dur, amp, dest, pan = 0, cutoff = 2400) {
+  const o = A.ctx.createOscillator(); o.type = type; o.frequency.value = freq
+  const lp = A.f('lowpass', cutoff, .8), e = A.ctx.createGain(), p = A.ctx.createStereoPanner(); p.pan.value = pan
+  e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(amp, t + Math.min(.08, dur * .3)); e.gain.setTargetAtTime(0, t + dur * .75, dur * .2)
+  o.connect(lp); lp.connect(e); e.connect(p); p.connect(dest); o.start(t); o.stop(t + dur + .6)
+}
+function noiseHit(t, type, fr, q, dur, amp, pan = 0) {
+  const s = A.ctx.createBufferSource(); s.buffer = A.nb
+  const fl = A.f(type, fr, q), e = A.ctx.createGain(), p = A.ctx.createStereoPanner(); p.pan.value = pan
+  e.gain.setValueAtTime(amp, t); e.gain.exponentialRampToValueAtTime(.001, t + dur)
+  s.connect(fl); fl.connect(e); e.connect(p); p.connect(A.mix); s.start(t, Math.random() * .5, dur + .05)
+}
+function kick(t) {
+  const o = A.ctx.createOscillator(), e = A.ctx.createGain()
+  o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(44, t + .13)
+  e.gain.setValueAtTime(1, t); e.gain.exponentialRampToValueAtTime(.001, t + .45)
+  o.connect(e); e.connect(A.mix); o.start(t); o.stop(t + .5)
+}
+function playStep(s, t) {
+  const g = GENRES[genre], i = s % 16, bar = Math.floor(s / 16) % 4, spb = 60 / g.bpm / 4
+  const [root, iv] = g.chords[bar]
+  if (g.k[i] === '1') kick(t)
+  if (g.s[i] === '1') { noiseHit(t, 'bandpass', genre === 'house' ? 1300 : 1900, .9, .2, .55); voice('triangle', 190, t, .07, .25, A.mix, 0, 4000) }
+  if (g.h[i] === 'x') noiseHit(t, 'highpass', 7500, .7, i % 4 === 2 && genre === 'house' ? .22 : .045, genre === 'hiphop' && i % 2 ? .12 : .22, .25)
+  if (g.b[i] !== null && g.b[i] !== undefined) voice(g.bw, mtof(root - 12 + g.b[i]), t, genre === 'hiphop' ? spb * 6 : genre === 'ambient' ? spb * 14 : spb * 1.8, genre === 'ambient' ? .22 : .32, A.mix, 0, genre === 'indie' ? 900 : 600)
+  if (i === 0) iv.forEach((n, k) => { const dur = genre === 'house' ? spb * 2 : spb * 15; voice(g.pw, mtof(root + 12 + n) * (1 + (k % 2 ? .002 : -.002)), t, dur, genre === 'ambient' ? .1 : .075, A.mix, k % 2 ? .35 : -.35, genre === 'ambient' ? 1600 : 2600) })
+  if (genre === 'house' && (i === 6 || i === 10)) iv.forEach((n, k) => voice(g.pw, mtof(root + 12 + n), t, spb * 1.5, .06, A.mix, k % 2 ? .3 : -.3, 2400))
+}
+function schedule() {
+  const g = GENRES[genre], spb = 60 / g.bpm / 4
+  while (nextT < A.ctx.currentTime + .12) {
+    const sw = step % 2 ? g.swing * spb : 0
+    playStep(step, nextT + sw)
+    nextT += spb; step = (step + 1) % 64
+  }
+}
+const playBtn = $('#playBtn')
+function play() {
+  if (!A) { try { A = buildAudio() } catch (e) { A = null } }
+  if (!A) { $('#noteSt').textContent = 'Trình duyệt này không hỗ trợ âm thanh, nhưng ghi chú và thông số vẫn hiển thị cách Cadence xử lý.'; return }
+  A.ctx.resume(); applyGenre(); applyAB()
+  step = 0; nextT = A.ctx.currentTime + .06
+  clearInterval(timer); timer = setInterval(schedule, 25); schedule()
+  playing = true; playBtn.setAttribute('aria-pressed', 'true'); playBtn.setAttribute('aria-label', 'Dừng đoạn nhạc lặp')
+  $$('#desk .vu').forEach((v) => v.classList.remove('off'))
+  $('#noteSt').textContent = `Đang phát ${GENRES[genre].n}. Bạn đang nghe bản ${abAfter ? 'Sau' : 'Trước'}.`
+  $('#deskLive').textContent = $('#noteSt').textContent
+  if (!meterRaf) meterRaf = requestAnimationFrame(meterLoop)
+}
+function stop() {
+  playing = false; clearInterval(timer)
+  playBtn.setAttribute('aria-pressed', 'false'); playBtn.setAttribute('aria-label', 'Phát đoạn nhạc lặp')
+  if (A) { const c = A.ctx; setTimeout(() => { if (!playing) c.suspend() }, 400) }
+  $$('#desk .vu').forEach((v) => v.classList.add('off'))
+  $('#noteSt').textContent = 'Đã dừng. Nhấn nút phát để nghe lại.'
+}
+playBtn.addEventListener('click', () => (playing ? stop() : play()))
+$('#genreSel').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  genre = b.dataset.g; $$('#genreSel button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  applyGenre(); notes(); drawIdle()
+  if (playing) { step = 0; $('#noteSt').textContent = `Đang phát ${GENRES[genre].n}. Bạn đang nghe bản ${abAfter ? 'Sau' : 'Trước'}.` }
+  $('#deskLive').textContent = `Đã chọn ${GENRES[genre].n}.`
+})
+$('#targetSel').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  target = TARGETS[+b.dataset.t]; $$('#targetSel button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  notes(); $('#deskLive').textContent = `Mục tiêu ${target.n}, ${target.db} LUFS.`
+})
+$('.ab').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  abAfter = b.dataset.ab === '1'; $$('.ab button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  applyAB()
+  if (playing) $('#noteSt').textContent = `Đang phát ${GENRES[genre].n}. Bạn đang nghe bản ${abAfter ? 'Sau' : 'Trước'}.`
+  $('#deskLive').textContent = abAfter ? 'Sau, đã master.' : 'Trước, bản phối thô.'
+})
+$('#matchChk').addEventListener('change', (e) => { matchLv = e.target.checked; applyAB() })
+
+/* meters + spectrum */
+const sc = $('#spec'), sx = sc.getContext('2d')
+let SW = 0, SH = 0
+function sizeSpec() { const r = sc.getBoundingClientRect(); SW = r.width; SH = r.height; sc.width = SW * DPR; sc.height = SH * DPR; drawIdle() }
+const fx = (hz) => Math.log10(hz / 20) / 3 * SW
+function eqCurve(hz) {
+  const g = GENRES[genre]
+  const shelf = (f0, gain, low) => gain / (1 + Math.pow(low ? hz / f0 : f0 / hz, 2))
+  const peak = (f0, gain) => gain * Math.exp(-Math.pow(Math.log2(hz / f0), 2) * 2)
+  return shelf(g.eq.low[0], g.eq.low[1], true) + peak(g.eq.mid[0], g.eq.mid[1]) + shelf(g.eq.high[0], g.eq.high[1], false)
+}
+function grid() {
+  sx.setTransform(DPR, 0, 0, DPR, 0, 0); sx.clearRect(0, 0, SW, SH)
+  sx.strokeStyle = 'rgba(241,228,192,.08)'; sx.lineWidth = 1; sx.fillStyle = 'rgba(201,195,179,.7)'; sx.font = '10px "JetBrains Mono", monospace'
+  ;[50, 100, 200, 500, 1000, 2000, 5000, 10000].forEach((hz) => { const x = fx(hz); sx.beginPath(); sx.moveTo(x, 26); sx.lineTo(x, SH); sx.stroke(); sx.fillText(hz >= 1000 ? hz / 1000 + 'k' : hz, x + 3, SH - 6) })
+}
+function drawEq() {
+  sx.strokeStyle = 'rgba(241,228,192,.7)'; sx.setLineDash([5, 5]); sx.lineWidth = 1.5; sx.beginPath()
+  for (let x = 0; x <= SW; x += 4) { const hz = 20 * Math.pow(10, x / SW * 3), y = SH * .5 - eqCurve(hz) * 9; x ? sx.lineTo(x, y) : sx.moveTo(x, y) }
+  sx.stroke(); sx.setLineDash([])
+}
+function drawIdle() {
+  if (!SW) return
+  grid()
+  sx.fillStyle = 'rgba(255,178,56,.18)'; sx.beginPath(); sx.moveTo(0, SH)
+  for (let x = 0; x <= SW; x += 4) { const hz = 20 * Math.pow(10, x / SW * 3), y = SH * .32 + (x / SW) * SH * .4 - eqCurve(hz) * 6 + Math.sin(x * .09) * 3; sx.lineTo(x, y) }
+  sx.lineTo(SW, SH); sx.closePath(); sx.fill()
+  drawEq(); $('#specTag').textContent = playing ? (abAfter ? 'SAU' : 'TRƯỚC') : 'CHỜ · ĐƯỜNG CONG EQ'
+}
+let meterRaf = 0, vu = [-20, -20], ms = 0, peakHold = -60, buf = null, fbuf = null, specOn = true
+const dN = [needle('dvuL'), needle('dvuR')]
+function meterLoop() {
+  meterRaf = requestAnimationFrame(meterLoop)
+  if (!A) return
+  if (!buf) { buf = new Float32Array(A.aL.fftSize); fbuf = new Uint8Array(A.aF.frequencyBinCount) }
+  let peak = 0
+  ;[A.aL, A.aR].forEach((an, c) => {
+    an.getFloatTimeDomainData(buf)
+    let s = 0; for (let i = 0; i < buf.length; i++) { s += buf[i] * buf[i]; peak = Math.max(peak, Math.abs(buf[i])) }
+    // 0 VU = -11 dBFS RMS: streaming masters sit just under 0, club masters kiss the red
+    const rms = Math.sqrt(s / buf.length), db = playing ? 20 * Math.log10(rms + 1e-6) + 11 : -20
+    vu[c] = lerp(vu[c], clamp(db, -20, 3.5), .07); setNeedle(dN[c], vu[c])
+    if (c === 0) ms = lerp(ms, rms * rms, .02)
+  })
+  // loudness auto-ride on the mastered path: nudge makeup gain toward the target
+  const msOf = (an, k) => { an.getFloatTimeDomainData(buf); let q = 0; for (let i = 0; i < buf.length; i++) q += buf[i] * buf[i]; return q / buf.length * k * k }
+  if (playing) {
+    A.msA = lerp(A.msA, msOf(A.afterTap, .89), .03); A.msB = lerp(A.msB, msOf(A.beforeTap, BEFORE_LV), .03)
+    const LA = 10 * Math.log10(A.msA + 1e-9) - .7, LB = 10 * Math.log10(A.msB + 1e-9) - .7
+    // the 'engineer' rides the makeup gain until the mastered path sits on the loudness target
+    if (A.msA > 1e-7) { A.makeupDb = clamp(A.makeupDb + (target.db - LA) * .015, -30, 20); A.makeup.gain.setTargetAtTime(Math.pow(10, A.makeupDb / 20), A.ctx.currentTime, .1) }
+    if (A.msA > 1e-7 && A.msB > 1e-7) { A.matchK = clamp(Math.pow(10, (LB - LA) / 20), .05, 2); if (matchLv && abAfter) A.after.gain.setTargetAtTime(A.matchK, A.ctx.currentTime, .1) }
+  }
+  $('#lufsR').textContent = playing ? (10 * Math.log10(ms + 1e-9) - .7).toFixed(1) : '--.-'
+  peakHold = Math.max(20 * Math.log10(peak + 1e-6), peakHold - .15)
+  $('#peakR').textContent = playing ? peakHold.toFixed(1) : '--.-'
+  $('#grR').textContent = playing && abAfter ? Math.abs(A.glue.reduction).toFixed(1) : '0.0'
+  if (!playing) { if (vu[0] < -19.5 && vu[1] < -19.5) { cancelAnimationFrame(meterRaf); meterRaf = 0; drawIdle() } return }
+  if (!specOn) return
+  A.aF.getByteFrequencyData(fbuf)
+  grid()
+  const bins = fbuf.length, ny = A.ctx.sampleRate / 2
+  const grad = sx.createLinearGradient(0, SH, 0, 0); grad.addColorStop(0, 'rgba(255,143,31,.95)'); grad.addColorStop(1, 'rgba(255,214,134,.95)')
+  sx.fillStyle = grad
+  const bw = 6
+  for (let x = 0; x < SW; x += bw) {
+    const hz0 = 20 * Math.pow(10, x / SW * 3), hz1 = 20 * Math.pow(10, (x + bw) / SW * 3)
+    const i0 = Math.floor(hz0 / ny * bins), i1 = Math.max(i0 + 1, Math.floor(hz1 / ny * bins))
+    let m = 0; for (let i = i0; i < i1 && i < bins; i++) m = Math.max(m, fbuf[i])
+    const h = (m / 255) * (SH - 30)
+    sx.fillRect(x + 1, SH - h, bw - 2, h)
+  }
+  drawEq(); $('#specTag').textContent = abAfter ? 'SAU' : 'TRƯỚC'
+}
+new IntersectionObserver(([e]) => { specOn = e.isIntersecting }).observe(sc)
+if (window.ResizeObserver) new ResizeObserver(sizeSpec).observe(sc); else addEventListener('resize', sizeSpec)
+sizeSpec()
+dN.forEach((n) => setNeedle(n, -20))
+
+/* ================= patch bay ================= */
+const JACKS = ['VÀO L', 'VÀO R', 'THAM CHIẾU', 'STEMS', 'GHI CHÚ', 'WAV', 'MP3', 'BÁO CÁO']
+const FEATS = [
+  { h: 'Khớp bản tham chiếu', p: 'Thả vào một bài nhạc bạn yêu thích chất âm. Cadence sẽ khớp cân bằng âm sắc và độ lớn, hoàn toàn không sao chép giai điệu.', j: 2, c: '#FFB238', st: 'Đã cắm REF' },
+  { h: 'Xử lý theo Stem', p: 'Tải lên từng rãnh trống, bass và nhạc cụ riêng biệt để Cadence xử lý triệt để các vấn đề cân bằng mà file stereo không thể chạm tới.', j: 3, c: '#D8432E', st: 'Đã cắm STEMS' },
+  { h: 'Sẵn sàng phát hành', p: 'Xuất file WAV 24-bit, MP3 và báo cáo độ lớn âm thanh kèm chỉ số LUFS và đỉnh thực, đặt tên chuẩn theo yêu cầu của nhà phân phối.', j: 5, c: '#7FB4C9', st: 'Xuất WAV + MP3' },
+  { h: 'Kỹ sư tinh chỉnh', p: 'Chưa hoàn toàn ưng ý? Hãy gửi ghi chú của bạn và kỹ sư âm thanh thực thụ sẽ tinh chỉnh lại bản master trong vòng hai ngày làm việc.', j: 4, c: '#C9C3B3', st: 'Đã cắm GHI CHÚ' },
+]
+$('#jacks').innerHTML = JACKS.map((j) => `<div class="jack"><i></i>${j}</div>`).join('')
+$('#feats').innerHTML = FEATS.map((f, i) => `<article class="feat reveal" tabindex="0" data-i="${i}"><span class="sock" aria-hidden="true"></span><h3>${f.h}</h3><p>${f.p}</p><p class="lamp" aria-hidden="true"><b></b>${f.st}</p></article>`).join('')
+const bayBox = $('#bayBox'), cables = $('#cables')
+function drawCables() {
+  if (getComputedStyle(cables).display === 'none') return
+  const B = bayBox.getBoundingClientRect(), jk = $$('#jacks .jack i'), sk = $$('#feats .sock')
+  cables.setAttribute('viewBox', `0 0 ${B.width} ${B.height}`)
+  cables.innerHTML = FEATS.map((f, i) => {
+    const a = jk[f.j].getBoundingClientRect(), b = sk[i].getBoundingClientRect()
+    const x1 = a.left + a.width / 2 - B.left, y1 = a.top + a.height / 2 - B.top, x2 = b.left + b.width / 2 - B.left, y2 = b.top + b.height / 2 - B.top
+    const sag = 70 + Math.abs(x2 - x1) * .12
+    return `<path data-i="${i}" d="M${x1.toFixed(1)} ${y1.toFixed(1)}C${x1.toFixed(1)} ${(y1 + sag).toFixed(1)} ${x2.toFixed(1)} ${(y2 - sag * .6).toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${f.c}"/>`
+  }).join('')
+}
+const hot = (i, on) => { const p = $(`#cables path[data-i="${i}"]`); if (p) p.classList.toggle('hot', on); $$('.feat')[i].querySelector('.lamp').classList.toggle('on', on) }
+$$('.feat').forEach((el, i) => { ['pointerenter', 'focus'].forEach((ev) => el.addEventListener(ev, () => hot(i, true))); ['pointerleave', 'blur'].forEach((ev) => el.addEventListener(ev, () => hot(i, false))) })
+if (window.ResizeObserver) new ResizeObserver(drawCables).observe(bayBox)
+addEventListener('load', drawCables)
+
+/* ================= pricing fader ================= */
+const PLANS = [
+  { k: 'single', h: 'Theo bài', m: 6, per: 'mỗi bản master', li: ['Một bản master, hai lần chỉnh sửa', 'File WAV, MP3 và báo cáo độ lớn', 'Khớp âm bản tham chiếu'], cost: (n) => 6 * n },
+  { k: 'unlim', h: 'Không giới hạn', m: 18, per: 'mỗi tháng', li: ['Master không giới hạn số bài', 'Mastering tách rãnh Stem', 'Chế độ Album: đồng nhất chất âm cả đĩa'], cost: () => 18 },
+  { k: 'label', h: 'Hãng đĩa', m: 52, per: 'mỗi tháng, 5 tài khoản', li: ['Mọi quyền lợi gói Không giới hạn', 'Năm ghế thành viên và thư viện chung', 'Một lần kỹ sư tinh chỉnh mỗi đợt phát hành'], cost: () => 52 },
+]
+$('#plans').innerHTML = PLANS.map((p) => `<article class="plan" data-k="${p.k}"><span class="tag">TỐI ƯU CHO BẠN</span><h3>${p.h}</h3><p class="amt">£${p.m}<small>${p.per}</small></p><p class="calc" id="calc-${p.k}"></p><ul>${p.li.map((l) => `<li>${l}</li>`).join('')}</ul><a class="btn" href="#desk"><i aria-hidden="true"></i>Chọn gói ${p.h}</a></article>`).join('')
+function fader() {
+  const n = +$('#tracks').value
+  $('#tracksOut').textContent = `${n} bài`
+  const costs = PLANS.map((p) => p.cost(n))
+  let best = costs.indexOf(Math.min(...costs))
+  if (n >= 25) best = 2
+  PLANS.forEach((p, i) => {
+    $(`#calc-${p.k}`).innerHTML = `${n} bài → <b>£${costs[i]}</b> / tháng · <b>£${(costs[i] / n).toFixed(2)}</b> mỗi bài`
+    $(`.plan[data-k="${p.k}"]`).classList.toggle('best', i === best)
+  })
+}
+$('#tracks').addEventListener('input', fader); fader()
+
+/* ================= faq ================= */
+const FAQ = [
+  ['Chất lượng có giống như kỹ sư con người thực hiện không?', 'Thường là rất sát, nhưng đôi khi mỗi bài có cá tính riêng. Cadence cực kỳ xuất sắc ở khâu cân bằng dải tần, kiểm soát âm lượng và trung thực với gu thẩm âm. Nếu bản nhạc cần đôi tai con người, tùy chọn tinh chỉnh sẽ chuyển thẳng đến kỹ sư phòng thu.'],
+  ['Các bạn có dùng nhạc của tôi để huấn luyện AI không?', 'Tuyệt đối không. File tải lên chỉ dùng để master bản nhạc của bạn và tự động xóa sau 30 ngày trừ khi bạn chọn lưu vào thư viện cá nhân.'],
+  ['Chỉ số LUFS nghĩa là gì?', 'Loudness Units relative to Full Scale: đơn vị đo độ lớn âm thanh cảm nhận được theo thời gian. Các nền tảng phát nhạc trực tuyến thường chuẩn hóa âm lượng về khoảng −14 LUFS, trong khi hệ thống âm thanh câu lạc bộ chuộng mức âm lượng mạnh mẽ hơn.'],
+  ['Tôi có thể tải lên những định dạng file nào?', 'WAV hoặc AIFF ở mọi tần số lấy mẫu, lên tới 24-bit. Hãy chừa lại vài decibel khoảng trống âm lượng (headroom) trên bản phối và tắt mọi bộ giới hạn (limiter) trên kênh master của bạn.'],
+  ['Tôi có thể yêu cầu chỉnh sửa lại không?', 'Có. Mỗi bản master đều kèm hai lần chỉnh sửa: ấm hơn, sáng hơn, to hơn hoặc êm hơn bằng ngôn ngữ tự nhiên. Gói Không giới hạn cho phép bạn tinh chỉnh bao nhiêu lần tùy thích.'],
+]
+$('#qas').innerHTML = FAQ.map(([q, a], i) => `<div class="qa"><button type="button" aria-expanded="false" aria-controls="ans${i}" id="q${i}">${q}<i aria-hidden="true"></i></button><div class="ans" id="ans${i}" role="region" aria-labelledby="q${i}"><div><p>${a}</p></div></div></div>`).join('')
+$('#qas').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  const qa = b.parentElement, open = !qa.classList.contains('open')
+  qa.classList.toggle('open', open); b.setAttribute('aria-expanded', open)
+  setTimeout(() => window.ScrollTrigger && ScrollTrigger.refresh(), 500)
+})
+
+/* ================= nav, menu, lenis ================= */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .1 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t, { offset: 0 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .2}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .3}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+if (!anim) { waveAt(1); setMod(3); return }
+
+/* ================= motion ================= */
+// hero: lamps warm up, the needles wake and swing, the engraving fades in
+G.set('.hero h1 .mask>span', { yPercent: 110 })
+G.set('.hf', { autoAlpha: 0, y: 16 })
+G.set('.face', { y: 40, autoAlpha: 0, rotationX: 12, transformPerspective: 1200 })
+G.set(hK, { rotation: -135 })
+const warm = { v: 0 }
+G.timeline({ delay: .1 })
+  .to('.face', { y: 0, autoAlpha: 1, rotationX: 0, duration: 1.1, ease: 'expo.out' }, 0)
+  .to('.hero h1 .mask>span', { yPercent: 0, duration: 1, stagger: .12, ease: 'expo.out' }, .15)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .8, stagger: .08, ease: 'power3.out' }, .4)
+  .add(() => $('#heroLamp').classList.add('on'), .7)
+  .to('#heroLamp b', { opacity: .3, duration: .06, repeat: 3, yoyo: true }, .7)
+  .to(hK, { rotation: (i) => [-40, 20, -10, 60][i], duration: 1.2, stagger: .08, ease: 'elastic.out(1,.6)' }, .6)
+  .to(warm, { v: 1, duration: 1.2, ease: 'power2.out', onUpdate: () => { heroWarm = warm.v } }, .8)
+if (matchMedia('(hover:hover)').matches) {
+  $('.hero').addEventListener('pointermove', (e) => { const dx = e.clientX / innerWidth - .5; hK.forEach((k, i) => G.to(k, { rotation: [-40, 20, -10, 60][i] + dx * 80 * (i % 2 ? -1 : 1), duration: .8, ease: 'power3.out', overwrite: 'auto' })) })
+}
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const ls = h.querySelectorAll('.mask>span'); G.set(ls, { yPercent: 110 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(ls, { yPercent: 0, duration: 1, stagger: .1, ease: 'expo.out' }) })
+})
+G.set('.reveal', { autoAlpha: 0, y: 30 })
+ScrollTrigger.batch('.reveal', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: .9, stagger: .08, ease: 'expo.out', clearProps: 'transform', onComplete: drawCables }) })
+
+// pinned chain: waveform and knobs scrub, the active module and copy change on the clock
+const steps = $$('.cstep')
+let cur = -1, tw = []
+function setStep(i) {
+  if (i === cur) return
+  const prev = cur; cur = i
+  setMod(i)
+  tw.forEach((t) => t.kill()); tw = []
+  steps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) tw.push(G.to(steps[prev], { autoAlpha: 0, y: -12, duration: .25, ease: 'power2.in' }))
+  tw.push(G.fromTo(steps[i], { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: .6, delay: prev >= 0 ? .15 : 0, ease: 'power3.out' }))
+}
+G.set(steps, { autoAlpha: 0 })
+waveAt(0); setStep(0)
+ScrollTrigger.create({
+  trigger: '.chain', start: 'top top', end: '+=260%', pin: '#chainPin', scrub: true,
+  onUpdate(self) { const p = self.progress; waveAt(p); setStep(Math.min(3, Math.floor(p * 4))) },
+})
+addEventListener('load', () => { ScrollTrigger.refresh(); drawCables() })
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

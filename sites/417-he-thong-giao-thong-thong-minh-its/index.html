@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VietITS — Hệ Thống Giao Thông Thông Minh, Đèn Tín Hiệu Thích Ứng AI &amp; Trạm Cân WIM</title>
+  <meta name="description" content="Giải pháp tích hợp hệ thống giao thông thông minh ITS: Điều khiển đèn tín hiệu thích ứng AI, Cân tải trọng tự động tốc độ cao WIM, Thu phí không dừng ETC và Biển báo điện tử VMS." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23060B14'/%3E%3Crect x='22' y='8' width='20' height='48' rx='10' fill='%231E293B' stroke='%2310B981' stroke-width='2'/%3E%3Ccircle cx='32' cy='18' r='5' fill='%23EF4444'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23F59E0B'/%3E%3Ccircle cx='32' cy='46' r='5' fill='%2310B981'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #060B14;
+      --bg-elev: #0E1726;
+      --bg-card: #152238;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --accent: #10B981;
+      --accent-soft: rgba(16, 185, 129, 0.14);
+      --amber: #F59E0B;
+      --amber-soft: rgba(245, 158, 11, 0.14);
+      --danger: #EF4444;
+      --cyan: #38BDF8;
+      --border: rgba(16, 185, 129, 0.25);
+      --border-subtle: rgba(148, 163, 184, 0.15);
+      --font-sans: 'Space Grotesk', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --max-w: 1240px;
+      --radius: 16px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: clip;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.65;
+      scroll-behavior: smooth;
+    }
+
+    .skip {
+      position: absolute;
+      top: -100px;
+      left: 16px;
+      background: var(--accent);
+      color: #04120C;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 8px;
+      z-index: 9999;
+      text-decoration: none;
+    }
+    .skip:focus {
+      top: 16px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(6, 11, 20, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 76px;
+      flex-wrap: wrap;
+      padding: 8px 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .brand small {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--amber);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+    .nav-links a:hover {
+      color: var(--accent);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #04130D;
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.28);
+    }
+    .btn-outline {
+      background: var(--bg-card);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 60px 0 72px;
+      background:
+        radial-gradient(circle at 82% 20%, rgba(16, 185, 129, 0.14), transparent 44%),
+        radial-gradient(circle at 18% 78%, rgba(245, 158, 11, 0.12), transparent 42%);
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 40px;
+      align-items: center;
+    }
+    .toc-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 3.8vw, 3.25rem);
+      line-height: 1.14;
+      margin-bottom: 16px;
+    }
+    .hero h1 span {
+      color: var(--accent);
+    }
+    .hero-lead {
+      color: var(--text-muted);
+      font-size: 1.02rem;
+      margin-bottom: 26px;
+    }
+    .hero-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .kpi-card strong {
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      color: var(--accent);
+      display: block;
+    }
+    .kpi-card span {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .hero-visual {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+    }
+    .hero-visual svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+    }
+
+    section {
+      padding: 72px 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .sec-head {
+      max-width: 720px;
+      margin-bottom: 40px;
+    }
+    .sec-tag {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      color: var(--amber);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .sec-title {
+      font-size: clamp(1.65rem, 3vw, 2.35rem);
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .sec-desc {
+      color: var(--text-muted);
+    }
+
+    /* Interactive AI Signal Intersection Simulator */
+    .its-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.85fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .its-stage {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+    #itsCanvas {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      display: block;
+      border-radius: 10px;
+      background: #080E1A;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+    .its-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .its-tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .its-tile small {
+      display: block;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .its-tile strong {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--accent);
+    }
+    .its-controls {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .ctrl-grp label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .ctrl-grp label span {
+      font-family: var(--font-mono);
+      color: var(--accent);
+    }
+    .algo-btns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .algo-btn {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elev);
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .algo-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    /* Scrollytelling ITS Subsystem Architecture */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: 32px;
+      align-items: start;
+    }
+    .sticky-arch {
+      position: sticky;
+      top: 96px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .sticky-arch span {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .sticky-arch h3 {
+      font-size: 1.35rem;
+      margin-bottom: 8px;
+    }
+    .sticky-arch p {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-bottom: 16px;
+    }
+    .arch-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .arch-step {
+      width: 100%;
+      text-align: left;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 20px;
+      cursor: pointer;
+      color: var(--text);
+      font-family: var(--font-sans);
+    }
+    .arch-step.active, .arch-step:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .arch-step small {
+      font-family: var(--font-mono);
+      color: var(--amber);
+      font-size: 0.76rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .arch-step h4 {
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+    }
+    .arch-step p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Solutions Packages */
+    .sol-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+    }
+    .sol-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .sol-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.14);
+    }
+    .sol-tag {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--amber-soft);
+      color: var(--amber);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .sol-code {
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 12px 0 16px;
+    }
+    .sol-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 22px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .sol-list li::before {
+      content: "▸ ";
+      color: var(--accent);
+    }
+
+    /* Dual Review & FAQ */
+    .dual-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 32px;
+    }
+    .case-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+    .case-meta {
+      margin-top: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      color: var(--accent);
+    }
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .faq-btn {
+      width: 100%;
+      padding: 16px 18px;
+      background: none;
+      border: none;
+      text-align: left;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 0.94rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .faq-ans {
+      padding: 0 18px 16px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      display: none;
+    }
+    .faq-item.open .faq-ans {
+      display: block;
+    }
+
+    /* Form */
+    .form-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 32px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .full-row {
+      grid-column: 1 / -1;
+    }
+    .f-field label {
+      display: block;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .f-field input, .f-field select, .f-field textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.92rem;
+    }
+    .form-notice {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent);
+      color: #6EE7B7;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    footer {
+      padding: 36px 0;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+    .foot-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid, .its-grid, .arch-grid, .sol-grid, .dual-grid, .form-card {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .sticky-arch {
+        position: static;
+      }
+    }
+    @media (max-width: 560px) {
+      .kpi-row, .its-metrics, .algo-btns, .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .form-card {
+        padding: 22px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Chuyển đến nội dung chính</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#top" class="brand" id="top">
+        <span class="brand-icon" aria-hidden="true">ITS</span>
+        <span>
+          VietITS Systems
+          <small>AI TRAFFIC CONTROL • WIM • ETC • VMS</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a href="#mo-phong-its">Mô Phỏng Ngã Tư AI</a>
+        <a href="#kien-truc">Phân Hệ Kỹ Thuật</a>
+        <a href="#giai-phap">Giải Pháp Đô Thị &amp; Cao Tốc</a>
+        <a href="#hoi-dap">Dự Án &amp; FAQ</a>
+        <a href="#lien-he" class="btn btn-primary">Nhận Hồ Sơ Năng Lực</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="toc-pill">TRUNG TÂM ĐIỀU HÀNH GIAO THÔNG ĐÔ THỊ &amp; CAO TỐC QUỐC GIA</span>
+          <h1>Điều Khiển Đèn Tín Hiệu <span>Thích Ứng AI</span> &amp; Trạm Cân Tải Trọng Tự Động WIM</h1>
+          <p class="hero-lead">
+            Giải quyết bài toán ùn tắc nút giao bằng thuật toán Làn sóng xanh thời gian thực (Green Wave AI), kết hợp cảm biến thạch anh cân tải trọng tốc độ cao 120 km/h (Weigh-In-Motion) và bảng quang báo điện tử VMS chuẩn TCVN.
+          </p>
+          <div class="hero-btns">
+            <a href="#mo-phong-its" class="btn btn-primary">Chạy Mô Phỏng Điều Phối Đèn AI</a>
+            <a href="#giai-phap" class="btn btn-outline">Xem Cấu Hình Trạm WIM &amp; ETC</a>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <strong>-34% Thời gian chờ</strong>
+              <span>Tối ưu hóa chu kỳ đèn xanh theo chiều dài hàng đợi thực tế</span>
+            </div>
+            <div class="kpi-card">
+              <strong>±2.5% Sai số WIM</strong>
+              <span>Cân tải trọng tự động không dừng kết hợp nhận diện biển số ANPR</span>
+            </div>
+            <div class="kpi-card">
+              <strong>99.98% Uptime</strong>
+              <span>Truyền dẫn cáp quang vòng Ring chuẩn công nghiệp NTCIP</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <svg viewBox="0 0 600 370" role="img" aria-label="Giao diện Trung tâm Điều hành Giao thông Thông minh VietITS">
+            <rect width="600" height="370" rx="14" fill="#070E1A" />
+            <!-- VMS Overhead Gantry -->
+            <rect x="45" y="24" width="510" height="58" rx="8" fill="#111C2D" stroke="#F59E0B" stroke-width="2" />
+            <text x="300" y="48" text-anchor="middle" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">BIỂN BÁO VMS: CAO TỐC THÔNG SUỐT • GIỮ KHOẢNG CÁCH 100M</text>
+            <text x="300" y="68" text-anchor="middle" fill="#10B981" font-family="JetBrains Mono, monospace" font-size="11">LÀN 1-2: 120 KM/H  |  TRẠM CÂN WIM KM45+200 ĐANG HOẠT ĐỘNG</text>
+            <!-- Highway Lanes & WIM Quartz Sensors -->
+            <polygon points="180,100 420,100 540,350 60,350" fill="#162235" />
+            <line x1="300" y1="100" x2="300" y2="350" stroke="#F8FAFC" stroke-width="3" stroke-dasharray="14 10" />
+            <!-- WIM Sensor Strip across road -->
+            <rect x="115" y="245" width="370" height="18" rx="4" fill="rgba(16,185,129,0.25)" stroke="#10B981" stroke-width="2" />
+            <text x="300" y="258" text-anchor="middle" fill="#10B981" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">CẢM BIẾN THẠCH ANH CÂN TẢI TRỌNG WIM</text>
+            <!-- Detected Truck with ANPR & Axle Weight -->
+            <rect x="165" y="155" width="95" height="68" rx="6" fill="#1E293B" stroke="#10B981" stroke-width="2" />
+            <text x="212" y="182" text-anchor="middle" fill="#F8FAFC" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">29H-458.12</text>
+            <text x="212" y="202" text-anchor="middle" fill="#10B981" font-family="JetBrains Mono, monospace" font-size="10">TỔNG TẢI: 28.4T (ĐẠT)</text>
+            <!-- Detected Car on Lane 2 -->
+            <rect x="345" y="175" width="85" height="52" rx="6" fill="#1E293B" stroke="#38BDF8" stroke-width="2" />
+            <text x="387" y="204" text-anchor="middle" fill="#38BDF8" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">ETC: HỢP LỆ</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive AI Traffic Signal Intersection Simulator -->
+    <section id="mo-phong-its">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-tag">MÔ PHỎNG ĐIỀU KHIỂN NÚT GIAO THỜI GIAN THỰC</span>
+          <h2 class="sec-title">Mô Phỏng Đèn Tín Hiệu Thích Ứng AI &amp; Ưu Tiên Xe Khẩn Cấp</h2>
+          <p class="sec-desc">
+            Thay đổi lưu lượng phương tiện trên trục Bắc–Nam và Đông–Tây để quan sát cách tủ điều khiển AI tự động phân bổ lại thời lượng pha đèn xanh so với đèn đếm lùi cố định truyền thống.
+          </p>
+        </div>
+
+        <div class="its-grid">
+          <div class="its-stage">
+            <canvas id="itsCanvas" width="740" height="416" aria-label="Bản đồ mô phỏng điều khiển đèn tín hiệu giao thông AI tại ngã tư"></canvas>
+            <div class="its-metrics">
+              <div class="its-tile">
+                <small>Chu kỳ Pha Xanh (Bắc-Nam / Đông-Tây)</small>
+                <strong id="itsCycleText">48s Xanh / 22s Xanh</strong>
+              </div>
+              <div class="its-tile">
+                <small>Thời gian chờ trung bình tại nút</small>
+                <strong id="itsWaitTime">19.4 giây / xe</strong>
+              </div>
+              <div class="its-tile">
+                <small>Hiệu suất thông hành nút giao</small>
+                <strong id="itsGain" style="color:var(--amber);">+36% (Giảm ùn ứ)</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="its-controls">
+            <div class="ctrl-grp">
+              <label id="algoModeLabel">Chế độ điều khiển tủ tín hiệu <span id="algoTag">AI Adaptive</span></label>
+              <div class="algo-btns" role="group" aria-labelledby="algoModeLabel">
+                <button type="button" class="algo-btn active" data-algo="ai">AI Thích ứng mật độ</button>
+                <button type="button" class="algo-btn" data-algo="fixed">Chu kỳ cố định 35s/35s</button>
+              </div>
+            </div>
+
+            <div class="ctrl-grp">
+              <label for="nsFlow">Lưu lượng Trục chính Bắc – Nam <span id="nsFlowVal">1.850 xe/giờ</span></label>
+              <input type="range" id="nsFlow" min="400" max="2800" step="50" value="1850" />
+            </div>
+
+            <div class="ctrl-grp">
+              <label for="ewFlow">Lưu lượng Trục nhánh Đông – Tây <span id="ewFlowVal">750 xe/giờ</span></label>
+              <input type="range" id="ewFlow" min="300" max="2400" step="50" value="750" />
+            </div>
+
+            <button type="button" class="btn btn-outline" id="btnEmergencyWave" style="border-color:var(--danger);color:#FCA5A5;">
+              🚨 Kích hoạt Làn Sóng Xanh Xe Cứu Hỏa / Cứu Thương (EVP)
+            </button>
+
+            <div class="kpi-card" style="background:var(--bg-elev);">
+              <strong id="itsLogStatus" style="font-size:0.9rem;">AI Radar đang đo chiều dài hàng đợi 4 hướng...</strong>
+              <span id="itsLogSub">Tự động kéo dài pha xanh cho trục có mật độ cao để giải phóng giao lộ.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scrollytelling Subsystem Architecture -->
+    <section id="kien-truc">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-tag">KIẾN TRÚC TÍCH HỢP ĐỒNG BỘ</span>
+          <h2 class="sec-title">4 Phân Hệ Cốt Lõi Của Đô Thị Thông Minh &amp; Cao Tốc ITS</h2>
+          <p class="sec-desc">
+            Tuân thủ hoàn toàn Tiêu chuẩn Quốc gia TCVN về hệ thống giao thông thông minh và giao thức mở NTCIP dễ dàng kết nối Trung tâm điều hành các tỉnh thành.
+          </p>
+        </div>
+
+        <div class="arch-grid">
+          <div class="sticky-arch">
+            <span id="archStepBadge">PHÂN HỆ KỸ THUẬT 01 / 04</span>
+            <h3 id="archStepTitle">Điều Khiển Đèn Tín Hiệu Thích Ứng AI &amp; Làn Sóng Xanh</h3>
+            <p id="archStepDesc">
+              Sử dụng Camera AI kết hợp Radar sóng milimet 77GHz đếm lưu lượng phương tiện không bị ảnh hưởng bởi sương mù hay đêm mưa.
+            </p>
+            <svg viewBox="0 0 460 185" style="width:100%;height:auto;display:block;" role="img" aria-label="Sơ đồ khối kiến trúc hệ thống VietITS">
+              <rect width="460" height="185" rx="12" fill="#060B14" stroke="rgba(16,185,129,0.35)" />
+              <rect x="28" y="36" width="180" height="112" rx="10" fill="#152238" stroke="#10B981" />
+              <text x="118" y="78" text-anchor="middle" fill="#10B981" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700" id="svgArchCode">NTCIP 1202 AI</text>
+              <text x="118" y="104" text-anchor="middle" fill="#F8FAFC" font-size="11">Radar 77GHz + Edge AI</text>
+              <rect x="234" y="46" width="198" height="92" rx="10" fill="#0E1726" stroke="#F59E0B" />
+              <text x="333" y="84" text-anchor="middle" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" id="svgArchSub">Đồng Bộ Trung Tâm TOC</text>
+              <text x="333" y="108" text-anchor="middle" fill="#94A3B8" font-size="11">Cáp quang Ring dự phòng</text>
+            </svg>
+          </div>
+
+          <div class="arch-steps">
+            <button type="button" class="arch-step active" data-astep="0">
+              <small>PHÂN HỆ 01 • AI TRAFFIC SIGNAL</small>
+              <h4>Tủ Điều Khiển Tín Hiệu Giao Thông Thích Ứng &amp; Ưu Tiên Xe Buýt Nhanh</h4>
+              <p>Tự động đồng bộ hóa chuỗi 15–20 ngã tư liên tiếp tạo hiệu ứng Làn sóng xanh, giúp dòng xe di chuyển thông suốt ở vận tốc thiết kế.</p>
+            </button>
+            <button type="button" class="arch-step" data-astep="1">
+              <small>PHÂN HỆ 02 • HIGH-SPEED WIM</small>
+              <h4>Trạm Kiểm Soát Tải Trọng Tự Động Tốc Độ Cao (Weigh-In-Motion)</h4>
+              <p>Cảm biến áp điện thạch anh âm dưới mặt đường đo tải trọng từng trục và tổng trọng lượng xe ở tốc độ tới 120 km/h, tự động xuất biên bản phạt nguội quá tải.</p>
+            </button>
+            <button type="button" class="arch-step" data-astep="2">
+              <small>PHÂN HỆ 03 • MULTI-LANE FREE FLOW ETC</small>
+              <h4>Thu Phí Không Dừng Đa Làn Tự Do Không Thanh Chắn</h4>
+              <p>Đầu đọc RFID EPC Gen2 tầm xa kết hợp camera nhận diện biển số ANPR độ chính xác 99.8%, loại bỏ hoàn toàn ùn tắc tại trạm thu phí.</p>
+            </button>
+            <button type="button" class="arch-step" data-astep="3">
+              <small>PHÂN HỆ 04 • VMS &amp; AID INCIDENT DETECTION</small>
+              <h4>Biển Báo Điện Tử VMS &amp; Phát Hiện Sự Cố Tự Động Trên Cao Tốc</h4>
+              <p>Tự động phát cảnh báo lên giá long môn VMS trong vòng 5 giây khi AI phát hiện xe dừng đỗ trái phép, đi ngược chiều, khói lửa hoặc vật cản trên mặt đường.</p>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Solutions Packages -->
+    <section id="giai-phap">
+      <div class="container">
+        <div class="sec-head">
+          <span class="sec-tag">GIẢI PHÁP TRỌN GÓI CHO SỞ BAN NGÀNH &amp; CHỦ ĐẦU TƯ BOT</span>
+          <h2 class="sec-title">Các Gói Tích Hợp Hạ Tầng Giao Thông Thông Minh</h2>
+          <p class="sec-desc">
+            Thiết kế kỹ thuật thi công, cung cấp thiết bị chuẩn công nghiệp IP68 và bàn giao mã nguồn phần mềm quản lý trung tâm.
+          </p>
+        </div>
+
+        <div class="sol-grid">
+          <div class="sol-card">
+            <div>
+              <h3>Nút Giao Thông Minh AI</h3>
+              <p style="font-size:0.86rem;color:var(--text-muted);">Nâng cấp ngã tư hiện hữu lên điều khiển thích ứng AI &amp; Phạt nguội</p>
+              <div class="sol-code">Gói Smart-Junction</div>
+              <ul class="sol-list">
+                <li>Tủ điều khiển đèn tín hiệu 16–32 pha chuẩn NTCIP</li>
+                <li>4 Cụm Camera AI đếm lưu lượng + Phát hiện vượt đèn đỏ</li>
+                <li>Bộ thu phát ưu tiên xe cứu thương / cứu hỏa từ xa</li>
+                <li>Kết nối 4G VPN / Cáp quang về Trung tâm chỉ huy</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-outline select-its-sol" data-sol="Gói Nút Giao Thông Minh AI (Smart-Junction)">Yêu Cầu Dự Toán Nút Giao</button>
+          </div>
+
+          <div class="sol-card featured">
+            <span class="sol-tag">CHUẨN CAO TỐC &amp; QUỐC LỘ</span>
+            <div>
+              <h3>Trạm Cân Tải Trọng Tự Động WIM</h3>
+              <p style="font-size:0.86rem;color:var(--text-muted);">Bảo vệ kết cấu mặt đường cầu cống &amp; Xử lý quá tải tự động 24/7</p>
+              <div class="sol-code">Gói Quartz-WIM Pro</div>
+              <ul class="sol-list">
+                <li>Thanh cảm biến thạch anh Kistler / VietITS cấp chính xác B+(7)</li>
+                <li>Vòng từ phát hiện xe tách làn + Camera chụp biển số trước/sau</li>
+                <li>Biển báo điện tử VMS thông báo biển số xe vi phạm tức thì</li>
+                <li>Phần mềm trích xuất hồ sơ kiểm định và kết nối Cục Đường bộ</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-primary select-its-sol" data-sol="Trạm Cân Tải Trọng Tự Động WIM (Quartz-WIM Pro)">Yêu Cầu Hồ Sơ Kỹ Thuật WIM</button>
+          </div>
+
+          <div class="sol-card">
+            <div>
+              <h3>Trung Tâm Điều Hành TOC</h3>
+              <p style="font-size:0.86rem;color:var(--text-muted);">Hệ thống màn hình ghép Video Wall &amp; Phần mềm Bản đồ số GIS</p>
+              <div class="sol-code">Gói City-TOC Enterprise</div>
+              <ul class="sol-list">
+                <li>Nền tảng hợp nhất dữ liệu Camera, Đèn tín hiệu, VMS, WIM, ETC</li>
+                <li>Mô phỏng dự báo ùn tắc giao thông trước 30 phút bằng AI</li>
+                <li>Cung cấp API mở kết nối ứng dụng công dân đô thị thông minh</li>
+                <li>Đào tạo vận hành, chuyển giao công nghệ và bảo trì 24/7</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-outline select-its-sol" data-sol="Trung Tâm Điều Hành TOC (City-TOC Enterprise)">Yêu Cầu Giải Pháp TOC</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Case Studies & FAQ -->
+    <section id="hoi-dap">
+      <div class="container dual-grid">
+        <div>
+          <span class="sec-tag">HIỆU QUẢ TRIỂN KHAI THỰC TẾ</span>
+          <h2 class="sec-title" style="font-size:1.8rem;margin-bottom:20px;">Dự Án Tiêu Biểu Đã Vận Hành</h2>
+          <div class="case-box">
+            <p>“Sau khi nâng cấp 24 nút giao trên trục đại lộ cửa ngõ lên hệ thống đèn thích ứng AI của VietITS, vận tốc lưu thông trung bình giờ cao điểm sáng đã tăng từ 18 km/h lên 29 km/h, giảm rõ rệt tình trạng ùn ứ dây chuyền.”</p>
+            <div class="case-meta">— Ban Quản lý Dự án Giao thông Đô thị</div>
+          </div>
+          <div class="case-box">
+            <p>“Hệ thống cân tải trọng tự động WIM 4 làn xe hoạt động ổn định dưới điều kiện nhiệt độ mặt đường mùa hè lên tới 62°C, giảm hơn 91% tỷ lệ xe quá tải lưu thông qua cầu.”</p>
+            <div class="case-meta">— Đơn vị Quản lý Khai thác Tuyến Cao tốc Liên Vùng</div>
+          </div>
+        </div>
+
+        <div>
+          <span class="sec-tag">CÂU HỎI KỸ THUẬT</span>
+          <h2 class="sec-title" style="font-size:1.8rem;margin-bottom:20px;">Giải Đáp Về Tích Hợp Hệ Thống ITS</h2>
+
+          <div class="faq-item open">
+            <button type="button" class="faq-btn" aria-expanded="true">
+              <span>Khi mất kết nối mạng về Trung tâm thì tủ đèn AI tại ngã tư hoạt động thế nào?</span>
+              <span>−</span>
+            </button>
+            <div class="faq-ans">
+              Toàn bộ thuật toán AI phân tích lưu lượng được chạy trực tiếp trên bộ xử lý biên (Edge AI) đặt trong tủ điều khiển tại ngã tư. Nếu đứt cáp quang, nút giao vẫn tự động điều chỉnh pha đèn thông minh theo cảm biến tại chỗ và chuyển sang chế độ chớp vàng an toàn nếu có sự cố phần cứng.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-btn" aria-expanded="false">
+              <span>Hệ thống VietITS có tích hợp được với camera giám sát sẵn có của địa phương không?</span>
+              <span>+</span>
+            </button>
+            <div class="faq-ans">
+              Hoàn toàn tương thích. Nền tảng của chúng tôi hỗ trợ chuẩn ONVIF, RTSP và giao thức mở NTCIP, cho phép tận dụng hạ tầng camera hiện hữu để phân tích AI mà không cần thay mới toàn bộ.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button type="button" class="faq-btn" aria-expanded="false">
+              <span>Thi công lắp đặt cảm biến cân WIM mất bao lâu, có phải cấm đường dài ngày không?</span>
+              <span>+</span>
+            </button>
+            <div class="faq-ans">
+              Quy trình cắt rãnh mặt đường và đổ keo Epoxy chuyên dụng cường độ cao cho thanh cảm biến thạch anh chỉ mất từ 6 đến 8 giờ làm việc ban đêm cho mỗi làn xe, thông xe ngay sáng hôm sau.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section id="lien-he">
+      <div class="container">
+        <div class="form-card">
+          <div>
+            <span class="sec-tag">TƯ VẤN KỸ THUẬT &amp; HỒ SƠ THẦU</span>
+            <h2 class="sec-title" style="font-size:1.9rem;">Nhận Hồ Sơ Năng Lực, Bản Vẽ Thiết Kế Cơ Sở &amp; Báo Giá Dự Án</h2>
+            <p class="sec-desc" style="margin-bottom:20px;">
+              Đội ngũ kỹ sư trưởng ITS sẵn sàng phối hợp khảo sát hiện trường, lập thuyết minh kỹ thuật và demo trực tiếp phần mềm TOC.
+            </p>
+            <div class="kpi-card">
+              <strong style="font-size:1.05rem;">Khối Giải Pháp Chính Phủ &amp; Hạ Tầng Giao Thông B2G/B2B</strong>
+              <span>Hotline Kỹ Thuật Dự Án: 024 7300 6417 • Email: tender@vietits.vn</span>
+            </div>
+          </div>
+
+          <form id="itsContactForm" novalidate>
+            <div class="form-grid">
+              <div class="f-field">
+                <label for="itsName">Họ tên cán bộ / Người liên hệ</label>
+                <input type="text" id="itsName" name="itsName" placeholder="VD: Kỹ sư Nguyễn Văn Hùng" required />
+              </div>
+              <div class="f-field">
+                <label for="itsPhone">Số điện thoại công tác</label>
+                <input type="tel" id="itsPhone" name="itsPhone" placeholder="VD: 0913 246 810" required />
+              </div>
+              <div class="f-field">
+                <label for="itsOrg">Cơ quan / Ban QLDA / Chủ đầu tư</label>
+                <input type="text" id="itsOrg" name="itsOrg" placeholder="VD: Ban QLDA Đầu tư Xây dựng Giao thông" required />
+              </div>
+              <div class="f-field">
+                <label for="itsSolSelect">Phân hệ quan tâm</label>
+                <select id="itsSolSelect" name="itsSolSelect">
+                  <option value="Gói Nút Giao Thông Minh AI (Smart-Junction)">Gói Nút Giao Thông Minh AI (Smart-Junction)</option>
+                  <option value="Trạm Cân Tải Trọng Tự Động WIM (Quartz-WIM Pro)">Trạm Cân Tải Trọng Tự Động WIM (Quartz-WIM Pro)</option>
+                  <option value="Trung Tâm Điều Hành TOC (City-TOC Enterprise)">Trung Tâm Điều Hành TOC (City-TOC Enterprise)</option>
+                </select>
+              </div>
+              <div class="f-field full-row">
+                <label for="itsScope">Quy mô dự án cần tư vấn (Số nút giao, số làn cân WIM, địa điểm...)</label>
+                <textarea id="itsScope" name="itsScope" rows="2" placeholder="VD: Cần khảo sát nâng cấp 12 nút giao trung tâm và 2 trạm cân WIM quốc lộ..."></textarea>
+              </div>
+              <div class="f-field full-row">
+                <button type="submit" class="btn btn-primary" style="width:100%;">Gửi Yêu Cầu Hồ Sơ Kỹ Thuật &amp; Demo Hệ Thống</button>
+              </div>
+            </div>
+            <div class="form-notice" id="itsFormNotice" role="status" aria-live="polite"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container foot-flex">
+      <div>
+        <strong>VietITS</strong> — Giải Pháp Giao Thông Thông Minh, Đèn Tín Hiệu Thích Ứng AI &amp; Cân Tải Trọng Tự Động WIM.
+      </div>
+      <div>
+        Thiết kế concept — thương hiệu giả định. © 2026 VietITS Smart Infrastructure.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('itsCanvas');
+      const ctx = canvas.getContext('2d');
+      const nsFlow = document.getElementById('nsFlow');
+      const ewFlow = document.getElementById('ewFlow');
+      const nsFlowVal = document.getElementById('nsFlowVal');
+      const ewFlowVal = document.getElementById('ewFlowVal');
+      const algoTag = document.getElementById('algoTag');
+      const itsCycleText = document.getElementById('itsCycleText');
+      const itsWaitTime = document.getElementById('itsWaitTime');
+      const itsGain = document.getElementById('itsGain');
+      const itsLogStatus = document.getElementById('itsLogStatus');
+      const itsLogSub = document.getElementById('itsLogSub');
+      const btnEmergencyWave = document.getElementById('btnEmergencyWave');
+
+      let algo = 'ai';
+      let evpTimer = 0;
+      let tick = 0;
+
+      document.querySelectorAll('.algo-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.algo-btn').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          algo = btn.getAttribute('data-algo') || 'ai';
+          algoTag.textContent = algo === 'ai' ? 'AI Adaptive' : 'Chu kỳ cố định';
+          updateItsStats();
+        });
+      });
+
+      btnEmergencyWave.addEventListener('click', () => {
+        evpTimer = 110;
+        updateItsStats();
+      });
+
+      function updateItsStats() {
+        const ns = Number(nsFlow.value);
+        const ew = Number(ewFlow.value);
+        nsFlowVal.textContent = ns.toLocaleString('vi-VN') + ' xe/giờ';
+        ewFlowVal.textContent = ew.toLocaleString('vi-VN') + ' xe/giờ';
+
+        const total = ns + ew;
+        let nsGreen = 35;
+        let ewGreen = 35;
+
+        if (evpTimer > 0) {
+          nsGreen = 60;
+          ewGreen = 10;
+          itsCycleText.textContent = 'ƯU TIÊN KHẨN CẤP TRỤC BẮC-NAM';
+          itsWaitTime.textContent = '0.0 giây (Xe ưu tiên)';
+          itsGain.textContent = 'LÀN SÓNG XANH EVP';
+          itsLogStatus.textContent = '🚨 ĐANG MỞ LÀN SÓNG XANH CHO XE CỨU THƯƠNG TRỤC BẮC – NAM';
+          itsLogSub.textContent = 'Tạm khóa đèn đỏ hướng Đông – Tây cho đến khi xe ưu tiên vượt qua nút giao.';
+          return;
+        }
+
+        if (algo === 'ai') {
+          nsGreen = Math.max(18, Math.min(56, Math.round((ns / total) * 70)));
+          ewGreen = 70 - nsGreen;
+          const waitSec = (14 + (total / 3800) * 11).toFixed(1);
+          itsCycleText.textContent = nsGreen + 's Xanh (B-N) / ' + ewGreen + 's Xanh (Đ-T)';
+          itsWaitTime.textContent = waitSec + ' giây / xe';
+          itsGain.textContent = '+36% Thông lượng';
+          itsLogStatus.textContent = 'AI Radar phát hiện trục ' + (ns >= ew ? 'Bắc–Nam' : 'Đông–Tây') + ' đông hơn: Tự động cấp ' + Math.max(nsGreen, ewGreen) + 's đèn xanh.';
+          itsLogSub.textContent = 'Giảm 34% chiều dài hàng đợi so với chu kỳ đếm lùi cố định.';
+        } else {
+          const waitSec = (28 + (Math.abs(ns - ew) / 90) + (total / 2500) * 14).toFixed(1);
+          itsCycleText.textContent = '35s Xanh (B-N) / 35s Xanh (Đ-T)';
+          itsWaitTime.textContent = waitSec + ' giây / xe';
+          itsGain.textContent = 'Cố định (Dễ ùn ứ lệch pha)';
+          itsLogStatus.textContent = 'Chế độ Chu kỳ cố định: Cấp cứng 35s mỗi hướng bất kể lưu lượng thực tế.';
+          itsLogSub.textContent = 'Trục đông xe bị ùn ứ kéo dài trong khi trục vắng xe vẫn giữ đèn xanh lãng phí.';
+        }
+      }
+
+      [nsFlow, ewFlow].forEach((el) => {
+        el.addEventListener('input', updateItsStats);
+        el.addEventListener('change', updateItsStats);
+      });
+
+      function animateIntersection() {
+        tick++;
+        const w = canvas.width;
+        const h = canvas.height;
+        const ns = Number(nsFlow.value);
+        const ew = Number(ewFlow.value);
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#080E1A';
+        ctx.fillRect(0, 0, w, h);
+
+        const cx = w / 2;
+        const cy = h / 2;
+        const roadW = 124;
+
+        // Draw Intersecting Roads
+        ctx.fillStyle = '#1E293B';
+        ctx.fillRect(cx - roadW / 2, 0, roadW, h);
+        ctx.fillRect(0, cy - roadW / 2, w, roadW);
+
+        // Center markings
+        ctx.strokeStyle = '#F59E0B';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([12, 10]);
+        ctx.beginPath();
+        ctx.moveTo(cx, 0);
+        ctx.lineTo(cx, cy - roadW / 2);
+        ctx.moveTo(cx, cy + roadW / 2);
+        ctx.lineTo(cx, h);
+        ctx.moveTo(0, cy);
+        ctx.lineTo(cx - roadW / 2, cy);
+        ctx.moveTo(cx + roadW / 2, cy);
+        ctx.lineTo(w, cy);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Determine active green direction
+        const nsIsGreen = evpTimer > 0 ? true : (tick % 180) < (algo === 'ai' ? Math.round((ns / (ns + ew)) * 180) : 90);
+
+        // Signal Lights around intersection
+        const nsColor = nsIsGreen ? '#10B981' : '#EF4444';
+        const ewColor = nsIsGreen ? '#EF4444' : '#10B981';
+
+        // North-South Signal Bars
+        ctx.fillStyle = nsColor;
+        ctx.fillRect(cx - roadW / 2 + 6, cy - roadW / 2 - 10, roadW - 12, 8);
+        ctx.fillRect(cx - roadW / 2 + 6, cy + roadW / 2 + 2, roadW - 12, 8);
+
+        // East-West Signal Bars
+        ctx.fillStyle = ewColor;
+        ctx.fillRect(cx - roadW / 2 - 10, cy - roadW / 2 + 6, 8, roadW - 12);
+        ctx.fillRect(cx + roadW / 2 + 2, cy - roadW / 2 + 6, 8, roadW - 12);
+
+        // AI Radar Detection Zones
+        if (algo === 'ai') {
+          ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(cx - roadW / 2 - 6, 14, roadW + 12, cy - roadW / 2 - 28);
+          ctx.strokeRect(14, cy - roadW / 2 - 6, cx - roadW / 2 - 28, roadW + 12);
+        }
+
+        // Draw moving vehicles on North-South axis
+        const nsCars = Math.min(8, Math.max(2, Math.round(ns / 350)));
+        for (let i = 0; i < nsCars; i++) {
+          const offset = ((tick * (nsIsGreen ? 2.6 : 0.3) + i * 52) % h);
+          ctx.fillStyle = evpTimer > 0 && i === 0 ? '#EF4444' : '#38BDF8';
+          ctx.fillRect(cx - 38, offset, 22, 34);
+          ctx.fillStyle = '#10B981';
+          ctx.fillRect(cx + 16, h - offset, 22, 34);
+        }
+
+        // Draw moving vehicles on East-West axis
+        const ewCars = Math.min(7, Math.max(2, Math.round(ew / 350)));
+        for (let j = 0; j < ewCars; j++) {
+          const offsetX = ((tick * (!nsIsGreen ? 2.5 : 0.25) + j * 68) % w);
+          ctx.fillStyle = '#F59E0B';
+          ctx.fillRect(offsetX, cy + 14, 36, 20);
+          ctx.fillRect(w - offsetX, cy - 34, 36, 20);
+        }
+
+        // HUD Telemetry Box on top-left
+        ctx.fillStyle = 'rgba(6, 11, 20, 0.88)';
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(16, 16, 240, 74);
+        ctx.strokeRect(16, 16, 240, 74);
+
+        ctx.fillStyle = '#10B981';
+        ctx.font = 'bold 11px "JetBrains Mono", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(evpTimer > 0 ? 'EVP PRIORITY: ACTIVE' : (algo === 'ai' ? 'AI ADAPTIVE GREEN WAVE' : 'FIXED-TIME CONTROLLER'), 28, 38);
+        ctx.fillStyle = '#F8FAFC';
+        ctx.fillText('BẮC-NAM: ' + ns + ' XE/H (' + (nsIsGreen ? 'XANH' : 'ĐỎ') + ')', 28, 58);
+        ctx.fillText('ĐÔNG-TÂY: ' + ew + ' XE/H (' + (!nsIsGreen ? 'XANH' : 'ĐỎ') + ')', 28, 76);
+
+        if (evpTimer > 0) {
+          evpTimer--;
+          if (evpTimer === 0) updateItsStats();
+        }
+
+        requestAnimationFrame(animateIntersection);
+      }
+
+      updateItsStats();
+      requestAnimationFrame(animateIntersection);
+
+      // Scrollytelling Architecture Steps
+      const archData = [
+        {
+          badge: 'PHÂN HỆ KỸ THUẬT 01 / 04',
+          title: 'Điều Khiển Đèn Tín Hiệu Thích Ứng AI & Làn Sóng Xanh',
+          desc: 'Sử dụng Camera AI kết hợp Radar sóng milimet 77GHz đếm lưu lượng phương tiện không bị ảnh hưởng bởi sương mù hay đêm mưa.',
+          code: 'NTCIP 1202 AI',
+          sub: 'Đồng Bộ Trung Tâm TOC'
+        },
+        {
+          badge: 'PHÂN HỆ KỸ THUẬT 02 / 04',
+          title: 'Trạm Cân Tải Trọng Tự Động Tốc Độ Cao WIM',
+          desc: 'Cảm biến thạch anh lắp âm mặt đường cân chính xác tải trọng từng trục xe ở vận tốc 120 km/h, tự động lập hồ sơ xử phạt quá tải.',
+          code: 'QUARTZ WIM B+(7)',
+          sub: 'Sai số tổng tải < ±2.5%'
+        },
+        {
+          badge: 'PHÂN HỆ KỸ THUẬT 03 / 04',
+          title: 'Thu Phí Không Dừng Đa Làn Tự Do (Free-Flow ETC)',
+          desc: 'Loại bỏ hoàn toàn đảo thu phí và thanh chắn barrier, giao dịch RFID hoàn tất trong 15 mili-giây ở tốc độ lưu thông cao tốc.',
+          code: 'FREE-FLOW ETC',
+          sub: 'Khớp lệnh 99.95%'
+        },
+        {
+          badge: 'PHÂN HỆ KỸ THUẬT 04 / 04',
+          title: 'Biển Báo Điện Tử VMS & Phát Hiện Sự Cố Tự Động AID',
+          desc: 'Hệ thống LED ma trận độ sáng cao chống chói tự động hiển thị cảnh báo ùn tắc, thời tiết xấu và hướng dẫn phân luồng từ xa.',
+          code: 'EN-12966 VMS',
+          sub: 'Cảnh báo sự cố trong 5s'
+        }
+      ];
+
+      const archSteps = document.querySelectorAll('.arch-step');
+      archSteps.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          archSteps.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          const d = archData[Number(btn.getAttribute('data-astep')) || 0];
+          document.getElementById('archStepBadge').textContent = d.badge;
+          document.getElementById('archStepTitle').textContent = d.title;
+          document.getElementById('archStepDesc').textContent = d.desc;
+          document.getElementById('svgArchCode').textContent = d.code;
+          document.getElementById('svgArchSub').textContent = d.sub;
+        });
+      });
+
+      // Solution Selection
+      const itsSolSelect = document.getElementById('itsSolSelect');
+      document.querySelectorAll('.select-its-sol').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const val = btn.getAttribute('data-sol');
+          if (itsSolSelect && val) itsSolSelect.value = val;
+          document.getElementById('lien-he').scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+
+      // FAQ
+      document.querySelectorAll('.faq-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const item = btn.closest('.faq-item');
+          const open = item.classList.toggle('open');
+          btn.setAttribute('aria-expanded', String(open));
+          btn.querySelector('span:last-child').textContent = open ? '−' : '+';
+        });
+      });
+
+      // Form Submit
+      const itsContactForm = document.getElementById('itsContactForm');
+      const itsFormNotice = document.getElementById('itsFormNotice');
+      itsContactForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('itsName').value.trim() || 'Quý đơn vị';
+        const org = document.getElementById('itsOrg').value.trim() || 'Dự án';
+        itsFormNotice.style.display = 'block';
+        itsFormNotice.textContent = 'Đã tiếp nhận yêu cầu từ ' + name + ' (' + org + '). Ban Kỹ Thuật Dự Án VietITS sẽ gửi Hồ sơ năng lực và Thuyết minh thiết kế cơ sở ngay trong ngày!';
+      });
+    })();
+  </script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

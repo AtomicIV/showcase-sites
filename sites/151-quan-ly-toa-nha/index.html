@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HomeHub BMS — Phần mềm Quản lý Vận hành Chung cư & Tòa nhà Thông minh</title>
+<meta name="description" content="HomeHub BMS kết nối Ban quản lý, hệ thống kỹ thuật IoT tòa nhà và ứng dụng cư dân trên một nền tảng điều hành duy nhất: chốt điện nước tự động, bãi xe AI và thu phí không tiền mặt.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23091324'/%3E%3Cpath d='M16 52V18l16-8 16 8v34H16z' fill='none' stroke='%2300D2FF' stroke-width='4'/%3E%3Crect x='24' y='24' width='6' height='6' fill='%23F59E0B'/%3E%3Crect x='34' y='24' width='6' height='6' fill='%2300D2FF'/%3E%3Crect x='24' y='34' width='6' height='6' fill='%2300D2FF'/%3E%3Crect x='34' y='34' width='6' height='6' fill='%23F59E0B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#091324;
+  --bg2:#0F1E36;
+  --panel:#132542;
+  --line:rgba(0,210,255,.18);
+  --cyan:#00D2FF;
+  --amber:#F59E0B;
+  --emerald:#10B981;
+  --rose:#F43F5E;
+  --light:#F1F5F9;
+  --muted:#94A3B8;
+  --paper:#F8FAFC;
+  --ink:#0F172A;
+  --head:"Space Grotesk",sans-serif;
+  --body:"Be Vietnam Pro",sans-serif;
+  --mono:"JetBrains Mono",monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;background:var(--bg);color:var(--light);font-family:var(--body);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit;max-width:100%}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--cyan);color:var(--bg);padding:10px 16px;z-index:500;font-weight:600;border-radius:6px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1260px,calc(100% - 48px));margin-inline:auto}
+
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;margin:0;line-height:1.12;letter-spacing:-.02em}
+h1{font-size:clamp(38px,5.2vw,74px)}
+h2{font-size:clamp(30px,4vw,54px)}
+h3{font-size:clamp(20px,2.2vw,28px)}
+p{margin:0}
+.mask{display:block;overflow:hidden;padding:0.18em 0.04em 0.18em;margin:-0.18em -0.04em -0.18em}
+.mask>span{display:block}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);padding:6px 12px;border:1px solid var(--line);border-radius:99px;background:rgba(0,210,255,.06)}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber)}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border-radius:10px;border:1px solid var(--cyan);background:var(--cyan);color:var(--bg);font-family:var(--head);font-weight:700;font-size:15px;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .4s var(--ease),background .25s,color .25s,border-color .25s}
+.btn:hover{background:var(--amber);border-color:var(--amber);color:var(--bg)}
+.btn.ghost{background:rgba(19,37,66,.65);color:var(--light);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,210,255,.1)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:14px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(9,19,36,.92);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--head);font-size:22px;font-weight:700}
+.logo svg{width:34px;height:34px}
+.logo em{font-style:normal;color:var(--cyan);font-size:13px;font-family:var(--mono);padding:2px 7px;border:1px solid var(--line);border-radius:6px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-size:14px;color:var(--muted);transition:color .25s}
+.nav ul a:hover{color:var(--cyan)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:18px;height:2px;background:var(--light);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:4px;opacity:0;visibility:hidden;transform:translateY(-10px);transition:all .3s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 14px;border-radius:8px;font-weight:600}
+.mmenu a:hover{background:rgba(0,210,255,.1);color:var(--cyan)}
+
+/* Hero */
+.hero{position:relative;min-height:100svh;padding:124px 0 70px;display:flex;align-items:center;background:radial-gradient(circle at 80% 20%,rgba(0,210,255,.16),transparent 55%),radial-gradient(circle at 15% 85%,rgba(245,158,11,.12),transparent 50%),var(--bg);border-bottom:1px solid var(--line)}
+.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:44px;align-items:center}
+.hero h1 em{font-style:normal;color:var(--cyan)}
+.hero-lead{margin-top:22px;font-size:18px;color:var(--muted);max-width:54ch}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:26px;border-top:1px solid var(--line)}
+.hero-stats b{display:block;font-family:var(--head);font-size:28px;color:var(--light)}
+.hero-stats span{font-size:13px;color:var(--muted)}
+.hero-stage{position:relative;background:linear-gradient(160deg,var(--panel),#0A1629);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.75)}
+.hero-stage canvas{width:100%;height:auto;border-radius:12px;background:#07101F}
+.hero-tickers{display:flex;justify-content:space-between;gap:10px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.hero-tickers strong{color:var(--emerald)}
+
+/* Pinned BMS Command Center */
+.bms-pin-sec{position:relative;background:var(--bg2)}
+.bms-pin{height:100svh;display:grid;grid-template-columns:.9fr 1.1fr;gap:44px;align-items:center;width:min(1260px,calc(100% - 48px));margin-inline:auto;padding-top:68px}
+.bms-steps{position:relative;min-height:230px;margin-top:26px}
+.bstep{position:absolute;inset:0}
+.bstep .num{font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.1em;text-transform:uppercase}
+.bstep h3{margin:8px 0 12px;font-size:clamp(24px,2.5vw,34px)}
+.bstep p{color:var(--muted);max-width:46ch}
+.bstep-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.bstep-pills span{font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:6px;background:rgba(0,210,255,.1);color:var(--cyan);border:1px solid var(--line)}
+.bms-canvas-box{position:relative;background:#07101E;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 30px 60px -20px rgba(0,0,0,.8)}
+.bms-canvas-box canvas{width:100%;height:auto;border-radius:12px}
+.bms-hud{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.bms-hud b{color:var(--cyan)}
+
+/* Interactive Widget: Dual Portal Simulator */
+.sim-sec{padding:120px 0;background:var(--bg);border-top:1px solid var(--line)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.role-tabs{display:inline-flex;flex-wrap:wrap;max-width:100%;background:var(--panel);padding:5px;border-radius:12px;border:1px solid var(--line);margin-bottom:28px}
+.role-tabs button{padding:10px 20px;border-radius:8px;border:0;background:transparent;color:var(--muted);font-weight:600;cursor:pointer;transition:all .25s}
+.role-tabs button[aria-selected="true"]{background:var(--cyan);color:var(--bg)}
+.sim-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:28px;align-items:start}
+.sim-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px}
+.sim-card h3{font-size:22px;margin-bottom:16px}
+.field-row{display:grid;gap:8px;margin-bottom:16px}
+.field-row label{font-size:14px;color:var(--muted);display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px}
+.field-row label b{color:var(--light);font-family:var(--mono)}
+.field-row input[type="range"]{width:100%;accent-color:var(--cyan);cursor:pointer}
+.field-row select,.field-row input[type="text"]{width:100%;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--light)}
+.fee-breakdown{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px;display:grid;gap:8px;font-size:14px}
+.fee-line{display:flex;justify-content:space-between;color:var(--muted)}
+.fee-line.total{padding-top:10px;border-top:1px dashed var(--line);font-size:18px;font-weight:700;color:var(--amber)}
+.ticket-list{display:grid;gap:12px;margin-top:14px}
+.ticket{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}
+.ticket small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.badge{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:99px;font-weight:600;white-space:nowrap}
+.badge.wait{background:rgba(245,158,11,.16);color:var(--amber)}
+.badge.done{background:rgba(16,185,129,.18);color:var(--emerald)}
+.sim-status{margin-top:14px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--cyan)}
+
+/* Architecture Modules Grid (Light Section) */
+.modules{padding:120px 0;background:var(--paper);color:var(--ink)}
+.modules .kick{color:#0369A1;border-color:rgba(3,105,161,.25);background:rgba(3,105,161,.06)}
+.modules .sec-head p{color:#475569}
+.mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.mod-card{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:12px;box-shadow:0 12px 30px -15px rgba(15,23,42,.08)}
+.mod-card .tag{font-family:var(--mono);font-size:12px;color:#0284C7;text-transform:uppercase}
+.mod-card p{color:#475569;font-size:15.5px}
+.mod-metric{margin-top:auto;padding-top:14px;border-top:1px solid #F1F5F9;font-family:var(--mono);font-size:13px;color:#0F172A;font-weight:600}
+
+/* Case Study / Portfolio */
+.cases{padding:110px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.case-item{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:14px}
+.case-item .loc{font-family:var(--mono);font-size:12px;color:var(--amber)}
+.case-item blockquote{margin:0;color:var(--muted);font-size:15px;font-style:italic}
+.case-kpis{display:flex;gap:18px;padding-top:12px;border-top:1px solid var(--line)}
+.case-kpis b{display:block;font-family:var(--head);font-size:22px;color:var(--cyan)}
+.case-kpis small{font-size:12px;color:var(--muted)}
+
+/* Pricing */
+.pricing{padding:120px 0;background:var(--bg)}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.plan{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px;display:flex;flex-direction:column;gap:16px}
+.plan.hot{border-color:var(--cyan);box-shadow:0 0 40px -15px rgba(0,210,255,.35)}
+.plan .pr{font-family:var(--head);font-size:40px;font-weight:700;color:var(--amber)}
+.plan .pr small{font-size:14px;font-family:var(--mono);color:var(--muted);font-weight:400}
+.plan ul{list-style:none;margin:0;padding:0;display:grid;gap:10px;font-size:15px;color:var(--muted)}
+.plan li::before{content:"✓ ";color:var(--cyan);font-weight:700}
+.plan .btn{margin-top:auto}
+
+/* CTA */
+.cta{padding:110px 0;background:linear-gradient(180deg,var(--bg2),var(--bg));border-top:1px solid var(--line);text-align:center}
+.cta h2{max-width:18ch;margin:16px auto 12px}
+.cta p{color:var(--muted);max-width:50ch;margin:0 auto}
+.cta form{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:28px}
+.cta input{min-height:50px;min-width:min(320px,100%);padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--light)}
+.cta-msg{min-height:24px;margin-top:12px;font-family:var(--mono);font-size:13px;color:var(--emerald)}
+
+footer{background:#060C18;border-top:1px solid var(--line);padding:48px 0 32px;font-size:14px;color:var(--muted)}
+.foot-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.foot-links{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.foot-links a:hover{color:var(--cyan)}
+.foot-fine{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding-top:20px;font-family:var(--mono);font-size:12px}
+
+.rm .bms-pin{height:auto;padding:90px 0}
+.rm .bms-steps{height:auto;display:grid;gap:20px}
+.rm .bstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.bms-pin,.sec-head,.sim-grid,.mod-grid,.case-grid,.plans{grid-template-columns:1fr}
+  .bms-pin{height:auto;padding:90px 0}
+  .bms-canvas-box{order:-1}
+}
+@media (max-width:640px){
+  .wrap,.bms-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 56px}
+  .hero-stats{grid-template-columns:1fr;gap:12px}
+  .bms-steps{min-height:260px}
+  .sim-sec,.modules,.cases,.pricing,.cta{padding:80px 0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="HomeHub BMS Trang chủ">
+      <svg viewBox="0 0 36 36" fill="none" aria-hidden="true"><rect width="36" height="36" rx="8" fill="#132542"/><path d="M9 29V11l9-5 9 5v18H9z" stroke="#00D2FF" stroke-width="2.2"/><rect x="14" y="14" width="3" height="3" fill="#F59E0B"/><rect x="19" y="14" width="3" height="3" fill="#00D2FF"/><rect x="14" y="20" width="3" height="3" fill="#00D2FF"/><rect x="19" y="20" width="3" height="3" fill="#F59E0B"/></svg>
+      <span>HomeHub</span><em>BMS v4.2</em>
+    </a>
+    <nav aria-label="Điều hướng chính">
+      <ul>
+        <li><a href="#van-hanh">Trung tâm BMS</a></li>
+        <li><a href="#trai-nghiem">Mô phỏng BQL & Cư dân</a></li>
+        <li><a href="#phan-he">Phân hệ lõi</a></li>
+        <li><a href="#du-an">Dự án</a></li>
+        <li><a href="#bang-gia">Biểu phí</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm mag" href="#dang-ky">Nhận bản Demo</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#van-hanh">Trung tâm điều hành BMS</a>
+  <a href="#trai-nghiem">Mô phỏng BQL & App Cư dân</a>
+  <a href="#phan-he">6 Phân hệ vận hành</a>
+  <a href="#du-an">Tòa nhà tiêu biểu</a>
+  <a href="#bang-gia">Biểu phí triển khai</a>
+  <a href="#dang-ky">Đăng ký dùng thử</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Hệ điều hành khu đô thị & chung cư thông minh</p>
+        <h1 id="hero-h" style="margin-top:18px">
+          <span class="mask"><span>Vận hành tòa nhà</span></span>
+          <span class="mask"><span><em>chuẩn xác từng tầng,</em></span></span>
+          <span class="mask"><span>minh bạch từng căn.</span></span>
+        </h1>
+        <p class="hero-lead hf">HomeHub BMS hợp nhất công tơ điện nước IoT, camera biển số hầm xe AI, điều phối kỹ thuật trực ca và cổng thanh toán VietQR tự động gạch nợ cho Ban quản lý.</p>
+        <div class="hero-cta hf">
+          <a class="btn mag" href="#trai-nghiem">Thử bảng điều khiển trực tuyến</a>
+          <a class="btn ghost mag" href="#van-hanh">Xem mặt cắt vận hành 4 lớp</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><b>185+</b><span>Tòa chung cư & Tổ hợp hạng A</span></div>
+          <div><b>98,4%</b><span>Tỷ lệ thu phí đúng hạn qua VietQR</span></div>
+          <div><b>12 phút</b><span>Thời gian xử lý sự cố kỹ thuật TB</span></div>
+        </div>
+      </div>
+      <div class="hero-stage hf">
+        <canvas id="heroC" width="600" height="460" role="img" aria-label="Mô hình mặt cắt tòa nhà 32 tầng với trạng thái cảm biến thời gian thực"></canvas>
+        <div class="hero-tickers">
+          <span>Trạng thái IoT: <strong>3.840 cảm biến Online</strong></span>
+          <span>Điện năng: <b id="kwLive">412 kWh</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bms-pin-sec" id="van-hanh" aria-labelledby="bms-h">
+    <div class="bms-pin" id="bmsPin">
+      <div>
+        <p class="kick">Mặt cắt vận hành 24/7</p>
+        <h2 id="bms-h" style="margin-top:16px">Bốn tầng tự động hóa<br>trong một tòa tháp</h2>
+        <div class="bms-steps">
+          <article class="bstep">
+            <span class="num">Tầng 01 · Hầm B1–B3 & Sảnh</span>
+            <h3>Bãi đỗ xe AI & Kiểm soát FaceID đa lớp</h3>
+            <p>Camera nhận diện biển số chính xác 99,8% cả khi mưa mờ, tự động mở barie trong 0.4 giây, dẫn hướng ô trống trên màn hình LED và đồng bộ phí gửi xe tháng vào hóa đơn căn hộ.</p>
+            <div class="bstep-pills"><span>ANPR Camera 60fps</span><span>FaceID Thang máy phân tầng</span></div>
+          </article>
+          <article class="bstep">
+            <span class="num">Tầng 02 · Hệ thống M&E & Trạm bơm</span>
+            <h3>Chốt chỉ số Điện – Nước – Gas tự động qua Modbus</h3>
+            <p>Không còn nhân viên đi gõ cửa từng căn hộ. Dữ liệu đồng hồ thông minh gửi thẳng về máy chủ mỗi giờ, cảnh báo tức thì khi phát hiện rò rỉ nước ngầm hoặc quá tải áp suất bơm PCCC.</p>
+            <div class="bstep-pills"><span>IoT Smart Meter</span><span>Cảnh báo rò rỉ tức thời</span></div>
+          </article>
+          <article class="bstep">
+            <span class="num">Tầng 03 · Khối căn hộ tầng 04–32</span>
+            <h3>Phản ánh cư dân có mặt kỹ thuật viên sau 15 phút</h3>
+            <p>Cư dân chụp ảnh sự cố trên ứng dụng, hệ thống tự động định tuyến cho kỹ thuật viên trực tầng gần nhất kèm SLA đếm ngược và nghiệm thu bằng chữ ký điện tử.</p>
+            <div class="bstep-pills"><span>Điều phối tự động</span><span>SLA 15 phút phản hồi</span></div>
+          </article>
+          <article class="bstep">
+            <span class="num">Tầng 04 · Phòng điều hành Ban Quản Lý</span>
+            <h3>Đối soát tài chính & Quỹ bảo trì minh bạch 100%</h3>
+            <p>Tự động phát hành thông báo phí định kỳ qua App & Zalo OA, tạo mã VietQR định danh từng căn hộ, gạch nợ thời gian thực ngay khi cư dân bấm chuyển khoản.</p>
+            <div class="bstep-pills"><span>VietQR Định danh</span><span>Báo cáo Ban Quản Trị</span></div>
+          </article>
+        </div>
+      </div>
+      <div class="bms-canvas-box" aria-hidden="true">
+        <canvas id="pinC" width="660" height="500"></canvas>
+        <div class="bms-hud">
+          <span>Lớp quét: <b id="pinZone">Hầm xe B1-B3</b></span>
+          <span>Độ phủ cảm biến: <b id="pinPct">25%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sim-sec" id="trai-nghiem" aria-labelledby="sim-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Tương tác trực tiếp</p>
+          <h2 id="sim-h" class="split" style="margin-top:16px">Trải nghiệm song song<br>Ban Quản Lý & App Cư Dân</h2>
+        </div>
+        <p class="rv">Thử tính phiếu thu phí quản lý theo diện tích thực tế, chuyển đổi góc nhìn giữa Giám đốc tòa nhà và Chủ căn hộ, hoặc duyệt yêu cầu đăng ký thang máy hàng ngay bên dưới.</p>
+      </div>
+
+      <div class="role-tabs" role="tablist" aria-label="Chọn góc nhìn mô phỏng">
+        <button type="button" role="tab" id="tabBql" aria-selected="true" data-role="bql">Góc nhìn Ban Quản Lý (BMS)</button>
+        <button type="button" role="tab" id="tabRes" aria-selected="false" data-role="res">Góc nhìn App Cư Dân (Căn A-2408)</button>
+      </div>
+
+      <div class="sim-grid">
+        <div class="sim-card rv">
+          <h3>Bộ tính & Phát hành Phiếu báo phí tháng 11</h3>
+          <div class="field-row">
+            <label for="areaRng"><span>Diện tích thông thủy căn hộ</span><b id="areaVal">86 m²</b></label>
+            <input id="areaRng" type="range" min="45" max="180" value="86">
+          </div>
+          <div class="field-row">
+            <label for="tierSel"><span>Hạng dịch vụ vận hành tòa nhà</span></label>
+            <select id="tierSel" aria-label="Hạng dịch vụ vận hành tòa nhà">
+              <option value="14000">Chung cư Thương mại Chuẩn (14.000đ/m²)</option>
+              <option value="18500" selected>Tổ hợp Cao cấp Hạng A (18.500đ/m²)</option>
+              <option value="26000">Biệt thự trên không & Penthouse (26.000đ/m²)</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <label for="carRng"><span>Số lượng ô tô gửi hầm định danh</span><b id="carVal">1 xe ô tô · 2 xe máy</b></label>
+            <input id="carRng" type="range" min="0" max="3" value="1">
+          </div>
+          <div class="field-row">
+            <label for="waterRng"><span>Sản lượng nước sạch IoT tự chốt</span><b id="waterVal">18 m³</b></label>
+            <input id="waterRng" type="range" min="5" max="45" value="18">
+          </div>
+          <div class="fee-breakdown">
+            <div class="fee-line"><span>Phí quản lý vận hành:</span><b id="fMgmt">1.591.000 đ</b></div>
+            <div class="fee-line"><span>Phí trông giữ phương tiện hầm B2:</span><b id="fPark">1.690.000 đ</b></div>
+            <div class="fee-line"><span>Tiền nước sạch sinh hoạt (IoT):</span><b id="fWater">234.000 đ</b></div>
+            <div class="fee-line total"><span>Tổng thông báo phí kỳ này:</span><span id="fTotal">3.515.000 đ</span></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px">
+            <button type="button" class="btn sm" id="issueBtn">Phát hành mã VietQR & Gạch nợ</button>
+            <button type="button" class="btn sm ghost" id="exportBtn">Xuất bảng kê PDF</button>
+          </div>
+        </div>
+
+        <div class="sim-card rv">
+          <h3 id="portalTitle">Bảng điều phối yêu cầu cư dân trực tuyến</h3>
+          <p style="font-size:14px;color:var(--muted)" id="portalDesc">Nhấn vào từng phiếu yêu cầu để phê duyệt cấp thẻ thang máy hoặc cử kỹ thuật viên trực ca xử lý.</p>
+          <div class="ticket-list" id="ticketList">
+            <div class="ticket" data-id="0">
+              <div>
+                <b>Căn A-2408 · Đăng ký thang hàng chuyển sofa</b>
+                <small>Khung giờ: 14:00 – 16:00 hôm nay · Thang tải S2</small>
+              </div>
+              <button type="button" class="btn sm ghost t-act" data-idx="0">Duyệt cấp thẻ</button>
+            </div>
+            <div class="ticket" data-id="1">
+              <div>
+                <b>Căn B-1205 · Kiểm tra áp lực nước vòi bếp</b>
+                <small>Tự động gán: Kỹ thuật viên Lê Hoàng (Trực tầng 12)</small>
+              </div>
+              <button type="button" class="btn sm ghost t-act" data-idx="1">Xác nhận hoàn tất</button>
+            </div>
+            <div class="ticket" data-id="2">
+              <div>
+                <b>Căn A-0910 · Đăng ký thêm thẻ xe ô tô biển 30K-882.xx</b>
+                <small>Đã tải ảnh cavet xe · Chờ đồng bộ camera ANPR</small>
+              </div>
+              <button type="button" class="btn sm ghost t-act" data-idx="2">Kích hoạt ANPR</button>
+            </div>
+          </div>
+          <div class="fee-breakdown" style="margin-top:18px">
+            <div class="fee-line"><span>Tỷ lệ thu phí toàn tòa tháng 11:</span><b id="collectRate" style="color:var(--emerald)">94,2% (754/800 căn)</b></div>
+            <div class="fee-line"><span>Phiếu yêu cầu xử lý đúng hạn SLA:</span><b id="slaRate" style="color:var(--cyan)">99,1%</b></div>
+          </div>
+          <p class="sim-status" id="simStatus" role="status" aria-live="polite">Hệ thống sẵn sàng. Chọn thao tác để kiểm thử thời gian thực.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="modules" id="phan-he" aria-labelledby="mod-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Kiến trúc 6 phân hệ</p>
+          <h2 id="mod-h" class="split" style="margin-top:16px">Thay thế hoàn toàn sổ sách<br>và file Excel rời rạc</h2>
+        </div>
+        <p class="rv">Mỗi phân hệ được thiết kế chuyên biệt theo quy trình vận hành chung cư tại Việt Nam, tuân thủ Thông tư 02/2016/TT-BXD của Bộ Xây dựng.</p>
+      </div>
+      <div class="mod-grid">
+        <article class="mod-card rv">
+          <span class="tag">01 · Billing & VietQR</span>
+          <h3>Kế toán Phí & Tự động gạch nợ</h3>
+          <p>Tính phí lũy tiến bậc thang, tự động tách quỹ vận hành và quỹ bảo trì 2%, đối soát ngân hàng BIDV, Vietcombank, MB, Techcombank trong 1 giây.</p>
+          <div class="mod-metric">Giảm 85% thời gian kế toán đối soát</div>
+        </article>
+        <article class="mod-card rv">
+          <span class="tag">02 · Smart Resident App</span>
+          <h3>Siêu ứng dụng Cư dân thương hiệu riêng</h3>
+          <p>Đặt lịch sân Tennis, khu nướng BBQ, đăng ký khách lên căn hộ bằng QR Code dùng 1 lần, bỏ phiếu biểu quyết Hội nghị Nhà chung cư trực tuyến.</p>
+          <div class="mod-metric">Tỷ lệ cư dân cài đặt đạt 96%</div>
+        </article>
+        <article class="mod-card rv">
+          <span class="tag">03 · CMMS Maintenance</span>
+          <h3>Bảo trì định kỳ & Quản lý tài sản M&E</h3>
+          <p>Quản lý vòng đời thang máy, máy phát điện, trạm bơm PCCC bằng mã QR dán trên thiết bị; tự động nhắc lịch bảo dưỡng theo số giờ hoạt động.</p>
+          <div class="mod-metric">0 sự cố dừng thang máy đột xuất</div>
+        </article>
+        <article class="mod-card rv">
+          <span class="tag">04 · AI Parking & Access</span>
+          <h3>Tích hợp Hầm xe & Phân tầng thang máy</h3>
+          <p>Đồng bộ trực tiếp với bộ điều khiển thang máy Mitsubishi, Otis, Kone và hệ thống kiểm soát cửa từ. Tự động khóa thẻ xe khi quá hạn phí.</p>
+          <div class="mod-metric">Nhận diện biển số 0.4 giây</div>
+        </article>
+        <article class="mod-card rv">
+          <span class="tag">05 · Zalo OA & Voice Broadcast</span>
+          <h3>Truyền thông đa kênh không trôi tin</h3>
+          <p>Gửi thông báo cắt điện bảo trì, lịch phun thuốc muỗi hoặc nhắc phí qua App Notification kết hợp Zalo ZNS chính danh của Ban quản lý.</p>
+          <div class="mod-metric">99% cư dân đọc thông báo khẩn</div>
+        </article>
+        <article class="mod-card rv">
+          <span class="tag">06 · Board Portal</span>
+          <h3>Cổng giám sát dành cho Ban Quản Trị</h3>
+          <p>Dashboard minh bạch thu chi theo thời gian thực, duyệt chi điện tử đa chữ ký giữa Trưởng BQT và Giám đốc BQL ngay trên điện thoại.</p>
+          <div class="mod-metric">100% minh bạch tài chính</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cases" id="du-an" aria-labelledby="case-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Triển khai thực tế</p>
+          <h2 id="case-h" class="split" style="margin-top:16px">Được tin dùng bởi các đơn vị<br>vận hành hàng đầu</h2>
+        </div>
+        <p class="rv">Từ các khu phức hợp 3.000 căn hộ tại Hà Nội, TP.HCM đến các tòa tháp văn phòng hạng A và khu đô thị ven biển.</p>
+      </div>
+      <div class="case-grid">
+        <article class="case-item rv">
+          <span class="loc">TP. Thủ Đức, TP.HCM · 2.400 căn hộ</span>
+          <h3>Tổ hợp The Metropole & Riverview</h3>
+          <blockquote>“Sau 2 tháng chuyển sang HomeHub BMS, chúng tôi cắt giảm hoàn toàn việc thu tiền mặt tại sảnh. Cư dân thanh toán VietQR lúc nửa đêm cũng được gạch nợ tức thì.”</blockquote>
+          <div class="case-kpis">
+            <div><b>98,7%</b><small>Thu phí qua App</small></div>
+            <div><b>-42%</b><small>Chi phí nhân sự hành chính</small></div>
+          </div>
+        </article>
+        <article class="case-item rv">
+          <span class="loc">Quận Cầu Giấy, Hà Nội · 1.650 căn hộ</span>
+          <h3>Chung cư Indochina Sky Park</h3>
+          <blockquote>“Phân hệ bảo trì kỹ thuật CMMS giúp đội kỹ thuật kiểm tra 28 thang máy và hệ thống PCCC theo checklist QR từng ca trực, Ban quản trị rất hài lòng.”</blockquote>
+          <div class="case-kpis">
+            <div><b>11 phút</b><small>Xử lý sự cố căn hộ</small></div>
+            <div><b>100%</b><small>Số hóa hồ sơ M&E</small></div>
+          </div>
+        </article>
+        <article class="case-item rv">
+          <span class="loc">Đà Nẵng · Tổ hợp Căn hộ & Văn phòng</span>
+          <h3>Tháp đôi Marina Bay Center</h3>
+          <blockquote>“Khả năng kết nối trực tiếp công tơ điện lạnh trung tâm BTU và bãi xe thông minh giúp chúng tôi tiết kiệm hơn 180 triệu đồng tiền điện khu vực công cộng mỗi tháng.”</blockquote>
+          <div class="case-kpis">
+            <div><b>-16%</b><small>Điện năng công cộng</small></div>
+            <div><b>4.9/5★</b><small>Điểm hài lòng cư dân</small></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing" id="bang-gia" aria-labelledby="price-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Biểu phí linh hoạt</p>
+          <h2 id="price-h" class="split" style="margin-top:16px">Đầu tư theo quy mô căn hộ,<br>không phí ẩn</h2>
+        </div>
+        <p class="rv">Miễn phí chuyển đổi dữ liệu cư dân từ phần mềm cũ và đào tạo trực tiếp tại Ban quản lý tòa nhà trong 14 ngày đầu tiên.</p>
+      </div>
+      <div class="plans">
+        <article class="plan rv">
+          <h3>Gói Tiêu Chuẩn</h3>
+          <p class="pr">6.000đ<small> / căn hộ / tháng</small></p>
+          <ul>
+            <li>Phát hành thông báo phí & gạch nợ VietQR</li>
+            <li>Ứng dụng Cư dân iOS & Android</li>
+            <li>Tiếp nhận & điều phối phản ánh sự cố</li>
+            <li>Quản lý nhân khẩu & đăng ký tạm trú</li>
+          </ul>
+          <a class="btn ghost" href="#dang-ky">Chọn gói Tiêu chuẩn</a>
+        </article>
+        <article class="plan hot rv">
+          <h3>Gói Đô Thị Thông Minh</h3>
+          <p class="pr">10.500đ<small> / căn hộ / tháng</small></p>
+          <ul>
+            <li>Toàn bộ tính năng Gói Tiêu Chuẩn</li>
+            <li>Tích hợp công tơ Điện – Nước IoT tự động</li>
+            <li>Đồng bộ Camera bãi xe AI & Thang máy</li>
+            <li>Phân hệ bảo trì kỹ thuật CMMS & Kho vật tư</li>
+            <li>Zalo ZNS thương hiệu riêng của tòa nhà</li>
+          </ul>
+          <a class="btn" href="#dang-ky">Triển khai phổ biến nhất</a>
+        </article>
+        <article class="plan rv">
+          <h3>Gói Tập Đoàn Đa Dự Án</h3>
+          <p class="pr">Tùy chỉnh<small> / Chuỗi tòa nhà</small></p>
+          <ul>
+            <li>Quản trị tập trung 10 – 100+ tòa nhà</li>
+            <li>White-label App riêng trên AppStore/PlayStore</li>
+            <li>Tích hợp hai chiều với SAP, Bravo, Fast ERP</li>
+            <li>Hạ tầng Private Cloud riêng biệt & SLA 99,99%</li>
+          </ul>
+          <a class="btn ghost" href="#dang-ky">Liên hệ Kiến trúc sư giải pháp</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="dang-ky" aria-labelledby="cta-h">
+    <div class="wrap">
+      <p class="kick">Trải nghiệm thực tế tại tòa nhà của bạn</p>
+      <h2 id="cta-h" class="split">Đặt lịch khảo sát & Demo hệ thống BMS trong 48 giờ</h2>
+      <p>Chuyên gia giải pháp của HomeHub sẽ thiết lập mô hình mẫu theo đúng mặt bằng và cơ cấu phí của tòa nhà bạn.</p>
+      <form id="ctaForm" novalidate>
+        <label class="sr" for="ctaInput">Email hoặc Số điện thoại Ban quản lý</label>
+        <input id="ctaInput" type="text" placeholder="Nhập SĐT hoặc Email Ban quản lý / BQT..." required>
+        <button type="submit" class="btn mag">Nhận tài khoản Demo ngay</button>
+      </form>
+      <p class="cta-msg" id="ctaMsg" role="status"></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <a class="logo" href="#top"><span>HomeHub</span><em>BMS</em></a>
+      <ul class="foot-links">
+        <li><a href="#van-hanh">Trung tâm BMS</a></li>
+        <li><a href="#trai-nghiem">Mô phỏng</a></li>
+        <li><a href="#phan-he">Phân hệ</a></li>
+        <li><a href="#du-an">Dự án</a></li>
+        <li><a href="#bang-gia">Biểu phí</a></li>
+      </ul>
+    </div>
+    <div class="foot-fine">
+      <span>© <span id="yr"></span> HomeHub BMS Vietnam · Giải pháp Vận hành Tòa nhà Thông minh</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const G = window.gsap
+  const anim = !!G && !reduce
+  if (!anim) document.documentElement.classList.add('rm')
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger)
+  const $ = (s, r = document) => r.querySelector(s)
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+  $('#yr').textContent = new Date().getFullYear()
+
+  // Mobile Menu
+  const nav = $('#nav')
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 24), { passive: true })
+  const mb = $('#menuBtn'), mm = $('#mmenu')
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open)
+    mm.classList.toggle('open', open)
+    mm.setAttribute('aria-hidden', !open)
+    mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'))
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false) })
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { setMenu(false); mb.focus() } })
+
+  // Lenis Smooth Scroll
+  let lenis = null
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.09 })
+    window.lenis = lenis
+    lenis.on('scroll', ScrollTrigger.update)
+    G.ticker.add((t) => lenis.raf(t * 1000))
+    G.ticker.lagSmoothing(0)
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href')
+    if (!id || id.length < 2 || !$(id)) return
+    e.preventDefault()
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' })
+  }))
+
+  // Hero Building Isometric Cross-Section Canvas
+  const heroC = $('#heroC'), hCtx = heroC.getContext('2d')
+  let tHero = 0
+  function drawHeroBuilding() {
+    const W = heroC.width, H = heroC.height
+    hCtx.clearRect(0, 0, W, H)
+    // Grid background
+    hCtx.strokeStyle = 'rgba(0,210,255,0.08)'
+    hCtx.lineWidth = 1
+    for (let x = 0; x < W; x += 30) { hCtx.beginPath(); hCtx.moveTo(x, 0); hCtx.lineTo(x, H); hCtx.stroke() }
+    for (let y = 0; y < H; y += 30) { hCtx.beginPath(); hCtx.moveTo(0, y); hCtx.lineTo(W, y); hCtx.stroke() }
+
+    // Tower silhouette
+    const bx = 150, by = 36, bw = 280, bh = 380
+    hCtx.fillStyle = '#0D1E38'
+    hCtx.strokeStyle = '#00D2FF'
+    hCtx.lineWidth = 2
+    hCtx.fillRect(bx, by, bw, bh)
+    hCtx.strokeRect(bx, by, bw, bh)
+
+    // 12 visible floor bands
+    for (let f = 0; f < 12; f++) {
+      const fy = by + f * 31
+      hCtx.strokeStyle = 'rgba(0,210,255,0.22)'
+      hCtx.beginPath(); hCtx.moveTo(bx, fy); hCtx.lineTo(bx + bw, fy); hCtx.stroke()
+      for (let c = 0; c < 6; c++) {
+        const pulse = Math.sin(tHero * 2 + f * 0.7 + c * 1.1) > 0.2
+        hCtx.fillStyle = f >= 10 ? 'rgba(245,158,11,0.35)' : pulse ? 'rgba(0,210,255,0.45)' : 'rgba(148,163,184,0.12)'
+        hCtx.fillRect(bx + 16 + c * 42, fy + 7, 30, 17)
+      }
+    }
+    // Elevator shaft animated car
+    const elY1 = by + 20 + ((Math.sin(tHero * 1.2) + 1) * 0.5) * 320
+    const elY2 = by + 20 + ((Math.cos(tHero * 0.9) + 1) * 0.5) * 320
+    hCtx.fillStyle = '#F59E0B'
+    hCtx.fillRect(bx + 128, elY1, 22, 24)
+    hCtx.fillStyle = '#10B981'
+    hCtx.fillRect(bx + 156, elY2, 22, 24)
+
+    // Floating telemetry callouts
+    const tags = [
+      [24, 90, 'Tầng 28 · Áp lực nước ổn định', '#10B981'],
+      [446, 165, 'Thang S2 · Đang chở hàng', '#F59E0B'],
+      [24, 275, 'Trạm biến áp · 412 kWh', '#00D2FF'],
+      [446, 365, 'Hầm B2 · Còn 42 chỗ trống', '#00D2FF']
+    ]
+    tags.forEach(([tx, ty, txt, col]) => {
+      hCtx.fillStyle = 'rgba(9,19,36,0.92)'
+      hCtx.strokeStyle = col
+      hCtx.lineWidth = 1.2
+      hCtx.fillRect(tx, ty, 134, 38)
+      hCtx.strokeRect(tx, ty, 134, 38)
+      hCtx.fillStyle = '#F1F5F9'
+      hCtx.font = '600 10.5px "Be Vietnam Pro", sans-serif'
+      hCtx.fillText(txt, tx + 8, ty + 23)
+    })
+  }
+  drawHeroBuilding()
+  if (anim) {
+    G.ticker.add(() => {
+      tHero += 0.025
+      drawHeroBuilding()
+    })
+  }
+  setInterval(() => {
+    $('#kwLive').textContent = (405 + Math.floor(Math.random() * 18)) + ' kWh'
+  }, 2800)
+
+  // Pinned Scrollytelling Canvas
+  const pinC = $('#pinC'), pCtx = pinC.getContext('2d')
+  const ZONES = ['Hầm xe AI B1–B3 & Sảnh FaceID', 'Trạm bơm M&E & Công tơ IoT', 'Khối căn hộ & Điều phối kỹ thuật', 'Trung tâm Tài chính & VietQR']
+  function drawPinAt(p) {
+    const W = pinC.width, H = pinC.height
+    pCtx.clearRect(0, 0, W, H)
+    pCtx.fillStyle = '#07101E'
+    pCtx.fillRect(0, 0, W, H)
+
+    const idx = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3
+    $('#pinZone').textContent = ZONES[idx]
+    $('#pinPct').textContent = Math.round(25 + p * 75) + '%'
+
+    // Cross-section 4 vertical layers highlighted by progress
+    const layers = [
+      { y: 350, h: 110, label: '01 · HẦM XE AI & FACEID SẢNH', col: '#00D2FF', active: idx === 0 },
+      { y: 245, h: 95, label: '02 · TRẠM M&E & ĐỒNG HỒ ĐIỆN NƯỚC IOT', col: '#10B981', active: idx === 1 },
+      { y: 125, h: 110, label: '03 · KHỐI CĂN HỘ & KỸ THUẬT TRỰC CA', col: '#F59E0B', active: idx === 2 },
+      { y: 25, h: 90, label: '04 · BAN QUẢN LÝ & ĐỐI SOÁT VIETQR', col: '#38BDF8', active: idx === 3 }
+    ]
+    layers.forEach((L, k) => {
+      pCtx.save()
+      pCtx.fillStyle = L.active ? 'rgba(0,210,255,0.14)' : 'rgba(19,37,66,0.5)'
+      pCtx.strokeStyle = L.active ? L.col : 'rgba(148,163,184,0.2)'
+      pCtx.lineWidth = L.active ? 2.5 : 1
+      pCtx.fillRect(50, L.y, 560, L.h)
+      pCtx.strokeRect(50, L.y, 560, L.h)
+
+      pCtx.fillStyle = L.active ? L.col : '#94A3B8'
+      pCtx.font = '600 13px "JetBrains Mono", monospace'
+      pCtx.fillText(L.label, 70, L.y + 26)
+
+      // Interior telemetry bars/nodes
+      for (let i = 0; i < 7; i++) {
+        const bx = 70 + i * 74, by = L.y + 42
+        pCtx.fillStyle = L.active ? L.col : 'rgba(148,163,184,0.22)'
+        pCtx.fillRect(bx, by, 54, L.h - 56)
+        if (L.active) {
+          pCtx.fillStyle = '#091324'
+          pCtx.font = '600 11px "JetBrains Mono", monospace'
+          pCtx.fillText(['OK', '99%', 'IOT', 'AI', 'SLA', 'QR', '24/7'][i], bx + 12, by + 26)
+        }
+      }
+      pCtx.restore()
+    })
+
+    // Laser scan line moving with scroll progress
+    const scanY = H - 30 - p * (H - 60)
+    pCtx.strokeStyle = '#F59E0B'
+    pCtx.lineWidth = 2
+    pCtx.beginPath(); pCtx.moveTo(30, scanY); pCtx.lineTo(W - 30, scanY); pCtx.stroke()
+  }
+
+  const bsteps = $$('.bstep')
+  let curStep = -1
+  function setP(i) {
+    if (i === curStep) return
+    curStep = i
+    bsteps.forEach((el, idx) => {
+      if (!anim) { el.style.opacity = 1; return }
+      G.to(el, { autoAlpha: idx === i ? 1 : 0, y: idx === i ? 0 : 16, duration: 0.45, overwrite: true })
+    })
+  }
+  if (anim) {
+    G.set(bsteps, { autoAlpha: 0 })
+    setP(0)
+    drawPinAt(0)
+    ScrollTrigger.create({
+      trigger: '#van-hanh',
+      start: 'top top',
+      end: '+=280%',
+      pin: '#bmsPin',
+      scrub: true,
+      onUpdate(self) {
+        const p = self.progress
+        drawPinAt(p)
+        setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3)
+      }
+    })
+  } else {
+    drawPinAt(1)
+  }
+
+  // Interactive BMS Simulator & Fee Calculator
+  const fmt = (n) => n.toLocaleString('vi-VN') + ' đ'
+  const areaRng = $('#areaRng'), tierSel = $('#tierSel'), carRng = $('#carRng'), waterRng = $('#waterRng')
+  function calcFee() {
+    const a = +areaRng.value
+    const rate = +tierSel.value
+    const cars = +carRng.value
+    const w = +waterRng.value
+    $('#areaVal').textContent = a + ' m²'
+    $('#carVal').textContent = cars + ' xe ô tô · 2 xe máy'
+    $('#waterVal').textContent = w + ' m³'
+    const mgmt = a * rate
+    const park = cars * 1450000 + 240000
+    const water = w * 13000
+    $('#fMgmt').textContent = fmt(mgmt)
+    $('#fPark').textContent = fmt(park)
+    $('#fWater').textContent = fmt(water)
+    $('#fTotal').textContent = fmt(mgmt + park + water)
+  }
+  ;[areaRng, tierSel, carRng, waterRng].forEach((el) => el.addEventListener('input', calcFee))
+  tierSel.addEventListener('change', calcFee)
+  calcFee()
+
+  $('#issueBtn').addEventListener('click', () => {
+    $('#collectRate').textContent = '95,5% (764/800 căn)'
+    $('#simStatus').textContent = '✓ Đã tạo mã VietQR định danh cho Căn A-2408 và gửi thông báo Zalo ZNS!'
+  })
+  $('#exportBtn').addEventListener('click', () => {
+    $('#simStatus').textContent = '✓ Đã kết xuất bảng kê chi tiết phí tháng 11 (chuẩn XML/PDF).'
+  })
+
+  // Role Tabs
+  $$('.role-tabs button').forEach((btn) => btn.addEventListener('click', () => {
+    $$('.role-tabs button').forEach((b) => b.setAttribute('aria-selected', b === btn))
+    const isRes = btn.dataset.role === 'res'
+    $('#portalTitle').textContent = isRes ? 'Ứng dụng Cư dân — Căn hộ Penthouse A-2408' : 'Bảng điều phối yêu cầu cư dân trực tuyến'
+    $('#portalDesc').textContent = isRes ? 'Xem trạng thái các yêu cầu dịch vụ của gia đình bạn và thanh toán 1 chạm.' : 'Nhấn vào từng phiếu yêu cầu để phê duyệt cấp thẻ thang máy hoặc cử kỹ thuật viên trực ca xử lý.'
+    $('#simStatus').textContent = isRes ? 'Đang hiển thị giao diện App Cư dân Căn A-2408.' : 'Đang hiển thị giao diện Trung tâm điều hành Ban Quản Lý.'
+  }))
+
+  // Ticket approval actions
+  $$('.t-act').forEach((btn) => btn.addEventListener('click', () => {
+    btn.textContent = 'Đã duyệt ✓'
+    btn.style.borderColor = '#10B981'
+    btn.style.color = '#10B981'
+    $('#simStatus').textContent = '✓ Đã phê duyệt phiếu yêu cầu và đồng bộ xuống bộ điều khiển thang máy/camera!'
+  }))
+
+  // CTA Form
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault()
+    const v = $('#ctaInput').value.trim()
+    $('#ctaMsg').textContent = v.length >= 5
+      ? '✓ Đã ghi nhận! Chuyên gia HomeHub BMS sẽ liên hệ gửi tài khoản Demo trong 30 phút.'
+      : 'Vui lòng nhập Số điện thoại hoặc Email hợp lệ của Ban quản lý.'
+  })
+
+  // Hero & Scroll Reveal Animations
+  if (anim) {
+    G.set('.hero h1 .mask>span', { yPercent: 110 })
+    G.set('.hf', { autoAlpha: 0, y: 18 })
+    G.timeline({ delay: 0.1 })
+      .to('.hero h1 .mask>span', { yPercent: 0, duration: 1.0, stagger: 0.1, ease: 'expo.out' })
+      .to('.hf', { autoAlpha: 1, y: 0, duration: 0.75, stagger: 0.08, ease: 'power3.out' }, 0.25)
+
+    $$('.split').forEach((h) => {
+      h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+      const lines = h.querySelectorAll('.mask>span')
+      G.set(lines, { yPercent: 110 })
+      ScrollTrigger.create({
+        trigger: h, start: 'top 88%', once: true,
+        onEnter: () => G.to(lines, { yPercent: 0, duration: 1.0, stagger: 0.1, ease: 'expo.out' })
+      })
+    })
+    G.set('.rv', { autoAlpha: 0, y: 28 })
+    ScrollTrigger.batch('.rv', {
+      start: 'top 90%', once: true,
+      onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.08, ease: 'expo.out', clearProps: 'transform' })
+    })
+  }
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

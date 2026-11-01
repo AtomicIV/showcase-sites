@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PharmaCare GPP POS — Phần mềm Quản lý Nhà thuốc đạt chuẩn GPP & Liên thông Dược Quốc gia</title>
+<meta name="description" content="PharmaCare GPP POS giúp nhà thuốc và chuỗi quầy thuốc bán lẻ cắt liều nhanh bằng mã vạch, quy đổi tự động Thùng-Hộp-Vỉ-Viên, cảnh báo lô cận hạn dùng và liên thông Dược Quốc gia.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230D3B38'/%3E%3Cpath d='M26 16h12v10h10v12H38v10H26V38H16V26h10z' fill='%230EA5E9'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23F3F9F8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Onest:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F9F8; --bg2:#E1F0EE; --card:#FFFFFF;
+  --ink:#0D3B38; --pri:#0EA5E9; --teal:#0D9488; --warn:#D97706; --muted:#3F625E;
+  --line:rgba(13,59,56,.16);
+  --head:"Onest", sans-serif; --body:"Be Vietnam Pro", sans-serif; --mono:"Space Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:#fff;padding:10px 16px;z-index:400;font-weight:600}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.3vw,58px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);font-weight:700}
+.kick::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--pri);box-shadow:0 0 10px 1px rgba(14,165,233,.6)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--ink);background:var(--ink);color:#fff;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:8px;cursor:pointer;transition:transform .35s var(--ease),background .3s}
+.btn:hover{background:var(--pri);border-color:var(--pri);transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--pri);color:var(--pri)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(243,249,248,.94);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:22px;font-weight:800;color:var(--ink)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--card);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--ink);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease);box-shadow:0 20px 40px rgba(13,59,56,.12)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:18px;border-bottom:1px solid var(--line)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 75% 25%,rgba(14,165,233,.14),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(13,148,136,.12),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(36px,4.9vw,66px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:50ch;color:var(--muted);font-size:17.5px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:30px;color:var(--ink)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 25px 55px -20px rgba(13,59,56,.15)}
+.hero-box canvas{width:100%;height:auto;border-radius:10px;cursor:pointer}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Pinned GPP Workflow */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:240px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--pri);font-weight:700}
+.pstep h3{font-size:clamp(24px,2.4vw,34px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:44ch}
+.pr-vis{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 20px 45px -20px rgba(13,59,56,.12)}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--ink)}
+
+/* Interactive Unit Converter & Expiry Simulator */
+.sim{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.sim-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.sim-stage{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 20px 45px -20px rgba(13,59,56,.1)}
+.sim-stage canvas{width:100%;height:auto;border-radius:10px}
+.sim-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.sim-info{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:18px;box-shadow:0 20px 45px -20px rgba(13,59,56,.1)}
+.mode-tabs{display:grid;grid-template-columns:1fr;gap:10px}
+.m-btn{padding:12px 14px;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;text-align:left}
+.m-btn .mono{font-size:10px;color:var(--teal);display:block;font-weight:700}
+.m-btn b{font-family:var(--head);font-size:18px}
+.m-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(14,165,233,.1)}
+.quote-box{padding:16px;background:var(--bg2);border-left:3px solid var(--ink);border-radius:6px;display:grid;gap:6px;font-size:14.5px}
+.quote-box strong{font-family:var(--head);font-size:22px;color:var(--ink)}
+
+.specs{padding:110px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.scard .mono{color:var(--pri);font-weight:700}
+.scard h3{font-size:21px}
+.scard p{color:var(--muted);font-size:15px}
+
+.cases{padding:110px 0;background:var(--bg);border-top:1px solid var(--line)}
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ccard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.ccard .mono{color:var(--teal);font-weight:700}
+.ccard h3{font-size:22px}
+.ccard p{color:var(--muted);font-size:15px}
+
+.cta{padding:110px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center;box-shadow:0 25px 55px -20px rgba(13,59,56,.12)}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--ink)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--teal);font-weight:700}
+
+footer{background:var(--ink);color:#E1F0EE;padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-top .logo{color:#fff}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:#A7F3D0}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.14);font-family:var(--mono);font-size:12px;color:#A7F3D0}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.sim-shell,.case-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .spec-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.sim-controls,.spec-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="PharmaCare GPP POS Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0D3B38"/><path d="M13 8h6v5h5v6h-5v5h-6v-5H8v-6h5z" fill="#0EA5E9"/></svg>
+      PharmaCare GPP
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Chuẩn Liên Thông GPP</a></li>
+        <li><a href="#sim">Quy Đổi & Cận Date</a></li>
+        <li><a href="#specs">Tính Năng Nhà Thuốc</a></li>
+        <li><a href="#cases">Khách Hàng</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#trial">Dùng Thử Miễn Phí</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Quy trình Liên thông Dược Quốc gia</a>
+  <a href="#sim">Mô phỏng Cắt liều & Cảnh báo Cận Date</a>
+  <a href="#specs">Danh mục 60.000 Thuốc Chuẩn Bộ Y Tế</a>
+  <a href="#cases">Chuỗi Nhà thuốc & Quầy thuốc GPP</a>
+  <a href="#trial">Đăng ký Dùng thử 15 ngày</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Đạt Chuẩn Thực Hành Tốt Cơ Sở Bán Lẻ Thuốc (GPP)</p>
+        <h1 id="hero-h"><span class="mask"><span>Bán lẻ cắt liều 3 giây,</span></span><span class="mask"><span>liên thông <em>Dược Quốc gia.</em></span></span></h1>
+        <p class="hero-lead hf">Không còn nỗi lo thất thoát thuốc lẻ hay hàng hết hạn nằm quên trong tủ. PharmaCare GPP POS tự động quy đổi Thùng – Hộp – Vỉ – Viên khi quét mã vạch, cảnh báo lô cận date trước 90 ngày và đồng bộ tự động lên Cổng Dược Quốc gia.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#sim">Thử Quầy Cắt Liều & Quy Đổi</a>
+          <a class="btn ghost" href="#process">Xem Quy Trình Chuẩn GPP</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>60.000+</strong><span>Mã thuốc chuẩn Cục Quản lý Dược</span></div>
+          <div><strong>100%</strong><span>Đạt thẩm định thanh tra GPP</span></div>
+          <div><strong>0.5 Giây</strong><span>Tốc độ quét mã vạch bán cắt liều</span></div>
+        </div>
+      </div>
+      <div class="hero-box hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Giao diện quầy bán thuốc GPP quét mã vạch quy đổi hộp vỉ viên và cảnh báo lô thuốc cận hạn"></canvas>
+        <div class="hero-meta">
+          <span>Nhấp vào vỉ thuốc để mô phỏng bán lẻ cắt viên</span>
+          <span style="color:var(--pri)">CỔNG DƯỢC QUỐC GIA: ĐÃ ĐỒNG BỘ</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Vận hành Nhà thuốc Không Sai Sót</p>
+        <h2 id="pr-h">Từ nhập kho hóa đơn điện tử<br><em>đến bán cắt liều & liên thông</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Bước 01 · Nhập kho tự động từ Hóa đơn Điện tử XML</p>
+            <h3>Tự động điền số lô, hạn dùng và giá nhập chỉ bằng 1 cú nhấp</h3>
+            <p>Đọc trực tiếp file XML hóa đơn đầu vào từ các công ty dược phẩm, tự động đối chiếu danh mục 60.000 mã thuốc Quốc gia mà không cần gõ tay từng tên hoạt chất.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 02 · Quy đổi linh hoạt 4 cấp: Thùng – Hộp – Vỉ – Viên</p>
+            <h3>Nhập theo Thùng, bán lẻ từng Viên vẫn trừ kho chính xác tuyệt đối</h3>
+            <p>Dược sĩ đứng quầy chỉ cần tít mã vạch trên vỏ hộp hoặc chọn đơn thuốc mẫu (cảm cúm, đau họng, rối loạn tiêu hóa), phần mềm tự động tính giá bán lẻ theo viên.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 03 · Cảnh báo Lô Cận Date & Gợi ý Xuất kho FEFO</p>
+            <h3>Ưu tiên bán trước lô hết hạn sớm (First Expired, First Out)</h3>
+            <p>Màn hình POS tự động tô màu vàng/đỏ các lô thuốc còn dưới 90 ngày sử dụng để dược sĩ ưu tiên xuất bán hoặc làm phiếu trả hàng nhà phân phối đúng hạn.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 04 · Đồng bộ Cổng Dược Quốc gia & Đơn thuốc Điện tử</p>
+            <h3>Sẵn sàng 100% sổ sách cho đoàn kiểm tra Sở Y Tế</h3>
+            <p>Tự động đẩy dữ liệu phiếu nhập – xuất lên hệ thống Dược Quốc gia (duocquocgia.com.vn) và xuất đầy đủ sổ theo dõi nhiệt độ, độ ẩm, thuốc kê đơn chuẩn GPP.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Nghiệp vụ dược: <b id="pStep">Nhập kho XML</b></span>
+          <span>Chuẩn dữ liệu: <b id="pStd">Cục Quản lý Dược</b></span>
+          <span>Độ chính xác tồn kho: <b id="pPct">100%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sim" id="sim" aria-labelledby="sim-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trải nghiệm Thực tế Quầy Thuốc</p>
+          <h2 id="sim-h" style="margin-top:16px">Quầy cắt liều thông minh &<br><em>Cảnh báo Lô cận hạn dùng</em></h2>
+        </div>
+        <p class="rv">Chọn nhóm dược phẩm, kéo thanh trượt số lượng hộp nhập kho và quy mô quầy thuốc để xem cách hệ thống quy đổi Thùng – Hộp – Vỉ – Viên trên canvas và tính chi phí triển khai.</p>
+      </div>
+      <div class="sim-shell">
+        <div class="sim-stage">
+          <canvas id="simC" width="680" height="400" role="img" aria-label="Mô phỏng quy đổi đơn vị thuốc Hộp sang Vỉ và Viên kèm cảnh báo hạn sử dụng"></canvas>
+          <div class="sim-controls">
+            <div class="sl-row">
+              <label for="boxR"><span>Số lượng tồn kho hiện tại (Hộp)</span><b id="vBox">24 Hộp</b></label>
+              <input id="boxR" type="range" min="5" max="100" step="1" value="24">
+            </div>
+            <div class="sl-row">
+              <label for="storeR"><span>Quy mô số điểm Nhà thuốc</span><b id="vStore">02 Cơ sở</b></label>
+              <input id="storeR" type="range" min="1" max="20" step="1" value="2">
+            </div>
+          </div>
+        </div>
+        <div class="sim-info">
+          <span class="mono" style="color:var(--teal)">Chọn danh mục thuốc mô phỏng</span>
+          <div class="mode-tabs" id="drugTabs" role="group" aria-label="Chọn nhóm thuốc">
+            <button type="button" class="m-btn" data-d="0" aria-pressed="true">
+              <span class="mono">Hộp 2 Vỉ × 7 Viên · Kê đơn ETC</span>
+              <b>Kháng sinh Augmentin 1g (GSK)</b>
+            </button>
+            <button type="button" class="m-btn" data-d="1" aria-pressed="false">
+              <span class="mono">Hộp 10 Vỉ × 10 Viên · Không kê đơn OTC</span>
+              <b>Giảm đau Hạ sốt Panadol Extra</b>
+            </button>
+            <button type="button" class="m-btn" data-d="2" aria-pressed="false">
+              <span class="mono">Hộp 3 Vỉ × 10 Viên · Thực phẩm bảo vệ sức khỏe</span>
+              <b>Bổ gan Boganic Traphaco</b>
+            </button>
+          </div>
+          <div>
+            <span class="mono" style="color:var(--pri)" id="dConv">Quy đổi tự động: 24 Hộp = 48 Vỉ = 336 Viên nén</span>
+            <h3 id="dTitle" style="font-size:22px;margin:6px 0 8px">Kiểm soát chặt chẽ từng viên thuốc cắt lẻ</h3>
+            <p id="dDesc" style="color:var(--muted);font-size:15px">Cảnh báo tương tác thuốc chống chỉ định ngay trên màn hình bán hàng và in tem hướng dẫn liều uống Sáng – Trưa – Tối dán lên từng túi zip.</p>
+          </div>
+          <div class="quote-box" id="pQuote" role="status" aria-live="polite">
+            <span class="mono">Chi phí phần mềm trọn gói (Đã gồm Liên thông Dược):</span>
+            <strong id="pPrice">380.000 VNĐ / tháng</strong>
+            <span id="pSub" style="color:var(--muted);font-size:13.5px">Tặng kèm 2.000 Hóa đơn điện tử khởi tạo từ máy tính tiền & App quản lý từ xa cho Chủ nhà thuốc</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="specs" id="specs" aria-labelledby="sp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trợ lý Đắc lực của Dược sĩ</p>
+          <h2 id="sp-h" style="margin-top:16px">Đầy đủ nghiệp vụ <em>Dược chuẩn Bộ Y Tế</em></h2>
+        </div>
+        <p class="rv">Giao diện trực quan bằng tiếng Việt giúp dược sĩ lớn tuổi cũng có thể thành thạo thao tác bán hàng và kiểm kho chỉ sau 15 phút hướng dẫn.</p>
+      </div>
+      <div class="spec-grid">
+        <article class="scard rv">
+          <span class="mono">01 · In Tem Liều Uống</span>
+          <h3>Hướng dẫn uống rõ ràng</h3>
+          <p>Tự động in nhãn phụ "Sáng 1 viên sau ăn - Tối 1 viên" giúp bệnh nhân uống đúng liều và nhớ thương hiệu nhà thuốc.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">02 · Kiểm Kho Bằng ĐT</span>
+          <h3>Quét mã vạch qua Camera</h3>
+          <p>Dùng điện thoại di động quét mã vạch kiểm kê từng tủ thuốc cuối ca mà không cần đóng cửa nghỉ bán.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">03 · Chăm Sóc Bệnh Mãn Tính</span>
+          <h3>Nhắc lịch mua thuốc định kỳ</h3>
+          <p>Tự động gửi tin nhắn Zalo ZNS nhắc khách hàng huyết áp, tiểu đường, mỡ máu khi sắp hết liệu trình 30 ngày.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">04 · Hóa Đơn Máy Tính Tiền</span>
+          <h3>Chuẩn Tổng cục Thuế</h3>
+          <p>Kết nối sẵn Viettel SInvoice, VNPT, MISA meInvoice xuất hóa đơn điện tử bán lẻ tức thì theo Nghị định 123.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cases" id="cases" aria-labelledby="ca-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Cộng đồng Dược sĩ Tin dùng</p>
+          <h2 id="ca-h" style="margin-top:16px">Đồng hành cùng 6.800+ Nhà thuốc trên 63 tỉnh thành</h2>
+        </div>
+        <p class="rv">Từ quầy thuốc gia đình tại huyện thị đến chuỗi nhà thuốc hiện đại kết hợp phòng khám đa khoa.</p>
+      </div>
+      <div class="case-grid">
+        <article class="ccard rv">
+          <span class="mono">Nhà Thuốc Dân Sinh Độc Lập</span>
+          <h3>Vượt qua kỳ tái thẩm định GPP 3 năm/lần</h3>
+          <p>Xuất đầy đủ sổ theo dõi thuốc kê đơn, biên bản kiểm nhập, sổ theo dõi hạn dùng và liên thông 100% phiếu lên Cục Quản lý Dược.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Chuỗi Nhà Thuốc 5 – 30 Chi Nhánh</span>
+          <h3>Điều chuyển hàng cận date giữa các cơ sở</h3>
+          <p>Phát hiện thuốc bán chậm tại cơ sở A để điều chuyển kịp thời sang cơ sở B có sức tiêu thụ mạnh hơn, giảm 95% tỷ lệ hủy thuốc hết hạn.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Nhà Thuốc Phòng Khám Tư Nhân</span>
+          <h3>Nhận đơn thuốc trực tiếp từ Bác sĩ</h3>
+          <p>Liên kết hai chiều với phần mềm HIS phòng khám: bác sĩ kê đơn xong trên tầng, quầy dược tầng trệt đã sẵn sàng soạn thuốc và thu ngân.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="trial" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Hỗ trợ Cấp Mã Liên Thông Sở Y Tế Tận Nơi</p>
+        <h2 id="cta-h" style="margin-top:14px">Đăng ký Dùng thử 15 Ngày Miễn Phí &<br><em>Nhận Bộ Sổ Sách Mẫu Thẩm Định GPP</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="phName">Họ và tên Dược sĩ phụ trách / Chủ nhà thuốc</label>
+            <input id="phName" type="text" placeholder="DS. Nguyễn Thị Thanh Hương" required>
+          </div>
+          <div>
+            <label for="phPhone">Số điện thoại / Zalo</label>
+            <input id="phPhone" type="tel" placeholder="0984 312 668" required>
+          </div>
+          <div>
+            <label for="phModel">Mô hình cơ sở bán lẻ dược</label>
+            <select id="phModel">
+              <option value="m1">Nhà thuốc GPP (1 cơ sở)</option>
+              <option value="m2">Chuỗi Nhà thuốc (Từ 2 cơ sở trở lên)</option>
+              <option value="m3">Quầy thuốc / Nhà thuốc Phòng khám</option>
+            </select>
+          </div>
+          <div>
+            <label for="phNeed">Nhu cầu cần hỗ trợ gấp</label>
+            <select id="phNeed">
+              <option value="n1">Liên thông Cổng Dược Quốc gia thẩm định GPP</option>
+              <option value="n2">Quản lý bán hàng cắt liều & Tồn kho cận date</option>
+              <option value="n3">Chuyển đổi dữ liệu từ phần mềm cũ sang</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Kích Hoạt Tài Khoản Nhà Thuốc Ngay</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">PharmaCare GPP POS</a>
+      <ul class="f-nav">
+        <li><a href="#process">Liên Thông Dược</a></li>
+        <li><a href="#sim">Quy Đổi Đơn Vị</a></li>
+        <li><a href="#specs">Tính Năng GPP</a></li>
+        <li><a href="#cases">Khách Hàng</a></li>
+        <li><a href="#trial">Dùng Thử</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> PharmaCare GPP Vietnam · Giải pháp Quản lý Nhà thuốc Chuẩn Bộ Y Tế</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  const DRUGS = [
+    { name: 'AUGMENTIN 1G (GSK)', code: 'VD-28491-17', blisters: 2, pillsPerBlister: 7, pricePill: 18500, expDays: 42 },
+    { name: 'PANADOL EXTRA (GSK)', code: 'VD-21084-14', blisters: 10, pillsPerBlister: 10, pricePill: 2200, expDays: 240 },
+    { name: 'BOGANIC FORTE (TRAPHACO)', code: 'VD-19502-13', blisters: 3, pillsPerBlister: 10, pricePill: 3500, expDays: 78 }
+  ];
+
+  let cutPills = 2;
+
+  function drawPharmacy(ctx, w, h, drugIdx = 0, boxes = 24) {
+    const d = DRUGS[drugIdx];
+    ctx.fillStyle = '#F7FBFA';
+    ctx.fillRect(0, 0, w, h);
+
+    // Top bar
+    ctx.fillStyle = '#0D3B38';
+    ctx.fillRect(14, 14, w - 28, 38);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '700 11px "Space Mono", monospace';
+    ctx.fillText(`MÃ ĐK: ${d.code} · ${d.name} · LIÊN THÔNG DƯỢC: OK`, 26, 37);
+
+    // Left: Box -> Blister -> Pill hierarchy cards
+    const totalBlisters = boxes * d.blisters;
+    const totalPills = totalBlisters * d.pillsPerBlister - cutPills;
+
+    const cards = [
+      ['TỒN HỘP NGUYÊN', `${boxes} HỘP`, '#0D3B38'],
+      ['QUY ĐỔI VỈ', `${totalBlisters} VỈ`, '#0D9488'],
+      ['TỔNG SỐ VIÊN LẺ', `${totalPills} VIÊN`, '#0EA5E9']
+    ];
+
+    cards.forEach(([lbl, val, col], idx) => {
+      const y = 72 + idx * 82;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.roundRect(22, y, 210, 68, 8); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#3F625E';
+      ctx.font = '700 10px "Space Mono", monospace';
+      ctx.fillText(lbl, 36, y + 24);
+      ctx.fillStyle = col;
+      ctx.font = '800 22px "Onest", sans-serif';
+      ctx.fillText(val, 36, y + 52);
+    });
+
+    // Right: Interactive Blister Pack Visual
+    const bx = 265, by = 72, bw = w - 287, bh = 232;
+    ctx.fillStyle = '#E1F0EE';
+    ctx.strokeStyle = 'rgba(13,59,56,0.22)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 12); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#0D3B38';
+    ctx.font = '700 11px "Space Mono", monospace';
+    ctx.fillText('MÔ PHỎNG VỈ THUỐC CẮT LIỀU (CLICK ĐỂ CẮT VIÊN):', bx + 18, by + 26);
+
+    const cols = 5, rows = 2;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const pIdx = r * cols + c;
+        const px = bx + 34 + c * 68;
+        const py = by + 62 + r * 72;
+        const isCut = pIdx < cutPills;
+
+        ctx.fillStyle = isCut ? 'rgba(13,59,56,0.1)' : '#FFFFFF';
+        ctx.strokeStyle = isCut ? '#94A3B8' : '#0EA5E9';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.roundRect(px, py, 48, 28, 14); ctx.fill(); ctx.stroke();
+        if (!isCut) {
+          ctx.fillStyle = '#0EA5E9';
+          ctx.beginPath(); ctx.roundRect(px + 24, py + 2, 22, 24, 11); ctx.fill();
+        }
+      }
+    }
+
+    ctx.fillStyle = '#0D3B38';
+    ctx.font = '600 13px "Be Vietnam Pro", sans-serif';
+    ctx.fillText(`Đơn cắt liều hiện tại: ${cutPills} viên × ${d.pricePill.toLocaleString('vi-VN')}đ = ${(cutPills * d.pricePill).toLocaleString('vi-VN')} VNĐ`, bx + 18, by + bh - 18);
+
+    // Bottom Expiry Warning Bar (FEFO)
+    const isNear = d.expDays < 90;
+    ctx.fillStyle = isNear ? '#FEF3C7' : '#DCFCE7';
+    ctx.strokeStyle = isNear ? '#D97706' : '#16A34A';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.roundRect(22, h - 72, w - 44, 52, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = isNear ? '#92400E' : '#166534';
+    ctx.font = '700 11px "Space Mono", monospace';
+    ctx.fillText(
+      isNear
+        ? `CẢNH BÁO CẬN DATE (FEFO): LÔ #L0924 CÒN ${d.expDays} NGÀY — ƯU TIÊN XUẤT BÁN TRƯỚC`
+        : `KIỂM SOÁT HẠN DÙNG AN TOÀN: LÔ #L1125 CÒN ${d.expDays} NGÀY SỬ DỤNG`,
+      38,
+      h - 41
+    );
+  }
+
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  drawPharmacy(heroX, 580, 420, 0, 24);
+  heroC.addEventListener('click', () => {
+    cutPills = (cutPills % 8) + 1;
+    drawPharmacy(heroX, 580, 420, 0, 24);
+  });
+
+  // Pinned Scroll Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const STEPS = ['Nhập kho Hóa đơn XML', 'Quy đổi Thùng - Hộp - Vỉ - Viên', 'Cảnh báo Lô Cận Date 90 ngày', 'Đồng bộ Cổng Dược Quốc gia'];
+  function renderPin(p) {
+    const step = p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3;
+    drawPharmacy(pinX, 660, 440, step % 3, 20 + step * 10);
+    $('#pStep').textContent = STEPS[step];
+  }
+  renderPin(0.5);
+
+  // Interactive Simulator
+  const simC = $('#simC'), simX = simC.getContext('2d');
+  let curDrug = 0, curBoxes = 24, curStores = 2;
+
+  function updateSim() {
+    drawPharmacy(simX, 680, 400, curDrug, curBoxes);
+    const d = DRUGS[curDrug];
+    const bl = curBoxes * d.blisters;
+    const pl = bl * d.pillsPerBlister;
+    $('#dConv').textContent = `Quy đổi tự động: ${curBoxes} Hộp = ${bl} Vỉ = ${pl.toLocaleString('vi-VN')} Viên`;
+    const price = curStores * 190000;
+    $('#pPrice').textContent = `${price.toLocaleString('vi-VN')} VNĐ / tháng`;
+  }
+
+  $$('#drugTabs .m-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curDrug = +btn.dataset.d;
+      $$('#drugTabs .m-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === curDrug));
+      updateSim();
+    });
+  });
+  $('#boxR').addEventListener('input', (e) => {
+    curBoxes = +e.target.value;
+    $('#vBox').textContent = `${curBoxes} Hộp`;
+    updateSim();
+  });
+  $('#storeR').addEventListener('input', (e) => {
+    curStores = +e.target.value;
+    $('#vStore').textContent = `${curStores < 10 ? '0' + curStores : curStores} Cơ sở`;
+    updateSim();
+  });
+  simC.addEventListener('click', () => {
+    cutPills = (cutPills % 8) + 1;
+    updateSim();
+  });
+  updateSim();
+
+  // Nav & Mobile Menu
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#phName').value.trim();
+    $('#ctaOk').textContent = n ? `Cảm ơn ${n}! Chuyên viên Dược của PharmaCare sẽ liên hệ qua Zalo để cấp tài khoản liên thông Dược Quốc gia ngay.` : 'Vui lòng nhập họ tên và số điện thoại nhà thuốc.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.8, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TalentMatch AI Tech — Nền tảng Tuyển dụng Kỹ sư CNTT & Chấm bài Live Coding bằng AI</title>
+<meta name="description" content="TalentMatch AI Tech phân tích sâu mã nguồn GitHub, tự động chấm điểm 50 tiêu chí System Design và Live Coding, ghép nối ứng viên IT với JD trong 30 giây.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23090D16'/%3E%3Cpolygon points='32,8 54,20 54,44 32,56 10,44 10,20' fill='none' stroke='%2322C55E' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='8' fill='%2338BDF8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#090D16;
+  --bg2:#111827;
+  --bg3:#060910;
+  --paper:#F0FDF4;
+  --ink:#090D16;
+  --pri:#22C55E;
+  --sec:#38BDF8;
+  --warn:#F59E0B;
+  --text:#F8FAFC;
+  --muted:#94A3B8;
+  --mutedD:#334155;
+  --line:rgba(34,197,94,.22);
+  --head:"Space Grotesk", sans-serif;
+  --body:"Be Vietnam Pro", sans-serif;
+  --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:700;border-radius:6px}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.5vw,60px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pri);background:rgba(34,197,94,.08);border:1px solid var(--line);padding:6px 12px;border-radius:99px}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sec);box-shadow:0 0 10px 2px rgba(56,189,248,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;border-radius:8px;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .35s var(--ease),background .25s}
+.btn:hover{background:#4ADE80;border-color:#4ADE80}
+.btn.ghost{background:rgba(17,24,39,.75);color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--sec);color:var(--sec)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(9,13,22,.92);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:23px;font-weight:700;color:var(--text)}
+.logo span{color:var(--pri)}
+.logo svg{width:34px;height:34px;flex-shrink:0}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 13px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:19px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:122px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 78% 24%,rgba(34,197,94,.16),transparent 70%),radial-gradient(ellipse 50% 50% at 15% 82%,rgba(56,189,248,.14),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(38px,5.2vw,70px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:52ch;color:var(--muted);font-size:17.5px;margin-top:18px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3);cursor:crosshair}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+/* Pinned 30-second AI Code & Architecture Assessment */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:245px;margin-top:22px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--sec)}
+.pstep h3{font-size:clamp(24px,2.5vw,36px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:46ch}
+.pr-vis{background:var(--bg3);border:1px solid var(--line);border-radius:16px;padding:18px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive Radar Skill Matcher & Vietnam Salary Benchmark Widget */
+.widget{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.w-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:start}
+.w-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.w-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3)}
+.w-controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.sl-row label b{color:var(--pri)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.w-panel{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:16px}
+.role-tabs{display:grid;gap:10px}
+.r-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+.r-btn .mono{font-size:10.5px;color:var(--sec);display:block}
+.r-btn b{font-family:var(--head);font-size:19px;display:block;margin-top:2px}
+.r-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(34,197,94,.14)}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px}
+.kpi-card span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.kpi-card strong{font-family:var(--head);font-size:23px;color:var(--pri)}
+.match-note{padding:14px;background:rgba(56,189,248,.12);border-left:3px solid var(--sec);border-radius:6px;font-size:14.5px;color:var(--text)}
+
+/* Anti-Cheat & Engineering Evaluation Features (Light Contrast) */
+.features{padding:116px 0;background:var(--paper);color:var(--ink)}
+.features .kick{color:#15803D;background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.25)}
+.features h2 em{color:#16A34A}
+.features .sec-head p{color:var(--mutedD)}
+.feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.fcard{background:#fff;border:1px solid rgba(9,13,22,.1);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.fcard .mono{color:#15803D;font-weight:600}
+.fcard h3{font-size:22px;color:var(--ink)}
+.fcard p{color:var(--mutedD);font-size:15px}
+
+/* Tech Stack Benchmarks */
+.bench{padding:116px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.bench-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.bcard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.bcard .mono{color:var(--sec)}
+.bcard h3{font-size:24px}
+.bcard p{color:var(--muted);font-size:15px}
+
+/* CTA */
+.cta{padding:116px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(34,197,94,.2),transparent 70%),var(--bg);border-top:1px solid var(--line)}
+.cta-box{max-width:860px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--pri)}
+
+footer{background:var(--bg3);border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-nav a:hover{color:var(--pri)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.w-shell,.bench-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .feat-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.w-controls,.kpi-grid,.feat-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 18px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="TalentMatch AI Tech Trang chủ">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><polygon points="18,3 32,11 32,25 18,33 4,25 4,11" fill="#111827" stroke="#22C55E" stroke-width="2"/><circle cx="18" cy="18" r="5" fill="#38BDF8"/></svg>
+      TalentMatch<span>.AI</span>
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Chấm Live Coding AI</a></li>
+        <li><a href="#matcher">Radar Kỹ Năng & Lương IT</a></li>
+        <li><a href="#features">50 Tiêu Chí Kiến Trúc</a></li>
+        <li><a href="#bench">Ngân Hàng Đề Thực Chiến</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#trial">Dùng Thử Cho CTO/HR</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Phân Tích GitHub & Live Coding</a>
+  <a href="#matcher">Trình Chấm Điểm Độ Khớp JD & CV</a>
+  <a href="#features">50 Tiêu Chí System Design</a>
+  <a href="#bench">Ngân Hàng Bài Thi Kỹ Sư</a>
+  <a href="#trial">Nhận Tài Khoản Tuyển Dụng</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">AI Tech Recruiting · GitHub AST & Live Coding Judge</p>
+        <h1 id="hero-h"><span class="mask"><span>Đọc sâu từng dòng code,</span></span><span class="mask"><span>khớp đúng kỹ sư trong <em>30 giây.</em></span></span></h1>
+        <p class="hero-lead hf">Không còn sàng lọc CV theo từ khóa cảm tính. TalentMatch AI phân tích trực tiếp cây cú pháp (AST) trong kho GitHub của ứng viên, chấm tự động 50 tiêu chí kiến trúc hệ thống trong bài thi Live Coding và định vị chính xác năng lực Senior/Lead.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#matcher">Chấm Thử Độ Khớp JD & Lương</a>
+          <a class="btn ghost" href="#process">Xem AI Chấm Live Coding</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>30 Giây</strong><span>Phân tích GitHub & ghép nối JD</span></div>
+          <div><strong>50 Tiêu chí</strong><span>Chấm kiến trúc & Clean Code</span></div>
+          <div><strong>-68%</strong><span>Thời gian phỏng vấn kỹ thuật của CTO</span></div>
+        </div>
+      </div>
+      <div class="hero-stage hf">
+        <canvas id="heroC" width="600" height="420" role="img" aria-label="Giao diện AI phân tích AST mã nguồn GitHub và chấm điểm kiến trúc thời gian thực"></canvas>
+        <div class="hero-meta">
+          <span>Di chuột để soi điểm số từng tiêu chí mã nguồn ứng viên</span>
+          <span style="color:var(--pri)">AST ENGINE v4.2 · 98.4% MATCH</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Quy trình đánh giá 30 giây</p>
+        <h2 id="pr-h">Bốn lớp thẩm định<br><em>từ GitHub đến System Design</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Bước 01 · Quét Kho Mã Nguồn GitHub & Lịch Sử Commit</p>
+            <h3>Phân biệt code tự viết thực chất với repo clone mẫu</h3>
+            <p>AI bóc tách lịch sử Pull Request, độ phức tạp thuật toán, cách xử lý bất đồng bộ (Concurrency) và thói quen viết Unit Test của ứng viên qua các dự án thực tế.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 02 · Phòng Thi Live Coding Trên Cloud IDE</p>
+            <h3>Chạy môi trường Docker thực tế thay vì đố mẹo thuật toán</h3>
+            <p>Ứng viên debug microservice Go/Java, tối ưu truy vấn PostgreSQL bị nghẽn hoặc tinh chỉnh pipeline RAG LLM ngay trên trình duyệt với tính năng chống sao chép AI ngoại luồng.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 03 · Chấm Điểm 50 Tiêu Chí Kiến Trúc & Bảo Mật</p>
+            <h3>Đánh giá Memory Leak, Race Condition & chuẩn OWASP</h3>
+            <p>Hệ thống tự động chạy 120 test case chịu tải (Stress Test), đo độ trễ P99, phát hiện lỗ hổng SQL Injection và chấm điểm cấu trúc Clean Architecture.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 04 · Ghép Nối JD & Báo Cáo Phỏng Vấn Cho CTO</p>
+            <h3>Xếp hạng Top 5% ứng viên kèm câu hỏi xoáy sâu điểm yếu</h3>
+            <p>Chỉ trong 30 giây, hội đồng tuyển dụng nhận được biểu đồ Radar 6 trục kỹ năng và gợi ý câu hỏi phỏng vấn vòng cuối dựa trên chính đoạn code ứng viên vừa viết.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Giai đoạn: <b id="pStage">01 · Phân tích GitHub AST</b></span>
+          <span>Điểm kiến trúc: <b id="pScore">94 / 100</b></span>
+          <span>Thời gian xử lý: <b id="pTime">08.4 giây</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="widget" id="matcher" aria-labelledby="w-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trình mô phỏng đánh giá kỹ sư CNTT</p>
+          <h2 id="w-h" style="margin-top:16px">Trình chấm điểm độ khớp JD &<br><em>Dải lương thị trường IT Việt Nam</em></h2>
+        </div>
+        <p class="rv">Chọn vị trí kỹ sư đang tuyển, kéo số năm kinh nghiệm yêu cầu (1–8 năm) và ngưỡng điểm Live Coding để xem biểu đồ Radar 6 nhóm kỹ năng cùng dải lương Gross tham chiếu tại Hà Nội & TP.HCM.</p>
+      </div>
+      <div class="w-shell">
+        <div class="w-stage">
+          <canvas id="radC" width="680" height="410" role="img" aria-label="Biểu đồ radar 6 nhóm kỹ năng kỹ sư CNTT và dải lương thị trường tại Việt Nam"></canvas>
+          <div class="w-controls">
+            <div class="sl-row">
+              <label for="expR"><span>Mức yêu cầu kinh nghiệm</span><b id="vExp">4 năm (Senior)</b></label>
+              <input id="expR" type="range" min="1" max="8" step="1" value="4">
+            </div>
+            <div class="sl-row">
+              <label for="codeR"><span>Chuẩn điểm bài thi Live Coding</span><b id="vCode">85 / 100 điểm</b></label>
+              <input id="codeR" type="range" min="65" max="98" step="1" value="85">
+            </div>
+          </div>
+        </div>
+        <div class="w-panel">
+          <span class="mono" style="color:var(--pri)">Chọn vị trí tuyển dụng (Tech Role)</span>
+          <div class="role-tabs" id="roleTabs" role="group" aria-label="Chọn vị trí kỹ sư CNTT">
+            <button type="button" class="r-btn" data-r="0" aria-pressed="true">
+              <span class="mono">HIGH-CONCURRENCY MICROSERVICES · GRPC / KAFKA</span>
+              <b>Backend Go / Java Engineer</b>
+            </button>
+            <button type="button" class="r-btn" data-r="1" aria-pressed="false">
+              <span class="mono">RAG PIPELINE · PYTORCH / VLLM / AGENT WORKFLOW</span>
+              <b>AI & LLM Engineer</b>
+            </button>
+            <button type="button" class="r-btn" data-r="2" aria-pressed="false">
+              <span class="mono">KUBERNETES · TERRAFORM / AWS / FINOPS & SRE</span>
+              <b>DevOps & Cloud Architect</b>
+            </button>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span>Độ khớp JD trung bình</span>
+              <strong id="kMatch">92.4%</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Tập ứng viên đạt chuẩn</span>
+              <strong id="kPool">Top 6.5%</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Lương Gross VN (VNĐ)</span>
+              <strong id="kVnd">48 – 62 Tr</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Quy đổi USD / Tháng</span>
+              <strong id="kUsd" style="color:var(--sec)">$1,920 – $2,480</strong>
+            </div>
+          </div>
+          <div class="match-note" id="wNote" role="status" aria-live="polite">
+            <strong>Khuyến nghị từ AI Tech Lead:</strong> Ở mức <b>4 năm kinh nghiệm</b>, ứng viên <em>Backend Go/Java</em> cần đạt tối thiểu 88 điểm ở trục <b>Distributed Systems</b> và <b>Database Tuning</b> để chịu tải >15.000 RPS.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="features" aria-labelledby="fe-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Tiêu chuẩn đánh giá kỹ thuật</p>
+          <h2 id="fe-h" style="margin-top:16px">Chấm điểm công tâm <em>50 tiêu chí</em></h2>
+        </div>
+        <p class="rv">Thay thế những bài kiểm tra trắc nghiệm lỗi thời bằng hệ thống đánh giá năng lực làm việc thực tế (Real-world Engineering).</p>
+      </div>
+      <div class="feat-grid">
+        <article class="fcard rv">
+          <span class="mono">01 · System Architecture</span>
+          <h3>Thiết kế Hệ thống Phân tán</h3>
+          <p>Đánh giá khả năng phân tách dịch vụ, thiết kế Message Queue, xử lý Idempotency và chiến lược Caching đa tầng.</p>
+        </article>
+        <article class="fcard rv">
+          <span class="mono">02 · Code Quality & AST</span>
+          <h3>Độ Sạch & Khả Năng Bảo Trì</h3>
+          <p>Đo lường Cyclomatic Complexity, nguyên lý SOLID, cách đặt tên biến, quản lý bộ nhớ và xử lý ngoại lệ an toàn.</p>
+        </article>
+        <article class="fcard rv">
+          <span class="mono">03 · Behavioral Anti-Cheat</span>
+          <h3>Chống Gian Lận Đa Tầng</h3>
+          <p>Phân tích nhịp gõ phím (Keystroke Dynamics), lịch sử sửa lỗi từng bước (Code Playback) để phân biệt tư duy thật với copy-paste.</p>
+        </article>
+        <article class="fcard rv">
+          <span class="mono">04 · ATS & HRIS Sync</span>
+          <h3>Đồng bộ 1 Chạm Với ATS</h3>
+          <p>Tích hợp sẵn API hai chiều với Base E-Hiring, Lever, Greenhouse và gửi thông báo kết quả thi trực tiếp qua Slack / Lark.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="bench" id="bench" aria-labelledby="be-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Thư viện đề bài thực chiến</p>
+          <h2 id="be-h" style="margin-top:16px">350+ kịch bản <em>Production-grade</em></h2>
+        </div>
+        <p class="rv">Đội ngũ Principal Engineer từ các kỳ lân công nghệ biên soạn và cập nhật đề thi mới hàng tháng.</p>
+      </div>
+      <div class="bench-grid">
+        <article class="bcard rv">
+          <span class="mono">Fintech & Core Banking</span>
+          <h3>Xử lý Giao dịch Đồng thời Cao</h3>
+          <p>Ứng viên giải quyết bài toán chống trừ tiền kép (Double-spending), khóa bi quan/lạc quan trên PostgreSQL và đối soát sổ cái.</p>
+        </article>
+        <article class="bcard rv">
+          <span class="mono">Generative AI & RAG</span>
+          <h3>Tối ưu Độ chính xác Vector Search</h3>
+          <p>Tinh chỉnh chiến lược Chunking, Reranker và giảm độ trễ phản hồi (TTFT) cho hệ thống trợ lý AI tiếng Việt.</p>
+        </article>
+        <article class="bcard rv">
+          <span class="mono">Kubernetes & Cloud Native</span>
+          <h3>Khắc phục Sự cố Cluster Production</h3>
+          <p>Truy vết Pod bị OOMKilled, cấu hình HPA tự động mở rộng và vá lỗi phân quyền IAM/RBAC trong môi trường giả lập.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="trial" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Tăng tốc tuyển dụng đội ngũ kỹ sư tinh nhuệ</p>
+        <h2 id="cta-h" style="margin-top:14px">Nhận 15 Lượt Chấm Bài Live Coding &<br><em>Sàng Lọc GitHub AI Miễn Phí</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="tName">Họ tên người liên hệ</label>
+            <input id="tName" type="text" placeholder="Trần Minh Quân — CTO / Engineering Manager" required>
+          </div>
+          <div>
+            <label for="tEmail">Email công việc</label>
+            <input id="tEmail" type="email" placeholder="quan.tran@techcompany.vn" required>
+          </div>
+          <div>
+            <label for="tSize">Nhu cầu tuyển kỹ sư trong quý tới</label>
+            <select id="tSize">
+              <option value="q1">Từ 5 – 15 Kỹ sư (Startup / Product Team)</option>
+              <option value="q2">Từ 16 – 50 Kỹ sư (Scale-up / Trung tâm R&D)</option>
+              <option value="q3">Trên 50 Kỹ sư (Tập đoàn Công nghệ / Outsourcing)</option>
+            </select>
+          </div>
+          <div>
+            <label for="tStack">Nhóm vị trí ưu tiên đánh giá</label>
+            <select id="tStack">
+              <option value="be">Backend / Fullstack (Go, Java, Node.js, React)</option>
+              <option value="ai">AI Engineer / Data Science / MLOps</option>
+              <option value="sre">DevOps / Cloud / System Security</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Kích Hoạt Không Gian Tuyển Dụng AI</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">TalentMatch<span>.AI</span></a>
+      <ul class="f-nav">
+        <li><a href="#process">Chấm Live Coding</a></li>
+        <li><a href="#matcher">Radar Kỹ Năng & Lương</a></li>
+        <li><a href="#features">50 Tiêu Chí</a></li>
+        <li><a href="#bench">Ngân Hàng Đề</a></li>
+        <li><a href="#trial">Dùng Thử Miễn Phí</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> TalentMatch AI Tech Vietnam · Nền tảng Đánh giá & Tuyển dụng Kỹ sư CNTT</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  // 1. Hero Canvas: GitHub AST & Live Coding Evaluation HUD
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  const CODE_LINES = [
+    'func (s *OrderSvc) ProcessBatch(ctx context.Context, jobs []Job) error {',
+    '  sem := make(chan struct{}, s.maxWorkers) // Bounded concurrency',
+    '  errCh := make(chan error, len(jobs))',
+    '  for _, job := range jobs {',
+    '    go func(j Job) {',
+    '      sem <- struct{}{}; defer func() { <-sem }()',
+    '      if err := s.repo.TxCommit(ctx, j); err != nil { errCh <- err }',
+    '    }(job)',
+    '  }',
+    '  return s.collectTelemetry(ctx, errCh) // P99 Latency: 4.2ms',
+    '}'
+  ];
+
+  function drawHero(scanY = 180) {
+    const w = 600, h = 420;
+    heroX.fillStyle = '#060910';
+    heroX.fillRect(0, 0, w, h);
+
+    // Editor window frame
+    heroX.strokeStyle = 'rgba(34,197,94,0.3)';
+    heroX.lineWidth = 1.5;
+    heroX.strokeRect(24, 24, 552, 372);
+    heroX.fillStyle = '#111827';
+    heroX.fillRect(25, 25, 550, 36);
+
+    // Window dots
+    ['#EF4444', '#F59E0B', '#22C55E'].forEach((c, i) => {
+      heroX.fillStyle = c;
+      heroX.beginPath(); heroX.arc(46 + i * 18, 43, 5, 0, Math.PI * 2); heroX.fill();
+    });
+    heroX.fillStyle = '#94A3B8';
+    heroX.font = '600 11px "JetBrains Mono", monospace';
+    heroX.fillText('github.com/candidate-vn/payment-engine/worker_pool.go', 110, 47);
+
+    // Code lines
+    CODE_LINES.forEach((ln, i) => {
+      const y = 92 + i * 24;
+      const active = Math.abs(y - scanY) < 26;
+      if (active) {
+        heroX.fillStyle = 'rgba(34,197,94,0.14)';
+        heroX.fillRect(26, y - 15, 548, 22);
+      }
+      heroX.fillStyle = '#475569';
+      heroX.font = '500 11px "JetBrains Mono", monospace';
+      heroX.fillText(String(i + 1).padStart(2, '0'), 38, y);
+      heroX.fillStyle = active ? '#22C55E' : i % 3 === 0 ? '#38BDF8' : '#E2E8F0';
+      heroX.fillText(ln, 68, y);
+    });
+
+    // Scanning laser line
+    const ly = Math.max(75, Math.min(330, scanY));
+    heroX.strokeStyle = '#22C55E';
+    heroX.lineWidth = 2;
+    heroX.beginPath(); heroX.moveTo(26, ly); heroX.lineTo(574, ly); heroX.stroke();
+
+    // Bottom score cards inside canvas
+    const badges = [
+      ['CONCURRENCY SAFE', '98/100', '#22C55E'],
+      ['CLEAN ARCHITECTURE', '95/100', '#38BDF8'],
+      ['MEMORY FOOTPRINT', '14.2 MB', '#22C55E']
+    ];
+    badges.forEach((b, i) => {
+      const x = 38 + i * 178;
+      heroX.fillStyle = '#111827';
+      heroX.strokeStyle = b[2];
+      heroX.fillRect(x, 344, 164, 40);
+      heroX.strokeRect(x, 344, 164, 40);
+      heroX.fillStyle = '#94A3B8';
+      heroX.font = '600 9.5px "JetBrains Mono", monospace';
+      heroX.fillText(b[0], x + 10, 360);
+      heroX.fillStyle = b[2];
+      heroX.font = '700 13px "JetBrains Mono", monospace';
+      heroX.fillText(b[1], x + 10, 377);
+    });
+  }
+  drawHero(175);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    const ly = ((e.clientY - r.top) / r.height) * 420;
+    drawHero(ly);
+  });
+
+  // 2. Pinned 4-Step Assessment Pipeline Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const P_INFO = [
+    ['01 · Phân tích GitHub AST', '94 / 100', '06.2 giây'],
+    ['02 · Cloud IDE Live Coding', '96 / 100', '14.8 giây'],
+    ['03 · Chấm 50 Tiêu chí Kiến trúc', '95 / 100', '22.1 giây'],
+    ['04 · Ghép nối JD & Báo cáo CTO', '98.4% Khớp', '29.5 giây']
+  ];
+
+  function renderPin(p) {
+    const w = 660, h = 440;
+    const step = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3;
+    pinX.fillStyle = '#060910';
+    pinX.fillRect(0, 0, w, h);
+
+    // Step indicator bar
+    for (let i = 0; i < 4; i++) {
+      const x = 48 + i * 145;
+      pinX.fillStyle = i <= step ? '#22C55E' : '#111827';
+      pinX.fillRect(x, 38, 125, 7);
+      pinX.fillStyle = i === step ? '#38BDF8' : '#94A3B8';
+      pinX.font = '600 11px "JetBrains Mono", monospace';
+      pinX.fillText(`BƯỚC 0${i + 1}`, x, 28);
+    }
+
+    if (step === 0) {
+      // GitHub Commit Graph & AST Nodes
+      for (let r = 0; r < 5; r++) {
+        for (let c = 0; c < 18; c++) {
+          pinX.fillStyle = (r + c) % 3 === 0 ? '#22C55E' : (r * c) % 4 === 0 ? '#15803D' : '#1E293B';
+          pinX.fillRect(60 + c * 30, 95 + r * 30, 22, 22);
+        }
+      }
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('ĐÃ PHÂN TÍCH 42 REPOSITORY · 1.480 COMMITS · 0% CODE ĐẠO VĂN', 60, 295);
+      pinX.fillStyle = '#38BDF8';
+      pinX.fillText('Ngôn ngữ chính: Go (62%), Rust (21%), TypeScript (17%) · Test Coverage: 84%', 60, 330);
+    } else if (step === 1) {
+      // Docker Microservice Live Test
+      pinX.strokeStyle = '#38BDF8';
+      pinX.strokeRect(55, 88, 550, 250);
+      const logs = [
+        '[TEST 01/12] Gin + gRPC Order Stream ............. PASS (1.8ms)',
+        '[TEST 04/12] Redis Distributed Lock Race Check ... PASS (0 Deadlock)',
+        '[TEST 08/12] PostgreSQL Index Scan 5M Rows ....... PASS (11.4ms)',
+        '[TEST 12/12] Graceful Shutdown Under 10k RPS ..... PASS (Zero Drop)'
+      ];
+      logs.forEach((l, i) => {
+        pinX.fillStyle = '#22C55E';
+        pinX.font = '600 12.5px "JetBrains Mono", monospace';
+        pinX.fillText(l, 75, 138 + i * 44);
+      });
+      pinX.fillStyle = '#F8FAFC';
+      pinX.fillText('CHỐNG GIAN LẬN: KEYSTROKE AUTHENTICITY 99.2% (TƯ DUY ĐỘC LẬP)', 55, 382);
+    } else if (step === 2) {
+      // 50 Criteria Matrix
+      const cats = [
+        ['Clean Code & SOLID', 96],
+        ['Concurrency & Lock', 94],
+        ['SQL & Indexing', 92],
+        ['OWASP Security', 98],
+        ['Observability', 91]
+      ];
+      cats.forEach((c, i) => {
+        const y = 98 + i * 52;
+        pinX.fillStyle = '#F8FAFC';
+        pinX.font = '600 12px "JetBrains Mono", monospace';
+        pinX.fillText(c[0], 60, y);
+        pinX.fillStyle = '#111827';
+        pinX.fillRect(250, y - 14, 300, 18);
+        pinX.fillStyle = i % 2 ? '#38BDF8' : '#22C55E';
+        pinX.fillRect(250, y - 14, c[1] * 3, 18);
+        pinX.fillStyle = '#F8FAFC';
+        pinX.fillText(`${c[1]}/100`, 562, y);
+      });
+    } else {
+      // Final CTO Match Card
+      pinX.fillStyle = '#111827';
+      pinX.strokeStyle = '#22C55E';
+      pinX.lineWidth = 2;
+      pinX.fillRect(60, 92, 540, 250);
+      pinX.strokeRect(60, 92, 540, 250);
+      pinX.fillStyle = '#22C55E';
+      pinX.font = '700 17px "JetBrains Mono", monospace';
+      pinX.fillText('ỨNG VIÊN #VN-8821 · ĐỘ KHỚP JD SENIOR BACKEND: 98.4%', 88, 140);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Điểm mạnh: Kiến trúc Event-Driven Kafka, tối ưu truy vấn SQL phức tạp.', 88, 188);
+      pinX.fillText('• Câu hỏi gợi ý vòng CTO: Thảo luận cách thiết kế Outbox Pattern chống mất tin.', 88, 224);
+      pinX.fillStyle = '#38BDF8';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('ĐỀ XUẤT MỨC LƯƠNG OFFER: 56.000.000 VNĐ GROSS / THÁNG', 88, 285);
+    }
+
+    $('#pStage').textContent = P_INFO[step][0];
+    $('#pScore').textContent = P_INFO[step][1];
+    $('#pTime').textContent = P_INFO[step][2];
+  }
+  renderPin(0.2);
+
+  // 3. Signature Interactive Widget: 6-Axis Radar Skill Chart & Vietnam Salary Benchmark
+  const ROLES = [
+    {
+      name: 'Backend Go / Java Engineer',
+      axes: ['System Design', 'Concurrency', 'SQL & NoSQL', 'Clean Code', 'Security', 'Cloud/K8s'],
+      baseScores: [86, 92, 88, 90, 84, 80],
+      baseVnd: [24, 34], // at 1 yr (million VND)
+      stepVnd: 7.5,
+      focus: 'Distributed Systems và tối ưu độ trễ P99 trên cụm Microservices'
+    },
+    {
+      name: 'AI & LLM Engineer',
+      axes: ['LLM & RAG', 'PyTorch/vLLM', 'Vector DB', 'Python AST', 'MLOps GPU', 'Eval Metrics'],
+      baseScores: [94, 89, 91, 86, 82, 88],
+      baseVnd: [28, 40],
+      stepVnd: 8.8,
+      focus: 'kiến trúc RAG đa tác tử (Multi-Agent), tinh chỉnh mô hình và giảm Hallucination'
+    },
+    {
+      name: 'DevOps & Cloud Architect',
+      axes: ['Kubernetes', 'Terraform IaC', 'CI/CD GitOps', 'AWS/GCP', 'Zero-Trust', 'Observability'],
+      baseScores: [93, 91, 89, 88, 86, 90],
+      baseVnd: [26, 36],
+      stepVnd: 8.0,
+      focus: 'tự động hóa hạ tầng Đa vùng (Multi-AZ), bảo mật container và tối ưu chi phí FinOps'
+    }
+  ];
+
+  const radC = $('#radC'), radX = radC.getContext('2d');
+  let curRole = 0, expYears = 4, minCodeScore = 85;
+
+  function renderRadar() {
+    const w = 680, h = 410;
+    const role = ROLES[curRole];
+    radX.fillStyle = '#060910';
+    radX.fillRect(0, 0, w, h);
+
+    const levelLabel = expYears <= 2 ? 'Junior/Mid' : expYears <= 5 ? 'Senior' : 'Staff / Principal';
+    $('#vExp').textContent = `${expYears} năm (${levelLabel})`;
+    $('#vCode').textContent = `${minCodeScore} / 100 điểm`;
+
+    // Salary calculation in Million VND & USD
+    const lowVnd = Math.round(role.baseVnd[0] + (expYears - 1) * role.stepVnd * (minCodeScore / 85));
+    const highVnd = Math.round(role.baseVnd[1] + (expYears - 1) * role.stepVnd * 1.15 * (minCodeScore / 85));
+    const lowUsd = Math.round((lowVnd * 1000000) / 25000);
+    const highUsd = Math.round((highVnd * 1000000) / 25000);
+    const matchPct = Math.min(99.2, +(84 + (minCodeScore - 65) * 0.35 + expYears * 0.6).toFixed(1));
+    const topPool = Math.max(1.8, +(18 - (minCodeScore - 65) * 0.32 - expYears * 0.7).toFixed(1));
+
+    $('#kMatch').textContent = `${matchPct}%`;
+    $('#kPool').textContent = `Top ${topPool}%`;
+    $('#kVnd').textContent = `${lowVnd} – ${highVnd} Tr`;
+    $('#kUsd').textContent = `$${lowUsd.toLocaleString('en-US')} – $${highUsd.toLocaleString('en-US')}`;
+    $('#wNote').innerHTML = `<strong>Khuyến nghị từ AI Tech Lead:</strong> Ở mốc <b>${expYears} năm (${levelLabel})</b> và chuẩn Live Coding <b>${minCodeScore}/100</b>, vị trí <em>${role.name}</em> tập trung thẩm định sâu ${role.focus}.`;
+
+    // Left side: 6-Axis Radar Chart
+    const cx = 215, cy = 212, maxR = 128;
+    [0.35, 0.68, 1].forEach((lv) => {
+      radX.strokeStyle = 'rgba(148,163,184,0.2)';
+      radX.lineWidth = 1;
+      radX.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI * 2 * i) / 6 - Math.PI / 2;
+        const x = cx + Math.cos(a) * maxR * lv;
+        const y = cy + Math.sin(a) * maxR * lv;
+        i === 0 ? radX.moveTo(x, y) : radX.lineTo(x, y);
+      }
+      radX.closePath();
+      radX.stroke();
+    });
+
+    // Candidate vs JD Polygon
+    radX.fillStyle = 'rgba(34,197,94,0.24)';
+    radX.strokeStyle = '#22C55E';
+    radX.lineWidth = 2.5;
+    radX.beginPath();
+    role.axes.forEach((ax, i) => {
+      const a = (Math.PI * 2 * i) / 6 - Math.PI / 2;
+      const sc = Math.min(100, role.baseScores[i] + (minCodeScore - 85) * 0.4 + (expYears - 4) * 1.5) / 100;
+      const x = cx + Math.cos(a) * maxR * sc;
+      const y = cy + Math.sin(a) * maxR * sc;
+      i === 0 ? radX.moveTo(x, y) : radX.lineTo(x, y);
+
+      // Axis label
+      const lx = cx + Math.cos(a) * (maxR + 28) - 34;
+      const ly = cy + Math.sin(a) * (maxR + 22) + 4;
+      radX.fillStyle = '#E2E8F0';
+      radX.font = '600 10.5px "JetBrains Mono", monospace';
+      radX.fillText(ax, lx, ly);
+    });
+    radX.closePath();
+    radX.fillStyle = 'rgba(34,197,94,0.22)';
+    radX.fill();
+    radX.stroke();
+
+    // Right side: Vietnam IT Salary Band Visualizer
+    const bx = 430;
+    radX.fillStyle = '#F8FAFC';
+    radX.font = '600 11.5px "JetBrains Mono", monospace';
+    radX.fillText('DẢI LƯƠNG THỊ TRƯỜNG VN (TR VNĐ)', bx, 64);
+
+    const tiers = [
+      ['Junior (1-2 năm)', 18, 32, expYears <= 2],
+      ['Mid-Senior (3-5 năm)', 36, 68, expYears >= 3 && expYears <= 5],
+      ['Lead/Principal (6-8 năm)', 65, 115, expYears >= 6]
+    ];
+    tiers.forEach((t, i) => {
+      const y = 110 + i * 88;
+      radX.fillStyle = t[3] ? '#22C55E' : '#94A3B8';
+      radX.font = '600 11px "JetBrains Mono", monospace';
+      radX.fillText(t[0], bx, y);
+      radX.fillStyle = '#111827';
+      radX.fillRect(bx, y + 12, 215, 22);
+      const startX = bx + (t[1] / 125) * 215;
+      const barW = ((t[2] - t[1]) / 125) * 215;
+      radX.fillStyle = t[3] ? '#22C55E' : '#38BDF8';
+      radX.fillRect(startX, y + 12, barW, 22);
+      radX.fillStyle = '#F8FAFC';
+      radX.font = '600 10.5px "JetBrains Mono", monospace';
+      radX.fillText(`${t[1]}M – ${t[2]}M VNĐ`, bx, y + 50);
+    });
+  }
+
+  function selectRole(idx) {
+    curRole = idx;
+    $$('#roleTabs .r-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === idx));
+    renderRadar();
+  }
+  selectRole(0);
+
+  $('#roleTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.r-btn');
+    if (b) selectRole(+b.dataset.r);
+  });
+  $('#expR').addEventListener('input', (e) => {
+    expYears = +e.target.value;
+    renderRadar();
+  });
+  $('#codeR').addEventListener('input', (e) => {
+    minCodeScore = +e.target.value;
+    renderRadar();
+  });
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#tName').value.trim();
+    $('#ctaOk').textContent = n
+      ? `Chào mừng ${n}! Tài khoản dùng thử 15 lượt chấm Live Coding & quét GitHub đã được gửi tới email của bạn.`
+      : 'Vui lòng nhập họ tên và email công việc để kích hoạt tài khoản dùng thử.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.32 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.42, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

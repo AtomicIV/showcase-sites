@@ -1,0 +1,1572 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bàn biên tập · Báo Phố CMS</title>
+<meta name="description" content="Báo Phố — CMS tòa soạn: bàn biên tập ba cột, phiếu chuyển bài đóng dấu, lịch xuất bản và lượt đọc realtime. Thiết kế concept — thương hiệu giả định.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F4F0E6'/%3E%3Ctext x='16' y='24' font-family='Georgia,serif' font-size='22' font-weight='700' text-anchor='middle' fill='%23C3161C'%3EP%3C/text%3E%3Crect x='4' y='27' width='24' height='2' fill='%2317140F'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400;0,600;0,800;1,400&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<script>
+try { const t = localStorage.getItem('bp-theme'); document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light' } catch { document.documentElement.dataset.theme = 'light' }
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('rm')
+</script>
+<style>
+:root{
+  --paper:#F4F0E6;--sheet:#FCFAF4;--ink:#17140F;--ink2:#48423A;--ink3:#6F675B;--rule:#D8D0BF;--rule2:#B3A994;
+  --red:#C3161C;--on-red:#fff;--red-soft:#F7E0DA;--slip:#F8ECE6;--slip-rule:#E2C3B8;--ok:#2D6A39;--hl:#FFEC99;--hover:#ECE6D8;
+  --shadow:0 1px 0 rgba(23,20,15,.06),0 12px 30px -18px rgba(23,20,15,.35);
+  --serif:'Noto Serif Display',Georgia,serif;--sans:'Source Sans 3',system-ui,sans-serif;--hh:134px;
+  color-scheme:light;
+}
+[data-theme=dark]{
+  --paper:#13110E;--sheet:#1B1814;--ink:#EEE7D8;--ink2:#C9BFAD;--ink3:#9C9282;--rule:#34302A;--rule2:#4E473C;
+  --red:#FF5B4F;--on-red:#16110E;--red-soft:#3A1C18;--slip:#211814;--slip-rule:#4A2C24;--ok:#7CC48B;--hl:#5C4A10;--hover:#24201B;
+  --shadow:0 1px 0 rgba(0,0,0,.4),0 16px 34px -18px rgba(0,0,0,.8);color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+h1,h2,h3{line-height:1.15;margin:0}
+kbd{font:600 11px/1 var(--sans);border:1px solid var(--rule2);border-bottom-width:2px;padding:2px 5px;border-radius:3px;white-space:nowrap;color:var(--ink2);background:var(--sheet)}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.caps{font:700 11px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:0 14px;border:1px solid var(--ink);background:transparent;font-weight:600;font-size:14px;border-radius:2px;white-space:nowrap}
+.btn:hover{background:var(--hover)}
+.btn.red{background:var(--red);border-color:var(--red);color:var(--on-red)}
+.btn.red:hover{filter:brightness(1.08)}
+.btn.ink{background:var(--ink);color:var(--paper)}
+.btn.quiet{border-color:var(--rule2)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.ico{width:38px;height:38px;display:inline-grid;place-items:center;border:1px solid transparent;background:transparent;border-radius:2px;position:relative}
+.ico:hover{border-color:var(--rule2)}
+.ico svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7}
+.field{display:grid;gap:4px}
+.field label{font-weight:600;font-size:13px}
+.input{min-height:40px;border:1px solid var(--rule2);background:var(--sheet);padding:7px 10px;border-radius:2px;width:100%}
+.input:focus{border-color:var(--ink);outline:none;box-shadow:0 0 0 2px var(--red-soft)}
+.input.bad{border-color:var(--red)}
+.err{color:var(--red);font-size:13px;font-weight:600;min-height:0}
+.err:empty{display:none}
+.hint{color:var(--ink3);font-size:13px}
+
+/* ---------- masthead ---------- */
+.mast{position:sticky;top:0;z-index:30;background:var(--paper);padding:0 24px}
+.dateline{display:flex;align-items:center;gap:14px;height:36px;border-bottom:1px solid var(--rule);font-size:13px;color:var(--ink2)}
+.dateline .dl-date{white-space:nowrap}
+.dateline .tools{margin-left:auto;display:flex;align-items:center;gap:4px}
+.search-btn{display:flex;align-items:center;gap:8px;min-height:32px;border:1px solid var(--rule2);background:var(--sheet);padding:0 8px 0 10px;border-radius:2px;color:var(--ink3);font-size:13px;min-width:230px}
+.search-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+.search-btn kbd{margin-left:auto}
+.badge{position:absolute;top:4px;right:4px;min-width:16px;height:16px;border-radius:8px;background:var(--red);color:var(--on-red);font:700 10px/16px var(--sans);text-align:center;padding:0 4px}
+.me{display:flex;align-items:center;gap:8px;margin-left:6px;font-size:13px}
+.me i{font-style:normal;width:30px;height:30px;display:grid;place-items:center;border:1.5px solid var(--ink);border-radius:50%;font:700 12px var(--serif)}
+.me span{line-height:1.2}.me small{display:block;color:var(--ink3)}
+.plate{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;padding:8px 0 6px}
+.ear{border:1px solid var(--ink);padding:5px 10px;font-size:12.5px;line-height:1.35;max-width:250px;min-height:52px}
+.ear.r{justify-self:end;text-align:right}
+.ear b{display:block;font:700 10.5px/1.4 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--red)}
+.ear .big{font:800 20px/1.1 var(--serif);font-variant-numeric:tabular-nums}
+.nameplate{text-align:center;text-decoration:none;border:0;background:none;padding:0;color:inherit;cursor:pointer;justify-self:center}
+.nameplate .np{font:800 46px/1.1 var(--serif);letter-spacing:-.01em;display:block}
+.nameplate .np em{font-style:normal;color:var(--red)}
+.nameplate small{display:block;font:italic 400 13px/1.2 var(--serif);color:var(--ink2);margin-top:-2px}
+.rule2{height:5px;border-top:2.5px solid var(--ink);border-bottom:1px solid var(--ink);transform-origin:50% 50%}
+.secbar{display:flex;align-items:center;gap:4px;height:42px;border-bottom:1px solid var(--rule)}
+.secbar nav{display:flex;gap:2px}
+.sec{border:0;background:none;color:inherit;font-family:inherit;display:flex;align-items:center;gap:6px;height:42px;padding:0 12px;text-decoration:none;font-weight:600;font-size:14.5px;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.sec:hover{background:var(--hover)}
+.sec[aria-current=page]{border-bottom-color:var(--red);color:var(--ink)}
+.sec .n{font:700 11px/1 var(--sans);background:var(--ink);color:var(--paper);padding:3px 5px;border-radius:2px}
+.crumb{margin-left:auto;font:italic 400 14px var(--serif);color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%}
+.crumb b{font-style:normal;font-family:var(--sans);font-weight:600;color:var(--ink)}
+.menu-btn{display:none}
+
+main{min-height:calc(100vh - var(--hh) - 40px)}
+.view[hidden]{display:none!important}
+.foot{display:flex;justify-content:space-between;gap:12px;padding:10px 24px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--ink3)}
+
+/* ---------- desk (A4: list / proof / slip) ---------- */
+.desk{display:grid;grid-template-columns:318px minmax(0,1fr) 332px;height:calc(100vh - var(--hh) - 40px);min-height:560px}
+.desk>section{min-width:0;overflow:auto;scrollbar-width:thin}
+.col-list{border-right:1px solid var(--ink);display:flex;flex-direction:column}
+.col-list .lhead{position:sticky;top:0;background:var(--paper);z-index:2;padding:14px 16px 0;border-bottom:1px solid var(--rule)}
+.lhead h2{font:800 22px/1.15 var(--serif);display:flex;align-items:baseline;gap:8px}
+.lhead h2 small{font:600 12px var(--sans);color:var(--ink3)}
+.lsearch{margin:10px 0 8px;position:relative}
+.lsearch svg{position:absolute;left:10px;top:12px;width:15px;height:15px;stroke:var(--ink3);fill:none;stroke-width:1.8}
+.lsearch .input{padding-left:32px}
+.steps{display:flex;flex-wrap:wrap;gap:0;margin:0 -9px;padding:0 9px}
+.steps button{border:0;background:none;padding:8px 7px 9px;font-weight:600;font-size:13px;color:var(--ink2);border-bottom:2px solid transparent;white-space:nowrap}
+.steps button[aria-pressed=true]{color:var(--ink);border-bottom-color:var(--ink)}
+.steps button i{font-style:normal;color:var(--ink3);font-weight:400;margin-left:3px}
+.alist{list-style:none;margin:0;padding:0}
+.aitem{display:block;width:100%;text-align:left;border:0;background:none;padding:12px 16px 12px 19px;border-bottom:1px solid var(--rule);position:relative}
+.aitem:hover{background:var(--hover)}
+.aitem[aria-current=true]{background:var(--sheet)}
+.aitem[aria-current=true]::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red)}
+.aitem .k{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.kick{font:700 10.5px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--red)}
+.aitem .t{display:block;font:600 16px/1.3 var(--serif);margin:4px 0 5px}
+.aitem .m{font-size:12.5px;color:var(--ink3)}
+.lempty{padding:30px 18px;text-align:center;color:var(--ink3);font:italic 15px var(--serif)}
+.lfoot{margin-top:auto;position:sticky;bottom:0;background:var(--paper);border-top:1px solid var(--ink);padding:10px 16px;display:flex;gap:8px;align-items:center}
+.lfoot .hint{font-size:12px}
+.st{display:inline-flex;align-items:center;gap:4px;font:700 10px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;padding:4px 6px;border:1px solid var(--ink2);color:var(--ink2);white-space:nowrap;border-radius:1px}
+.st.viet{border-style:dashed;color:var(--ink3);border-color:var(--ink3)}
+.st.duyet{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.st.lich{border-color:var(--red);color:var(--red)}
+.st.xuatban{background:var(--red);border-color:var(--red);color:var(--on-red)}
+.seg{display:none}
+
+.col-proof{background:repeating-linear-gradient(0deg,transparent 0 23px,color-mix(in srgb,var(--rule) 45%,transparent) 23px 24px);container:proof/inline-size}
+.ptool{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:10px;padding:10px 22px;background:var(--paper);border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.rail{display:flex;align-items:center;gap:0;font-size:12px;font-weight:600;color:var(--ink3)}
+.rail span{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.rail span::before{content:"";width:9px;height:9px;border:1.5px solid currentColor;border-radius:50%}
+.rail span.done{color:var(--ink2)}.rail span.done::before{background:currentColor}
+.rail span.cur{color:var(--red)}.rail span.cur::before{background:var(--red);border-color:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+.rail i{width:18px;height:1px;background:var(--rule2);margin:0 6px}
+.mode{display:flex;border:1px solid var(--ink);margin-left:auto}
+.mode button{border:0;background:none;padding:5px 11px;font-size:13px;font-weight:600;min-height:32px}
+.mode button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.sheet{max-width:820px;margin:22px auto 40px;background:var(--sheet);box-shadow:var(--shadow);padding:26px 40px 36px;border:1px solid var(--rule)}
+.folio{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--ink);padding-bottom:6px;font:600 11px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.sheet h1{font:800 clamp(28px,3.4vw,42px)/1.14 var(--serif);margin:16px 0 12px;letter-spacing:-.01em}
+.sapo{font:600 17px/1.5 var(--sans);margin:0 0 12px}
+.byline{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--ink2);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:6px 0;margin-bottom:16px}
+.byline b{color:var(--ink)}
+.fig{margin:0 0 16px;break-inside:avoid}
+.fig svg{display:block;width:100%;height:auto;border:1px solid var(--rule)}
+.fig figcaption{font:italic 13.5px/1.45 var(--serif);color:var(--ink2);margin-top:6px}
+.body p{margin:0 0 12px;font:16.5px/1.62 var(--serif);text-align:justify;hyphens:auto}
+.body p:first-of-type::first-letter{float:left;font:800 3.3em/1 var(--serif);color:var(--red);margin:.06em .1em 0 0}
+@container proof (min-width:700px){.sheet.print .body{columns:2;column-gap:30px;column-rule:1px solid var(--rule)}}
+.sheet.web{max-width:640px;padding:26px 30px 34px}
+.sheet.web .body p{font:17px/1.65 var(--sans);text-align:left}
+.sheet.web .folio span:last-child::after{content:" · bản web"}
+mark.pm{background:var(--hl);color:inherit;border-bottom:2px solid var(--red);padding:0 1px;cursor:pointer}
+mark.pm sup{font:700 10px var(--sans);color:var(--red);margin-left:2px}
+mark.pm.ok{background:transparent;border-bottom:1px dotted var(--ink3)}
+mark.pm.ok sup{color:var(--ink3)}
+mark.pm.flash{outline:2px solid var(--red)}
+.endmark{text-align:center;font:800 14px var(--serif);letter-spacing:.4em;color:var(--ink3);margin-top:8px}
+
+.col-slip{background:var(--slip);border-left:1px solid var(--ink);padding:16px 18px 30px}
+.slip-h{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--ink);padding-bottom:6px}
+.slip-h h2{font:800 17px/1.2 var(--serif);letter-spacing:.06em;text-transform:uppercase}
+.slip-h span{font:600 12px var(--sans);color:var(--ink2);font-variant-numeric:tabular-nums}
+.slip-rows{list-style:none;margin:0;padding:0}
+.srow{display:grid;grid-template-columns:28px minmax(0,1fr) 112px;gap:10px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--slip-rule);min-height:72px}
+.srow .no{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--ink3);display:grid;place-items:center;font:700 12px var(--serif);color:var(--ink3)}
+.srow.done .no{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.srow.cur .no{border-color:var(--red);color:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+.srow .who b{display:block;font:700 13.5px/1.25 var(--sans)}
+.srow .who span{display:block;font-size:12.5px;color:var(--ink2)}
+.srow .who small{display:block;font-size:12px;color:var(--ink3)}
+.stamp{justify-self:end;margin-right:6px;white-space:nowrap;transform:rotate(-6deg);border:2px solid var(--red);color:var(--red);padding:3px 6px 2px;text-align:center;font:800 10.5px/1.15 var(--serif);letter-spacing:.03em;text-transform:uppercase;opacity:.88;border-radius:2px;box-shadow:inset 0 0 0 1px var(--slip),inset 0 0 0 2px var(--red)}
+.stamp small{display:block;font:600 9.5px/1.2 var(--sans);letter-spacing:.02em}
+.stamp.wait{white-space:normal;margin-right:0;border-style:dashed;border-color:var(--ink3);color:var(--ink3);box-shadow:none;transform:none;font:600 11px/1.2 var(--sans);text-transform:none;letter-spacing:0;opacity:1}
+.slip-act{display:grid;gap:8px;margin:14px 0 6px}
+.slip-act .row{display:flex;gap:8px}
+.slip-act .row .btn{flex:1}
+.slip-act .btn.red{min-height:44px;font-size:15px}
+.gate{font-size:13px;color:var(--red);font-weight:600}
+.gate:empty{display:none}
+.ret{display:grid;gap:6px;border:1px solid var(--ink);background:var(--sheet);padding:10px;margin-top:4px}
+.ret[hidden]{display:none}
+.ret textarea{min-height:64px;resize:vertical}
+.slip-sec{margin-top:18px}
+.slip-sec h3{font:700 11px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);border-bottom:1px solid var(--ink);padding-bottom:4px;margin-bottom:6px;display:flex;justify-content:space-between}
+.notes{list-style:none;margin:0;padding:0}
+.notes li{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:8px;align-items:start;padding:7px 0;border-bottom:1px dotted var(--slip-rule);font-size:13px}
+.notes li>i{font:700 11px/20px var(--sans);font-style:normal;color:var(--red);text-align:center}
+.notes li.ok{color:var(--ink3)}.notes li.ok q{text-decoration:line-through}
+.notes q{font-style:italic;display:block;color:var(--ink2)}
+.notes button{border:1px solid var(--ink2);background:var(--sheet);font-size:12px;font-weight:600;padding:3px 7px;min-height:28px;white-space:nowrap}
+.chk label{display:flex;gap:9px;align-items:center;padding:6px 0;font-size:13.5px;min-height:36px;border-bottom:1px dotted var(--slip-rule)}
+.chk input{width:17px;height:17px;accent-color:var(--red)}
+.chk .auto{color:var(--ink3);font-size:12px;margin-left:auto;white-space:nowrap}
+.hist{list-style:none;margin:0;padding:0 0 0 14px;border-left:1px solid var(--ink3)}
+.hist li{position:relative;padding:3px 0 8px;font-size:12.5px;color:var(--ink2)}
+.hist li::before{content:"";position:absolute;left:-18px;top:8px;width:7px;height:7px;background:var(--slip);border:1.5px solid var(--ink2);border-radius:50%}
+.hist li b{color:var(--ink);font-weight:600}
+.hist time{display:block;color:var(--ink3);font-size:12px}
+.slip-note{margin-top:20px;font:italic 12.5px/1.4 var(--serif);color:var(--ink3)}
+
+/* ---------- calendar ---------- */
+.wrap{padding:20px 24px 32px;max-width:1500px;margin:0 auto}
+.vhead{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:16px}
+.vhead h2{font:800 30px/1.12 var(--serif)}
+.vhead p{margin:2px 0 0;color:var(--ink2);font-size:14px}
+.vhead .act{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.cal{display:grid;grid-template-columns:64px repeat(7,minmax(0,1fr));border-top:1px solid var(--ink);border-left:1px solid var(--rule)}
+.cal .ch{padding:8px 10px;border-right:1px solid var(--rule);border-bottom:1px solid var(--ink);background:var(--paper);position:sticky;top:var(--hh);z-index:2}
+.cal .ch b{display:block;font:700 11px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.cal .ch span{font:800 22px/1.15 var(--serif)}
+.cal .ch.today b{color:var(--red)}.cal .ch.today{box-shadow:inset 0 3px 0 var(--red)}
+.cal .rh{padding:8px 8px 0 0;text-align:right;font:700 13px var(--serif);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);color:var(--ink2)}
+.cell{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:6px;display:flex;flex-direction:column;gap:6px;min-height:96px;position:relative;background:transparent}
+.cell.past{background:color-mix(in srgb,var(--rule) 22%,transparent)}
+.cell .add{flex:1;min-height:40px;border:1px dashed transparent;background:none;color:var(--ink3);font-size:12.5px;font-weight:600;border-radius:2px}
+.cell:hover .add,.cell .add:focus-visible{border-color:var(--rule2);color:var(--ink2)}
+.cell .nowline{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--red);z-index:0;pointer-events:none}
+.cell .nowline::before{content:"";position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.clip{position:relative;z-index:1;text-align:left;border:1px solid var(--ink);background:var(--sheet);padding:6px 8px 7px;box-shadow:2px 2px 0 var(--ink);border-radius:1px;width:100%}
+.clip:hover{translate:0 -1px}
+.clip .kick{font-size:9.5px}
+.clip .t{display:block;font:600 13.5px/1.3 var(--serif);margin:2px 0 3px}
+.clip .m{display:flex;justify-content:space-between;gap:6px;font-size:12px;color:var(--ink3)}
+.clip.pub{box-shadow:none;border-color:var(--rule2);background:transparent}
+.clip.pub .t{color:var(--ink2)}
+.clip.pub .m b{color:var(--ok)}
+.clip.lead{border-color:var(--red);box-shadow:2px 2px 0 var(--red)}
+.daytabs{display:none}
+.cal .daylist{display:none}
+.cal-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--ink2)}
+.cal-legend span{display:flex;align-items:center;gap:6px}
+.cal-legend i{width:14px;height:10px;border:1px solid var(--ink);display:inline-block;background:var(--sheet)}
+.cal-legend i.l{border-color:var(--red);box-shadow:2px 2px 0 var(--red)}
+.cal-legend i.p{border-color:var(--rule2);background:transparent}
+.cal-legend i.n{border:0;border-top:2px solid var(--red);height:0}
+
+/* ---------- reads ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:2px solid var(--ink);border-bottom:1px solid var(--ink);margin-bottom:20px}
+.kpi{padding:12px 16px 14px;border-right:1px solid var(--rule)}
+.kpi:last-child{border-right:0}
+.kpi .caps{color:var(--ink2)}
+.kpi .v{font:800 38px/1.12 var(--serif);font-variant-numeric:tabular-nums;margin:4px 0 2px}
+.kpi .v.red{color:var(--red)}
+.kpi small{color:var(--ink3);font-size:13px}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;vertical-align:1px}
+.reads{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:28px}
+.panel h3{font:800 20px/1.2 var(--serif);display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--ink);padding-bottom:6px;margin-bottom:10px}
+.panel h3 small{font:600 12.5px var(--sans);color:var(--ink3)}
+.rng{margin-left:auto;display:flex;border:1px solid var(--ink)}
+.rng button{border:0;background:none;padding:4px 11px;font:600 13px var(--sans);min-height:32px}
+.rng button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:300px;touch-action:pan-y}
+.chart .grid line{stroke:var(--rule);stroke-width:1}
+.chart .grid text,.chart .xl text{fill:var(--ink3);font:600 11.5px var(--sans)}
+.chart .area{fill:var(--red);opacity:.1}
+.chart .line{fill:none;stroke:var(--red);stroke-width:2}
+.chart .guide{stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3}
+.chart .dot{fill:var(--sheet);stroke:var(--red);stroke-width:2}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);padding:6px 9px;font-size:12.5px;line-height:1.3;white-space:nowrap;border-radius:2px;opacity:0;transition:opacity .12s}
+.tip b{font:700 15px var(--serif);display:block}
+.tip.on{opacity:1}
+.top{list-style:none;margin:0;padding:0;counter-reset:r}
+.top li{display:grid;grid-template-columns:30px minmax(0,1fr) 64px;gap:8px;padding:9px 0;border-bottom:1px solid var(--rule);align-items:center}
+.top li .r{font:800 22px/1 var(--serif);color:var(--ink3)}
+.top li:nth-child(-n+3) .r{color:var(--red)}
+.lnk{border:0;background:none;padding:0;text-align:left;color:inherit;cursor:pointer}
+.top li .lnk{text-decoration:none;font:600 14.5px/1.3 var(--serif);display:block}
+.top li .lnk:hover{text-decoration:underline}
+.top li .bar{height:3px;background:var(--rule);margin-top:5px}
+.top li .bar i{display:block;height:100%;background:var(--ink)}
+.top li .n{text-align:right;font:700 16px var(--serif);font-variant-numeric:tabular-nums}
+.top li .n small{display:block;font:600 11px var(--sans);color:var(--ink3)}
+.top li.other .lnk{font-style:italic;font-weight:400;color:var(--ink2)}
+.splits{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:26px}
+.stack{display:flex;height:28px;border:1px solid var(--ink)}
+.stack i{display:block;height:100%;border-right:1px solid var(--sheet)}
+.legend{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 16px;font-size:13px}
+.legend li{display:flex;align-items:center;gap:7px;padding:3px 0;border-bottom:1px dotted var(--rule)}
+.legend li i{width:10px;height:10px;flex:none}
+.legend li b{margin-left:auto;font-variant-numeric:tabular-nums}
+.hbars{list-style:none;margin:0;padding:0}
+.hbars li{display:grid;grid-template-columns:110px minmax(0,1fr) 92px;gap:10px;align-items:center;padding:6px 0;font-size:13.5px}
+.hbars .b{height:14px;background:var(--rule);position:relative}
+.hbars .b i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.hbars li:first-child .b i{background:var(--red)}
+.hbars span:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+
+/* ---------- archive table ---------- */
+.tbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.tbar .lsearch{margin:0;flex:1 1 260px;max-width:380px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--rule2);background:none;font-size:13px;font-weight:600;padding:0 10px;min-height:32px;border-radius:16px}
+.chips button[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.bulk{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--ink);color:var(--paper);padding:8px 12px;margin-bottom:10px}
+.bulk[hidden]{display:none}
+.bulk .btn{border-color:var(--paper);color:var(--paper);min-height:34px}
+.bulk .btn:hover{background:rgba(255,255,255,.1)}
+.bulk select{background:var(--ink);color:var(--paper);border:1px solid var(--paper);min-height:34px;padding:0 8px}
+.tframe{border-top:2px solid var(--ink);border-bottom:1px solid var(--ink)}
+table.arc{width:100%;border-collapse:collapse;font-size:14px}
+.arc th{text-align:left;font:700 11px/1.3 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);border-bottom:1px solid var(--ink);padding:0 8px;height:40px;white-space:nowrap}
+.arc th button{border:0;background:none;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;padding:8px 0;display:inline-flex;gap:4px;align-items:center}
+.arc th button::after{content:"↕";opacity:.35}
+.arc th[aria-sort=ascending] button::after{content:"↑";opacity:1;color:var(--red)}
+.arc th[aria-sort=descending] button::after{content:"↓";opacity:1;color:var(--red)}
+.arc td{padding:9px 8px;border-bottom:1px solid var(--rule);vertical-align:middle}
+.arc tr.sel td{background:var(--red-soft)}
+.arc tbody tr:hover td{background:var(--hover)}
+.arc tr.sel:hover td{background:var(--red-soft)}
+.arc .tt .lnk{font:600 15px/1.3 var(--serif);text-decoration:none;display:block}
+.arc .tt .lnk:hover{text-decoration:underline}
+.arc .num{text-align:right;font-variant-numeric:tabular-nums}
+.arc input[type=checkbox]{width:17px;height:17px;accent-color:var(--red)}
+.arc .ck{width:36px}
+.pager{display:flex;align-items:center;gap:6px;justify-content:space-between;flex-wrap:wrap;padding:12px 0;font-size:13.5px;color:var(--ink2)}
+.pager .pg{display:flex;gap:4px}
+.pager button{min-width:36px;min-height:36px;border:1px solid var(--rule2);background:none;font-weight:600}
+.pager button[aria-current=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pager button[disabled]{opacity:.4}
+.empty{text-align:center;padding:40px 16px}
+.empty svg{width:120px;height:auto;stroke:var(--ink3);fill:none;stroke-width:1.5}
+.empty h3{font:800 20px/1.2 var(--serif);margin:10px 0 4px}
+.empty p{color:var(--ink2);margin:0 0 12px}
+
+/* ---------- overlays ---------- */
+.scrim{position:fixed;inset:0;background:rgba(23,20,15,.42);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px}
+.scrim[hidden]{display:none}
+.pal{width:min(620px,100%);background:var(--sheet);border:1px solid var(--ink);box-shadow:6px 6px 0 var(--ink)}
+.pal .input{border:0;border-bottom:1px solid var(--ink);min-height:52px;font-size:17px;padding:0 16px;background:transparent;box-shadow:none}
+.pal ul{list-style:none;margin:0;padding:6px 0;max-height:52vh;overflow:auto}
+.pal li{display:flex;gap:10px;align-items:center;padding:9px 16px;cursor:pointer;font-size:14.5px}
+.pal li small{margin-left:auto;color:var(--ink3);font-size:12px;white-space:nowrap}
+.pal li .g{font:700 10px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--red);width:64px;flex:none}
+.pal li[aria-selected=true]{background:var(--ink);color:var(--paper)}
+.pal li[aria-selected=true] small{color:var(--paper)}
+.pal .pe{padding:18px 16px;color:var(--ink3);font-style:italic}
+.pal .pf{display:flex;gap:14px;padding:8px 16px;border-top:1px solid var(--rule);font-size:12px;color:var(--ink3);flex-wrap:wrap}
+.modal{width:min(560px,100%);background:var(--sheet);border:1px solid var(--ink);box-shadow:6px 6px 0 var(--ink);max-height:82vh;display:flex;flex-direction:column}
+.modal header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:2px solid var(--ink)}
+.modal header h2{font:800 22px/1.2 var(--serif)}
+.modal .mb{padding:16px 18px;overflow:auto;display:grid;gap:14px}
+.modal .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.modal footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--rule)}
+.cnt{float:right;font-weight:400;color:var(--ink3)}
+.pop{position:fixed;z-index:50;width:340px;background:var(--sheet);border:1px solid var(--ink);box-shadow:5px 5px 0 var(--ink)}
+.pop[hidden]{display:none}
+.pop h3{font:800 16px var(--serif);padding:10px 14px;border-bottom:1px solid var(--ink)}
+.pop ul{list-style:none;margin:0;padding:0}
+.pop li{padding:9px 14px;border-bottom:1px solid var(--rule);font-size:13.5px;line-height:1.4}
+.pop li time{display:block;color:var(--ink3);font-size:12px}
+.toasts{position:fixed;bottom:52px;left:24px;z-index:80;display:grid;gap:8px;width:min(400px,calc(100vw - 32px))}
+.on-desk .toasts{left:338px}
+@media (max-width:1279px){.on-desk .toasts{left:302px}}
+@media (max-width:1099px){.on-desk .toasts{left:310px}}
+@media (max-width:819px){.toasts,.on-desk .toasts{bottom:auto;top:calc(var(--hh) + 10px);left:16px}}
+.ov .toasts,.ov.on-desk .toasts{top:auto;bottom:16px;left:50%;translate:-50% 0}
+.toast{display:flex;align-items:center;gap:12px;background:var(--ink);color:var(--paper);padding:10px 12px 10px 14px;border-left:4px solid var(--red);box-shadow:0 10px 24px -10px rgba(0,0,0,.5);font-size:14px}
+.toast button{margin-left:auto;border:1px solid var(--paper);background:none;color:var(--paper);font-weight:700;padding:0 10px;min-height:32px;white-space:nowrap}
+.drawer{position:fixed;inset:0 auto 0 0;width:min(320px,86vw);background:var(--paper);z-index:90;border-right:2px solid var(--ink);padding:16px;display:flex;flex-direction:column;gap:6px;translate:-102% 0;visibility:hidden;transition:translate .25s ease,visibility 0s .25s}
+.drawer.open{translate:0 0;visibility:visible;transition:translate .25s ease}
+.drawer .np{font:800 30px/1.15 var(--serif)}
+.drawer .np em{font-style:normal;color:var(--red)}
+.drawer .dl{width:100%;border:0;background:none;color:inherit;text-align:left;display:flex;justify-content:space-between;align-items:center;min-height:48px;padding:0 6px;border-bottom:1px solid var(--rule);text-decoration:none;font:600 18px var(--serif)}
+.drawer .dl[aria-current=page]{color:var(--red)}
+.drawer .dfoot{margin-top:auto;font-size:12.5px;color:var(--ink3)}
+.dscrim{position:fixed;inset:0;background:rgba(23,20,15,.35);z-index:88}
+.dscrim[hidden]{display:none}
+.rm *{transition:none!important;animation:none!important}
+
+/* ---------- responsive ---------- */
+@media (max-width:1279px){.desk{grid-template-columns:282px minmax(0,1fr) 300px}.sheet{padding:22px 28px 30px;margin:16px}.ear{max-width:200px}}
+@media (max-width:1099px){
+  .ear{display:none}.plate{grid-template-columns:1fr}
+  .desk{grid-template-columns:290px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .col-list{grid-row:1/3}
+  .seg{display:flex;grid-column:2;border-bottom:1px solid var(--ink);background:var(--paper)}
+  .seg button{flex:1;border:0;background:none;min-height:44px;font-weight:700;font-size:14px;border-bottom:3px solid transparent}
+  .seg button[aria-pressed=true]{border-bottom-color:var(--red)}
+  .seg .s-list{display:none}
+  .desk[data-pane=list] .col-proof,.desk[data-pane=proof] .col-slip{display:none}
+  .desk[data-pane=slip] .col-proof{display:none}
+  .col-proof,.col-slip{grid-column:2}
+  .col-slip{border-left:0}
+  .search-btn{min-width:0}.search-btn .lbl{display:none}
+  .cal{display:block;border:0}
+  .cal .ch,.cal .rh,.cal .cell{display:none}
+  .cal .daytabs{display:flex}
+  .daytabs{gap:6px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none;mask-image:linear-gradient(90deg,#000 88%,transparent)}
+  .daytabs button{flex:none;border:1px solid var(--ink);background:var(--sheet);padding:6px 12px;min-height:52px;text-align:left;border-radius:2px}
+  .daytabs button b{display:block;font:700 10.5px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+  .daytabs button span{font:800 17px var(--serif)}
+  .daytabs button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+  .daytabs button[aria-pressed=true] b{color:var(--paper)}
+  .cal .daylist{display:grid}
+  .reads{grid-template-columns:1fr}
+}
+.dslot{display:grid;grid-template-columns:58px minmax(0,1fr);gap:10px;border-top:1px solid var(--rule);padding:10px 0;position:relative}
+.dslot>b{font:800 17px var(--serif);color:var(--ink2);padding-top:4px}
+.dslot>div{display:grid;gap:8px}
+.dslot.past>div{opacity:1}
+.dslot .nowline{position:absolute;left:0;right:0;top:-1px;border-top:2px solid var(--red)}
+.dslot .add{min-height:44px;border:1px dashed var(--rule2);background:none;color:var(--ink2);font-weight:600;border-radius:2px}
+@media (max-width:819px){
+  .mast{padding:0 16px}
+  .dateline .dl-date .long,.me span,.dateline .shift{display:none}
+  .plate{grid-template-columns:auto 1fr;padding:6px 0;gap:10px}
+  .nameplate{text-align:left;justify-self:start}.nameplate .np{font-size:32px}.nameplate small{font-size:12px}
+  .menu-btn{display:inline-grid;border-color:var(--ink)}
+  .secbar nav{display:none}
+  .secbar{height:34px}.crumb{max-width:100%;margin-left:0;font-size:13px}
+  .desk{display:flex;flex-direction:column;height:auto;min-height:0}
+  .desk>section{overflow:visible}
+  .seg{display:flex;position:sticky;top:var(--hh);z-index:6;order:-1}
+  .seg .s-list{display:block}
+  .desk[data-pane=list] .col-proof,.desk[data-pane=list] .col-slip,.desk[data-pane=proof] .col-list,.desk[data-pane=proof] .col-slip,.desk[data-pane=slip] .col-list,.desk[data-pane=slip] .col-proof{display:none}
+  .col-list{border-right:0}
+  .col-list .lhead{position:static}
+  .lfoot{position:static;border-top:0;padding-bottom:20px}
+  .ptool{position:static;padding:10px 16px}
+  .rail i{width:8px;margin:0 3px}.rail span{font-size:0;gap:0}.rail span.cur{font-size:12px;gap:5px}
+  .sheet{margin:12px 10px 24px;padding:18px 16px 24px}
+  .sheet h1{font-size:27px}
+  .body p{font-size:16px;text-align:left}
+  .wrap{padding:14px 16px 28px}
+  .vhead h2{font-size:25px}
+  .vhead .act{margin-left:0}
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpi:nth-child(2){border-right:0}.kpi:nth-child(-n+2){border-bottom:1px solid var(--rule)}
+  .kpi .v{font-size:30px}
+  .chart svg{height:240px}
+  .splits{grid-template-columns:1fr}
+  .hbars li{grid-template-columns:96px minmax(0,1fr) 84px}
+  .tbar .lsearch{max-width:none}
+  table.arc,.arc tbody{display:block}
+  .arc thead{display:none}
+  .arc tr{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:2px 10px;padding:12px 4px;border-bottom:1px solid var(--rule)}
+  .arc td{display:block;border:0;padding:0}
+  .arc td.ck{grid-row:1/4}
+  .arc td.tt{grid-column:2/4}
+  .arc td.c-sec,.arc td.c-au{display:none}
+  .arc td.c-st{grid-column:2}
+  .arc td.c-rd{grid-column:3;grid-row:2}
+  .arc td.c-wd{display:none}
+  .arc td.c-up{grid-column:2/4;color:var(--ink3);font-size:12.5px}
+  .arc td.c-rd::before{content:"Lượt đọc ";color:var(--ink3);font-size:12px}
+  .modal .two{grid-template-columns:1fr}
+  .scrim{padding:8vh 10px 10px}
+  .pop{left:10px!important;right:10px;width:auto}
+  .foot{flex-direction:column;padding:12px 16px 20px}
+}
+@media (max-width:420px){.search-btn kbd{display:none}.dateline{gap:6px}}
+.ckl{display:inline-grid;place-items:center;width:40px;height:40px;margin:-11px;cursor:pointer;vertical-align:middle}
+/* phone/tablet: newsroom small caps stay legible (>=12px) */
+@media (max-width:1099px){
+  kbd,.caps,.sec .n,.folio,.slip-sec h3,.notes li>i,.cal .ch b,.top li .n small,.arc th,.pal li .g,.daytabs button b,.me small{font-size:12px}
+  .badge{font-size:12px;min-width:18px;height:18px;line-height:18px}
+  .ear b,.kick,.clip .kick{font-size:12px;letter-spacing:.08em}
+  .st{font-size:12px;letter-spacing:.06em}
+  .stamp small{font-size:12px}
+  mark.pm sup{font-size:12px}
+  .arc th[data-k=sec],.arc td.c-sec{display:none}
+}
+@media (pointer:coarse){
+  .ico{width:40px;height:40px}
+  .mode button,.rng button,.chips button{min-height:40px}
+  .pager button{min-width:40px;min-height:40px}
+  .arc th button{min-height:40px}
+  .search-btn{min-width:40px;justify-content:center;position:relative}.search-btn::before{content:"";position:absolute;inset:-4px 0}
+  .btn{min-height:40px}
+  .top li .lnk{padding:11px 0;margin:-11px 0}
+  mark.pm{position:relative}mark.pm::before{content:"";position:absolute;inset:-8px 0}
+}
+</style>
+</head>
+<body>
+<a class="sr" href="#main">Bỏ qua tới nội dung</a>
+<header class="mast" id="mast">
+  <div class="dateline">
+    <button class="ico menu-btn" id="menuBtn" aria-label="Mở mục lục" aria-expanded="false" aria-controls="drawer"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+    <span class="dl-date" id="dlDate"></span>
+    <span class="shift" id="dlShift"></span>
+    <div class="tools">
+      <button class="search-btn" id="openPal" aria-label="Mở bảng lệnh (Ctrl K)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg><span class="lbl">Tìm bài, lệnh…</span><kbd>Ctrl K</kbd></button>
+      <button class="ico" id="bellBtn" aria-label="Thông báo" aria-expanded="false" aria-controls="bellPop"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="badge" id="bellN">4</span></button>
+      <button class="ico" id="themeBtn" aria-label="Đổi giao diện sáng/tối"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
+      <div class="me" title="Lê Minh Châu — Thư ký tòa soạn"><i aria-hidden="true">LC</i><span>Lê Minh Châu<small>Thư ký tòa soạn</small></span></div>
+    </div>
+  </div>
+  <div class="plate">
+    <div class="ear" id="earL"><b>Ca trực</b><span id="earShift"></span></div>
+    <button class="nameplate" data-go="ban-bien-tap" aria-label="Báo Phố — về bàn biên tập"><span class="np">Báo <em>Phố</em></span><small>Tòa soạn số · hệ thống quản trị nội dung</small></button>
+    <div class="ear r"><b><span class="live-dot"></span>Đang đọc</b><span class="big" id="earLive">0</span> <span id="earDelta"></span></div>
+  </div>
+  <div class="rule2" id="rule2"></div>
+  <div class="secbar">
+    <nav aria-label="Mục chính" id="secnav">
+      <button class="sec" data-v="ban-bien-tap" data-go="ban-bien-tap">Bàn biên tập <span class="n" id="nDesk">0</span></button>
+      <button class="sec" data-v="lich-xuat-ban" data-go="lich-xuat-ban">Lịch xuất bản</button>
+      <button class="sec" data-v="luot-doc" data-go="luot-doc">Lượt đọc</button>
+      <button class="sec" data-v="kho-bai" data-go="kho-bai">Kho bài</button>
+    </nav>
+    <div class="crumb" id="crumb"></div>
+  </div>
+</header>
+
+<main id="main">
+  <!-- ============ DESK ============ -->
+  <div class="view" id="v-ban-bien-tap">
+    <div class="desk" id="desk" data-pane="proof">
+      <section class="col-list" aria-label="Danh sách bản thảo">
+        <div class="lhead">
+          <h2>Bản thảo <small id="lCount"></small></h2>
+          <div class="lsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg><input class="input" id="lq" type="search" placeholder="Tìm tít, tác giả…" aria-label="Tìm trong bản thảo"></div>
+          <div class="steps" id="lsteps" role="group" aria-label="Lọc theo bước"></div>
+        </div>
+        <ul class="alist" id="alist"></ul>
+        <div class="lfoot"><button class="btn red" id="newBtn">+ Bài mới</button><span class="hint"><kbd>J</kbd>/<kbd>K</kbd> chọn bài</span></div>
+      </section>
+      <div class="seg" role="group" aria-label="Chọn khung">
+        <button class="s-list" data-pane="list" aria-pressed="false">Bản thảo</button>
+        <button data-pane="proof" aria-pressed="true">Bản in thử</button>
+        <button data-pane="slip" aria-pressed="false">Phiếu chuyển</button>
+      </div>
+      <section class="col-proof" aria-label="Bản in thử">
+        <div class="ptool">
+          <div class="rail" id="rail" aria-label="Tiến trình"></div>
+          <div class="mode" role="group" aria-label="Kiểu xem">
+            <button data-mode="print" aria-pressed="true">Bản in</button>
+            <button data-mode="web" aria-pressed="false">Bản web</button>
+          </div>
+        </div>
+        <article class="sheet print" id="sheet"></article>
+      </section>
+      <section class="col-slip" aria-label="Phiếu chuyển bài" id="slip"></section>
+    </div>
+  </div>
+
+  <!-- ============ CALENDAR ============ -->
+  <div class="view" id="v-lich-xuat-ban" hidden>
+    <div class="wrap">
+      <div class="vhead">
+        <div><h2>Lịch xuất bản</h2><p id="calSub"></p></div>
+        <div class="act"><button class="btn red" id="calNew">Hẹn giờ một bài</button></div>
+      </div>
+      <div class="cal" id="cal"></div>
+      <div class="cal-legend"><span><i></i>Đã hẹn</span><span><i class="l"></i>Tin chính trang chủ</span><span><i class="p"></i>Đã đăng ✓</span><span><i class="n"></i>Bây giờ</span></div>
+    </div>
+  </div>
+
+  <!-- ============ READS ============ -->
+  <div class="view" id="v-luot-doc" hidden>
+    <div class="wrap">
+      <div class="vhead"><div><h2>Lượt đọc</h2><p id="readSub"></p></div></div>
+      <div class="kpis" id="kpis">
+        <div class="kpi"><div class="caps"><span class="live-dot"></span>Đang đọc</div><div class="v red" id="kLive">0</div><small>người trên toàn trang</small></div>
+        <div class="kpi"><div class="caps">Lượt đọc hôm nay</div><div class="v" id="kToday">0</div><small id="kTodayS"></small></div>
+        <div class="kpi"><div class="caps">Thời gian đọc TB</div><div class="v" id="kTime">2:48</div><small>phút mỗi lượt</small></div>
+        <div class="kpi"><div class="caps">Đọc hết bài</div><div class="v" id="kDone">41%</div><small>cuộn tới dấu kết bài</small></div>
+      </div>
+      <div class="reads">
+        <div class="panel">
+          <h3>Nhịp đọc <small id="chUnit"></small>
+            <span class="rng" role="group" aria-label="Khoảng thời gian">
+              <button data-r="60p" aria-pressed="true">60 phút</button><button data-r="24g" aria-pressed="false">24 giờ</button><button data-r="7n" aria-pressed="false">7 ngày</button>
+            </span></h3>
+          <div class="chart" id="chart">
+            <svg id="chSvg" role="img" aria-label="Biểu đồ lượt đọc theo thời gian"><g class="grid" id="chGrid"></g><path class="area" id="chArea"/><path class="line" id="chLine"/><g class="xl" id="chX"></g><line class="guide" id="chGuide" y1="0" y2="0" visibility="hidden"/><circle class="dot" id="chDot" r="4.5" visibility="hidden"/></svg>
+            <div class="tip" id="chTip"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Đang được đọc nhiều <small>cập nhật trực tiếp</small></h3>
+          <ol class="top" id="topList"></ol>
+        </div>
+      </div>
+      <div class="splits">
+        <div class="panel"><h3>Theo chuyên mục <small>hôm nay</small></h3><div class="stack" id="secStack"></div><ul class="legend" id="secLegend"></ul></div>
+        <div class="panel"><h3>Nguồn truy cập <small>hôm nay</small></h3><ul class="hbars" id="srcBars"></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ARCHIVE ============ -->
+  <div class="view" id="v-kho-bai" hidden>
+    <div class="wrap">
+      <div class="vhead"><div><h2>Kho bài</h2><p>Mọi bài của tòa soạn — sắp xếp, lọc, xử lý hàng loạt.</p></div></div>
+      <div class="tbar">
+        <div class="lsearch"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg><input class="input" id="tq" type="search" placeholder="Tìm không cần dấu: “chung cu”, “bao”…" aria-label="Tìm trong kho bài"></div>
+        <select class="input" id="tsec" aria-label="Lọc chuyên mục" style="width:auto"></select>
+        <div class="chips" id="tst" role="group" aria-label="Lọc trạng thái"></div>
+      </div>
+      <div class="bulk" id="bulk" hidden>
+        <b id="bulkN"></b>
+        <select id="bulkSec" aria-label="Chuyển sang chuyên mục"></select>
+        <button class="btn" id="bulkMove">Chuyển mục</button>
+        <button class="btn" id="bulkSend">Gửi biên tập</button>
+        <button class="btn" id="bulkDel">Lưu trữ</button>
+        <button class="btn" id="bulkClear" style="margin-left:auto">Bỏ chọn</button>
+      </div>
+      <div class="tframe">
+        <table class="arc" id="arc">
+          <thead><tr>
+            <th class="ck"><label class="ckl"><input type="checkbox" id="selAll" aria-label="Chọn tất cả bài trên trang"></label></th>
+            <th data-k="title"><button>Tít bài</button></th>
+            <th data-k="sec"><button>Chuyên mục</button></th>
+            <th data-k="author"><button>Tác giả</button></th>
+            <th data-k="st"><button>Trạng thái</button></th>
+            <th data-k="words" class="num"><button>Số chữ</button></th>
+            <th data-k="reads" class="num"><button>Lượt đọc</button></th>
+            <th data-k="upd" aria-sort="descending"><button>Cập nhật</button></th>
+          </tr></thead>
+          <tbody id="arcBody"></tbody>
+        </table>
+        <div class="empty" id="arcEmpty" hidden>
+          <svg viewBox="0 0 120 80" aria-hidden="true"><path d="M14 12h76v58H20a6 6 0 0 1-6-6z"/><path d="M90 24h14v40a6 6 0 0 1-6 6H20"/><path d="M24 22h56M24 30h56M24 40h24M24 48h24M24 56h24M56 40h24v16H56z"/></svg>
+          <h3>Không có bài nào khớp</h3><p>Thử bỏ bớt bộ lọc hoặc tìm bằng từ khóa khác.</p><button class="btn" id="arcReset">Xóa bộ lọc</button>
+        </div>
+      </div>
+      <div class="pager" id="pager"></div>
+    </div>
+  </div>
+</main>
+<footer class="foot"><span>Báo Phố CMS 4.2 · Máy chủ dàn trang đồng bộ</span><span>Thiết kế concept — thương hiệu giả định.</span></footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="pop" id="bellPop" hidden role="dialog" aria-label="Thông báo"><h3>Thông báo</h3><ul id="bellList"></ul></div>
+<div class="dscrim" id="dscrim" hidden></div>
+<aside class="drawer" id="drawer" aria-label="Mục lục" aria-hidden="true">
+  <div style="display:flex;justify-content:space-between;align-items:center"><span class="np">Báo <em>Phố</em></span><button class="ico" id="drawerClose" aria-label="Đóng mục lục"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="rule2" style="margin:6px 0 4px"></div>
+  <button class="dl" data-v="ban-bien-tap" data-go="ban-bien-tap">Bàn biên tập <span class="st" id="dDesk"></span></button>
+  <button class="dl" data-v="lich-xuat-ban" data-go="lich-xuat-ban">Lịch xuất bản</button>
+  <button class="dl" data-v="luot-doc" data-go="luot-doc">Lượt đọc</button>
+  <button class="dl" data-v="kho-bai" data-go="kho-bai">Kho bài</button>
+  <button class="btn quiet" id="drawerTheme" style="margin-top:12px">Đổi giao diện sáng/tối</button>
+  <p class="dfoot" id="dShift"></p>
+  <p class="dfoot" style="margin-top:0">Thiết kế concept — thương hiệu giả định.</p>
+</aside>
+<div class="scrim" id="palScrim" hidden>
+  <div class="pal" role="dialog" aria-modal="true" aria-label="Bảng lệnh">
+    <input class="input" id="palQ" placeholder="Gõ tên bài, mục hoặc lệnh…" aria-label="Tìm lệnh" role="combobox" aria-expanded="true" aria-controls="palList" autocomplete="off">
+    <ul id="palList" role="listbox" aria-label="Kết quả"></ul>
+    <div class="pf"><span><kbd>↑</kbd><kbd>↓</kbd> chọn</span><span><kbd>Enter</kbd> mở</span><span><kbd>Esc</kbd> đóng</span></div>
+  </div>
+</div>
+<div class="scrim" id="modalScrim" hidden>
+  <form class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle" novalidate>
+    <header><h2 id="mTitle"></h2><button type="button" class="ico" id="mClose" aria-label="Đóng"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <div class="mb" id="mBody"></div>
+    <footer><button type="button" class="btn quiet" id="mCancel">Hủy</button><button type="submit" class="btn red" id="mOk">Lưu</button></footer>
+  </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const RM = document.documentElement.classList.contains('rm')
+const STATIC = /\bstatic\b/.test(location.search)
+const G = window.gsap
+const store = {
+  get(k) { try { return localStorage.getItem(k) } catch { return null } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch { /* private mode */ } },
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+const fold = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+const pad = (n) => String(n).padStart(2, '0')
+const nf = (n) => Math.round(n).toLocaleString('vi-VN')
+const fK = (n) => (n >= 1000 ? (n / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + 'k' : String(Math.round(n)))
+const hm = (d) => pad(d.getHours()) + ':' + pad(d.getMinutes())
+const dmy = (d) => pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear()
+const dm = (d) => pad(d.getDate()) + '/' + pad(d.getMonth() + 1)
+const DOW = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+const DOWS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+const MIN = 60000, HOUR = 3600000, DAY = 86400000
+let NOW = Date.now()
+function ago(t) {
+  const m = Math.round((NOW - t) / MIN)
+  if (m < 1) return 'vừa xong'
+  if (m < 60) return m + ' phút trước'
+  if (m < 24 * 60) return Math.floor(m / 60) + ' giờ trước'
+  return dm(new Date(t)) + ' lúc ' + hm(new Date(t))
+}
+function when(t) {
+  const d = new Date(t), today = new Date(NOW); today.setHours(0, 0, 0, 0)
+  const diff = Math.floor((new Date(d).setHours(0, 0, 0, 0) - today) / DAY)
+  const lab = diff === 0 ? 'hôm nay' : diff === 1 ? 'ngày mai' : diff === -1 ? 'hôm qua' : DOWS[d.getDay()] + ' ' + dm(d)
+  return hm(d) + ' ' + lab
+}
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
+const R = rng(9204)
+const ri = (a, b) => a + Math.floor(R() * (b - a + 1))
+
+/* ---------------- seed data ---------------- */
+const SECS = ['Thời sự', 'Đô thị', 'Kinh tế', 'Văn hóa', 'Thể thao', 'Đời sống', 'Công nghệ']
+const SEC_PAGE = [2, 4, 6, 9, 12, 14, 16]
+const REP = ['Nguyễn Thảo Vy', 'Trần Quốc Bảo', 'Lê Hoài An', 'Phạm Gia Huy', 'Đỗ Minh Thư', 'Võ Thanh Tùng', 'Hồ Ngọc Diệp', 'Bùi Khánh Linh']
+const BTV = ['Lương Văn Định', 'Châu Mỹ Hạnh', 'Đinh Quang Vinh']
+const DUY = ['Lê Minh Châu', 'Tạ Hữu Phước']
+const STEPS = [
+  { k: 'viet', name: 'Viết', role: 'Phóng viên', stamp: 'Đã nộp', label: 'Bản thảo' },
+  { k: 'bientap', name: 'Biên tập', role: 'Biên tập viên', stamp: 'Đã biên tập', label: 'Đang biên tập' },
+  { k: 'duyet', name: 'Duyệt', role: 'Thư ký tòa soạn', stamp: 'Đã duyệt', label: 'Chờ duyệt' },
+  { k: 'xuatban', name: 'Xuất bản', role: 'Trực trang', stamp: 'Đã đăng', label: 'Đã đăng' },
+]
+const ST_LABEL = { viet: 'Bản thảo', bientap: 'Đang biên tập', duyet: 'Chờ duyệt', lich: 'Đã hẹn giờ', xuatban: 'Đã đăng' }
+const ST_ORDER = { viet: 0, bientap: 1, duyet: 2, lich: 3, xuatban: 4 }
+const stepIdx = (st) => (st === 'lich' ? 3 : ST_ORDER[st])
+const T = [
+  [0, 'Thành phố thí điểm xe buýt điện trên tuyến ven sông từ tháng tới', 'x'],
+  [0, 'Hơn 2.000 hộ dân được cấp nước sạch sau ba tháng chờ đường ống', 'l'],
+  [0, 'Phường Bến Thành lấy ý kiến người dân về phương án lát lại vỉa hè', 'b'],
+  [0, 'Mưa lớn chiều qua làm ngập cục bộ 14 tuyến đường nội đô', 'x'],
+  [0, 'Đề xuất kéo dài giờ hoạt động của phố đi bộ vào cuối tuần', 'v'],
+  [1, 'Chung cư cũ trên đường Trần Hưng Đạo: chờ mười năm vẫn chưa có lời giải', 'b'],
+  [1, 'Những con hẻm “xanh” do chính cư dân tự trồng và chăm sóc', 'd'],
+  [1, 'Bãi giữ xe ngầm đầu tiên ở trung tâm sắp vận hành thử', 'l'],
+  [1, 'Cây cầu bộ hành mới nối hai bờ kênh Nhiêu Lộc', 'x'],
+  [1, 'Bản đồ những điểm ngập thường xuyên mùa mưa năm nay', 'v'],
+  [2, 'Giá thuê mặt bằng phố trung tâm giảm lần đầu sau ba năm', 'x'],
+  [2, 'Chợ truyền thống chuyển mình: tiểu thương bán hàng qua livestream', 'b'],
+  [2, 'Quán cà phê nhỏ sống sót thế nào giữa các chuỗi lớn', 'd'],
+  [2, 'Lãi suất tiết kiệm nhích nhẹ, người gửi tiền vẫn thận trọng', 'l'],
+  [2, 'Xuất khẩu cà phê đặc sản tăng mạnh nhờ thị trường châu Âu', 'v'],
+  [3, 'Triển lãm ảnh “Phố cũ, người xưa” mở cửa miễn phí đến cuối tháng', 'x'],
+  [3, 'Nghệ nhân cuối cùng của nghề làm lồng đèn giấy kiếng ở Phú Bình', 'b'],
+  [3, 'Sân khấu kịch nói tìm khán giả trẻ bằng suất diễn khuya', 'v'],
+  [3, 'Rạp chiếu phim độc lập đầu tiên của quận chính thức ra mắt', 'l'],
+  [3, 'Sạp sách cũ trên phố Trần Nhân Tông: nghề giữ chữ giữa thời số', 'd'],
+  [4, 'Đội bóng phường giành cúp giải phong trào sau loạt sút luân lưu', 'x'],
+  [4, 'Giải chạy đêm ven sông thu hút hơn 8.000 người tham gia', 'x'],
+  [4, 'Sân pickleball mọc lên khắp nơi: cơn sốt hay xu hướng lâu dài?', 'b'],
+  [4, 'Kình ngư 15 tuổi phá kỷ lục quốc gia cự ly 400 m tự do', 'x'],
+  [4, 'Câu lạc bộ bóng rổ thành phố công bố đội hình cho mùa giải mới', 'v'],
+  [5, 'Bữa cơm 5.000 đồng cho người lao động nghèo giữa lòng phố', 'x'],
+  [5, 'Bí quyết giữ nhà mát mà không cần bật điều hòa cả ngày', 'b'],
+  [5, 'Người trẻ rời phố về quê: lựa chọn và đánh đổi', 'd'],
+  [5, 'Chợ đêm cuối tuần — nơi người lạ trò chuyện với nhau', 'l'],
+  [5, 'Trường học mở cửa sân chơi cho trẻ em khu phố vào ngày nghỉ', 'v'],
+  [6, 'Ứng dụng báo ngập theo thời gian thực do sinh viên phát triển', 'b'],
+  [6, 'Thanh toán không tiền mặt ở chợ: tiện nhưng còn nhiều băn khoăn', 'v'],
+  [6, 'Camera giao thông thông minh bắt đầu phạt nguội từ tuần sau', 'l'],
+  [6, 'Lừa đảo qua mã QR dán đè: cách nhận biết và phòng tránh', 'd'],
+  [6, 'Thư viện thành phố số hóa 12.000 đầu sách cũ', 'x'],
+  [6, 'Xe đạp công cộng thêm 40 trạm, mở rộng ra các quận ven', 'b'],
+]
+const CODE = { x: 'xuatban', l: 'lich', d: 'duyet', b: 'bientap', v: 'viet' }
+// Body text: [[phrase|editor note]] marks become proof marks.
+const SEC_P = [
+  ['Theo kế hoạch được Sở Giao thông công bố sáng qua, giai đoạn đầu sẽ có [[12 phương tiện|Kiểm tra lại: thông cáo ghi 12 hay 14 xe?]] chạy thử, tần suất 15 phút một chuyến vào giờ cao điểm. Người dân dọc tuyến cho biết họ chờ đợi thay đổi này từ lâu.',
+   'Ông Trần Văn Lộc, tổ trưởng tổ dân phố 7, nói việc lấy ý kiến cần làm thực chất: “Người dân sống ở đây mỗi ngày, chúng tôi biết chỗ nào kẹt, chỗ nào nguy hiểm”. Phường dự kiến tổng hợp góp ý [[trước ngày 15 tháng sau|Ghi rõ ngày cụ thể theo văn bản của phường]].'],
+  ['Khu nhà được xây từ trước năm 1975, hiện có [[hơn 180 hộ|Đối chiếu số hộ với danh sách của quận]] sinh sống. Nhiều mảng tường bong tróc, cầu thang sắt đã gỉ sét, mỗi mùa mưa nước lại thấm qua trần.',
+   'Bà Nguyễn Thị Hạnh, 67 tuổi, đã sống ở tầng ba gần bốn mươi năm. Bà kể mỗi lần có đoàn khảo sát đến, cả khu lại hy vọng. Đại diện quận cho biết phương án cải tạo đang [[chờ thẩm định lần cuối|Xin trích dẫn nguyên văn từ người phát ngôn]].'],
+  ['Số liệu từ một đơn vị môi giới cho thấy giá thuê trung bình ở các tuyến phố chính [[giảm khoảng 8%|Nêu rõ nguồn số liệu và kỳ so sánh]] so với cùng kỳ năm trước. Nhiều mặt bằng treo biển cho thuê hàng tháng liền.',
+   'Chủ một cửa hàng trên đường Lê Lợi cho biết anh đã thương lượng được mức giá mới sau khi đối diện nguy cơ phải đóng cửa. Giới chuyên gia nhận định xu hướng này [[có thể kéo dài đến giữa năm sau|Ai nhận định? Cần tên và chức danh]].'],
+  ['Triển lãm trưng bày [[hơn 120 bức ảnh|Ban tổ chức gửi lại con số chính xác]] chụp từ thập niên 1960 đến nay, phần lớn do người dân trong khu phố tự đóng góp. Mỗi bức ảnh kèm một đoạn ghi chú ngắn của chính người chụp.',
+   'Người giữ nghề còn lại cho biết mỗi năm ông chỉ làm được vài trăm chiếc đèn, chủ yếu theo đơn đặt hàng của các trường học. Ông mong có người trẻ chịu học, “dù chỉ để giữ lại [[cách dán giấy kiếng|Kiểm tra cách viết: giấy kiếng hay giấy kính]]”.'],
+  ['Trận chung kết diễn ra trong không khí cuồng nhiệt với [[khoảng 3.000 khán giả|Con số của ban tổ chức hay ước tính của phóng viên?]] có mặt quanh sân. Hai đội hòa nhau sau 90 phút trước khi bước vào loạt sút luân lưu.',
+   'Ban tổ chức cho biết năm nay số người đăng ký tăng gấp đôi, trong đó gần một nửa lần đầu tham gia. Đường chạy đi qua [[ba cây cầu|Đối chiếu lại bản đồ đường chạy]] và kết thúc tại công viên bờ sông.'],
+  ['Mỗi trưa, quán phục vụ [[khoảng 400 suất cơm|Thống nhất con số với bài trước đã đăng]], mỗi suất gồm cơm, canh và một món mặn. Người đến ăn chủ yếu là lao động tự do, người bán vé số và sinh viên.',
+   'Chị Mai, người khởi xướng, nói điều chị muốn giữ nhất là sự tôn trọng: ai đến cũng được mời ngồi, được dọn cơm như khách. Kinh phí đến từ [[các nhà hảo tâm trong khu phố|Có thể nêu tên nhóm hỗ trợ không?]].'],
+  ['Nhóm sinh viên cho biết ứng dụng dùng dữ liệu từ [[hơn 60 cảm biến mực nước|Xác minh với đơn vị quản lý cảm biến]] đặt tại các điểm trũng, cập nhật mỗi năm phút. Người dùng cũng có thể tự gửi ảnh để xác nhận tình trạng ngập.',
+   'Theo đại diện cơ quan quản lý, hệ thống sẽ được triển khai theo từng giai đoạn và có thông báo trước cho người dân. Chuyên gia an ninh mạng khuyên người dùng [[không quét mã lạ|Thêm một câu hướng dẫn cụ thể cho bạn đọc]] dán đè lên mã gốc.'],
+]
+const GEN_P = [
+  'Ghi nhận của phóng viên Báo Phố trong buổi sáng hôm qua cho thấy nhiều người dân vẫn chưa nắm rõ thông tin. Một số ý kiến đề nghị cơ quan chức năng niêm yết công khai tại trụ sở phường và trên các nhóm cư dân.',
+  'Trao đổi với Báo Phố, đại diện đơn vị liên quan khẳng định sẽ tiếp thu góp ý và điều chỉnh kế hoạch nếu cần. “Chúng tôi muốn làm chậm mà chắc, hơn là làm nhanh rồi phải sửa”, vị này nói.',
+  'Câu chuyện này không chỉ của riêng một khu phố. Ở nhiều quận khác, những vấn đề tương tự đang chờ lời giải, và người dân mong tiếng nói của mình được lắng nghe [[từ sớm hơn|Câu kết hơi chung chung — cân nhắc thay bằng trích dẫn]].',
+]
+const SAPO = [
+  'Sau nhiều tháng chuẩn bị, phương án mới chính thức được đưa ra lấy ý kiến, với kỳ vọng thay đổi thói quen đi lại của hàng chục nghìn người mỗi ngày.',
+  'Người trong cuộc kể lại câu chuyện của họ — những chờ đợi, những thích nghi, và điều họ mong muốn nhất ở thời gian tới.',
+  'Báo Phố ghi nhận thực tế tại chỗ và trao đổi với các bên liên quan để tìm hiểu vì sao vấn đề kéo dài.',
+]
+let A = []
+function buildSeed() {
+  NOW = Date.now()
+  const today0 = new Date(NOW); today0.setHours(0, 0, 0, 0)
+  const SLOT_H = [6, 9, 12, 15, 18, 21]
+  const past = [], fut = []
+  for (let d = -1; d <= 5; d++) for (const h of SLOT_H) {
+    const t = today0.getTime() + d * DAY + h * HOUR
+    if (t <= NOW - 20 * MIN && d <= 0) past.push(t)
+    else if (t > NOW + 40 * MIN && d <= 4) fut.push(t)
+  }
+  past.reverse()
+  let pi = 0, fi = 0
+  A = T.map(([s, title, c], i) => {
+    const st = CODE[c], id = 400 + i + 12
+    const author = REP[(i * 3 + s) % REP.length], editor = BTV[i % 3], appr = DUY[i % 2]
+    const words = 520 + ((i * 137) % 900)
+    const a = { id, code: 'BP-' + id, s, sec: SECS[s], title, st, author, editor, appr, words, at: null, reads: 0, live: 0, lead: false,
+      sapo: SAPO[i % 3], body: [SEC_P[s][i % 2], GEN_P[i % 2], SEC_P[s][(i + 1) % 2], GEN_P[2]], nd: [], chk: [false, false, false], hist: [] }
+    const nNotes = a.body.join(' ').match(/\[\[/g).length
+    const step = stepIdx(st)
+    a.nd = Array.from({ length: nNotes }, (_, k) => step >= 2 || (step === 1 && k % 2 === 0 && i % 3 !== 2))
+    a.chk = step >= 3 ? [true, true, true] : step === 2 ? [true, i % 2 === 0, false] : [false, false, false]
+    let last
+    if (st === 'xuatban') { a.at = past[pi % past.length] + Math.floor(pi / past.length) * 7 * MIN; pi++; last = a.at }
+    else if (st === 'lich') { a.at = fut[(fi * 2 + 1) % fut.length]; fi++; last = NOW - ri(25, 300) * MIN }
+    else last = NOW - (ri(3, 240) + i) * MIN
+    // history, walked backwards so times are always increasing
+    const ev = []
+    let t = last
+    if (st === 'xuatban') { ev.unshift({ t, who: appr, what: 'Xuất bản lên trang' }); t -= ri(20, 80) * MIN }
+    if (step >= 3) { ev.unshift({ t: st === 'lich' ? last : t, who: appr, what: st === 'lich' ? 'Duyệt và hẹn giờ đăng' : 'Duyệt bài' }); t = (st === 'lich' ? last : t) - ri(30, 120) * MIN }
+    if (step >= 2) { ev.unshift({ t, who: editor, what: 'Biên tập xong, chuyển duyệt' }); t -= ri(40, 150) * MIN }
+    if (step >= 1) { ev.unshift({ t, who: author, what: 'Nộp bản thảo' }); t -= ri(60, 300) * MIN }
+    ev.unshift({ t: step === 0 ? last - ri(60, 200) * MIN : t, who: author, what: 'Tạo bài' })
+    if (step === 0) ev.push({ t: last, who: author, what: 'Lưu bản nháp' })
+    a.hist = ev
+    a.upd = ev[ev.length - 1].t
+    if (st === 'xuatban') {
+      const hrs = Math.max(0.3, (NOW - a.at) / HOUR)
+      const base = 6000 + R() * 34000
+      a.reads = Math.round(base * (1 - Math.exp(-hrs / 5)))
+      a.live = Math.max(4, Math.round((base / 80) * diurnal(new Date(NOW).getHours()) * Math.exp(-hrs / 26) * (0.6 + R() * 0.8)))
+    }
+    return a
+  })
+  // one lead story per future day-slot block: the earliest scheduled one
+  const sch = A.filter((a) => a.st === 'lich').sort((x, y) => x.at - y.at)
+  if (sch[0]) sch[0].lead = true
+  if (sch[3]) sch[3].lead = true
+}
+function diurnal(h) { return 0.12 + 0.55 * Math.exp(-((h - 7.5) ** 2) / 5) + 0.7 * Math.exp(-((h - 12.5) ** 2) / 4) + 0.95 * Math.exp(-((h - 21) ** 2) / 6) + 0.25 * Math.exp(-((h - 17) ** 2) / 6) }
+buildSeed()
+
+/* ---------------- state ---------------- */
+const S = { view: 'ban-bien-tap', sel: 412 + 5, lstep: 'all', lq: '', mode: 'print', pane: 'proof', rendered: {} }
+const byId = (id) => A.find((a) => a.id === +id)
+const cur = () => byId(S.sel) || A[0]
+
+/* ---------------- masthead ---------------- */
+function shift(h) {
+  if (h >= 6 && h < 14) return { n: 'Ca sáng', r: '06:00–14:00', lead: 'Lê Minh Châu' }
+  if (h >= 14 && h < 22) return { n: 'Ca chiều', r: '14:00–22:00', lead: 'Tạ Hữu Phước' }
+  return { n: 'Ca trực đêm', r: '22:00–06:00', lead: 'Đinh Quang Vinh' }
+}
+function renderMast() {
+  const d = new Date(NOW), sh = shift(d.getHours())
+  const issue = 3400 + Math.floor((NOW - new Date(2026, 0, 1).getTime()) / DAY)
+  $('#dlDate').innerHTML = `<span class="long">${DOW[d.getDay()]}, </span>${dmy(d)} · ${hm(d)}<span class="long"> · Số ${nf(issue)}</span>`
+  const open = A.filter((a) => a.st !== 'xuatban').length
+  $('#dlShift').textContent = '· ' + sh.n + ' (' + sh.r + ')'
+  $('#earShift').innerHTML = `${sh.n} · ${sh.r}<br>Trưởng ca: ${sh.lead}<br>${open} bài trên bàn`
+  $('#dShift').textContent = sh.n + ' (' + sh.r + ') · trưởng ca ' + sh.lead
+  $('#nDesk').textContent = open
+  $('#dDesk').textContent = open + ' bài'
+}
+
+/* ---------------- desk: list ---------------- */
+const LSTEPS = [['all', 'Tất cả'], ['viet', 'Viết'], ['bientap', 'Biên tập'], ['duyet', 'Duyệt'], ['lich', 'Hẹn giờ'], ['xuatban', 'Đã đăng']]
+function deskList() {
+  const q = fold(S.lq.trim())
+  return A.filter((a) => (S.lstep === 'all' || a.st === S.lstep))
+    .filter((a) => !q || fold(a.title + ' ' + a.author + ' ' + a.sec + ' ' + a.code).includes(q))
+    .sort((x, y) => ST_ORDER[x.st] - ST_ORDER[y.st] || y.upd - x.upd)
+}
+function renderList() {
+  $('#lsteps').innerHTML = LSTEPS.map(([k, n]) => `<button data-k="${k}" aria-pressed="${S.lstep === k}">${n}<i>${k === 'all' ? A.length : A.filter((a) => a.st === k).length}</i></button>`).join('')
+  const L = deskList()
+  $('#lCount').textContent = L.length + ' bài'
+  $('#alist').innerHTML = L.length ? L.map((a) => `<li><button class="aitem" data-id="${a.id}" aria-current="${a.id === S.sel}">
+    <span class="k"><span class="kick">${a.sec}</span><span class="st ${a.st}">${ST_LABEL[a.st]}</span></span>
+    <span class="t">${esc(a.title)}</span>
+    <span class="m">${a.author} · ${nf(a.words)} chữ · ${a.st === 'lich' ? 'đăng ' + when(a.at) : a.st === 'xuatban' ? 'đăng ' + ago(a.at) : '<span data-ago="' + a.upd + '">' + ago(a.upd) + '</span>'}</span></button></li>`).join('')
+    : '<li class="lempty">Không có bản thảo nào ở bước này.</li>'
+}
+$('#lsteps').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; S.lstep = b.dataset.k; renderList() })
+$('#lq').addEventListener('input', (e) => { S.lq = e.target.value; renderList() })
+$('#alist').addEventListener('click', (e) => { const b = e.target.closest('.aitem'); if (b) selectArticle(+b.dataset.id, true) })
+function selectArticle(id, fromList) {
+  S.sel = id
+  if (S.view !== 'ban-bien-tap') { location.hash = '#ban-bien-tap'; return }
+  history.replaceState(null, '', '#ban-bien-tap/' + id)
+  renderDesk()
+  if (fromList && matchMedia('(max-width:819px)').matches) { setPane('proof'); scrollTo(0, 0) }
+  updateCrumb()
+}
+
+/* ---------------- desk: proof ---------------- */
+function bodyHtml(a) {
+  let n = 0
+  return a.body.map((p) => '<p>' + esc(p).replace(/\[\[(.+?)\|(.+?)\]\]/g, (_, ph, note) => {
+    const k = n++
+    return `<mark class="pm${a.nd[k] ? ' ok' : ''}" data-n="${k}" tabindex="0" role="button" aria-label="Ghi chú ${k + 1}: ${note}${a.nd[k] ? ' (đã sửa)' : ''}" title="${note}">${ph}<sup>${k + 1}</sup></mark>`
+  }) + '</p>').join('')
+}
+function notesOf(a) { const out = []; a.body.join(' ').replace(/\[\[(.+?)\|(.+?)\]\]/g, (_, q, n) => out.push({ q, n })); return out }
+function figSvg(a) {
+  const shapes = [0, 1, 2, 3, 4, 5, 6].map((k) => { const x = 20 + k * 82, h = 60 + ((a.id * (k + 3)) % 90); return `<rect x="${x}" y="${230 - h}" width="${60 + (k % 2) * 10}" height="${h}" fill="url(#htp)"/>` }).join('')
+  return `<svg viewBox="0 0 600 260" aria-hidden="true"><defs><pattern id="htp" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="2.1" fill="var(--ink2)"/></pattern><pattern id="htq" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1" fill="var(--ink3)"/></pattern></defs>
+  <rect width="600" height="260" fill="url(#htq)" opacity=".5"/><circle cx="${470 - (a.id % 5) * 30}" cy="70" r="34" fill="var(--red)" opacity=".8"/>${shapes}<rect x="0" y="230" width="600" height="30" fill="var(--ink)"/></svg>`
+}
+function renderProof() {
+  const a = cur(), step = stepIdx(a.st)
+  $('#rail').innerHTML = STEPS.map((s, i) => `<span class="${i < step || a.st === 'xuatban' ? 'done' : i === step ? 'cur' : ''}">${s.name}</span>`).join('<i></i>')
+  const sh = $('#sheet')
+  sh.className = 'sheet ' + S.mode
+  const rev = 1 + a.hist.filter((h) => /Biên tập|Trả/.test(h.what)).length
+  sh.innerHTML = `<div class="folio"><span>Báo Phố · ${a.sec} · Trang ${SEC_PAGE[a.s]}</span><span>${a.code} · Bản in thử lần ${rev}</span></div>
+    <div class="kick" style="margin-top:14px">${a.sec}</div>
+    <h1>${esc(a.title)}</h1>
+    <p class="sapo">${esc(a.sapo)}</p>
+    <div class="byline"><span>Bài: <b>${a.author}</b></span><span>Biên tập: <b>${a.editor}</b></span><span>${nf(a.words)} chữ · đọc ${Math.max(2, Math.round(a.words / 230))} phút</span></div>
+    <figure class="fig">${figSvg(a)}<figcaption>Ảnh minh họa: Tư liệu Báo Phố. Chú thích ảnh sẽ được biên tập viên hoàn thiện trước khi lên khuôn.</figcaption></figure>
+    <div class="body">${bodyHtml(a)}</div><div class="endmark">■ ■ ■</div>`
+}
+$$('.mode button').forEach((b) => b.addEventListener('click', () => {
+  S.mode = b.dataset.mode
+  $$('.mode button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  $('#sheet').className = 'sheet ' + S.mode
+}))
+function toggleNote(k) {
+  const a = cur()
+  a.nd[k] = !a.nd[k]
+  a.hist.push({ t: Date.now(), who: 'Lê Minh Châu', what: (a.nd[k] ? 'Đánh dấu đã sửa' : 'Mở lại') + ' ghi chú ' + (k + 1) })
+  renderProof(); renderSlip()
+}
+$('#sheet').addEventListener('click', (e) => { const m = e.target.closest('mark.pm'); if (m) toggleNote(+m.dataset.n) })
+$('#sheet').addEventListener('keydown', (e) => { const m = e.target.closest('mark.pm'); if (m && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleNote(+m.dataset.n); const again = $(`mark.pm[data-n="${m.dataset.n}"]`); if (again) again.focus() } })
+
+/* ---------------- desk: routing slip (signature) ---------------- */
+function chkItems(a) {
+  return [
+    { t: 'Tít không quá 90 ký tự', auto: true, ok: a.title.length <= 90, note: a.title.length + '/90' },
+    { t: 'Ảnh có chú thích và nguồn', i: 0 },
+    { t: 'Số liệu đã kiểm chứng với nguồn', i: 1 },
+    { t: 'Gắn chuyên mục, thẻ và ảnh đại diện', i: 2 },
+  ]
+}
+function gateMsg(a) {
+  const step = stepIdx(a.st)
+  if (step === 1 && a.nd.some((x) => !x)) return `Còn ${a.nd.filter((x) => !x).length} ghi chú biên tập chưa xử lý — bấm vào chữ tô vàng trên bản in để đánh dấu đã sửa.`
+  if (step === 2 || a.st === 'lich') {
+    const miss = chkItems(a).filter((c) => (c.auto ? !c.ok : !a.chk[c.i]))
+    if (miss.length) return 'Chưa thể xuất bản: còn ' + miss.length + ' mục kiểm tra chưa đạt (' + miss.map((m) => m.t.toLowerCase()).join('; ') + ').'
+  }
+  return ''
+}
+function personFor(a, i) { return [a.author, a.editor, a.appr, a.appr][i] }
+function renderSlip(stampNew) {
+  const a = cur(), step = stepIdx(a.st), pub = a.st === 'xuatban'
+  const timeOf = (i) => {
+    const want = [/Nộp bản thảo/, /chuyển duyệt/, /^Duyệt/, /Xuất bản/][i]
+    const h = [...a.hist].reverse().find((x) => want.test(x.what))
+    return h ? h.t : null
+  }
+  const rows = STEPS.map((s, i) => {
+    const done = i < step || pub
+    const isCur = !done && i === step
+    const t = timeOf(i)
+    let right
+    if (done && t) right = `<span class="stamp${stampNew === i ? ' new' : ''}">${s.stamp}<small>${hm(new Date(t))} · ${dm(new Date(t))}</small></span>`
+    else if (i === 3 && a.st === 'lich') right = `<span class="stamp wait">Hẹn ${when(a.at)}</span>`
+    else right = `<span class="stamp wait">${isCur ? 'Đang xử lý' : 'Chờ'}</span>`
+    return `<li class="srow ${done ? 'done' : isCur ? 'cur' : ''}"><span class="no">${i + 1}</span>
+      <span class="who"><b>${s.name}</b><span>${s.role}: ${personFor(a, i)}</span>${isCur && i < 3 ? '<small>Nhận bài ' + ago(a.upd) + '</small>' : ''}</span>${right}</li>`
+  }).join('')
+  let actions
+  if (pub) actions = `<button class="btn ink" type="button" data-act="reads">Xem lượt đọc của bài</button><div class="hint">Đã đăng ${when(a.at)} · ${nf(a.reads)} lượt đọc · ${nf(a.live)} người đang đọc</div>`
+  else {
+    const primary = ['Gửi biên tập', 'Chuyển duyệt', 'Xuất bản ngay', 'Xuất bản ngay'][step]
+    actions = `<button class="btn red" type="button" data-act="advance">${primary} <kbd style="background:transparent;color:inherit;border-color:currentColor">]</kbd></button>
+      <div class="row">${step >= 2 ? `<button class="btn" type="button" data-act="schedule">${a.st === 'lich' ? 'Đổi giờ đăng' : 'Hẹn giờ…'}</button>` : ''}${step >= 1 ? '<button class="btn quiet" type="button" data-act="return">Trả bài <kbd>[</kbd></button>' : ''}</div>
+      <div class="gate" id="gate" role="alert"></div>
+      <div class="ret" id="ret" hidden><label for="retWhy" style="font-weight:600;font-size:13px">Lý do trả bài cho ${personFor(a, step - 1 < 0 ? 0 : step - 1)}</label>
+        <textarea class="input" id="retWhy" placeholder="Ví dụ: cần thêm ý kiến của đại diện phường…"></textarea><div class="err" id="retErr"></div>
+        <div class="row" style="display:flex;gap:8px"><button class="btn red" type="button" data-act="retSend">Gửi trả</button><button class="btn quiet" type="button" data-act="retCancel">Thôi</button></div></div>`
+  }
+  const notes = notesOf(a)
+  const chk = chkItems(a)
+  $('#slip').innerHTML = `<div class="slip-h"><h2>Phiếu chuyển bài</h2><span>Số ${a.code.slice(3)}/BP</span></div>
+    <div style="font:600 15px/1.3 var(--serif);margin:10px 0 2px">${esc(a.title)}</div>
+    <div class="hint" style="margin-bottom:4px">${a.sec} · Trang ${SEC_PAGE[a.s]}</div>
+    <ol class="slip-rows">${rows}</ol>
+    <div class="slip-act">${actions}</div>
+    <div class="slip-sec"><h3><span>Ghi chú biên tập</span><span>${notes.length - a.nd.filter((x) => !x).length}/${notes.length} đã sửa</span></h3>
+      <ul class="notes">${notes.map((n, k) => `<li class="${a.nd[k] ? 'ok' : ''}"><i>${k + 1}</i><span><q>${esc(n.q)}</q>${esc(n.n)}</span><button type="button" data-note="${k}">${a.nd[k] ? 'Mở lại' : 'Đã sửa'}</button></li>`).join('')}</ul></div>
+    <div class="slip-sec chk"><h3><span>Kiểm tra trước khi đăng</span></h3>
+      ${chk.map((c) => c.auto ? `<label><input type="checkbox" disabled ${c.ok ? 'checked' : ''}>${c.t}<span class="auto">tự động · ${c.note}</span></label>` : `<label><input type="checkbox" data-chk="${c.i}" ${a.chk[c.i] ? 'checked' : ''}>${c.t}</label>`).join('')}</div>
+    <div class="slip-sec"><h3><span>Lịch sử</span><span>${a.hist.length} mục</span></h3>
+      <ol class="hist">${[...a.hist].reverse().slice(0, 7).map((h) => `<li><b>${h.who}</b> — ${h.what}<time>${hm(new Date(h.t))} · ${dm(new Date(h.t))}</time></li>`).join('')}</ol></div>
+    <p class="slip-note">Phím tắt: <kbd>]</kbd> chuyển bước, <kbd>[</kbd> trả bài. Thiết kế concept — thương hiệu giả định.</p>`
+  const st = $('.stamp.new', $('#slip'))
+  if (st && G && !RM) {
+    G.fromTo(st, { scale: 2.4, rotate: -22, opacity: 0 }, { scale: 1, rotate: -6, opacity: 0.88, duration: 0.32, ease: 'power4.in', clearProps: 'transform' })
+    G.fromTo('#slip', { x: 0 }, { keyframes: [{ x: -3, duration: 0.04 }, { x: 3, duration: 0.05 }, { x: 0, duration: 0.05 }], delay: 0.3, clearProps: 'transform' })
+  }
+}
+function snapshot(a) { return JSON.parse(JSON.stringify({ st: a.st, at: a.at, upd: a.upd, hist: a.hist, reads: a.reads, live: a.live })) }
+function restore(a, s) { Object.assign(a, s) }
+function advance() {
+  const a = cur()
+  if (a.st === 'xuatban') return
+  const g = gateMsg(a)
+  const gate = $('#gate')
+  if (g) {
+    if (gate) { gate.textContent = g; if (G && !RM) G.fromTo(gate, { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1,0.3)', clearProps: 'transform' }) }
+    if (S.pane === 'proof' && matchMedia('(max-width:1099px)').matches) { setPane('slip'); setTimeout(() => { const g2 = $('#gate'); if (g2) g2.textContent = g }, 0) }
+    return
+  }
+  const snap = snapshot(a), step = stepIdx(a.st), t = Date.now()
+  const next = ['bientap', 'duyet', 'xuatban', 'xuatban'][step]
+  const what = ['Nộp bản thảo', 'Biên tập xong, chuyển duyệt', 'Duyệt bài', 'Duyệt bài'][step]
+  if (step < 2) a.hist.push({ t, who: personFor(a, step), what })
+  if (next === 'xuatban') {
+    if (a.st !== 'lich') a.hist.push({ t, who: a.appr, what: 'Duyệt bài' })
+    a.hist.push({ t: t + 1000, who: 'Lê Minh Châu', what: 'Xuất bản lên trang' })
+    a.at = t; a.reads = 0; a.live = 6
+  }
+  a.st = next; a.upd = t
+  // the stamp that lands is the row of the step just completed
+  renderAllData(next === 'xuatban' ? 3 : step)
+  if (next === 'xuatban' && !RM) { const s2 = $$('.srow .stamp', $('#slip'))[2]; if (s2 && G) G.from(s2, { opacity: 0, duration: 0.2 }) }
+  toast(`${a.code}: ${next === 'xuatban' ? 'đã xuất bản lên trang' : 'chuyển sang ' + STEPS[stepIdx(next)].name.toLowerCase()}`, () => { restore(a, snap); renderAllData() })
+}
+function openReturn() {
+  const r = $('#ret'); if (!r) return
+  if (S.pane === 'proof' && matchMedia('(max-width:1099px)').matches) setPane('slip')
+  const r2 = $('#ret'); r2.hidden = false; $('#retWhy').focus()
+}
+function sendReturn() {
+  const a = cur(), why = $('#retWhy').value.trim()
+  if (why.length < 10) { $('#retErr').textContent = 'Ghi lý do ít nhất 10 ký tự để người nhận biết cần sửa gì.'; $('#retWhy').classList.add('bad'); $('#retWhy').focus(); return }
+  const snap = snapshot(a), step = stepIdx(a.st)
+  const back = a.st === 'lich' ? 'duyet' : ['viet', 'viet', 'bientap'][step]
+  a.hist.push({ t: Date.now(), who: 'Lê Minh Châu', what: 'Trả bài: “' + why.slice(0, 60) + (why.length > 60 ? '…' : '') + '”' })
+  if (a.st === 'lich') a.at = null
+  a.st = back; a.upd = Date.now()
+  renderAllData()
+  toast(`${a.code}: đã trả về bước ${STEPS[stepIdx(back)].name.toLowerCase()}`, () => { restore(a, snap); renderAllData() })
+}
+$('#slip').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  if (b.dataset.note) return toggleNote(+b.dataset.note)
+  const act = b.dataset.act
+  if (act === 'advance') advance()
+  else if (act === 'return') { const r = $('#ret'); if (r.hidden) openReturn(); else r.hidden = true }
+  else if (act === 'retCancel') $('#ret').hidden = true
+  else if (act === 'retSend') sendReturn()
+  else if (act === 'schedule') openSchedule(cur().id)
+  else if (act === 'reads') location.hash = '#luot-doc'
+})
+$('#slip').addEventListener('input', (e) => { if (e.target.id === 'retWhy') { $('#retErr').textContent = ''; e.target.classList.remove('bad') } })
+$('#slip').addEventListener('change', (e) => {
+  const c = e.target.closest('[data-chk]'); if (!c) return
+  const a = cur(); a.chk[+c.dataset.chk] = c.checked
+  const g = $('#gate'); if (g && g.textContent) g.textContent = gateMsg(a)
+})
+function setPane(p) {
+  S.pane = p; $('#desk').dataset.pane = p
+  $$('.seg button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.pane === p))
+}
+$$('.seg button').forEach((b) => b.addEventListener('click', () => { setPane(b.dataset.pane); if (matchMedia('(max-width:819px)').matches) scrollTo(0, 0) }))
+function renderDesk(stampNew) { renderList(); renderProof(); renderSlip(stampNew) }
+
+/* ---------------- calendar ---------------- */
+const SLOT_H = [6, 9, 12, 15, 18, 21]
+let calDay = 1
+function calDays() { const d0 = new Date(NOW); d0.setHours(0, 0, 0, 0); return Array.from({ length: 7 }, (_, i) => new Date(d0.getTime() + (i - 1) * DAY)) }
+function slotItems(day, h) {
+  const s = day.getTime() + h * HOUR, e = s + 3 * HOUR
+  return A.filter((a) => (a.st === 'lich' || a.st === 'xuatban') && a.at >= s && a.at < e).sort((x, y) => x.at - y.at)
+}
+function clipHtml(a) {
+  const pub = a.st === 'xuatban'
+  return `<button class="clip${pub ? ' pub' : ''}${a.lead && !pub ? ' lead' : ''}" data-id="${a.id}" aria-label="${pub ? 'Đã đăng' : 'Đã hẹn'}: ${esc(a.title)}"><span class="kick">${a.sec}${a.lead && !pub ? ' · Tin chính' : ''}</span><span class="t">${esc(a.title)}</span><span class="m"><span>${hm(new Date(a.at))}</span>${pub ? '<b>✓ ' + fK(a.reads) + ' lượt</b>' : '<span>' + a.author.split(' ').slice(-2).join(' ') + '</span>'}</span></button>`
+}
+function nowLine(day, h) {
+  const s = day.getTime() + h * HOUR
+  if (NOW < s || NOW >= s + 3 * HOUR) return ''
+  return `<span class="nowline" style="top:${(((NOW - s) / (3 * HOUR)) * 100).toFixed(1)}%" aria-hidden="true"></span>`
+}
+function renderCal() {
+  const days = calDays()
+  const sched = A.filter((a) => a.st === 'lich').length, pub = A.filter((a) => a.st === 'xuatban' && a.at >= days[0].getTime()).length
+  $('#calSub').textContent = `${dm(days[0])} – ${dm(days[6])} · ${sched} bài đã hẹn giờ · ${pub} bài đã đăng từ hôm qua · bây giờ ${hm(new Date(NOW))}`
+  const lab = (d, i) => (i === 0 ? 'Hôm qua' : i === 1 ? 'Hôm nay' : i === 2 ? 'Ngày mai' : DOW[d.getDay()])
+  let h = '<div class="ch" style="border-right:1px solid var(--rule)"></div>' + days.map((d, i) => `<div class="ch${i === 1 ? ' today' : ''}"><b>${lab(d, i)}</b><span>${dm(d)}</span></div>`).join('')
+  for (const hr of SLOT_H) {
+    h += `<div class="rh">${pad(hr)}:00</div>`
+    h += days.map((d) => {
+      const items = slotItems(d, hr), ts = d.getTime() + hr * HOUR, past = ts + 3 * HOUR <= NOW
+      return `<div class="cell${past ? ' past' : ''}">${nowLine(d, hr)}${items.map(clipHtml).join('')}${!past ? `<button class="add" data-t="${ts}" aria-label="Hẹn bài lúc ${pad(hr)}:00 ${dm(d)}">${items.length ? '+' : '+ Hẹn bài'}</button>` : items.length ? '' : '<span class="hint" style="padding:4px">—</span>'}</div>`
+    }).join('')
+  }
+  // compact day-by-day list for tablet/phone
+  h += `<div class="daytabs" role="group" aria-label="Chọn ngày">${days.map((d, i) => `<button data-day="${i}" aria-pressed="${i === calDay}"><b>${lab(d, i)}</b><span>${dm(d)}</span></button>`).join('')}</div>`
+  const d = days[calDay]
+  h += '<div class="daylist">' + SLOT_H.map((hr) => {
+    const items = slotItems(d, hr), ts = d.getTime() + hr * HOUR, past = ts + 3 * HOUR <= NOW
+    return `<div class="dslot${past ? ' past' : ''}">${NOW >= ts && NOW < ts + 3 * HOUR ? '<span class="nowline" aria-hidden="true"></span>' : ''}<b>${pad(hr)}:00</b><div>${items.map(clipHtml).join('')}${!past ? `<button class="add" data-t="${ts}">+ Hẹn bài khung ${pad(hr)}:00</button>` : items.length ? '' : '<span class="hint">Không có bài</span>'}</div></div>`
+  }).join('') + '</div>'
+  $('#cal').innerHTML = h
+}
+$('#cal').addEventListener('click', (e) => {
+  const c = e.target.closest('.clip'), add = e.target.closest('.add'), dt = e.target.closest('[data-day]')
+  if (dt) { calDay = +dt.dataset.day; renderCal(); const nb = $(`[data-day="${calDay}"]`); if (nb) nb.focus(); return }
+  if (add) return openSchedule(null, +add.dataset.t)
+  if (c) { const a = byId(c.dataset.id); if (a.st === 'lich') openSchedule(a.id); else selectArticle(a.id) }
+})
+$('#calNew').addEventListener('click', () => openSchedule())
+
+/* ---------------- modal + forms ---------------- */
+let modalCtx = null, lastFocus = null
+function openModal(title, body, okLabel, onOk) {
+  lastFocus = document.activeElement
+  $('#mTitle').textContent = title; $('#mBody').innerHTML = body; $('#mOk').textContent = okLabel
+  modalCtx = onOk
+  $('#modalScrim').hidden = false; document.body.classList.add('ov')
+  const f = $('#mBody input, #mBody select'); if (f) f.focus()
+  if (G && !RM) G.fromTo('#modal', { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.22, clearProps: 'transform,opacity' })
+}
+function closeModal() { $('#modalScrim').hidden = true; document.body.classList.remove('ov'); modalCtx = null; if (lastFocus && lastFocus.isConnected) lastFocus.focus() }
+$('#mClose').addEventListener('click', closeModal)
+$('#mCancel').addEventListener('click', closeModal)
+$('#modalScrim').addEventListener('mousedown', (e) => { if (e.target.id === 'modalScrim') closeModal() })
+$('#modal').addEventListener('submit', (e) => { e.preventDefault(); if (modalCtx && modalCtx() !== false) closeModal() })
+$('#modal').addEventListener('input', (e) => {
+  const f = e.target.closest('.field'); if (f) { const er = $('.err', f); if (er) er.textContent = ''; e.target.classList.remove('bad') }
+  if (e.target.id === 'fTitle') $('#fTitleN').textContent = e.target.value.trim().length + '/110'
+})
+function fieldErr(id, msg) { const el = $('#' + id); el.classList.add('bad'); $('#' + id + 'E').textContent = msg; return el }
+function parseDate(s) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s.trim()); if (!m) return null
+  const d = new Date(+m[3], +m[2] - 1, +m[1])
+  return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? d : null
+}
+function openSchedule(id, ts) {
+  const pool = A.filter((a) => a.st === 'duyet' || a.st === 'lich')
+  const a = id ? byId(id) : pool[0]
+  if (!a) return toast('Chưa có bài nào ở bước duyệt để hẹn giờ.')
+  const t = new Date(ts || (a.at && a.at > NOW ? a.at : NOW + 2 * HOUR - (NOW % HOUR)))
+  openModal(a.st === 'lich' && !ts ? 'Đổi giờ đăng' : 'Hẹn giờ xuất bản', `
+    <div class="field"><label for="fArt">Bài</label><select class="input" id="fArt">${pool.map((p) => `<option value="${p.id}" ${p.id === a.id ? 'selected' : ''}>${esc(p.code + ' — ' + p.title)}</option>`).join('')}</select><div class="err" id="fArtE"></div></div>
+    <div class="two"><div class="field"><label for="fDate">Ngày đăng (dd/mm/yyyy)</label><input class="input" id="fDate" inputmode="numeric" value="${dmy(t)}" autocomplete="off"><div class="err" id="fDateE"></div></div>
+    <div class="field"><label for="fTime">Giờ (hh:mm)</label><input class="input" id="fTime" inputmode="numeric" value="${hm(t)}" autocomplete="off"><div class="err" id="fTimeE"></div></div></div>
+    <div class="field"><label for="fPos">Vị trí trên trang chủ</label><select class="input" id="fPos"><option value="0">Khối chuyên mục</option><option value="1" ${a.lead ? 'selected' : ''}>Tin chính trang chủ</option><option value="2">Chỉ đăng bản in</option></select></div>
+    <p class="hint" style="margin:0">Bài sẽ tự lên trang đúng giờ. Bạn có thể hoàn tác ngay sau khi lưu.</p>`, 'Hẹn giờ', () => {
+    const art = byId($('#fArt').value), d = parseDate($('#fDate').value), tm = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec($('#fTime').value.trim())
+    let bad = null
+    if (!d) { const fe = fieldErr('fDate', 'Ngày chưa đúng dạng dd/mm/yyyy hoặc không có thật.'); bad = bad || fe }
+    if (!tm) { const fe = fieldErr('fTime', 'Giờ phải theo dạng hh:mm, ví dụ 18:30.'); bad = bad || fe }
+    if (d && tm) {
+      d.setHours(+tm[1], +tm[2], 0, 0)
+      if (d.getTime() <= Date.now() + 5 * MIN) bad = fieldErr('fDate', 'Giờ đăng phải sau thời điểm hiện tại ít nhất 5 phút.')
+      else if (d.getTime() > NOW + 30 * DAY) bad = fieldErr('fDate', 'Chỉ hẹn được trong vòng 30 ngày tới.')
+    }
+    if (bad) { bad.focus(); return false }
+    const gm = art.st === 'duyet' ? gateMsg(art) : ''
+    if (gm) { fieldErr('fArt', gm); $('#fArt').focus(); return false }
+    const snap = snapshot(art), wasLead = art.lead
+    if (art.st !== 'lich') art.hist.push({ t: Date.now(), who: 'Lê Minh Châu', what: 'Duyệt và hẹn giờ đăng' })
+    else art.hist.push({ t: Date.now(), who: 'Lê Minh Châu', what: 'Đổi giờ đăng sang ' + when(d.getTime()) })
+    art.st = 'lich'; art.at = d.getTime(); art.upd = Date.now(); art.lead = $('#fPos').value === '1'
+    renderAllData()
+    toast(`${art.code}: hẹn đăng ${when(art.at)}`, () => { restore(art, snap); art.lead = wasLead; renderAllData() })
+  })
+}
+function openNew() {
+  openModal('Bài mới', `
+    <div class="field"><label for="fTitle">Tít bài <span class="cnt" id="fTitleN">0/110</span></label><input class="input" id="fTitle" placeholder="Ví dụ: Phố đi bộ mở thêm khu ẩm thực đêm" autocomplete="off"><div class="err" id="fTitleE"></div></div>
+    <div class="two"><div class="field"><label for="fSec">Chuyên mục</label><select class="input" id="fSec"><option value="">— Chọn —</option>${SECS.map((s, i) => `<option value="${i}">${s}</option>`).join('')}</select><div class="err" id="fSecE"></div></div>
+    <div class="field"><label for="fAu">Phóng viên</label><select class="input" id="fAu">${REP.map((r) => `<option>${r}</option>`).join('')}</select></div></div>
+    <div class="field"><label for="fSapo">Sapo (không bắt buộc, tối đa 220 ký tự)</label><textarea class="input" id="fSapo" rows="3"></textarea><div class="err" id="fSapoE"></div></div>`, 'Tạo bản thảo', () => {
+    const title = $('#fTitle').value.trim(), sec = $('#fSec').value, sapo = $('#fSapo').value.trim()
+    let bad = null
+    if (title.length < 12) bad = fieldErr('fTitle', title ? 'Tít quá ngắn — cần ít nhất 12 ký tự.' : 'Vui lòng nhập tít bài.')
+    else if (title.length > 110) bad = fieldErr('fTitle', 'Tít dài quá 110 ký tự, hãy rút gọn.')
+    if (sec === '') { const fe = fieldErr('fSec', 'Chọn chuyên mục cho bài.'); bad = bad || fe }
+    if (sapo.length > 220) { const fe = fieldErr('fSapo', 'Sapo dài ' + sapo.length + ' ký tự, tối đa 220.'); bad = bad || fe }
+    if (bad) { bad.focus(); return false }
+    const id = Math.max(...A.map((a) => a.id)) + 1, s = +sec, t = Date.now()
+    A.push({ id, code: 'BP-' + id, s, sec: SECS[s], title, st: 'viet', author: $('#fAu').value, editor: BTV[id % 3], appr: DUY[id % 2], words: 0, at: null, reads: 0, live: 0, lead: false,
+      sapo: sapo || 'Sapo đang được phóng viên hoàn thiện.', body: ['Phóng viên đang viết bài. Bản in thử sẽ cập nhật khi có nội dung mới được lưu.'], nd: [], chk: [false, false, false],
+      hist: [{ t, who: $('#fAu').value, what: 'Tạo bài' }], upd: t })
+    S.sel = id; S.lstep = 'all'
+    renderAllData()
+    if (S.view !== 'ban-bien-tap') location.hash = '#ban-bien-tap'
+    toast(`Đã tạo ${'BP-' + id}`, () => { A = A.filter((a) => a.id !== id); if (S.sel === id) S.sel = 417; renderAllData() })
+  })
+}
+$('#newBtn').addEventListener('click', openNew)
+
+/* ---------------- toast ---------------- */
+function toast(msg, undo) {
+  const box = $('#toasts')
+  while (box.children.length >= 2) box.firstElementChild.remove()
+  const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status')
+  el.innerHTML = `<span>${esc(msg)}</span>${undo ? '<button type="button">Hoàn tác</button>' : ''}`
+  box.appendChild(el)
+  if (undo) $('button', el).addEventListener('click', () => { undo(); el.remove() })
+  if (G && !RM) G.from(el, { y: -10, opacity: 0, duration: 0.2, clearProps: 'all' })
+  setTimeout(() => el.remove(), 6000)
+}
+
+/* ---------------- reads ---------------- */
+const SEC_SHARE = [22, 18, 14, 12, 13, 13, 8]
+const SEC_COL = ['var(--red)', 'var(--ink)', 'var(--ink2)', 'var(--ink3)', 'var(--rule2)', '#8E2A1F', '#C9A227']
+const SRC = [['Tìm kiếm', 34], ['Mạng xã hội', 29], ['Trực tiếp', 21], ['Ứng dụng', 16]]
+const RD = { range: '60p', series: {}, cur: null, max: 1, tw: null, other: 0 }
+function buildSeries() {
+  const r = rng(77), now = new Date(NOW), h0 = now.getHours()
+  const hourly = 26000
+  const v24 = [], l24 = []
+  for (let i = 23; i >= 0; i--) { const d = new Date(NOW - i * HOUR); v24.push(Math.round(hourly * diurnal(d.getHours()) * (0.85 + r() * 0.3))); l24.push(d) }
+  const v60 = [], l60 = []
+  for (let i = 59; i >= 0; i--) { const d = new Date(NOW - i * MIN); v60.push(Math.round((hourly / 60) * diurnal(d.getHours() + d.getMinutes() / 60) * (0.92 + r() * 0.16))); l60.push(d) }
+  const v7 = [], l7 = []
+  for (let i = 6; i >= 0; i--) { const d = new Date(NOW - i * DAY); d.setHours(0, 0, 0, 0); v7.push(Math.round(hourly * 13.5 * (0.88 + r() * 0.24) * (d.getDay() === 0 || d.getDay() === 6 ? 0.86 : 1))); l7.push(d) }
+  // today so far = completed hours of today in the 24h series + the running hour pro-rata
+  const m = now.getMinutes() / 60
+  let today = 0
+  v24.forEach((v, i) => { const d = l24[i]; if (d.toDateString() === now.toDateString()) today += i === 23 ? v * m : v })
+  today = Math.round(today)
+  v7[6] = today
+  RD.series = {
+    '60p': { v: v60, l: l60, unit: 'lượt mỗi phút', lab: (d) => hm(d), tip: (d) => hm(d) },
+    '24g': { v: v24, l: l24, unit: 'lượt mỗi giờ', lab: (d) => pad(d.getHours()) + 'h', tip: (d) => pad(d.getHours()) + ':00 – ' + pad((d.getHours() + 1) % 24) + ':00, ' + dm(d) },
+    '7n': { v: v7, l: l7, unit: 'lượt mỗi ngày', lab: (d) => dm(d), tip: (d) => DOW[d.getDay()] + ', ' + dmy(d) + (d.toDateString() === now.toDateString() ? ' (tới giờ)' : '') },
+  }
+  RD.today = today
+  RD.other = Math.round(420 * diurnal(h0) * (0.9 + r() * 0.2))
+  RD.yday = Math.round(v24[0] * (0.9 + r() * 0.2))
+}
+const N = 60
+function resample(v) { return Array.from({ length: N }, (_, i) => { const t = (i / (N - 1)) * (v.length - 1), a = Math.floor(t), b = Math.min(v.length - 1, a + 1); return v[a] + (v[b] - v[a]) * (t - a) }) }
+function niceMax(v) { const s = v / 4, p = 10 ** Math.floor(Math.log10(s || 1)), n = s / p; return (n <= 1 ? 1 : n <= 1.5 ? 1.5 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 3 ? 3 : n <= 4 ? 4 : n <= 5 ? 5 : n <= 6 ? 6 : n <= 8 ? 8 : 10) * p * 4 }
+function chGeom() { const svg = $('#chSvg'); const w = svg.clientWidth || 800, h = svg.clientHeight || 300; svg.setAttribute('viewBox', `0 0 ${w} ${h}`); return { w, h, l: 46, r: 14, t: 14, b: 28 } }
+function chDraw(vals, max) {
+  const g = chGeom(), iw = g.w - g.l - g.r, ih = g.h - g.t - g.b
+  const x = (i) => g.l + (i / (vals.length - 1)) * iw, y = (v) => g.t + (1 - v / max) * ih
+  const pts = vals.map((v, i) => x(i).toFixed(1) + ',' + y(v).toFixed(1))
+  $('#chLine').setAttribute('d', 'M' + pts.join('L'))
+  $('#chArea').setAttribute('d', 'M' + g.l + ',' + (g.t + ih) + 'L' + pts.join('L') + 'L' + (g.l + iw) + ',' + (g.t + ih) + 'Z')
+  $('#chGrid').innerHTML = [0, 1, 2, 3, 4].map((k) => { const v = (max * k) / 4, yy = y(v).toFixed(1); return `<line x1="${g.l}" x2="${g.w - g.r}" y1="${yy}" y2="${yy}"/><text x="${g.l - 8}" y="${+yy + 4}" text-anchor="end">${fK(v)}</text>` }).join('')
+}
+function chAxis() {
+  const s = RD.series[RD.range], g = chGeom(), iw = g.w - g.l - g.r, m = s.v.length
+  const step = RD.range === '7n' ? (g.w < 480 ? 2 : 1) : RD.range === '24g' ? (g.w < 480 ? 6 : 4) : g.w < 480 ? 15 : 10
+  const idx = []
+  for (let i = m - 1; i >= 0; i -= step) idx.unshift(i)
+  $('#chX').innerHTML = idx.map((i) => { const xx = g.l + (i / (m - 1)) * iw; const anc = i === m - 1 ? 'end' : xx - g.l < 20 ? 'start' : 'middle'; return `<text x="${xx.toFixed(1)}" y="${g.h - 8}" text-anchor="${anc}">${i === m - 1 && RD.range !== '7n' ? 'Bây giờ' : i === m - 1 ? 'Hôm nay' : s.lab(s.l[i])}</text>` }).join('')
+  $('#chUnit').textContent = s.unit
+}
+function setRange(r, instant) {
+  RD.range = r
+  $$('.rng button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.r === r))
+  const target = resample(RD.series[r].v), tmax = niceMax(Math.max(...RD.series[r].v) * 1.1)
+  chAxis()
+  if (RD.tw) RD.tw.kill()
+  if (!RD.cur || instant || RM || !G) { RD.cur = target; RD.max = tmax; chDraw(RD.cur, RD.max); return }
+  const from = RD.cur.slice(), fmax = RD.max, o = { p: 0 }
+  RD.tw = G.to(o, { p: 1, duration: 0.6, ease: 'power2.inOut', onUpdate: () => { RD.cur = from.map((v, i) => v + (target[i] - v) * o.p); RD.max = fmax + (tmax - fmax) * o.p; chDraw(RD.cur, RD.max) }, onComplete: () => { RD.tw = null } })
+}
+$$('.rng button').forEach((b) => b.addEventListener('click', () => setRange(b.dataset.r)))
+function chHover(e) {
+  const s = RD.series[RD.range], g = chGeom(), svg = $('#chSvg'), rect = svg.getBoundingClientRect()
+  const px = e.clientX - rect.left, iw = g.w - g.l - g.r, m = s.v.length
+  const i = Math.max(0, Math.min(m - 1, Math.round(((px - g.l) / iw) * (m - 1))))
+  const xx = g.l + (i / (m - 1)) * iw, yy = g.t + (1 - s.v[i] / RD.max) * (g.h - g.t - g.b)
+  const gd = $('#chGuide'), dot = $('#chDot')
+  gd.setAttribute('x1', xx); gd.setAttribute('x2', xx); gd.setAttribute('y1', g.t); gd.setAttribute('y2', g.h - g.b); gd.setAttribute('visibility', 'visible')
+  dot.setAttribute('cx', xx); dot.setAttribute('cy', yy); dot.setAttribute('visibility', 'visible')
+  const tip = $('#chTip')
+  tip.innerHTML = `<b>${nf(s.v[i])}</b>${s.tip(s.l[i])}`
+  tip.classList.add('on')
+  const tw = tip.offsetWidth
+  tip.style.left = Math.max(0, Math.min(rect.width - tw, xx - tw / 2)) + 'px'
+  tip.style.top = Math.max(0, yy - 58) + 'px'
+}
+function chLeave() { $('#chTip').classList.remove('on'); $('#chGuide').setAttribute('visibility', 'hidden'); $('#chDot').setAttribute('visibility', 'hidden') }
+$('#chSvg').addEventListener('pointermove', chHover)
+$('#chSvg').addEventListener('pointerdown', chHover)
+$('#chSvg').addEventListener('pointerleave', chLeave)
+function liveTotal() { return A.filter((a) => a.st === 'xuatban').reduce((s, a) => s + a.live, 0) + RD.other }
+function splitInt(total, shares) {
+  const sum = shares.reduce((a, b) => a + b, 0), raw = shares.map((s) => (total * s) / sum), out = raw.map(Math.floor)
+  let rest = total - out.reduce((a, b) => a + b, 0)
+  raw.map((v, i) => [v - Math.floor(v), i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rest-- > 0) out[i]++ })
+  return out
+}
+function renderTop() {
+  const pub = A.filter((a) => a.st === 'xuatban').sort((x, y) => y.live - x.live)
+  const top = pub.slice(0, 7), restLive = pub.slice(7).reduce((s, a) => s + a.live, 0) + RD.other
+  const mx = Math.max(1, ...top.map((a) => a.live))
+  $('#topList').innerHTML = top.map((a, i) => `<li><span class="r">${i + 1}</span><span><button class="lnk" data-open="${a.id}">${esc(a.title)}</button><span class="bar"><i style="width:${((a.live / mx) * 100).toFixed(1)}%"></i></span></span><span class="n" data-live="${a.id}">${nf(a.live)}<small>đang đọc</small></span></li>`).join('') +
+    `<li class="other"><span class="r">·</span><span><button class="lnk" data-go="kho-bai">Các bài khác và chuyên trang</button></span><span class="n" id="otherLive">${nf(restLive)}<small>đang đọc</small></span></li>`
+}
+function renderReads() {
+  const live = liveTotal()
+  $('#kLive').textContent = nf(live)
+  $('#kToday').textContent = nf(RD.today)
+  const d = new Date(NOW)
+  $('#kTodayS').textContent = 'từ 00:00 đến ' + hm(d)
+  $('#readSub').textContent = `Số liệu trực tiếp từ trang web và ứng dụng · cập nhật ${STATIC ? 'lúc ' + hm(d) : 'mỗi 5 giây'}`
+  renderTop()
+  const secs = splitInt(RD.today, SEC_SHARE)
+  $('#secStack').innerHTML = secs.map((v, i) => `<i style="width:${((v / Math.max(1, RD.today)) * 100).toFixed(2)}%;background:${SEC_COL[i]}" title="${SECS[i]}: ${nf(v)}"></i>`).join('')
+  $('#secLegend').innerHTML = secs.map((v, i) => `<li><i style="background:${SEC_COL[i]}"></i>${SECS[i]}<b>${nf(v)}</b></li>`).join('')
+  const srcs = splitInt(RD.today, SRC.map((s) => s[1])), smax = Math.max(...srcs)
+  $('#srcBars').innerHTML = srcs.map((v, i) => `<li><span>${SRC[i][0]}</span><span class="b"><i style="width:${((v / smax) * 100).toFixed(1)}%"></i></span><span>${nf(v)}</span></li>`).join('')
+}
+$('#topList').addEventListener('click', (e) => { const a = e.target.closest('[data-open]'); if (a) { e.preventDefault(); S.sel = +a.dataset.open; location.hash = '#ban-bien-tap/' + a.dataset.open } })
+function renderEar() {
+  const live = liveTotal()
+  $('#earLive').textContent = nf(live)
+  const prevH = RD.series['24g'].v[22], curH = RD.series['24g'].v[23]
+  const pct = Math.round(((curH - prevH) / Math.max(1, prevH)) * 100)
+  $('#earDelta').innerHTML = `<br>${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct)}% so với giờ trước`
+}
+
+/* ---------------- archive table ---------------- */
+const TB = { q: '', sec: 'all', st: 'all', sort: { k: 'upd', d: -1 }, page: 1, per: 10, sel: new Set() }
+function tbRows() {
+  const q = fold(TB.q.trim())
+  const r = A.filter((a) => (TB.sec === 'all' || a.sec === TB.sec) && (TB.st === 'all' || a.st === TB.st) && (!q || fold(a.title + ' ' + a.author + ' ' + a.code).includes(q)))
+  const { k, d } = TB.sort
+  const val = (a) => (k === 'st' ? ST_ORDER[a.st] : a[k])
+  return r.sort((x, y) => { const p = val(x), q2 = val(y); return (typeof p === 'string' ? p.localeCompare(q2, 'vi') : p - q2) * d })
+}
+function renderTable() {
+  $('#tsec').innerHTML = '<option value="all">Mọi chuyên mục</option>' + SECS.map((s) => `<option ${TB.sec === s ? 'selected' : ''}>${s}</option>`).join('')
+  $('#tst').innerHTML = [['all', 'Tất cả'], ...Object.entries(ST_LABEL)].map(([k, n]) => `<button data-k="${k}" aria-pressed="${TB.st === k}">${n}</button>`).join('')
+  const rows = tbRows(), pages = Math.max(1, Math.ceil(rows.length / TB.per))
+  TB.page = Math.min(TB.page, pages)
+  const view = rows.slice((TB.page - 1) * TB.per, TB.page * TB.per)
+  $('#arcBody').innerHTML = view.map((a) => `<tr class="${TB.sel.has(a.id) ? 'sel' : ''}">
+    <td class="ck"><label class="ckl"><input type="checkbox" data-id="${a.id}" ${TB.sel.has(a.id) ? 'checked' : ''} aria-label="Chọn ${esc(a.code)}"></label></td>
+    <td class="tt"><span class="kick">${a.code} · ${a.sec}</span><button class="lnk" data-open="${a.id}">${esc(a.title)}</button></td>
+    <td class="c-sec">${a.sec}</td><td class="c-au">${a.author}</td>
+    <td class="c-st"><span class="st ${a.st}">${ST_LABEL[a.st]}</span></td>
+    <td class="num c-wd">${nf(a.words)}</td><td class="num c-rd">${a.st === 'xuatban' ? nf(a.reads) : '—'}</td>
+    <td class="c-up">${ago(a.upd)}</td></tr>`).join('')
+  $('#arcEmpty').hidden = rows.length > 0
+  $('#arc').style.display = rows.length ? '' : 'none'
+  $$('#arc th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === TB.sort.k ? (TB.sort.d > 0 ? 'ascending' : 'descending') : 'none'))
+  const from = rows.length ? (TB.page - 1) * TB.per + 1 : 0
+  $('#pager').innerHTML = `<span>${from}–${Math.min(rows.length, TB.page * TB.per)} trên ${rows.length} bài</span><span class="pg"><button data-p="${TB.page - 1}" ${TB.page <= 1 ? 'disabled' : ''} aria-label="Trang trước">‹</button>${Array.from({ length: pages }, (_, i) => `<button data-p="${i + 1}" aria-current="${i + 1 === TB.page}" aria-label="Trang ${i + 1}">${i + 1}</button>`).join('')}<button data-p="${TB.page + 1}" ${TB.page >= pages ? 'disabled' : ''} aria-label="Trang sau">›</button></span>`
+  const onPage = view.map((a) => a.id)
+  $('#selAll').checked = onPage.length > 0 && onPage.every((id) => TB.sel.has(id))
+  $('#selAll').indeterminate = !$('#selAll').checked && onPage.some((id) => TB.sel.has(id))
+  $('#bulk').hidden = TB.sel.size === 0
+  $('#bulkN').textContent = TB.sel.size + ' bài đã chọn'
+  if (!$('#bulkSec').options.length) $('#bulkSec').innerHTML = SECS.map((s) => `<option>${s}</option>`).join('')
+}
+$('#tq').addEventListener('input', (e) => { TB.q = e.target.value; TB.page = 1; renderTable() })
+$('#tsec').addEventListener('change', (e) => { TB.sec = e.target.value; TB.page = 1; renderTable() })
+$('#tst').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; TB.st = b.dataset.k; TB.page = 1; renderTable() })
+$('#arc thead').addEventListener('click', (e) => { const th = e.target.closest('th[data-k]'); if (!th || !e.target.closest('button')) return; const k = th.dataset.k; TB.sort = { k, d: TB.sort.k === k ? -TB.sort.d : k === 'title' || k === 'sec' || k === 'author' ? 1 : -1 }; renderTable() })
+$('#arcBody').addEventListener('change', (e) => { const c = e.target.closest('[data-id]'); if (!c) return; c.checked ? TB.sel.add(+c.dataset.id) : TB.sel.delete(+c.dataset.id); renderTable() })
+$('#arcBody').addEventListener('click', (e) => { const a = e.target.closest('[data-open]'); if (a) { e.preventDefault(); S.sel = +a.dataset.open; location.hash = '#ban-bien-tap/' + a.dataset.open } })
+$('#selAll').addEventListener('change', (e) => { const ids = tbRows().slice((TB.page - 1) * TB.per, TB.page * TB.per).map((a) => a.id); ids.forEach((id) => (e.target.checked ? TB.sel.add(id) : TB.sel.delete(id))); renderTable() })
+$('#pager').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (!b || b.disabled) return; TB.page = +b.dataset.p; renderTable() })
+$('#arcReset').addEventListener('click', () => { TB.q = ''; TB.sec = 'all'; TB.st = 'all'; $('#tq').value = ''; TB.page = 1; renderTable() })
+$('#bulkClear').addEventListener('click', () => { TB.sel.clear(); renderTable() })
+$('#bulkMove').addEventListener('click', () => {
+  const sec = $('#bulkSec').value, s = SECS.indexOf(sec), ids = [...TB.sel], prev = ids.map((id) => [id, byId(id).s])
+  ids.forEach((id) => { const a = byId(id); a.s = s; a.sec = sec })
+  TB.sel.clear(); renderAllData()
+  toast(`Đã chuyển ${ids.length} bài sang ${sec}`, () => { prev.forEach(([id, s0]) => { const a = byId(id); if (a) { a.s = s0; a.sec = SECS[s0] } }); renderAllData() })
+})
+$('#bulkSend').addEventListener('click', () => {
+  const ids = [...TB.sel].filter((id) => byId(id).st === 'viet')
+  if (!ids.length) return toast('Không có bản thảo nào ở bước Viết trong các bài đã chọn.')
+  const snaps = ids.map((id) => [id, snapshot(byId(id))])
+  ids.forEach((id) => { const a = byId(id); a.hist.push({ t: Date.now(), who: a.author, what: 'Nộp bản thảo' }); a.st = 'bientap'; a.upd = Date.now() })
+  TB.sel.clear(); renderAllData()
+  toast(`Đã gửi ${ids.length} bản thảo sang biên tập`, () => { snaps.forEach(([id, s]) => restore(byId(id), s)); renderAllData() })
+})
+$('#bulkDel').addEventListener('click', () => {
+  const ids = new Set(TB.sel), removed = A.filter((a) => ids.has(a.id))
+  A = A.filter((a) => !ids.has(a.id))
+  if (ids.has(S.sel)) S.sel = (A.find((a) => a.st !== 'xuatban') || A[0] || {}).id
+  TB.sel.clear(); renderAllData()
+  toast(`Đã lưu trữ ${removed.length} bài`, () => { A = A.concat(removed); renderAllData() })
+})
+
+/* ---------------- shared refresh ---------------- */
+function renderAllData(stampNew) {
+  renderMast()
+  if (!A.length) return
+  if (!byId(S.sel)) S.sel = A[0].id
+  renderDesk(stampNew)
+  if (S.rendered['lich-xuat-ban'] || S.view === 'lich-xuat-ban') renderCal()
+  if (S.rendered['luot-doc'] || S.view === 'luot-doc') renderReads()
+  if (S.rendered['kho-bai'] || S.view === 'kho-bai') renderTable()
+  renderEar(); renderBell()
+}
+
+/* ---------------- router ---------------- */
+const VIEWS = { 'ban-bien-tap': 'Bàn biên tập', 'lich-xuat-ban': 'Lịch xuất bản', 'luot-doc': 'Lượt đọc', 'kho-bai': 'Kho bài' }
+function updateCrumb() {
+  const v = S.view
+  $('#crumb').innerHTML = `Tòa soạn › <b>${VIEWS[v]}</b>${v === 'ban-bien-tap' ? ' › ' + esc(cur().code) : ''}`
+  document.title = (v === 'ban-bien-tap' ? VIEWS[v] + ' — ' + cur().code : VIEWS[v]) + ' · Báo Phố CMS'
+}
+function route() {
+  const [v, id] = location.hash.replace('#', '').split('/')
+  const view = VIEWS[v] ? v : 'ban-bien-tap'
+  if (id && byId(id)) S.sel = +id
+  const changed = view !== S.view
+  S.view = view
+  document.body.classList.toggle('on-desk', view === 'ban-bien-tap')
+  $$('.view').forEach((el) => (el.hidden = el.id !== 'v-' + view))
+  $$('[data-v]').forEach((a) => (a.dataset.v === view ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')))
+  if (view === 'ban-bien-tap') { renderDesk(); if (id && matchMedia('(max-width:819px)').matches) setPane('proof') }
+  if (view === 'lich-xuat-ban') renderCal()
+  if (view === 'luot-doc') { renderReads(); setRange(RD.range, true) }
+  if (view === 'kho-bai') renderTable()
+  S.rendered[view] = true
+  updateCrumb()
+  closeDrawer(true)
+  if (changed) {
+    scrollTo(0, 0)
+    if (G && !RM) G.fromTo('#v-' + view + ' .wrap, #v-' + view + ' .desk', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3, clearProps: 'transform,opacity' })
+  }
+}
+addEventListener('hashchange', route)
+document.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g) location.hash = '#' + g.dataset.go })
+
+/* ---------------- theme, bell, drawer ---------------- */
+function toggleTheme() {
+  const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
+  document.documentElement.dataset.theme = t; store.set('bp-theme', t)
+  toast(t === 'dark' ? 'Đã bật giao diện bản in đêm' : 'Đã bật giao diện giấy sáng')
+}
+$('#themeBtn').addEventListener('click', toggleTheme)
+$('#drawerTheme').addEventListener('click', toggleTheme)
+function renderBell() {
+  const sub = A.filter((a) => a.st === 'bientap').sort((x, y) => y.upd - x.upd)[0]
+  const hot = A.filter((a) => a.st === 'xuatban').sort((x, y) => y.reads - x.reads)[0]
+  const nx = A.filter((a) => a.st === 'lich').sort((x, y) => x.at - y.at)[0]
+  const dy = A.filter((a) => a.st === 'duyet').length
+  const items = []
+  if (sub) items.push([sub.upd, `<b>${sub.author}</b> đã nộp “${esc(sub.title)}”`])
+  if (dy) items.push([NOW - 9 * MIN, `<b>${dy} bài</b> đang chờ bạn duyệt`])
+  if (hot) items.push([hot.at, `“${esc(hot.title)}” đạt <b>${nf(hot.reads)}</b> lượt đọc`])
+  if (nx) items.push([NOW - 2 * MIN, `Bài tiếp theo lên trang lúc <b>${when(nx.at)}</b>`])
+  $('#bellList').innerHTML = items.map(([t, h]) => `<li>${h}<time>${ago(Math.min(t, NOW))}</time></li>`).join('')
+  $('#bellN').textContent = items.length
+}
+function toggleBell(force) {
+  const p = $('#bellPop'), b = $('#bellBtn'), open = force !== undefined ? force : p.hidden
+  p.hidden = !open; b.setAttribute('aria-expanded', open)
+  if (open) { const r = b.getBoundingClientRect(); p.style.top = r.bottom + 6 + 'px'; p.style.left = Math.max(10, r.right - 340) + 'px' }
+}
+$('#bellBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleBell() })
+document.addEventListener('click', (e) => { if (!$('#bellPop').hidden && !e.target.closest('#bellPop')) toggleBell(false) })
+function openDrawer() { $('#drawer').classList.add('open'); $('#drawer').setAttribute('aria-hidden', 'false'); $('#dscrim').hidden = false; $('#menuBtn').setAttribute('aria-expanded', 'true'); setTimeout(() => $('#drawer .dl').focus(), 30) }
+function closeDrawer(silent) {
+  if (!$('#drawer').classList.contains('open')) return
+  $('#drawer').classList.remove('open'); $('#drawer').setAttribute('aria-hidden', 'true'); $('#dscrim').hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false')
+  if (!silent) $('#menuBtn').focus()
+}
+$('#menuBtn').addEventListener('click', openDrawer)
+$('#drawerClose').addEventListener('click', () => closeDrawer())
+$('#dscrim').addEventListener('click', () => closeDrawer())
+
+/* ---------------- command palette ---------------- */
+let palSel = 0, palItems = []
+function palData(q) {
+  const f = fold(q.trim())
+  const cmds = [
+    ...Object.entries(VIEWS).map(([k, n]) => ({ g: 'Mục', t: n, run: () => (location.hash = '#' + k) })),
+    { g: 'Lệnh', t: 'Tạo bài mới', run: openNew },
+    { g: 'Lệnh', t: 'Chuyển bước bài đang mở', k: ']', run: () => { location.hash = '#ban-bien-tap/' + S.sel; setTimeout(advance, 50) } },
+    { g: 'Lệnh', t: 'Hẹn giờ xuất bản', run: () => openSchedule(['duyet', 'lich'].includes(cur().st) ? cur().id : null) },
+    { g: 'Lệnh', t: 'Đổi giao diện sáng/tối', run: toggleTheme },
+  ]
+  const arts = A.map((a) => ({ g: a.sec, t: a.title, k: ST_LABEL[a.st], run: () => { S.sel = a.id; location.hash = '#ban-bien-tap/' + a.id; if (S.view === 'ban-bien-tap') route() } }))
+  const all = cmds.concat(arts)
+  return (f ? all.filter((c) => fold(c.t + ' ' + c.g).includes(f)) : cmds.concat(arts.slice(0, 5))).slice(0, 12)
+}
+function renderPal() {
+  palItems = palData($('#palQ').value)
+  palSel = Math.min(palSel, Math.max(0, palItems.length - 1))
+  $('#palList').innerHTML = palItems.length ? palItems.map((c, i) => `<li role="option" id="po${i}" aria-selected="${i === palSel}" data-i="${i}"><span class="g">${c.g}</span><span>${esc(c.t)}</span>${c.k ? `<small>${c.k}</small>` : ''}</li>`).join('') : '<li class="pe">Không tìm thấy — thử gõ không dấu, ví dụ “cho dem”.</li>'
+  $('#palQ').setAttribute('aria-activedescendant', palItems.length ? 'po' + palSel : '')
+}
+function openPal() { lastFocus = document.activeElement; $('#palScrim').hidden = false; document.body.classList.add('ov'); $('#palQ').value = ''; palSel = 0; renderPal(); $('#palQ').focus() }
+function closePal() { $('#palScrim').hidden = true; if ($('#modalScrim').hidden) document.body.classList.remove('ov'); if (lastFocus && lastFocus.isConnected) lastFocus.focus() }
+function runPal(i) { const c = palItems[i]; if (!c) return; closePal(); c.run() }
+$('#openPal').addEventListener('click', openPal)
+$('#palQ').addEventListener('input', () => { palSel = 0; renderPal() })
+$('#palQ').addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); palSel = (palSel + 1) % Math.max(1, palItems.length); renderPal() }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); palSel = (palSel - 1 + palItems.length) % Math.max(1, palItems.length); renderPal() }
+  else if (e.key === 'Enter') { e.preventDefault(); runPal(palSel) }
+})
+$('#palList').addEventListener('click', (e) => { const li = e.target.closest('[data-i]'); if (li) runPal(+li.dataset.i) })
+$('#palScrim').addEventListener('mousedown', (e) => { if (e.target.id === 'palScrim') closePal() })
+
+/* ---------------- keyboard ---------------- */
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#palScrim').hidden ? openPal() : closePal(); return }
+  if (e.key === 'Escape') {
+    if (!$('#palScrim').hidden) return closePal()
+    if (!$('#modalScrim').hidden) return closeModal()
+    if (!$('#bellPop').hidden) { toggleBell(false); return $('#bellBtn').focus() }
+    if ($('#drawer').classList.contains('open')) return closeDrawer()
+    const r = $('#ret'); if (r && !r.hidden) { r.hidden = true; return }
+    return
+  }
+  if (!$('#palScrim').hidden || !$('#modalScrim').hidden) return
+  const typing = e.target.closest('input, textarea, select, [contenteditable]')
+  if (typing || e.ctrlKey || e.metaKey || e.altKey || S.view !== 'ban-bien-tap') return
+  if (e.key === ']') { e.preventDefault(); advance() }
+  else if (e.key === '[') { e.preventDefault(); if (stepIdx(cur().st) >= 1 && cur().st !== 'xuatban') openReturn() }
+  else if (e.key === 'j' || e.key === 'k') {
+    const L = deskList(); if (!L.length) return
+    const i = L.findIndex((a) => a.id === S.sel)
+    const n = L[Math.max(0, Math.min(L.length - 1, (i < 0 ? 0 : i + (e.key === 'j' ? 1 : -1))))]
+    selectArticle(n.id)
+    const el = $(`.aitem[data-id="${n.id}"]`); if (el) el.scrollIntoView({ block: 'nearest' })
+  }
+})
+// keep focus inside open modal / drawer
+document.addEventListener('focusin', (e) => {
+  const box = !$('#palScrim').hidden ? $('#palScrim') : !$('#modalScrim').hidden ? $('#modal') : $('#drawer').classList.contains('open') ? $('#drawer') : null
+  if (box && !box.contains(e.target)) { const f = box.querySelector('input, select, button, a'); if (f) f.focus() }
+})
+
+/* ---------------- live updates ---------------- */
+function tickLive() {
+  NOW = Date.now()
+  const r = Math.random
+  A.filter((a) => a.st === 'xuatban').forEach((a) => { const d = Math.round((r() - 0.48) * Math.max(2, a.live * 0.08)); a.live = Math.max(2, a.live + d); a.reads += Math.max(0, Math.round(a.live * 0.05 * r())) })
+  RD.other = Math.max(10, RD.other + Math.round((r() - 0.5) * 8))
+  const s = RD.series['60p']
+  s.v[s.v.length - 1] = Math.max(1, Math.round(s.v[s.v.length - 1] * (0.97 + r() * 0.07)))
+  if (new Date(NOW).getMinutes() !== s.l[s.l.length - 1].getMinutes()) {
+    s.v.shift(); s.l.shift(); s.v.push(Math.round(s.v[s.v.length - 1] * (0.94 + r() * 0.12))); s.l.push(new Date(NOW))
+    if (S.view === 'luot-doc') chAxis()
+  }
+  RD.today += Math.round(s.v[s.v.length - 1] / 12)
+  renderEar()
+  if (S.view === 'luot-doc') {
+    $('#kLive').textContent = nf(liveTotal()); $('#kToday').textContent = nf(RD.today)
+    renderTop()
+    if (RD.range === '60p' && !RD.tw) { RD.cur = resample(s.v); chDraw(RD.cur, RD.max) }
+  }
+}
+
+/* ---------------- boot ---------------- */
+function measure() { document.documentElement.style.setProperty('--hh', $('#mast').offsetHeight + 'px') }
+buildSeries()
+measure()
+addEventListener('resize', () => { measure(); if (S.view === 'luot-doc' && RD.cur) { chDraw(RD.cur, RD.max); chAxis() } })
+renderMast(); renderEar(); renderBell()
+if (!location.hash) history.replaceState(null, '', '#ban-bien-tap')
+route()
+if (G && !RM) {
+  const tl = G.timeline({ defaults: { ease: 'power3.out' } })
+  tl.from('#rule2', { scaleX: 0, duration: 0.5, clearProps: 'transform' })
+    .from('.nameplate .np', { y: 12, opacity: 0, duration: 0.45, clearProps: 'transform,opacity' }, 0.05)
+    .from('.ear', { opacity: 0, duration: 0.4, stagger: 0.08, clearProps: 'opacity' }, 0.2)
+    .from('.secbar > *', { opacity: 0, y: -4, duration: 0.35, stagger: 0.05, clearProps: 'transform,opacity' }, 0.25)
+}
+if (!STATIC) {
+  setInterval(tickLive, 5000)
+  setInterval(() => { NOW = Date.now(); renderMast(); $$('[data-ago]').forEach((s) => (s.textContent = ago(+s.dataset.ago))) }, 30000)
+}
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexKart Indoor Racing — Đường Đua Go-Kart Điện Đa Tầng &amp; Bấm Giờ Telemetry 0.001s</title>
+  <meta name="description" content="ApexKart Indoor Racing: Đường đua Go-Kart điện 3 tầng 850m trong nhà có điều hòa, xe Sodi RSX2 Pháp 82 km/h và bấm giờ Sector 0.001s.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0D12'/%3E%3Cpath d='M12 44 C12 22 52 22 52 44' fill='none' stroke='%23FF2A3B' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='32' y1='44' x2='44' y2='24' stroke='%2300F0FF' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='44' r='5' fill='%23F5F7FA'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Unbounded:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0A0D12;
+      --bg-elev: #121721;
+      --bg-card: #18202D;
+      --text: #F5F7FA;
+      --muted: #9BA7B8;
+      --red: #FF2A3B;
+      --cyan: #00F0FF;
+      --yellow: #FFD600;
+      --border: rgba(245, 247, 250, 0.12);
+      --font-display: 'Unbounded', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --max-w: 1260px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      line-height: 1.6;
+      overflow-x: clip;
+      scroll-behavior: smooth;
+    }
+
+    .skip {
+      position: absolute;
+      top: -100px;
+      left: 16px;
+      background: var(--cyan);
+      color: #0A0D12;
+      padding: 10px 18px;
+      font-weight: 700;
+      border-radius: 6px;
+      z-index: 9999;
+      text-decoration: none;
+    }
+    .skip:focus { top: 16px; }
+
+    .container {
+      width: 100%;
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .pit-bar {
+      background: #06080B;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+    .pit-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 13, 18, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 74px;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .brand-flag {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--red), #9E0B18);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1rem;
+      color: #fff;
+      border: 1px solid var(--cyan);
+    }
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--cyan);
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 600;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.82rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.18s ease, background 0.2s;
+    }
+    .btn-red {
+      background: var(--red);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(255, 42, 59, 0.35);
+    }
+    .btn-red:hover {
+      background: #ff4756;
+      transform: translateY(-1px);
+    }
+    .btn-cyan {
+      background: var(--cyan);
+      color: #0A0D12;
+    }
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 68px 0 84px;
+      border-bottom: 1px solid var(--border);
+      background:
+        radial-gradient(circle at 80% 25%, rgba(255, 42, 59, 0.18), transparent 45%),
+        radial-gradient(circle at 18% 80%, rgba(0, 240, 255, 0.12), transparent 40%),
+        var(--bg);
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 40px;
+      align-items: center;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 999px;
+      color: var(--cyan);
+      font-size: 0.74rem;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4.1vw, 3.45rem);
+      line-height: 1.14;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .hero h1 .red { color: var(--red); }
+    .hero h1 .cyan { color: var(--cyan); }
+    .hero-desc {
+      color: var(--muted);
+      font-size: 0.96rem;
+      max-width: 58ch;
+      margin-bottom: 28px;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 34px;
+    }
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 22px;
+    }
+    .stat-item {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .stat-item strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--cyan);
+    }
+    .stat-item span {
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .telemetry-card {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    }
+    .telemetry-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+      background: #070A0E;
+      border: 1px solid var(--border);
+    }
+
+    section {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .sec-head {
+      max-width: 740px;
+      margin-bottom: 42px;
+    }
+    .sec-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.65rem, 3.1vw, 2.45rem);
+      text-transform: uppercase;
+      line-height: 1.18;
+      margin-bottom: 12px;
+    }
+    .sec-sub {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    /* Interactive 12-Turn Racing Line Simulator */
+    .circuit-lab {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+    }
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .mode-tab {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px;
+      border-radius: 10px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .mode-tab.active {
+      border-color: var(--red);
+      background: rgba(255, 42, 59, 0.14);
+    }
+    .mode-tab strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      color: var(--cyan);
+      margin-bottom: 4px;
+    }
+    .mode-tab span {
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .circuit-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .track-canvas-box {
+      background: #07090D;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    #trackCanvas {
+      width: 100%;
+      height: 340px;
+      display: block;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .telemetry-controls {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .t-ctrl label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .t-ctrl input[type="range"],
+    .t-ctrl select {
+      width: 100%;
+      background: #0A0D12;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      accent-color: var(--red);
+    }
+    .lap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .lap-box {
+      background: #0A0D12;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .lap-box small {
+      display: block;
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+    .lap-box strong {
+      font-size: 1.05rem;
+      color: var(--cyan);
+    }
+
+    /* Scrollytelling Race Briefing & Pitlane Protocol */
+    .brief-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 32px;
+      align-items: start;
+    }
+    .brief-sticky {
+      position: sticky;
+      top: 96px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 26px;
+    }
+    .brief-steps {
+      display: grid;
+      gap: 18px;
+    }
+    .b-step {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      cursor: pointer;
+    }
+    .b-step.active {
+      border-color: var(--cyan);
+      background: rgba(0, 240, 255, 0.07);
+    }
+    .b-step h3 {
+      font-family: var(--font-display);
+      font-size: 1.08rem;
+      margin: 6px 0 8px;
+    }
+
+    /* Pricing */
+    .race-tiers {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+    .r-card {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .r-card.gp {
+      border-color: var(--red);
+      box-shadow: 0 0 0 1px var(--red);
+    }
+    .r-price {
+      font-family: var(--font-display);
+      font-size: 1.65rem;
+      color: var(--cyan);
+      margin: 10px 0 16px;
+    }
+    .r-list {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      margin-bottom: 24px;
+    }
+    .r-list li::before {
+      content: "🏁 ";
+    }
+
+    /* Reviews & FAQ */
+    .split-sec {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 32px;
+    }
+    .driver-quote {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 14px;
+      font-size: 0.88rem;
+    }
+    .faq-entry {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    .faq-toggle {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--text);
+      padding: 16px 18px;
+      text-align: left;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+    }
+    .faq-panel {
+      padding: 0 18px 16px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      display: none;
+    }
+    .faq-entry.open .faq-panel { display: block; }
+
+    /* Heat Booking Form */
+    .pit-form {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .pit-2col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .pit-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .pit-field label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .pit-field input, .pit-field select {
+      background: #0A0D12;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+    }
+    .pit-notice {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 8px;
+      background: rgba(0, 240, 255, 0.14);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-weight: 600;
+      font-size: 0.86rem;
+      display: none;
+    }
+
+    footer {
+      padding: 44px 0;
+      background: #06080B;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .footer-flex {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    @media (max-width: 1024px) {
+      .hero-grid,
+      .circuit-grid,
+      .brief-grid,
+      .race-tiers,
+      .split-sec {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .brief-sticky { position: static; }
+    }
+
+    @media (max-width: 680px) {
+      .nav-links { display: none; }
+      .stat-row,
+      .mode-tabs,
+      .pit-2col {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .circuit-lab,
+      .pit-form { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Chuyển đến nội dung chính</a>
+
+  <div class="pit-bar">
+    <div class="container pit-inner">
+      <span>TRACK RECORD THÁNG NÀY: 00:48.294 (SODI RSX2 PRO MODE) • NHIỆT ĐỘ MẶT ĐƯỜNG EPOXY: 23°C</span>
+      <span>100% XE ĐIỆN KHÔNG KHÓI XĂNG • ĐẦY ĐỦ MŨ BẢO HIỂM FULL-FACE &amp; GIÁP CỔ AN TOÀN</span>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="#main" class="brand" aria-label="Trang chủ ApexKart Indoor Racing">
+        <div class="brand-flag" aria-hidden="true">AK</div>
+        <div>
+          <span class="brand-title">APEXKART RACING</span>
+          <span class="brand-sub">3-LEVEL ELECTRIC KARTING CIRCUIT</span>
+        </div>
+      </a>
+      <nav aria-label="Điều hướng chính">
+        <ul class="nav-links">
+          <li><a href="#racing-line-lab">Sơ Đồ 12 Khúc Cua &amp; Racing Line</a></li>
+          <li><a href="#pitlane-protocol">Quy Trình An Toàn F1</a></li>
+          <li><a href="#heat-packages">Bảng Giá Vé Đua</a></li>
+          <li><a href="#faq-karting">Hỏi Đáp</a></li>
+        </ul>
+      </nav>
+      <a href="#book-heat" class="btn btn-red">Đặt Lượt Đua (Heat)</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="tag">ĐƯỜNG ĐUA GO-KART ĐIỆN 3 TẦNG TRONG NHÀ ĐẦU TIÊN TẠI VIỆT NAM</div>
+          <h1>CẮT ĐỈNH CUA <span class="red">APEX 82 KM/H</span> &amp; BẤM GIỜ CHÍNH XÁC <span class="cyan">0.001 GIÂY</span></h1>
+          <p class="hero-desc">
+            Cảm nhận mô-men xoắn tức thời từ động cơ điện Pháp Sodi RSX2 khi leo dốc xoắn ốc lên tầng 3, đổ đèo qua khúc cua Hairpin 180° và kích hoạt nút DRS Boost trên vô-lăng để vượt mặt đối thủ trên đoạn thẳng chính.
+          </p>
+          <div class="hero-actions">
+            <a href="#book-heat" class="btn btn-red">Đặt Ca Đua Ngay (Từ 260.000đ)</a>
+            <a href="#racing-line-lab" class="btn btn-outline">Phân Tích Racing Line 12 Khúc Cua</a>
+          </div>
+          <div class="stat-row">
+            <div class="stat-item">
+              <strong>850 MÉT</strong>
+              <span>Chiều dài 3 tầng cầu vượt</span>
+            </div>
+            <div class="stat-item">
+              <strong>12 CORNERS</strong>
+              <span>Hairpin, Chicane &amp; Banked Turn</span>
+            </div>
+            <div class="stat-item">
+              <strong>0.001S</strong>
+              <span>Cảm biến MyLaps Sector 1-2-3</span>
+            </div>
+            <div class="stat-item">
+              <strong>1.8 G</strong>
+              <span>Gia tốc ngang cực đại vào cua</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="telemetry-card">
+          <div style="display:flex; justify-content:space-between; font-size:0.76rem; margin-bottom:12px;">
+            <span>LIVE STEERING WHEEL TELEMETRY</span>
+            <span style="color:var(--cyan);">DRS BOOST: READY</span>
+          </div>
+          <svg class="telemetry-svg" viewBox="0 0 500 320" role="img" aria-label="Màn hình hiển thị thông số vô lăng đua xe Go-Kart điện và sơ đồ đường đua">
+            <!-- Circuit Loop Outline -->
+            <path d="M 85 240 C 35 240 35 90 105 75 L 265 75 C 310 75 315 135 270 145 L 185 160 C 145 170 155 215 205 215 L 385 215 C 455 215 460 95 395 85 L 345 80" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="18" stroke-linecap="round"/>
+            <path d="M 85 240 C 35 240 35 90 105 75 L 265 75 C 310 75 315 135 270 145 L 185 160 C 145 170 155 215 205 215 L 385 215 C 455 215 460 95 395 85" fill="none" stroke="#00F0FF" stroke-width="3" stroke-dasharray="8 4"/>
+            <!-- Apex Markers -->
+            <circle cx="52" cy="160" r="6" fill="#FF2A3B"/>
+            <circle cx="298" cy="112" r="6" fill="#FF2A3B"/>
+            <circle cx="164" cy="192" r="6" fill="#FFD600"/>
+            <circle cx="438" cy="152" r="7" fill="#00F0FF"/>
+            <!-- Telemetry HUD Box -->
+            <rect x="28" y="252" width="444" height="48" rx="8" fill="#121721" stroke="rgba(255,255,255,0.12)"/>
+            <g font-family="JetBrains Mono, monospace" font-size="11" fill="#F5F7FA">
+              <text x="45" y="280" fill="#00F0FF">S1: 15.420s</text>
+              <text x="175" y="280" fill="#FFD600">S2: 18.105s</text>
+              <text x="305" y="280" fill="#FF2A3B">LAP: 48.294s</text>
+              <text x="40" y="42" fill="#9BA7B8">TURN 08 HAIRPIN // BRAKE PRESSURE: 94%</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive 12-Corner Circuit & Optimal Racing Line Simulator -->
+    <section id="racing-line-lab">
+      <div class="container">
+        <div class="sec-head">
+          <div class="tag">TRÌNH MÔ PHỎNG QUỸ ĐẠO VÀO CUA (RACING LINE LAB)</div>
+          <h2 class="sec-title">SƠ ĐỒ 12 KHÚC CUA &amp; TỐI ƯU ĐIỂM PHANH (OUT-IN-OUT)</h2>
+          <p class="sec-sub">
+            Chọn cấp độ động cơ, điều chỉnh điểm đạp phanh (Braking Point) và nhấp vào từng khúc cua trên bản đồ để xem tốc độ thoát cua (Exit Speed) và dự đoán tổng thời gian hoàn thành vòng đua (Lap-Time).
+          </p>
+        </div>
+
+        <div class="circuit-lab">
+          <div class="mode-tabs" role="group" aria-label="Chọn chế độ công suất xe Go-Kart">
+            <button type="button" class="mode-tab" data-mode="rookie">
+              <strong>ROOKIE MODE (45 KM/H)</strong>
+              <span>Dành cho người mới &amp; thiếu niên từ 1m35</span>
+            </button>
+            <button type="button" class="mode-tab active" data-mode="pro">
+              <strong>PRO SPRINT MODE (68 KM/H)</strong>
+              <span>Tiêu chuẩn thi đấu cá nhân &amp; Grand Prix</span>
+            </button>
+            <button type="button" class="mode-tab" data-mode="apex">
+              <strong>APEX QUALIFYING (82 KM/H + DRS)</strong>
+              <span>Mở khóa cho tay đua đạt chuẩn Sub-52 giây</span>
+            </button>
+          </div>
+
+          <div class="circuit-grid">
+            <div class="track-canvas-box">
+              <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:10px;">
+                <span id="cornerFocusText">GÓC CUA ĐANG CHỌN: T06 HAIRPIN ĐỔ ĐÈO (TẦNG 2 → TẦNG 1)</span>
+                <span id="apexSpeedText" style="color:var(--cyan);">Vận tốc đỉnh cua (Apex): 44 km/h</span>
+              </div>
+              <canvas id="trackCanvas" width="740" height="340" aria-label="Sơ đồ đường đua Go-Kart 12 khúc cua và đường chạy tối ưu"></canvas>
+              <div style="margin-top:10px; font-size:0.76rem; color:var(--muted);">
+                Nhấp vào các điểm đánh dấu Khúc cua T01 – T12 trên sơ đồ hoặc kéo thanh Vị trí xe để khảo sát từng đoạn!
+              </div>
+            </div>
+
+            <div class="telemetry-controls">
+              <div class="t-ctrl">
+                <label for="trackProgressSlider">
+                  <span>Vị trí xe trên đường đua</span>
+                  <strong id="trackProgLabel" style="color:var(--cyan);">Khúc cua T06 (48%)</strong>
+                </label>
+                <input type="range" id="trackProgressSlider" min="0" max="100" value="48">
+              </div>
+
+              <div class="t-ctrl">
+                <label for="brakingStyleSelect">Chiến thuật phanh &amp; Mở lái</label>
+                <select id="brakingStyleSelect" aria-label="Chọn chiến thuật phanh và vào cua">
+                  <option value="optimal" selected>Trail-Braking Chuẩn Out-In-Out (Tối ưu Lap-Time)</option>
+                  <option value="late">Late Braking Phanh Muộn Cắt Gắt Đỉnh Cua</option>
+                  <option value="drift">Oversteer Trượt Đuôi (Mất tốc độ thoát cua)</option>
+                </select>
+              </div>
+
+              <div class="t-ctrl">
+                <label for="tireTempSlider">
+                  <span>Nhiệt độ lốp Slick Bridgestone</span>
+                  <strong id="tireTempLabel" style="color:var(--yellow);">58°C (Độ bám tối ưu)</strong>
+                </label>
+                <input type="range" id="tireTempSlider" min="30" max="80" value="58">
+              </div>
+
+              <div class="lap-grid">
+                <div class="lap-box">
+                  <small>DỰ ĐOÁN LAP-TIME</small>
+                  <strong id="predLapTime">00:49.842</strong>
+                </div>
+                <div class="lap-box">
+                  <small>TỐC ĐỘ ĐOẠN THẲNG</small>
+                  <strong id="topSpeedOut">68 km/h</strong>
+                </div>
+                <div class="lap-box">
+                  <small>GIA TỐC NGANG (G)</small>
+                  <strong id="latGOut">1.55 G</strong>
+                </div>
+                <div class="lap-box">
+                  <small>PHANH TÁI SINH ĐIỆN</small>
+                  <strong id="regenOut">+14% Pin/Vòng</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scrollytelling Race Briefing & Pitlane Protocol -->
+    <section id="pitlane-protocol">
+      <div class="container">
+        <div class="sec-head">
+          <div class="tag">QUY TRÌNH TRẢI NGHIỆM CHUẨN ĐUA XE FIA</div>
+          <h2 class="sec-title">4 BƯỚC TỪ PHÒNG BRIEFING ĐẾN BỤC VINH QUANG PODIUM</h2>
+          <p class="sec-sub">
+            Mọi tay đua lần đầu đến trường đua đều được trang bị đồ bảo hộ tiêu chuẩn và huấn luyện kỹ thuật cờ hiệu trước khi駛 ra khỏi Pitlane.
+          </p>
+        </div>
+
+        <div class="brief-grid">
+          <div class="brief-sticky">
+            <div style="font-size:0.78rem; color:var(--cyan); margin-bottom:8px;" id="briefTag">CHẶNG 01 // CHECK-IN &amp; RACING SUIT</div>
+            <h3 id="briefTitle" style="font-family:var(--font-display); font-size:1.45rem; margin-bottom:12px;">
+              Định Danh Tay Đua &amp; Trang Bị Áo Đua Alpinestars
+            </h3>
+            <p id="briefDesc" style="color:var(--muted); font-size:0.9rem; margin-bottom:18px;">
+              Tạo hồ sơ tay đua trên màn hình cảm ứng để lưu trữ lịch sử Lap-Time trọn đời, nhận mũ trùm đầu kháng khuẩn Balaclava, mũ Full-Face, giáp cổ và găng tay đua.
+            </p>
+            <div style="background:#0A0D12; border:1px solid var(--border); padding:14px; border-radius:8px; font-size:0.78rem; color:var(--yellow);" id="briefNote">
+              Trang bị bắt buộc: Giày bít mũi + Mũ bảo hiểm cài quai chữ D
+            </div>
+          </div>
+
+          <div class="brief-steps">
+            <article class="b-step active" data-brief="0" tabindex="0" role="button" aria-label="Bước 1: Đăng ký hồ sơ và mặc đồ bảo hộ">
+              <div style="font-size:0.74rem; color:var(--red);">BƯỚC 01 // DRIVER REGISTRATION &amp; GEAR</div>
+              <h3>Mặc Đồ Đua Chuyên Nghiệp &amp; Khởi Tạo Telemetry</h3>
+              <p style="color:var(--muted); font-size:0.86rem;">Chọn biệt danh hiển thị trên bảng điện tử LED toàn sân và trang bị bảo hộ từ đầu đến chân.</p>
+            </article>
+
+            <article class="b-step" data-brief="1" tabindex="0" role="button" aria-label="Bước 2: Học an toàn và tín hiệu cờ đua">
+              <div style="font-size:0.74rem; color:var(--red);">BƯỚC 02 // SAFETY &amp; RACING LINE BRIEFING</div>
+              <h3>Huấn Luyện Cờ Hiệu Điện Tử &amp; Kỹ Thuật Phanh Trái</h3>
+              <p style="color:var(--muted); font-size:0.86rem;">Nắm vững quy tắc chân trái phanh – chân phải ga, tuyệt đối không đạp đồng thời và nhận biết đèn vàng giảm tốc từ xa.</p>
+            </article>
+
+            <article class="b-step" data-brief="2" tabindex="0" role="button" aria-label="Bước 3: Chỉnh ghế bàn đạp và xuất phát">
+              <div style="font-size:0.74rem; color:var(--red);">BƯỚC 03 // PITLANE LAUNCH &amp; HOT LAPS</div>
+              <h3>Cân Chỉnh Bàn Đạp Điện Tử &amp; Đua Tính Giờ 10 Phút</h3>
+              <p style="color:var(--muted); font-size:0.86rem;">Kỹ thuật viên chỉnh khoảng cách ghế/bàn đạp vừa vặn chiều cao, thắt dây đai 4 điểm và mở đèn xanh Pitlane.</p>
+            </article>
+
+            <article class="b-step" data-brief="3" tabindex="0" role="button" aria-label="Bước 4: Nhận bảng phân tích Sector và trao giải">
+              <div style="font-size:0.74rem; color:var(--red);">BƯỚC 04 // TELEMETRY SHEET &amp; PODIUM</div>
+              <h3>Nhận Bản In Phân Tích Sector &amp; Trao Cúp Podium</h3>
+              <p style="color:var(--muted); font-size:0.86rem;">So sánh biểu đồ từng vòng đua qua ứng dụng và chụp ảnh trên bục Podium số 1, 2, 3 cùng đồng đội.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="heat-packages">
+      <div class="container">
+        <div class="sec-head">
+          <div class="tag">BẢNG GIÁ VÉ ĐUA &amp; GIẢI GRAND PRIX DOANH NGHIỆP</div>
+          <h2 class="sec-title">CHỌN THỂ THỨC ĐUA CỦA BẠN</h2>
+          <p class="sec-sub">Mỗi lượt đua (Heat) kéo dài 10 phút liên tục trên đường đua (~11 đến 13 vòng chạy hết tốc lực).</p>
+        </div>
+
+        <div class="race-tiers">
+          <div class="r-card">
+            <div>
+              <div style="font-size:0.74rem; color:var(--muted);">1 HEAT SPRINT</div>
+              <h3 style="font-family:var(--font-display); font-size:1.15rem; margin-top:4px;">Vé Đua Lẻ 1 Lượt (10 Phút)</h3>
+              <div class="r-price">280.000đ <small style="font-size:0.75rem; color:var(--muted);">/người</small></div>
+              <ul class="r-list">
+                <li>10 phút chạy tính giờ Best Lap trên sân 3 tầng</li>
+                <li>Trang bị miễn phí đồ đua, mũ Full-Face, găng tay</li>
+                <li>Bản báo cáo kết quả chi tiết từng vòng qua Email</li>
+                <li>Có xe đôi 2 chỗ ngồi cho phụ huynh chở bé nhỏ</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-outline choose-heat-btn" data-heat="Vé Đua Lẻ 1 Heat 10 Phút (280.000đ)">Chọn 1 Lượt Đua</button>
+          </div>
+
+          <div class="r-card gp">
+            <div>
+              <div style="font-size:0.74rem; color:var(--cyan);">BÁN CHẠY NHẤT • COMBO 3 HEATS</div>
+              <h3 style="font-family:var(--font-display); font-size:1.15rem; margin-top:4px;">Gói Pro Racer 3 Lượt Đua</h3>
+              <div class="r-price">720.000đ <small style="font-size:0.75rem; color:var(--muted);">/3 lượt</small></div>
+              <ul class="r-list">
+                <li>Hiệp 1 làm quen đường, Hiệp 2 phân hạng, Hiệp 3 đua</li>
+                <li>Mở khóa nút tăng tốc DRS Boost trên vô-lăng</li>
+                <li>Tặng 1 mũ trùm đầu Balaclava cá nhân cao cấp</li>
+                <li>Lưu điểm tích lũy trên Bảng Xếp Hạng Tháng</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-red choose-heat-btn" data-heat="Gói Pro Racer 3 Lượt Đua (720.000đ)">Chọn Combo 3 Lượt</button>
+          </div>
+
+          <div class="r-card">
+            <div>
+              <div style="font-size:0.74rem; color:var(--muted);">MINI GRAND PRIX (TỪ 10 NGƯỜI)</div>
+              <h3 style="font-family:var(--font-display); font-size:1.15rem; margin-top:4px;">Giải Đấu Team Building Độc Quyền</h3>
+              <div class="r-price">890.000đ <small style="font-size:0.75rem; color:var(--muted);">/tay đua</small></div>
+              <ul class="r-list">
+                <li>Bao trọn đường đua riêng cho đoàn doanh nghiệp</li>
+                <li>Thể thức F1: Practice + Qualifying + Xuất phát tĩnh Grid</li>
+                <li>Bộ Cúp Vô Địch Vàng/Bạc/Đồng &amp; Sâm-panh Podium</li>
+                <li>Miễn phí phòng họp kính nhìn thẳng xuống đường đua</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-cyan choose-heat-btn" data-heat="Giải Đấu Mini Grand Prix Doanh Nghiệp (890.000đ/người)">Đặt Giải Grand Prix</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reviews & FAQ -->
+    <section id="faq-karting">
+      <div class="container split-sec">
+        <div>
+          <div class="tag">TAY ĐUA ĐÁNH GIÁ</div>
+          <h2 class="sec-title" style="font-size:1.75rem;">CẢM GIÁC ĐUA XE THỰC THỤ</h2>
+          <div class="driver-quote">
+            <p style="margin-bottom:12px;">
+              “Xe điện Sodi RSX2 đạp ga là dính lưng ngay lập tức, không bị trễ nhịp và đặc biệt là chạy trong nhà máy lạnh mát rượi, quần áo không hề bị ám mùi khói xăng. Khúc cua đổ đèo từ tầng 3 xuống tầng 1 cực kỳ phê!”
+            </p>
+            <strong style="color:var(--cyan);">— Nguyễn Tuấn Anh • Best Lap 48.612s (Hội viên Apex Mode)</strong>
+          </div>
+          <div class="driver-quote">
+            <p style="margin-bottom:12px;">
+              “Nhóm mình 14 người đặt gói Mini Grand Prix, lúc xếp hàng xuất phát chờ đèn đỏ tắt y hệt giải F1 ngoài đời. Rất đáng tiền cho buổi Team Building cuối tuần!”
+            </p>
+            <strong style="color:var(--cyan);">— Trần Minh Đức • Đội trưởng CLB Sim-Racing Sài Gòn</strong>
+          </div>
+        </div>
+
+        <div>
+          <div class="tag">CÂU HỎI THƯỜNG GẶP</div>
+          <h2 class="sec-title" style="font-size:1.75rem;">ĐIỀU KIỆN &amp; AN TOÀN ĐƯỜNG ĐUA</h2>
+          <div class="faq-entry open">
+            <button type="button" class="faq-toggle" aria-expanded="true">
+              <span>Chưa có bằng lái ô tô hoặc chưa từng lái Go-Kart có chơi được không?</span>
+              <span>+</span>
+            </button>
+            <div class="faq-panel">
+              Hoàn toàn được! Xe Go-Kart chỉ có 2 bàn đạp (Phanh và Ga, không có hộp số côn) và được cài đặt chế độ Rookie êm ái cho người mới bắt đầu.
+            </div>
+          </div>
+          <div class="faq-entry">
+            <button type="button" class="faq-toggle" aria-expanded="false">
+              <span>Quy định chiều cao tối thiểu để tự cầm lái xe đơn là bao nhiêu?</span>
+              <span>+</span>
+            </button>
+            <div class="faq-panel">
+              Người chơi cao từ 1m35 trở lên có thể tự lái xe đơn (bàn đạp và ghế chỉnh điện tự động theo chiều cao). Trẻ em từ 1m05 – 1m34 có thể ngồi ghế phụ trên dòng xe đôi 2-Seater cùng người lớn.
+            </div>
+          </div>
+          <div class="faq-entry">
+            <button type="button" class="faq-toggle" aria-expanded="false">
+              <span>Nếu có xe bị quay ngang trên đường đua thì hệ thống xử lý thế nào?</span>
+              <span>+</span>
+            </button>
+            <div class="faq-panel">
+              Hệ thống kiểm soát trung tâm (Race Control) sẽ tự động kích hoạt đèn vàng và giới hạn tốc độ từ xa toàn bộ các xe trên sân về 15 km/h trong vòng 0.5 giây để đảm bảo an toàn tuyệt đối.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Booking Form -->
+    <section id="book-heat">
+      <div class="container">
+        <div class="sec-head">
+          <div class="tag">ĐẶT CA ĐUA (HEAT SLOT) TRỰC TUYẾN</div>
+          <h2 class="sec-title">GIỮ SUẤT ĐUA &amp; TRÁNH CHỜ ĐỢI CUỐI TUẦN</h2>
+          <p class="sec-sub">Đặt trước khung giờ để hệ thống xếp sẵn số xe trong Pitlane cho nhóm của bạn.</p>
+        </div>
+
+        <form class="pit-form" id="kartBookForm">
+          <div class="pit-2col">
+            <div class="pit-field">
+              <label for="racerName">Họ tên tay đua / Trưởng nhóm</label>
+              <input type="text" id="racerName" name="racerName" placeholder="VD: Hoàng Hải Đăng" required>
+            </div>
+            <div class="pit-field">
+              <label for="racerPhone">Số điện thoại nhận mã QR Check-in</label>
+              <input type="tel" id="racerPhone" name="racerPhone" placeholder="0908 999 888" required>
+            </div>
+          </div>
+
+          <div class="pit-2col">
+            <div class="pit-field">
+              <label for="heatPackageSelect">Gói đua đăng ký</label>
+              <select id="heatPackageSelect" name="heatPackageSelect">
+                <option value="Vé Đua Lẻ 1 Heat 10 Phút (280.000đ)">Vé Đua Lẻ 1 Heat 10 Phút (280.000đ)</option>
+                <option value="Gói Pro Racer 3 Lượt Đua (720.000đ)" selected>Gói Pro Racer 3 Lượt Đua (720.000đ)</option>
+                <option value="Giải Đấu Mini Grand Prix Doanh Nghiệp (890.000đ/người)">Giải Đấu Mini Grand Prix Doanh Nghiệp (890.000đ/người)</option>
+              </select>
+            </div>
+            <div class="pit-field">
+              <label for="racerCountInput">Số lượng tay đua &amp; Khung giờ</label>
+              <input type="text" id="racerCountInput" name="racerCountInput" placeholder="VD: 6 người • 16:30 Thứ Bảy">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-red" style="width:100%;">Xác Nhận Giữ Xe Trong Pitlane</button>
+          <div class="pit-notice" id="kartStatusMsg" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-flex">
+      <div>
+        <strong style="color:var(--text);">APEXKART INDOOR ELECTRIC RACING VIETNAM</strong>
+        <p>Tổ hợp Đua xe Go-Kart Điện Đa Tầng &amp; Hệ thống Bấm giờ Telemetry 0.001s.</p>
+      </div>
+      <div>
+        <p>© 2026 ApexKart Indoor Racing. Thiết kế concept — thương hiệu giả định.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('trackCanvas');
+      const ctx = canvas.getContext('2d');
+      const trackProgressSlider = document.getElementById('trackProgressSlider');
+      const brakingStyleSelect = document.getElementById('brakingStyleSelect');
+      const tireTempSlider = document.getElementById('tireTempSlider');
+
+      const trackNodes = [
+        { x: 110, y: 270, name: 'T01 • Khúc cua Đầu tiên sau Vạch Xuất phát', apexV: 56 },
+        { x: 55, y: 185, name: 'T02 • Cua Gắt Leo Cầu Vượt Tầng 2', apexV: 42 },
+        { x: 95, y: 78, name: 'T03 • Đỉnh Cầu Xoắn Ốc (Tầng 2 → Tầng 3)', apexV: 48 },
+        { x: 235, y: 62, name: 'T04 • Đoạn Thẳng Tăng Tốc Tầng Thượng', apexV: 74 },
+        { x: 355, y: 82, name: 'T05 • Cua Chữ S Liên Hoàn (Chicane Trái-Phải)', apexV: 51 },
+        { x: 295, y: 158, name: 'T06 • Hairpin 180° Đổ Đèo (Tầng 2 → Tầng 1)', apexV: 38 },
+        { x: 185, y: 175, name: 'T07 • Cua Nghiêng Banked Turn 12°', apexV: 58 },
+        { x: 215, y: 245, name: 'T08 • Khúc Cua Kỹ Thuật Double-Apex', apexV: 46 },
+        { x: 395, y: 265, name: 'T09 • Đoạn Thẳng Kích Hoạt Nút DRS Boost', apexV: 82 },
+        { x: 472, y: 185, name: 'T10 • Cua Tốc Độ Cao Sweeper', apexV: 64 },
+        { x: 425, y: 88, name: 'T11 • Điểm Phanh Nặng Trước Pitlane', apexV: 44 },
+        { x: 265, y: 270, name: 'T12 • Cua Cuối Ra Đoạn Thẳng Chính', apexV: 68 }
+      ];
+
+      const modeSpecs = {
+        rookie: { baseLap: 58.42, topV: 45, gForce: '1.15 G' },
+        pro: { baseLap: 49.85, topV: 68, gForce: '1.55 G' },
+        apex: { baseLap: 46.92, topV: 82, gForce: '1.82 G' }
+      };
+
+      let currentMode = 'pro';
+
+      function renderCircuit() {
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        const pct = Number(trackProgressSlider.value) / 100;
+        const brakeStyle = brakingStyleSelect.value;
+        const tireT = Number(tireTempSlider.value);
+        const mSpec = modeSpecs[currentMode];
+
+        const exactNode = pct * (trackNodes.length - 1);
+        const nIdx = Math.round(exactNode);
+        const curCorner = trackNodes[nIdx];
+
+        document.getElementById('trackProgLabel').textContent = 'Khúc cua T' + String(nIdx + 1).padStart(2, '0') + ' (' + Math.round(pct * 100) + '%)';
+        document.getElementById('cornerFocusText').textContent = 'GÓC CUA ĐANG CHỌN: ' + curCorner.name.toUpperCase();
+        document.getElementById('tireTempLabel').textContent = tireT + '°C (' + (tireT >= 50 && tireT <= 68 ? 'Độ bám tối ưu' : 'Chưa tối ưu') + ')';
+
+        const speedRatio = mSpec.topV / 68;
+        const cornerSpeed = Math.round(curCorner.apexV * speedRatio);
+        document.getElementById('apexSpeedText').textContent = 'Vận tốc đỉnh cua (Apex): ' + cornerSpeed + ' km/h';
+
+        // Calculate Lap-Time
+        const stylePenalty = brakeStyle === 'optimal' ? 0 : brakeStyle === 'late' ? 0.48 : 1.35;
+        const tirePenalty = Math.abs(tireT - 58) * 0.032;
+        const lapSec = (mSpec.baseLap + stylePenalty + tirePenalty).toFixed(3);
+        document.getElementById('predLapTime').textContent = '00:' + lapSec;
+        document.getElementById('topSpeedOut').textContent = mSpec.topV + ' km/h';
+        document.getElementById('latGOut').textContent = mSpec.gForce;
+
+        // Draw Track Asphalt Surface (Left area x: 30 to 500)
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        trackNodes.forEach((pt, i) => {
+          if (i === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(245, 247, 250, 0.14)';
+        ctx.lineWidth = 26;
+        ctx.stroke();
+
+        // Draw Optimal Racing Line
+        ctx.beginPath();
+        trackNodes.forEach((pt, i) => {
+          if (i === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.closePath();
+        ctx.strokeStyle = brakeStyle === 'optimal' ? '#00F0FF' : brakeStyle === 'late' ? '#FFD600' : '#FF2A3B';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([8, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw 12 Corner Nodes
+        trackNodes.forEach((pt, i) => {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, i === nIdx ? 10 : 6, 0, Math.PI * 2);
+          ctx.fillStyle = i === nIdx ? '#00F0FF' : '#FF2A3B';
+          ctx.fill();
+          ctx.strokeStyle = '#0A0D12';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = '#F5F7FA';
+          ctx.font = 'bold 10px "JetBrains Mono", monospace';
+          ctx.fillText('T' + (i + 1), pt.x - 7, pt.y - 12);
+        });
+
+        // Right-side Telemetry Box on Canvas
+        ctx.fillStyle = '#121721';
+        ctx.strokeStyle = 'rgba(245,247,250,0.14)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(515, 22, 205, 296, 12);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#00F0FF';
+        ctx.font = 'bold 12px "JetBrains Mono", monospace';
+        ctx.fillText('SECTOR TELEMETRY', 535, 50);
+
+        const s1 = (lapSec * 0.31).toFixed(3);
+        const s2 = (lapSec * 0.38).toFixed(3);
+        const s3 = (lapSec - s1 - s2).toFixed(3);
+
+        ctx.fillStyle = '#F5F7FA';
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.fillText('Sector 1: ' + s1 + ' s', 535, 84);
+        ctx.fillText('Sector 2: ' + s2 + ' s', 535, 110);
+        ctx.fillText('Sector 3: ' + s3 + ' s', 535, 136);
+        ctx.fillText('Góc đánh lái: ' + (42 - nIdx * 2) + '°', 535, 168);
+        ctx.fillText('Lực phanh: ' + (curCorner.apexV < 50 ? '88%' : '35%'), 535, 194);
+
+        // Throttle & Brake Bars
+        ctx.fillStyle = '#00F0FF';
+        ctx.fillRect(535, 225, Math.round((cornerSpeed / 85) * 160), 12);
+        ctx.fillStyle = '#FF2A3B';
+        ctx.fillRect(535, 250, Math.round(((90 - cornerSpeed) / 90) * 150), 12);
+
+        ctx.fillStyle = '#9BA7B8';
+        ctx.fillText('Xanh: Ga • Đỏ: Phanh', 535, 286);
+      }
+
+      document.querySelectorAll('.mode-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentMode = btn.getAttribute('data-mode');
+          renderCircuit();
+        });
+      });
+
+      [trackProgressSlider, brakingStyleSelect, tireTempSlider].forEach(el => {
+        el.addEventListener('input', renderCircuit);
+        el.addEventListener('change', renderCircuit);
+      });
+
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const sx = canvas.width / rect.width;
+        const sy = canvas.height / rect.height;
+        const cx = (e.clientX - rect.left) * sx;
+        const cy = (e.clientY - rect.top) * sy;
+
+        let bestIdx = 0;
+        let bestDist = 9999;
+        trackNodes.forEach((pt, idx) => {
+          const d = Math.hypot(pt.x - cx, pt.y - cy);
+          if (d < bestDist) {
+            bestDist = d;
+            bestIdx = idx;
+          }
+        });
+        trackProgressSlider.value = String(Math.round((bestIdx / (trackNodes.length - 1)) * 100));
+        renderCircuit();
+      });
+
+      renderCircuit();
+
+      // Scrollytelling Pitlane Briefing
+      const briefStages = [
+        {
+          tag: 'CHẶNG 01 // CHECK-IN & RACING SUIT',
+          title: 'Định Danh Tay Đua & Trang Bị Áo Đua Alpinestars',
+          desc: 'Tạo hồ sơ tay đua trên màn hình cảm ứng để lưu trữ lịch sử Lap-Time trọn đời, nhận mũ trùm đầu kháng khuẩn Balaclava, mũ Full-Face, giáp cổ và găng tay đua.',
+          note: 'Trang bị bắt buộc: Giày bít mũi + Mũ bảo hiểm cài quai chữ D'
+        },
+        {
+          tag: 'CHẶNG 02 // SAFETY & FLAG BRIEFING',
+          title: 'Huấn Luyện Cờ Hiệu Điện Tử & Kỹ Thuật Phanh Trái',
+          desc: 'Nắm vững quy tắc chân trái phanh – chân phải ga, tuyệt đối không đạp đồng thời và nhận biết đèn vàng giảm tốc từ xa.',
+          note: 'An toàn đường đua: Tuyệt đối không va chạm cố ý (Bumping Penalty)'
+        },
+        {
+          tag: 'CHẶNG 03 // PITLANE LAUNCH & HOT LAPS',
+          title: 'Cân Chỉnh Bàn Đạp Điện Tử & Đua Tính Giờ 10 Phút',
+          desc: 'Kỹ thuật viên chỉnh khoảng cách ghế/bàn đạp vừa vặn chiều cao, thắt dây đai 4 điểm và mở đèn xanh Pitlane.',
+          note: 'Chế độ DRS Boost: Kích hoạt 5 giây mỗi vòng trên đoạn thẳng T09'
+        },
+        {
+          tag: 'CHẶNG 04 // TELEMETRY SHEET & PODIUM',
+          title: 'Nhận Bản In Phân Tích Sector & Trao Cúp Podium',
+          desc: 'So sánh biểu đồ từng vòng đua qua ứng dụng và chụp ảnh trên bục Podium số 1, 2, 3 cùng đồng đội.',
+          note: 'Cập nhật tức thì lên Bảng Xếp Hạng Best Lap Tháng'
+        }
+      ];
+
+      document.querySelectorAll('.b-step').forEach(step => {
+        step.addEventListener('click', () => {
+          document.querySelectorAll('.b-step').forEach(s => s.classList.remove('active'));
+          step.classList.add('active');
+          const idx = Number(step.getAttribute('data-brief')) || 0;
+          const d = briefStages[idx];
+          document.getElementById('briefTag').textContent = d.tag;
+          document.getElementById('briefTitle').textContent = d.title;
+          document.getElementById('briefDesc').textContent = d.desc;
+          document.getElementById('briefNote').textContent = d.note;
+        });
+      });
+
+      // FAQ Accordion
+      document.querySelectorAll('.faq-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const entry = btn.closest('.faq-entry');
+          const open = entry.classList.toggle('open');
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+      });
+
+      // Pricing buttons -> Form
+      const heatPackageSelect = document.getElementById('heatPackageSelect');
+      document.querySelectorAll('.choose-heat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          heatPackageSelect.value = btn.getAttribute('data-heat');
+          document.getElementById('book-heat').scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+
+      // Form Submit
+      document.getElementById('kartBookForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const msg = document.getElementById('kartStatusMsg');
+        const name = document.getElementById('racerName').value || 'Tay đua';
+        msg.style.display = 'block';
+        msg.textContent = 'Đã giữ xe trong Pitlane thành công cho ' + name + '! Mã QR Check-in đã gửi về điện thoại của bạn.';
+      });
+    })();
+  </script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

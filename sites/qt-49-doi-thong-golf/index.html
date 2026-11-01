@@ -1,0 +1,1778 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bảng tee · Đồi Thông Golf</title>
+<meta name="description" content="Đồi Thông Golf — phần mềm điều phối giờ tee, flight 4 người, caddie và xe điện cho sân 18 lỗ. Thiết kế concept.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f3d24'/%3E%3Cpath d='M12 6v20' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M13 6l10 4-10 4z' fill='%23e9dcb2'/%3E%3Cellipse cx='14' cy='26' rx='7' ry='2' fill='%235cbf7c'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Fira+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f6f0;--surface:#ffffff;--surface2:#eef3ea;--line:#dce5d6;--line2:#c4d2bc;
+  --ink:#12261a;--ink2:#455a4b;--ink3:#617566;
+  --pine:#0f3d24;--pine2:#164d2f;--grass:#2b7a44;--grassInk:#1d6337;--fair:#cfe6c3;--fair2:#b7d9a8;
+  --sand:#eadfb8;--water:#9cc6d6;--flag:#c4452d;--amber:#a86a12;--ok:#2b7a44;
+  --okBg:#e3f1df;--slowBg:#fbf0d9;--lateBg:#fbe3dc;--doneBg:#f1f3ef;
+  --shadow:0 1px 2px rgba(15,61,36,.06),0 6px 24px -12px rgba(15,61,36,.18);
+  --hd:58px;--st:58px;--r:10px;
+  --serif:'EB Garamond',Georgia,serif;--sans:'Fira Sans',system-ui,sans-serif;
+  color-scheme:light;
+}
+html.dark{
+  --bg:#0a140f;--surface:#101e16;--surface2:#15281d;--line:#21382a;--line2:#2d4a37;
+  --ink:#e6efe7;--ink2:#a6bcab;--ink3:#8aa190;
+  --pine:#08200f;--pine2:#0e2e1b;--grass:#5cbf7c;--grassInk:#7fd39a;--fair:#1d3a27;--fair2:#25492f;
+  --sand:#4f4730;--water:#24505f;--flag:#f07a62;--amber:#e3a94f;--ok:#5cbf7c;
+  --okBg:#15301f;--slowBg:#33290f;--lateBg:#3a1d16;--doneBg:#131d17;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px -14px rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:400 14px/1.45 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.12;margin:0;letter-spacing:-.005em}
+kbd{white-space:nowrap;font:500 12px var(--sans);border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--surface)}
+.skip{position:absolute;left:-999px;top:8px;z-index:99;background:var(--surface);padding:8px 12px;border-radius:8px}
+.skip:focus{left:8px}
+:focus-visible{outline:2px solid var(--grass);outline-offset:2px}
+.anc{position:absolute;top:0;left:0;width:1px;height:1px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- header band ---------- */
+.top{position:sticky;top:0;z-index:40;height:var(--hd);background:var(--pine);color:#f2f7f1;display:flex;align-items:center;gap:14px;padding:0 18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;flex:none}
+.brand svg{width:34px;height:34px}
+.brand b{font:600 21px/1.1 var(--serif);display:block;letter-spacing:.01em}
+.brand small{display:block;font-size:12px;opacity:.72;letter-spacing:.08em;text-transform:uppercase}
+.nav{display:flex;align-self:stretch;margin-left:18px;border-left:1px solid rgba(255,255,255,.14)}
+.nv{display:flex;flex-direction:column;justify-content:center;gap:1px;padding:0 18px;color:rgba(242,247,241,.78);text-decoration:none;border-right:1px solid rgba(255,255,255,.14);position:relative;min-width:116px}
+.nv span{font:600 15px/1.15 var(--sans);white-space:nowrap}
+.nv small{font-size:12px;opacity:.75;white-space:nowrap}
+.nv:hover{background:rgba(255,255,255,.05);color:#fff}
+.nv[aria-current="page"]{color:#fff;background:rgba(255,255,255,.08)}
+.nv[aria-current="page"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--sand)}
+.tools{margin-left:auto;display:flex;align-items:center;gap:8px}
+.ib{width:40px;height:40px;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:transparent;color:inherit;display:grid;place-items:center;position:relative}
+.ib:hover{background:rgba(255,255,255,.08)}
+.ib svg{width:19px;height:19px}
+.ib .bd{position:absolute;top:4px;right:4px;min-width:16px;height:16px;border-radius:9px;background:var(--flag);color:#fff;font:700 11px/16px var(--sans);padding:0 4px}
+.srch{height:40px;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:rgba(242,247,241,.85);display:flex;align-items:center;gap:8px;padding:0 10px 0 12px;min-width:230px}
+.srch kbd{background:transparent;color:inherit;border-color:rgba(255,255,255,.3)}
+.srch span{flex:1;text-align:left}
+.bookBtn{height:40px;border-radius:9px;border:0;background:#eadfb8;color:#2a2410;font-weight:600;padding:0 14px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.bookBtn:hover{filter:brightness(1.04)}
+.me{display:flex;align-items:center;gap:8px;padding-left:6px}
+.me i{width:36px;height:36px;border-radius:50%;background:#eadfb8;color:#2a2410;display:grid;place-items:center;font:700 13px var(--sans);font-style:normal}
+.me b{display:block;font-size:13px;line-height:1.2}
+.me small{display:block;font-size:12px;opacity:.72;line-height:1.2}
+#menuBtn{display:none}
+
+/* ---------- scorecard strip ---------- */
+.stripWrap{position:sticky;top:var(--hd);z-index:30;background:var(--surface);border-bottom:1px solid var(--line2);box-shadow:var(--shadow)}
+.strip{display:grid;grid-template-columns:88px repeat(9,minmax(44px,1fr)) 64px repeat(9,minmax(44px,1fr)) 64px 236px;height:var(--st)}
+.sc{border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;background:transparent;border-top:0;border-bottom:0;border-left:0;min-width:0;position:relative}
+.sc b{font:600 17px/1 var(--serif)}
+.sc small{font-size:12px;color:var(--ink3);line-height:1.1}
+.sc .dots{display:flex;gap:3px;height:8px;align-items:center}
+.sc .dots u{width:7px;height:7px;border-radius:50%;background:var(--ok);text-decoration:none}
+.sc .dots u.slow{background:var(--amber)}.sc .dots u.late{background:var(--flag)}
+.sc .dots em{font:600 11px/8px var(--sans);font-style:normal;color:var(--ink2)}
+button.sc:hover{background:var(--surface2)}
+button.sc.hl{background:var(--okBg);box-shadow:inset 0 -3px 0 var(--grass)}
+.sc.p-slow{background:var(--slowBg)}.sc.p-late{background:var(--lateBg)}
+.sc.lab{align-items:flex-start;padding-left:14px;background:var(--surface2)}
+.sc.lab b{font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.sc.tot{background:var(--surface2)}
+.sc.tot b{font:600 13px var(--sans);letter-spacing:.06em}
+.sc.live{align-items:flex-start;padding:0 14px;border-right:0}
+.sc.live b{font:600 15px/1.2 var(--sans);white-space:nowrap}
+.sc.live small{white-space:nowrap}
+.sc.live small{font-size:12px}
+
+/* ---------- layout ---------- */
+main{padding:18px 18px 28px;max-width:1720px;margin:0 auto}
+.view{display:none}
+.view.on{display:block}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.vh{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+.crumb{margin:0 0 4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.crumb a{color:inherit}
+.vh h1{font-size:34px}
+.vh h1 em{font-style:italic;color:var(--grassInk);font-weight:500}
+.greet{margin:6px 0 0;color:var(--ink2)}
+.btn{height:40px;border-radius:9px;border:1px solid var(--line2);background:var(--surface);padding:0 14px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn.pri{background:var(--grass);border-color:var(--grass);color:#fff}
+html.dark .btn.pri{color:#08200f}
+.btn.pri:hover{filter:brightness(1.06)}
+.btn.warn{color:var(--flag)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{height:34px;padding:0 10px;font-size:13px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:9px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:transparent;height:38px;padding:0 14px;border-right:1px solid var(--line);font-weight:500;color:var(--ink2)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--pine);color:#fff}
+html.dark .seg button[aria-pressed="true"]{background:var(--grass);color:#08200f}
+.chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:12px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--surface2);color:var(--ink2)}
+.chip.ok{background:var(--okBg);color:var(--ok)}.chip.slow{background:var(--slowBg);color:var(--amber)}.chip.late{background:var(--lateBg);color:var(--flag)}
+.chip.in{background:#e6eef7;color:#2d5a86}
+html.dark .chip.in{background:#17293a;color:#8fbbe3}
+
+/* KPI scorecard boxes */
+.kp{display:grid;grid-template-columns:repeat(5,minmax(96px,1fr));border:1px solid var(--line2);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.kp div{padding:8px 14px;border-right:1px solid var(--line)}
+.kp div:last-child{border-right:0}
+.kp small{display:block;font-size:12px;color:var(--ink3);white-space:nowrap}
+.kp b{font:600 26px/1.15 var(--serif);font-variant-numeric:lining-nums tabular-nums}
+.kp b sub{font:500 13px var(--sans);color:var(--ink3);vertical-align:baseline;margin-left:2px}
+
+/* day pills */
+.days{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.days::-webkit-scrollbar{display:none}
+.dp{flex:none;min-width:86px;height:52px;border:1px solid var(--line2);border-radius:9px;background:var(--surface);display:grid;grid-template-columns:auto auto;align-items:center;justify-content:start;column-gap:8px;padding:0 12px;text-align:left}
+.dp small{grid-column:1/3;font-size:12px;color:var(--ink3);line-height:1.1}
+.dp b{font:600 20px/1 var(--serif)}
+.dp i{font:600 12px var(--sans);font-style:normal;color:var(--grassInk)}
+.dp[aria-selected="true"]{border-color:var(--pine);box-shadow:inset 0 0 0 1px var(--pine);background:var(--okBg)}
+html.dark .dp[aria-selected="true"]{border-color:var(--grass);box-shadow:inset 0 0 0 1px var(--grass)}
+.dp.wk small{color:var(--flag)}
+
+/* tee layout */
+.teeWrap{display:grid;grid-template-columns:232px minmax(0,1fr) 344px;gap:14px;align-items:start}
+.teeWrap>*,.cvGrid>*,.rvGrid>*{min-width:0}
+.wait{padding:14px}
+.wait h3,.fp h3,.cardH h3{font-size:20px}
+.hint{font-size:12px;color:var(--ink3);margin:4px 0 10px}
+.wq{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.gch{width:100%;min-height:52px;border:1px dashed var(--line2);border-radius:9px;background:var(--surface2);display:flex;align-items:center;gap:10px;padding:6px 10px;text-align:left;touch-action:none;user-select:none}
+.gch:hover{border-color:var(--grass)}
+.gch .av{width:30px;height:30px;border-radius:50%;background:var(--pine);color:#fff;display:grid;place-items:center;font:600 12px var(--sans);flex:none}
+.gch .av.two{background:var(--grass)}
+html.dark .gch .av{background:#2d6b45}html.dark .gch .av.two{background:#4f8f62}
+.gch b{display:block;font-size:13px;line-height:1.25}
+.gch small{display:block;font-size:12px;color:var(--ink3);line-height:1.25}
+.gch[aria-pressed="true"]{border-style:solid;border-color:var(--grass);background:var(--okBg);box-shadow:0 0 0 2px color-mix(in srgb,var(--grass) 30%,transparent)}
+.wqEmpty{font-size:13px;color:var(--ink3);padding:14px 4px;text-align:center}
+
+.sheetCard{min-width:0;overflow:hidden}
+.sheetBar{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.teeSeg{display:none}
+.sheetScroll{max-height:calc(100vh - 380px);min-height:440px;overflow:auto;overscroll-behavior:contain;position:relative}
+.sheet{display:grid;grid-template-columns:84px repeat(4,minmax(0,1fr)) 12px repeat(4,minmax(0,1fr));grid-auto-rows:44px;min-width:0}
+.sheet.single{grid-template-columns:76px repeat(4,minmax(0,1fr))}
+.sh{position:sticky;top:0;z-index:3;background:var(--surface);border-bottom:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:12px;color:var(--ink3);height:44px}
+.sh b{font:600 17px var(--serif);color:var(--ink)}
+.tc,.sl{border-bottom:1px solid var(--line);min-width:0}
+.tc{display:flex;flex-direction:column;justify-content:center;padding:0 8px 0 12px;border-right:1px solid var(--line2);background:var(--surface);position:relative;cursor:pointer}
+.tc b{font:600 14px/1.15 var(--sans);font-variant-numeric:tabular-nums}
+.tc small{font-size:12px;line-height:1.15;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:clip}
+.tc::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:4px;border-radius:0 3px 3px 0;background:transparent}
+.tc.s-booked::before{background:var(--line2)}.tc.s-in::before{background:#4a7fb0}.tc.s-play::before{background:var(--grass)}.tc.s-done::before{background:var(--ink3)}
+.tc.s-play.slow::before{background:var(--amber)}.tc.s-play.late::before{background:var(--flag)}
+.tc.s-play small{color:var(--grassInk);font-weight:600}
+.tc.s-play.slow small{color:var(--amber)}.tc.s-play.late small{color:var(--flag)}
+.sl{display:flex;flex-direction:column;justify-content:center;padding:0 8px;border-right:1px solid var(--line);background:var(--surface);cursor:pointer;position:relative;outline-offset:-2px}
+.sl.e4{border-right-color:var(--line2)}
+.sl b{font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:clip}
+.sl i{font-style:normal;font-size:12px;color:var(--ink3);line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sl i.no{color:var(--flag)}
+.sl.mem b::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--grass);margin-left:4px;vertical-align:2px}
+.sl .pl{color:var(--line2);font-size:18px;text-align:center}
+.sl.open:hover{background:var(--okBg)}
+.sl.open:hover .pl{color:var(--grass)}
+.sl.s-play{background:color-mix(in srgb,var(--okBg) 55%,var(--surface))}
+.sl.s-in{background:color-mix(in srgb,#e6eef7 60%,var(--surface))}
+html.dark .sl.s-in{background:#132230}
+.sl.s-done,.tc.s-done{background:var(--doneBg)}
+.sl.s-done b{color:var(--ink2);font-weight:500}
+.tc.s-done b{color:var(--ink2)}
+.sl.s-gone,.tc.s-gone{background:repeating-linear-gradient(135deg,transparent 0 6px,color-mix(in srgb,var(--line) 55%,transparent) 6px 7px),var(--surface)}
+.sl.s-gone .pl{display:none}
+.rowSel{box-shadow:inset 0 2px 0 var(--grass),inset 0 -2px 0 var(--grass)}
+.tc.rowSel{box-shadow:inset 0 2px 0 var(--grass),inset 0 -2px 0 var(--grass),inset 4px 0 0 var(--grass)}
+.nowRow{box-shadow:inset 0 2px 0 var(--flag)}
+.tc .nowTag{position:absolute;right:8px;top:9px;width:8px;height:8px;border-radius:50%;background:var(--flag);box-shadow:0 0 0 3px color-mix(in srgb,var(--flag) 25%,transparent)}
+.gp{background:var(--surface2);border-bottom:1px solid var(--line)}
+.blk{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;padding:10px;border-bottom:1px solid var(--line2);background:repeating-linear-gradient(45deg,var(--surface2) 0 10px,var(--surface) 10px 20px);color:var(--ink2)}
+.blk b{font:600 17px/1.2 var(--serif);color:var(--ink)}
+.blk small{font-size:12px;max-width:260px}
+.blk.cross{justify-content:flex-start;padding-top:36px}
+.blk.cross .stk{position:sticky;top:64px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.crossL{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:10px;max-width:300px}
+.crossL em{width:100%;font-style:normal;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.crossL .chip{border:0;height:30px;cursor:pointer}
+.dropOk{background:var(--okBg)!important;box-shadow:inset 0 0 0 2px var(--grass)}
+.dropHot{background:color-mix(in srgb,var(--grass) 28%,var(--surface))!important}
+.dg-ghost{position:fixed;z-index:90;pointer-events:none;padding:8px 12px;border-radius:9px;background:var(--pine);color:#fff;font-weight:600;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.3);translate:-50% -120%;white-space:nowrap}
+.dg-src{opacity:.45}
+
+/* flight panel */
+.fp{padding:0;position:sticky;top:calc(var(--hd) + var(--st) + 14px);max-height:max(520px,calc(100vh - 316px));display:flex;flex-direction:column}
+.fpH{padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.fpH small{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.fpH h2{font-size:26px}
+.fpH .chip{margin-top:4px}
+.fpX{display:none}
+.fpB{padding:12px 16px;overflow:auto;flex:1}
+.prog{margin-bottom:12px}
+.prog .bar{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin:6px 0 4px}
+.prog .bar i{height:8px;border-radius:2px;background:var(--line)}
+.prog .bar i.d{background:var(--fair2)}
+.prog .bar i.c{background:var(--grass)}
+.prog .bar i.c.slow{background:var(--amber)}.prog .bar i.c.late{background:var(--flag)}
+.prog p{margin:0;font-size:13px;color:var(--ink2)}
+.seats{list-style:none;margin:0 0 12px;padding:0;border:1px solid var(--line2);border-radius:9px;overflow:hidden}
+.seat{display:grid;grid-template-columns:26px minmax(0,1fr) 112px 32px;align-items:center;gap:8px;padding:8px 8px 8px 10px;border-bottom:1px solid var(--line);min-height:56px}
+.seat:last-child{border-bottom:0}
+.seat .n{font:600 18px var(--serif);color:var(--ink3);text-align:center}
+.seat b{display:block;font-size:14px;line-height:1.25}
+.seat small{display:block;font-size:12px;color:var(--ink3);line-height:1.25}
+.seat select{width:100%;height:36px;border:1px solid var(--line2);border-radius:8px;background:var(--surface);padding:0 6px;font-size:13px}
+.seat select.miss{border-color:var(--flag);color:var(--flag)}
+.seat .rm{width:32px;height:32px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--ink3);display:grid;place-items:center}
+.seat .rm:hover{border-color:var(--line2);color:var(--flag)}
+.seat.empty{color:var(--ink3);font-size:13px;grid-template-columns:26px 1fr;min-height:44px;padding-top:4px;padding-bottom:4px}
+.seat.cdrop{background:var(--okBg)}
+.pair{font-size:12px;color:var(--ink3);margin:-4px 0 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pair label{display:flex;flex-direction:column;gap:3px}
+.pair select{height:36px;border:1px solid var(--line2);border-radius:8px;background:var(--surface);padding:0 6px;font-size:13px;color:var(--ink)}
+.cq h4{margin:0 0 4px;font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+.cqL{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.cch{height:34px;border-radius:17px;border:1px solid var(--line2);background:var(--surface2);padding:0 10px 0 4px;display:inline-flex;align-items:center;gap:6px;font-size:13px;touch-action:none;user-select:none}
+.cch i{font-style:normal;width:26px;height:26px;border-radius:50%;background:#eadfb8;color:#2a2410;display:grid;place-items:center;font:700 11px var(--sans)}
+.cch[aria-pressed="true"]{border-color:var(--grass);background:var(--okBg)}
+.fees{margin:0;display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:13px;padding:10px 12px;border-radius:9px;background:var(--surface2)}
+.fees dt{color:var(--ink2)}.fees dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.fees .t{font-weight:700;color:var(--ink);border-top:1px solid var(--line2);padding-top:6px;margin-top:2px}
+.fpF{padding:12px 16px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fpF .btn{width:100%}
+.fpF .wide{grid-column:1/3}
+.fpNote{font-size:12px;color:var(--amber);margin:0 0 10px}
+.scrim{position:fixed;inset:0;background:rgba(6,20,12,.45);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+
+/* ---------- course view ---------- */
+.cvGrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.mapCard{position:relative;overflow:hidden}
+.mapCard svg{display:block;width:100%;height:auto}
+.mapCard .cardH{position:absolute;left:14px;top:12px;right:14px;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
+.mapCard .legend{pointer-events:auto;background:color-mix(in srgb,var(--surface) 85%,transparent);padding:4px 8px;border-radius:8px}
+.mapClosed{position:absolute;left:50%;top:34.8%;translate:-50% -50%;background:var(--surface);border:1px solid var(--line2);border-radius:12px;padding:10px 18px;text-align:center;box-shadow:var(--shadow);width:min(300px,60%)}
+.mapClosed b{font:600 22px/1.2 var(--serif);display:block}
+.mapClosed small{color:var(--ink2);font-size:13px}
+.fw{fill:none;stroke:var(--fair);stroke-linecap:round;stroke-width:26}
+.fw.hl{stroke:var(--fair2)}
+.fwEdge{fill:none;stroke:var(--fair2);stroke-linecap:round;stroke-width:30;opacity:.55}
+.gn{fill:var(--grass);opacity:.55}
+.club rect{fill:var(--pine)}.club path{fill:var(--pine2)}
+html.dark .club rect{fill:#2d6b45}html.dark .club path{fill:#3d8a5a}
+.hn circle{fill:var(--pine)}
+html.dark .hn circle{fill:#2d6b45}
+.hn text{fill:#fff;font:600 15px var(--sans);text-anchor:middle;dominant-baseline:central}
+.hn.hl circle{fill:var(--flag)}
+.mk{cursor:pointer}
+.mk circle{stroke:var(--surface);stroke-width:3}
+.mk.ok circle{fill:var(--grass)}.mk.slow circle{fill:var(--amber)}.mk.late circle{fill:var(--flag)}
+.mk:focus{outline:none}.mk:focus circle,.mk:hover circle{stroke:var(--ink);stroke-width:3}
+.mapTxt{fill:var(--ink2);font:500 14px var(--sans);text-anchor:middle}
+.mapTxt.it{font:italic 500 17px var(--serif)}
+.ladder{padding:0}
+.ladder .cardH{padding:12px 14px;border-bottom:1px solid var(--line)}
+.ldL{list-style:none;margin:0;padding:0}
+.ld{display:grid;grid-template-columns:40px 64px minmax(0,1fr);align-items:center;gap:6px;padding:6px 12px;border-bottom:1px solid var(--line);min-height:42px}
+.ld:last-child{border-bottom:0}
+.ld>b{font:600 18px var(--serif);text-align:center}
+.ld>small{font-size:12px;color:var(--ink3)}
+.ld .fl{display:flex;flex-wrap:wrap;gap:4px}
+.ld .fl button{height:28px;border-radius:14px;border:0;padding:0 8px;font-size:12px;font-weight:600}
+.ld .fl .ok{background:var(--okBg);color:var(--ok)}.ld .fl .slow{background:var(--slowBg);color:var(--amber)}.ld .fl .late{background:var(--lateBg);color:var(--flag)}
+.ld .fl em{font-size:12px;color:var(--ink3);font-style:normal}
+.ld.hl{background:var(--surface2);box-shadow:inset 3px 0 0 var(--flag)}
+.ld.turn{background:var(--surface2)}
+.ld.turn>b{font:600 12px var(--sans);letter-spacing:.06em;color:var(--ink3)}
+.slowCard{margin-top:14px;padding:0}
+.slowCard .cardH{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.slowL{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.slowL li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+.slowL b{font-size:14px}
+.slowL small{grid-column:1;font-size:12px;color:var(--ink3)}
+.slowL .btn{grid-row:1/3;grid-column:2}
+.empty{padding:26px 16px;text-align:center;color:var(--ink3);font-size:14px}
+.empty b{display:block;font:600 20px var(--serif);color:var(--ink2);margin-bottom:4px}
+
+/* ---------- caddie view ---------- */
+.tblCard{padding:0;overflow:hidden}
+.tbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}
+.inp{height:40px;border:1px solid var(--line2);border-radius:9px;background:var(--surface);padding:0 12px;min-width:0}
+.tbar .inp{flex:1 1 220px;max-width:320px}
+.fchips{display:flex;gap:6px;flex-wrap:wrap}
+.fchips button{height:34px;border-radius:17px;border:1px solid var(--line2);background:var(--surface);padding:0 12px;font-size:13px;color:var(--ink2)}
+.fchips button[aria-pressed="true"]{background:var(--pine);border-color:var(--pine);color:#fff}
+html.dark .fchips button[aria-pressed="true"]{background:var(--grass);border-color:var(--grass);color:#08200f}
+.fchips em{font-style:normal;opacity:.7;margin-left:3px}
+.bulk{display:none;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;background:var(--okBg);border-bottom:1px solid var(--line)}
+.bulk.on{display:flex}
+.bulk b{margin-right:auto;font-size:13px}
+.tScroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;font-size:12px;color:var(--ink3);letter-spacing:.04em;text-transform:uppercase;padding:0 10px;height:40px;border-bottom:1px solid var(--line2);white-space:nowrap;background:var(--surface2)}
+th button{border:0;background:transparent;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;display:inline-flex;align-items:center;gap:4px;height:36px;padding:0}
+th button::after{content:"↕";opacity:.35}
+th[aria-sort="ascending"] button::after{content:"↑";opacity:1}
+th[aria-sort="descending"] button::after{content:"↓";opacity:1}
+td{padding:0 10px;height:48px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:hover td{background:var(--surface2)}
+tr.sel td{background:var(--okBg)}
+td.num{font-variant-numeric:tabular-nums}
+.ck{width:18px;height:18px;accent-color:var(--grass)}
+.cnum{font:600 15px var(--serif)}
+.lv{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:6px;font-weight:700;font-size:12px;background:var(--surface2);border:1px solid var(--line2)}
+.lv.A{background:#eadfb8;border-color:transparent;color:#2a2410}
+.stars{color:var(--amber)}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;flex-wrap:wrap;font-size:13px;color:var(--ink2)}
+.pager div{display:flex;gap:4px}
+.pager button{min-width:38px;height:38px;border-radius:8px;border:1px solid var(--line2);background:var(--surface)}
+.pager button[aria-current="true"]{background:var(--pine);color:#fff;border-color:var(--pine)}
+html.dark .pager button[aria-current="true"]{background:var(--grass);color:#08200f;border-color:var(--grass)}
+.fleet{margin-top:14px;padding:0}
+.fleet .cardH{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.fGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;padding:14px}
+.cart{border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--surface);min-height:52px;display:flex;flex-direction:column;justify-content:space-between}
+.cart b{font:600 14px var(--sans);display:flex;justify-content:space-between;align-items:center}
+.cart b i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.cart.busy b i{background:#4a7fb0}.cart.charge b i{background:var(--amber)}.cart.maint b i{background:var(--flag)}
+.cart.maint{background:var(--surface2)}
+.batt{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.batt u{display:block;height:100%;background:var(--grass);text-decoration:none}
+.batt u.lo{background:var(--amber)}
+.cart small{font-size:12px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.cart.dim{opacity:.28}
+
+/* ---------- revenue view ---------- */
+.rvK{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:14px}
+.rvK div{padding:14px 16px}
+.rvK b{font-size:32px}
+.rvK small{font-size:12px}
+.rvK .dl{display:block;font:600 12px var(--sans);color:var(--ok)}
+.rvK .dl.neg{color:var(--flag)}
+.rvGrid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;align-items:stretch}
+.chartCard{padding:14px 14px 8px;min-width:0}
+.cardH{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cardH p{margin:2px 0 0;font-size:12px;color:var(--ink3)}
+#chart{display:block;width:100%;height:300px;margin-top:8px;touch-action:pan-y}
+#chart text{font:500 12px var(--sans);fill:var(--ink3)}
+#chart .gl{stroke:var(--line);stroke-width:1}
+#chart .br{fill:var(--fair2)}
+#chart .br.hv{fill:var(--grass)}
+#chart .ln{fill:none;stroke:var(--pine);stroke-width:2.5;stroke-linejoin:round}
+html.dark #chart .ln{stroke:#eadfb8}
+#chart .xh{stroke:var(--ink3);stroke-dasharray:3 3}
+#chart .dot{fill:var(--pine);stroke:var(--surface);stroke-width:2}
+html.dark #chart .dot{fill:#eadfb8}
+.mixCard{padding:14px}
+.stack{display:flex;height:22px;border-radius:6px;overflow:hidden;margin:14px 0 12px}
+.stack i{height:100%;transition:flex-basis .6s cubic-bezier(.3,.7,.2,1)}
+html.rm .stack i{transition:none}
+.mixL{list-style:none;margin:0;padding:0}
+.mixL li{display:grid;grid-template-columns:12px 1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.mixL li:last-child{border-bottom:0}
+.mixL i{width:12px;height:12px;border-radius:3px}
+.mixL b{font-variant-numeric:tabular-nums}
+.mixL em{font-style:normal;color:var(--ink3);font-size:12px;min-width:34px;text-align:right}
+.heatCard{margin-top:14px;padding:14px}
+.heat{display:grid;grid-template-columns:44px repeat(8,minmax(0,1fr));gap:4px;margin-top:12px}
+.heat span{font-size:12px;color:var(--ink3);display:flex;align-items:center}
+.heat span.hx{justify-content:center}
+.heat .hc{height:34px;border-radius:6px}
+.hScale{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink3);margin-top:10px}
+.hScale i{width:120px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--surface2),var(--grass))}
+
+/* ---------- overlays ---------- */
+.tip{position:fixed;z-index:95;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;line-height:1.4;padding:7px 10px;border-radius:8px;max-width:260px;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+.tip b{font-weight:700}
+.toasts{position:fixed;left:50%;top:calc(var(--hd) + var(--st) + 10px);translate:-50% 0;z-index:96;display:flex;flex-direction:column;gap:8px;width:min(440px,calc(100vw - 24px));pointer-events:none}
+body.ovl .toasts{top:10px}
+.toast{pointer-events:auto;background:var(--pine);color:#f2f7f1;border-radius:10px;padding:10px 10px 10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 12px 30px -10px rgba(0,0,0,.45);font-size:13px}
+html.dark .toast{background:#1d3a28}
+.toast span{flex:1}
+.toast kbd{background:transparent;color:inherit;border-color:rgba(255,255,255,.4)}
+.toast button{height:32px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#eadfb8;font-weight:600;padding:0 10px}
+.modal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
+.modal.on{display:flex}
+.mBox{position:relative;width:min(560px,100%);max-height:calc(100vh - 32px);background:var(--surface);border-radius:14px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line)}
+.mH{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.mH h2{font-size:26px}
+.mH p{margin:2px 0 0;font-size:13px;color:var(--ink3)}
+.mB{padding:14px 18px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.mF{padding:12px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;background:var(--surface)}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.fld.w{grid-column:1/3}
+.fld>label,.fld>span{font-size:13px;font-weight:600;color:var(--ink2)}
+.fld .inp,.fld select,.fld textarea{width:100%;height:42px;border:1px solid var(--line2);border-radius:9px;background:var(--surface);padding:0 12px}
+.fld textarea{height:64px;padding:8px 12px;resize:vertical}
+.fld .err{font-size:12px;color:var(--flag);min-height:0}
+.fld.bad .inp,.fld.bad select{border-color:var(--flag);box-shadow:0 0 0 3px color-mix(in srgb,var(--flag) 15%,transparent)}
+.rad{display:flex;border:1px solid var(--line2);border-radius:9px;overflow:hidden}
+.rad label{flex:1;position:relative}
+.rad input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.rad span{display:grid;place-items:center;height:40px;font-size:13px;font-weight:500;border-right:1px solid var(--line)}
+.rad label:last-child span{border-right:0}
+.rad input:checked+span{background:var(--pine);color:#fff}
+html.dark .rad input:checked+span{background:var(--grass);color:#08200f}
+.rad input:focus-visible+span{outline:2px solid var(--grass);outline-offset:-2px}
+.pal{position:fixed;inset:0;z-index:85;display:none;align-items:flex-start;justify-content:center;padding:12vh 16px 16px}
+.pal.on{display:flex}
+.palBox{width:min(600px,100%);background:var(--surface);border-radius:14px;border:1px solid var(--line);box-shadow:0 30px 80px -20px rgba(0,0,0,.5);overflow:hidden;position:relative}
+.palBox input{width:100%;height:56px;border:0;border-bottom:1px solid var(--line);background:transparent;padding:0 18px;font-size:16px;outline:none}
+.palL{list-style:none;margin:0;padding:6px;max-height:360px;overflow:auto}
+.palL li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:9px;cursor:pointer;min-height:44px}
+.palL li small{color:var(--ink3);font-size:12px;white-space:nowrap}
+.palL li[aria-selected="true"]{background:var(--okBg)}
+.palL .grp{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);padding:8px 12px 4px;min-height:0;cursor:default}
+.pop{position:fixed;z-index:70;width:340px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px -20px rgba(0,0,0,.45);display:none;color:var(--ink)}
+.pop.on{display:block}
+.pop h3{font-size:19px;padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.pop ul{list-style:none;margin:0;padding:0;max-height:360px;overflow:auto}
+.pop li{padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;display:grid;grid-template-columns:10px 1fr;gap:10px}
+.pop li i{width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--grass)}
+.pop li i.w{background:var(--amber)}.pop li i.r{background:var(--flag)}
+.pop li small{display:block;color:var(--ink3);font-size:12px}
+.pop li.rd{opacity:.6}
+footer{padding:16px 18px 28px;text-align:center;color:var(--ink3);font-size:12px}
+.mnavHead,.mnavFoot{display:none}
+
+/* ---------- responsive ---------- */
+@media (max-width:1439px){.srch{min-width:180px}}
+@media (max-width:1599px){.me div{display:none}}
+@media (max-width:1279px){
+  .teeWrap{grid-template-columns:minmax(0,1fr) 330px}
+  .wait{grid-column:1/3;padding:10px 12px;display:flex;align-items:center;gap:12px}
+  .wait .hint{display:none}
+  .wait h3{flex:none;font-size:18px}
+  .wq{flex-direction:row;overflow-x:auto;scrollbar-width:thin;padding-bottom:4px;flex:1}
+  .gch{width:auto;flex:none;min-width:170px}
+  .cvGrid{grid-template-columns:minmax(0,1fr) 300px}
+  .strip{grid-template-columns:88px repeat(9,minmax(40px,1fr)) 64px repeat(9,minmax(40px,1fr)) 64px}
+  .sc.live{display:none}
+  .rvGrid{grid-template-columns:minmax(0,1fr) 300px}
+}
+@media (max-width:1100px){
+  .nv{min-width:0;padding:0 12px}
+  .srch{min-width:0;width:40px;padding:0;justify-content:center}.srch span,.srch kbd{display:none}
+  .kp{grid-template-columns:repeat(5,minmax(80px,1fr))}
+  .kp b{font-size:22px}
+  .cvGrid{grid-template-columns:1fr}
+  .ldL{display:grid;grid-template-columns:1fr 1fr}
+  .ld{border-right:1px solid var(--line)}
+}
+@media (max-width:1100px){
+  .stripWrap{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 90%,transparent)}
+  .stripWrap::-webkit-scrollbar{display:none}
+  .strip{grid-template-columns:72px repeat(9,46px) 64px repeat(9,46px) 64px 236px;width:max-content}
+  .sc.live{display:flex}
+}
+@media (max-width:999px){
+  #menuBtn{display:grid}
+  .nav{position:fixed;left:0;top:0;bottom:0;width:min(300px,84vw);z-index:75;background:var(--pine);flex-direction:column;margin:0;border:0;padding:12px;translate:-102% 0;transition:translate .25s ease;align-self:auto}
+  html.rm .nav{transition:none}
+  .nav.on{translate:0 0}
+  .nv{border-right:0;border-bottom:1px solid rgba(255,255,255,.12);padding:12px 14px;min-height:56px}
+  .nv[aria-current="page"]::after{left:0;right:auto;top:10px;bottom:10px;width:3px;height:auto}
+  .mnavHead{display:flex;justify-content:space-between;align-items:center;padding:4px 4px 12px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:6px}
+  .mnavHead b{font:600 20px var(--serif)}
+  .mnavFoot{margin-top:auto;display:flex;gap:8px;padding-top:12px}
+  .mnavFoot .btn{flex:1;background:transparent;color:#fff;border-color:rgba(255,255,255,.25)}
+  .teeWrap{grid-template-columns:1fr}
+  .wait{grid-column:auto}
+  .fp{position:fixed;left:50%;bottom:0;top:auto;translate:-50% 102%;width:min(640px,100%);max-height:80vh;z-index:65;border-radius:16px 16px 0 0;visibility:hidden;transition:translate .28s cubic-bezier(.3,.7,.2,1),visibility 0s .28s;box-shadow:0 -20px 60px -20px rgba(0,0,0,.45)}
+  html.rm .fp{transition:none}
+  .fp.on{translate:-50% 0;visibility:visible;transition:translate .28s cubic-bezier(.3,.7,.2,1)}
+  .fpX{display:grid;color:var(--ink);border-color:var(--line2)}
+  .sheetScroll{max-height:none;min-height:0;overflow:visible}
+  .sheetCard{overflow:visible}
+  .sheetBar{border-radius:var(--r) var(--r) 0 0}
+  .sh{top:calc(var(--hd) + var(--st))}
+  .blk.cross .stk{top:calc(var(--hd) + var(--st) + 60px)}
+  .rvGrid{grid-template-columns:1fr}
+  .rvK{grid-template-columns:repeat(2,1fr)}
+  .rvK div:nth-child(2){border-right:0}
+  .rvK div:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .me{display:none}
+}
+@media (max-width:860px){.kp{grid-template-columns:repeat(3,1fr)}.kp div:nth-child(3){border-right:0}.kp div:nth-child(-n+3){border-bottom:1px solid var(--line)}.vh>.kp{width:100%}}
+@media (max-width:699px){
+  :root{--hd:56px}
+  main{padding:14px 12px 24px}
+  .top{padding:0 10px;gap:8px}
+  .brand small{display:none}
+  .brand b{font-size:19px}
+  .bookBtn span{display:none}
+  .bookBtn{width:40px;padding:0;justify-content:center}
+  #themeBtn{display:none}
+  .vh h1{font-size:28px}
+  .kp{grid-template-columns:repeat(3,1fr)}
+  .kp div{padding:8px 10px}
+  .kp b{font-size:22px}
+  .teeSeg{display:inline-flex}
+  .sheetBar .legend{display:none}
+  .gch{min-width:156px}
+  .wait{flex-direction:column;align-items:stretch;gap:6px}
+  .wq{margin:0 -12px;padding:0 12px 4px}
+  .ldL{grid-template-columns:1fr}
+  .mapCard{display:none}
+  .seat{grid-template-columns:22px minmax(0,1fr) 100px 32px;gap:6px}
+  .mB{grid-template-columns:1fr}.fld.w{grid-column:auto}
+  .mBox{max-height:calc(100dvh - 24px)}
+  .modal{padding:12px;align-items:flex-end}
+  .pop{left:12px!important;right:12px;width:auto}
+  .rvK b{font-size:26px}
+  #chart{height:240px}
+  .heat{grid-template-columns:34px repeat(8,minmax(0,1fr));gap:3px}
+  .heat .hc{height:30px}
+  /* table → cards */
+  .tScroll{overflow:visible}
+  table,tbody,tr,td{display:block}
+  thead{display:none}
+  tbody{padding:8px 10px}
+  tr{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;padding:10px 12px 10px 48px;position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;background:var(--surface);min-height:84px}
+  td{height:auto;border:0;padding:0;white-space:nowrap;font-size:13px;order:3;color:var(--ink2)}
+  td.nm{order:2;flex-basis:100%;font-weight:600;color:var(--ink);padding-right:110px}
+  td[data-l="Số áo"]{order:1}
+  td[data-l="Trạng thái"]{position:absolute;right:10px;top:10px;text-align:right}
+  td[data-l="Trạng thái"]::before,td[data-l="Số áo"]::before,td[data-l="Hạng"]::before,td[data-l="Đánh giá"]::before,td[data-l="Điện thoại"]::before{display:none}
+  tr:hover td,tr.sel td{background:transparent}
+  tr.sel{background:var(--okBg)}
+  td[data-l]::before{content:attr(data-l) ' ';font-size:12px;color:var(--ink3)}
+  td.cbx{position:absolute;left:4px;top:4px;width:40px;height:40px;display:grid;place-items:center;padding:0}
+  .fGrid{grid-template-columns:repeat(auto-fill,minmax(70px,1fr))}
+  .slowL{grid-template-columns:1fr}
+}
+html.rm *{scroll-behavior:auto!important}
+/* readability floor: badge, pace dots, caddie times at 12px */
+.ib .bd{min-width:18px;height:18px;font-size:12px;line-height:18px}
+.sc .dots em,.cch i,td small{font-size:12px}
+.cbl{display:inline-grid;place-items:center;width:40px;height:40px;margin:-11px;cursor:pointer;vertical-align:middle}
+.skip{min-height:40px;display:inline-flex;align-items:center}
+/* touch: 40px hit boxes (on-course flight chips, filters, small buttons) */
+@media (pointer:coarse){
+  .brand{min-height:40px}
+  .btn.sm,.seg button,.fchips button,.ld .fl button,.crossL .chip{height:40px}
+  .pager button{min-width:40px;height:40px}
+  th[data-k] button{min-height:40px;min-width:40px}
+}</style>
+</head>
+<body>
+<span id="bang-tee" class="anc"></span><span id="tren-san" class="anc"></span><span id="caddie" class="anc"></span><span id="doanh-thu" class="anc"></span>
+<a class="skip" href="#main">Bỏ qua tới nội dung</a>
+<header class="top">
+  <button class="ib" id="menuBtn" aria-label="Mở menu điều hướng" aria-expanded="false" aria-controls="nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <a class="brand" href="#bang-tee" aria-label="Đồi Thông Golf — Bảng tee">
+    <svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="16" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.25)"/><path d="M14 7v19" stroke="#fff" stroke-width="1.8"/><path d="M15 7l9 3.6-9 3.6z" fill="#eadfb8"/><path d="M6 27c4-3 8-4 11-4s7 1 11 4" stroke="#5cbf7c" stroke-width="2" fill="none"/></svg>
+    <span><b>Đồi Thông</b><small>Golf · Đà Lạt</small></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Điều hướng chính">
+    <div class="mnavHead"><b>Đồi Thông Golf</b><button class="ib" id="navX" aria-label="Đóng menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <a class="nv" href="#bang-tee" data-nav="bang-tee"><span>Bảng tee</span><small id="nvTee">— flight</small></a>
+    <a class="nv" href="#tren-san" data-nav="tren-san"><span>Trên sân</span><small id="nvCourse">—</small></a>
+    <a class="nv" href="#caddie" data-nav="caddie"><span>Caddie &amp; xe</span><small id="nvCad">—</small></a>
+    <a class="nv" href="#doanh-thu" data-nav="doanh-thu"><span>Doanh thu</span><small id="nvRev">—</small></a>
+    <div class="mnavFoot"><button class="btn" id="themeBtn2" aria-label="Đổi giao diện sáng tối">Đổi giao diện</button></div>
+  </nav>
+  <div class="tools">
+        <button class="srch" id="palBtn" aria-label="Mở bảng lệnh (Ctrl K)"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span>Tìm khách, caddie…</span><kbd>Ctrl K</kbd></button>
+    <button class="bookBtn" id="bookBtn" aria-label="Đặt giờ tee mới"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Đặt tee</span></button>
+    <button class="ib" id="bellBtn" aria-label="Thông báo" aria-expanded="false" aria-controls="notif"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 16V11a6 6 0 1112 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 004 0"/></svg><span class="bd" id="bellN">0</span></button>
+    <button class="ib" id="themeBtn" aria-label="Đổi giao diện sáng tối"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg></button>
+    <div class="me"><i aria-hidden="true">DT</i><div><b>Lâm Diệu Thảo</b><small>Điều phối starter</small></div></div>
+  </div>
+</header>
+<div class="stripWrap"><div class="strip" id="strip" aria-label="Nhịp chơi theo 18 lỗ"></div></div>
+
+<main id="main">
+  <!-- ============ BẢNG TEE ============ -->
+  <section class="view" id="v-bang-tee" data-view="bang-tee" aria-labelledby="teeTitle">
+    <div class="vh">
+      <div>
+        <p class="crumb">Đồi Thông Golf / Bảng tee</p>
+        <h1 id="teeTitle">Bảng tee</h1>
+        <p class="greet" id="greet"></p>
+      </div>
+      <div class="kp" id="teeKpi"></div>
+    </div>
+    <div class="days" id="days" role="tablist" aria-label="Chọn ngày chơi"></div>
+    <div class="teeWrap">
+      <aside class="wait card" aria-labelledby="waitH">
+        <h3 id="waitH">Khách lẻ chờ ghép</h3>
+        <p class="hint">Kéo khách vào ghế trống của flight, hoặc chọn khách rồi chạm vào ghế. Bàn phím: chọn khách, mũi tên tới ghế, <kbd>Enter</kbd>.</p>
+        <ul class="wq" id="wq"></ul>
+      </aside>
+      <div class="sheetCard card">
+        <div class="sheetBar">
+          <div class="seg teeSeg" id="teeSeg" role="group" aria-label="Chọn tee xuất phát"><button data-tee="1" aria-pressed="true">Tee 1</button><button data-tee="10" aria-pressed="false">Tee 10</button></div>
+          <div class="legend"><span><i style="background:var(--line2)"></i>Đã đặt</span><span><i style="background:#4a7fb0"></i>Đã check-in</span><span><i style="background:var(--grass)"></i>Trên sân</span><span><i style="background:var(--ink3)"></i>Đã xong ✓</span><span><i style="background:var(--grass);border-radius:50%"></i>Hội viên</span></div>
+          <button class="btn sm" id="jumpNow" style="margin-left:auto">Về giờ hiện tại</button>
+        </div>
+        <div class="sheetScroll" id="sheetScroll"><div class="sheet" id="sheet" role="grid" aria-label="Bảng giờ tee — mỗi hàng là một flight 4 người"></div></div>
+      </div>
+      <aside class="fp card" id="fp" aria-label="Chi tiết flight"></aside>
+    </div>
+  </section>
+
+  <!-- ============ TRÊN SÂN ============ -->
+  <section class="view" id="v-tren-san" data-view="tren-san" aria-labelledby="csTitle">
+    <div class="vh">
+      <div>
+        <p class="crumb">Đồi Thông Golf / Trên sân</p>
+        <h1 id="csTitle">Nhịp chơi <em>trên sân</em></h1>
+        <p class="greet" id="csSub"></p>
+      </div>
+      <div class="legend"><span><i style="background:var(--grass);border-radius:50%"></i>Đúng nhịp (&lt;5 phút)</span><span><i style="background:var(--amber);border-radius:50%"></i>Chậm 5–9 phút</span><span><i style="background:var(--flag);border-radius:50%"></i>Trễ từ 10 phút</span></div>
+    </div>
+    <div class="cvGrid">
+      <div class="mapCard card"><svg id="map" viewBox="40 40 920 560" role="img" aria-label="Sơ đồ 18 lỗ và vị trí các flight"></svg><div class="mapClosed" id="mapClosed" hidden></div></div>
+      <div class="ladder card"><div class="cardH"><h3>Theo từng lỗ</h3><span class="chip" id="ldCount">0 flight</span></div><ol class="ldL" id="ladder"></ol></div>
+    </div>
+    <div class="slowCard card">
+      <div class="cardH"><div><h3>Flight cần nhắc nhịp</h3><p>Marshal sẽ ra đúng lỗ flight đang đứng. Ngưỡng nhắc: chậm từ 5 phút.</p></div><button class="btn sm" id="warnAll">Nhắc tất cả flight trễ</button></div>
+      <ul class="slowL" id="slowL"></ul>
+    </div>
+  </section>
+
+  <!-- ============ CADDIE & XE ============ -->
+  <section class="view" id="v-caddie" data-view="caddie" aria-labelledby="cdTitle">
+    <div class="vh">
+      <div>
+        <p class="crumb">Đồi Thông Golf / Caddie &amp; xe</p>
+        <h1 id="cdTitle">Caddie &amp; <em>xe điện</em></h1>
+        <p class="greet" id="cdSub"></p>
+      </div>
+      <button class="btn pri" id="addCad">+ Thêm caddie</button>
+    </div>
+    <div class="tblCard card">
+      <div class="tbar">
+        <label class="sr" for="cq">Tìm caddie</label>
+        <input class="inp" id="cq" type="search" placeholder="Tìm tên, số áo, SĐT (gõ không dấu được)" autocomplete="off">
+        <div class="fchips" id="cFilt" role="group" aria-label="Lọc theo trạng thái"></div>
+        <label class="sr" for="cLv">Lọc theo hạng</label>
+        <select class="inp" id="cLv" style="flex:none;width:auto"><option value="">Mọi hạng</option><option value="A">Hạng A</option><option value="B">Hạng B</option><option value="C">Hạng C</option></select>
+      </div>
+      <div class="bulk" id="bulk"><b id="bulkN">0 caddie đã chọn</b><button class="btn sm" data-bulk="ready">Đưa vào hàng chờ</button><button class="btn sm" data-bulk="off">Cho nghỉ ca</button><button class="btn sm warn" data-bulk="del">Xóa khỏi danh sách</button><button class="btn sm" data-bulk="clear">Bỏ chọn</button></div>
+      <div class="tScroll"><table>
+        <thead><tr><th style="width:44px"><label class="cbl"><input type="checkbox" class="ck" id="ckAll" aria-label="Chọn tất cả caddie trên trang"></label></th><th data-k="num"><button>Số áo</button></th><th data-k="name"><button>Họ tên</button></th><th data-k="lv"><button>Hạng</button></th><th data-k="st"><button>Trạng thái</button></th><th data-k="shift"><button>Ca</button></th><th data-k="rounds"><button>Vòng tháng</button></th><th data-k="rate"><button>Đánh giá</button></th><th>Điện thoại</th></tr></thead>
+        <tbody id="tb"></tbody>
+      </table></div>
+      <div class="pager" id="pager"></div>
+    </div>
+    <div class="fleet card">
+      <div class="cardH"><div><h3>Đội xe điện</h3><p id="fleetSub"></p></div><div class="seg" id="fleetSeg" role="group" aria-label="Lọc xe điện"><button data-f="" aria-pressed="true">Tất cả</button><button data-f="ready" aria-pressed="false">Sẵn sàng</button><button data-f="busy" aria-pressed="false">Đang dùng</button><button data-f="charge" aria-pressed="false">Đang sạc</button><button data-f="maint" aria-pressed="false">Bảo dưỡng</button></div></div>
+      <div class="fGrid" id="fGrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ DOANH THU ============ -->
+  <section class="view" id="v-doanh-thu" data-view="doanh-thu" aria-labelledby="rvTitle">
+    <div class="vh">
+      <div>
+        <p class="crumb">Đồi Thông Golf / Doanh thu</p>
+        <h1 id="rvTitle">Doanh thu &amp; <em>công suất sân</em></h1>
+        <p class="greet" id="rvSub"></p>
+      </div>
+      <div class="seg" id="rvSeg" role="group" aria-label="Khoảng thời gian"><button data-r="7" aria-pressed="false">7 ngày</button><button data-r="30" aria-pressed="true">30 ngày</button><button data-r="90" aria-pressed="false">90 ngày</button></div>
+    </div>
+    <div class="kp rvK" id="rvK"></div>
+    <div class="rvGrid">
+      <div class="chartCard card"><div class="cardH"><div><h3>Lượt chơi &amp; doanh thu theo ngày</h3><p>Cột: lượt chơi (trục trái) · Đường: doanh thu, triệu đồng (trục phải). Rê chuột hoặc dùng phím mũi tên.</p></div></div><svg id="chart" tabindex="0" role="img" aria-label="Biểu đồ lượt chơi và doanh thu"></svg></div>
+      <div class="mixCard card"><div class="cardH"><h3>Cơ cấu doanh thu</h3></div><div class="stack" id="stack" aria-hidden="true"></div><ul class="mixL" id="mixL"></ul></div>
+    </div>
+    <div class="heatCard card"><div class="cardH"><div><h3>Tỉ lệ lấp đầy theo khung giờ</h3><p>Trung bình 8 tuần gần nhất · % số ghế tee đã bán</p></div></div><div class="heat" id="heat"></div><div class="hScale"><span>0%</span><i></i><span>100%</span></div></div>
+  </section>
+</main>
+<footer>Đồi Thông Golf · Phần mềm điều phối sân · Thiết kế concept — thương hiệu giả định.</footer>
+
+<div class="scrim" id="scrim"></div>
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<div class="pop" id="notif" role="dialog" aria-label="Thông báo"><h3>Thông báo <button class="btn sm" id="readAll">Đánh dấu đã đọc</button></h3><ul id="notifL"></ul></div>
+
+<div class="pal" id="pal" role="dialog" aria-modal="true" aria-label="Bảng lệnh"><div class="scrim on" data-close="pal" style="position:absolute"></div><div class="palBox"><label class="sr" for="palIn">Tìm lệnh, khách, caddie</label><input id="palIn" placeholder="Gõ để tìm: khách, caddie, giờ tee, lệnh…" autocomplete="off"><ul class="palL" id="palL" role="listbox" aria-label="Kết quả"></ul></div></div>
+
+<div class="modal" id="bookM" role="dialog" aria-modal="true" aria-labelledby="bookMT">
+  <div class="scrim on" data-close="bookM" style="position:absolute"></div>
+  <form class="mBox" id="bookF" novalidate>
+    <div class="mH"><div><h2 id="bookMT">Đặt giờ tee</h2><p>Flight tối đa 4 người · giữ chỗ 15 phút trước giờ tee</p></div><button type="button" class="ib" data-close="bookM" aria-label="Đóng" style="color:var(--ink);border-color:var(--line2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="mB">
+      <div class="fld w"><label for="bName">Tên trưởng đoàn</label><input class="inp" id="bName" autocomplete="off" placeholder="VD: Trần Minh Khôi"><span class="err" id="bNameE"></span></div>
+      <div class="fld"><label for="bPhone">Số điện thoại</label><input class="inp" id="bPhone" inputmode="tel" autocomplete="off" placeholder="09x xxx xxxx"><span class="err" id="bPhoneE"></span></div>
+      <div class="fld"><span id="bCntL">Số người</span><div class="rad" role="radiogroup" aria-labelledby="bCntL"><label><input type="radio" name="bCnt" value="1" aria-label="1 người"><span>1</span></label><label><input type="radio" name="bCnt" value="2" aria-label="2 người"><span>2</span></label><label><input type="radio" name="bCnt" value="3" aria-label="3 người"><span>3</span></label><label><input type="radio" name="bCnt" value="4" checked aria-label="4 người"><span>4</span></label></div></div>
+      <div class="fld"><label for="bDay">Ngày chơi</label><select id="bDay"></select></div>
+      <div class="fld"><span id="bTeeL">Tee xuất phát</span><div class="rad" role="radiogroup" aria-labelledby="bTeeL"><label><input type="radio" name="bTee" value="1" checked aria-label="Tee 1"><span>Tee 1</span></label><label><input type="radio" name="bTee" value="10" aria-label="Tee 10"><span>Tee 10</span></label></div></div>
+      <div class="fld"><label for="bTime">Giờ tee còn chỗ</label><select id="bTime"></select><span class="err" id="bTimeE"></span></div>
+      <div class="fld"><label for="bType">Loại khách</label><select id="bType"><option value="guest">Khách lẻ</option><option value="member">Hội viên</option><option value="agent">Đại lý tour</option></select></div>
+      <div class="fld w"><label for="bNote">Ghi chú cho starter</label><textarea id="bNote" placeholder="VD: cần caddie biết tiếng Hàn, mang gậy thuê"></textarea></div>
+    </div>
+    <div class="mF"><button type="button" class="btn" data-close="bookM">Hủy</button><button type="submit" class="btn pri">Giữ chỗ</button></div>
+  </form>
+</div>
+
+<div class="modal" id="cadM" role="dialog" aria-modal="true" aria-labelledby="cadMT">
+  <div class="scrim on" data-close="cadM" style="position:absolute"></div>
+  <form class="mBox" id="cadF" novalidate>
+    <div class="mH"><div><h2 id="cadMT">Thêm caddie</h2><p>Caddie mới vào cuối hàng chờ của ca đã chọn</p></div><button type="button" class="ib" data-close="cadM" aria-label="Đóng" style="color:var(--ink);border-color:var(--line2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="mB">
+      <div class="fld w"><label for="cName">Họ tên</label><input class="inp" id="cName" autocomplete="off"><span class="err" id="cNameE"></span></div>
+      <div class="fld"><label for="cPhone">Số điện thoại</label><input class="inp" id="cPhone" inputmode="tel" autocomplete="off"><span class="err" id="cPhoneE"></span></div>
+      <div class="fld"><label for="cNum">Số áo</label><input class="inp" id="cNum" inputmode="numeric" autocomplete="off"><span class="err" id="cNumE"></span></div>
+      <div class="fld"><label for="cLevel">Hạng</label><select id="cLevel"><option value="C">Hạng C — mới</option><option value="B">Hạng B</option><option value="A">Hạng A</option></select></div>
+      <div class="fld"><label for="cShift">Ca</label><select id="cShift"><option>Sáng</option><option>Chiều</option></select></div>
+    </div>
+    <div class="mF"><button type="button" class="btn" data-close="cadM">Hủy</button><button type="submit" class="btn pri">Lưu caddie</button></div>
+  </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+'use strict'
+const STATIC = /\bstatic\b/.test(location.search)
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+if (RM) document.documentElement.classList.add('rm')
+const G = window.gsap && !RM ? window.gsap : null
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const store = {
+  get(k) { try { return localStorage.getItem(k) } catch (e) { return null } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch (e) { /* private mode */ } },
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+const pad = (n) => String(n).padStart(2, '0')
+const hm = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(Math.floor(m % 60))
+const vnd = (n) => Math.round(n).toLocaleString('vi-VN') + ' ₫'
+const tr = (n) => (n / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' tr'
+const ty = (n) => n >= 1e9 ? (n / 1e9).toLocaleString('vi-VN', { maximumFractionDigits: 2 }) + ' tỷ' : tr(n)
+function mul(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+const pick = (r, a) => a[Math.floor(r() * a.length)]
+
+/* ---------- time ---------- */
+const D0 = new Date(); D0.setHours(0, 0, 0, 0)
+const dayDate = (d) => { const x = new Date(D0); x.setDate(x.getDate() + d); return x }
+const WD = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+const WDS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+const dm = (d) => pad(d.getDate()) + '/' + pad(d.getMonth() + 1)
+const dmy = (d) => dm(d) + '/' + d.getFullYear()
+const isWk = (d) => [0, 6].includes(dayDate(d).getDay())
+const curMin = () => { const n = new Date(); return n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60 }
+let NOW = curMin()
+
+/* ---------- course ---------- */
+const PAR = [4, 4, 3, 5, 4, 4, 3, 5, 4, 4, 4, 3, 5, 4, 4, 3, 5, 4]
+const HM = PAR.map((p) => p === 3 ? 11 : p === 4 ? 14 : 17)
+const TURN = 10
+const ROUND = HM.reduce((a, b) => a + b, 0) + TURN
+const ROUTE = { 1: [...Array(18).keys()], 10: [9, 10, 11, 12, 13, 14, 15, 16, 17, 0, 1, 2, 3, 4, 5, 6, 7, 8] }
+const OPEN = 345, FIRST = 360, LAST = 840, CROSS = 480
+const TIMES = []; for (let t = FIRST; t <= LAST; t += 10) TIMES.push(t)
+const HOLES = [[440, 520, 300, 500], [280, 478, 120, 500], [100, 465, 92, 385], [112, 350, 150, 150], [182, 128, 330, 92], [352, 112, 305, 250], [282, 272, 205, 318], [232, 352, 380, 382], [402, 362, 468, 452]]
+HOLES.push(...HOLES.map(([a, b, c, d]) => [1000 - a, b, 1000 - c, d]))
+
+/* ---------- people ---------- */
+const HO = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý', 'Phan', 'Trương', 'Võ', 'Đinh', 'Lâm']
+const DM_ = ['Văn', 'Minh', 'Quốc', 'Đức', 'Hữu', 'Thành', 'Gia', 'Hoàng', 'Tuấn', 'Anh']
+const TM = ['Khôi', 'Hùng', 'Long', 'Phúc', 'Tâm', 'Bảo', 'Quân', 'Hải', 'Dũng', 'Sơn', 'Thắng', 'Nam', 'Vinh', 'Toàn', 'Hiếu', 'Trung', 'Kiên', 'Đạt', 'Lộc', 'Tài']
+const DF = ['Thị', 'Ngọc', 'Thu', 'Mỹ', 'Bảo', 'Kim', 'Thanh', 'Hồng', 'Phương', 'Diệu']
+const TF = ['Lan', 'Hà', 'Trang', 'Linh', 'Vy', 'Ngân', 'Thảo', 'Mai', 'Yến', 'Nhi', 'Hương', 'Châu', 'Quyên', 'Hạnh', 'Duyên', 'Trinh', 'My', 'Oanh', 'Tuyết', 'Loan']
+const FOREIGN = ['Kim Min-jun', 'Park Ji-hoon', 'Lee Seo-yeon', 'Tanaka Hiroshi', 'Sato Kenji', 'Choi Woo-sik']
+const phone = (r) => '09' + Math.floor(r() * 10) + ' ' + String(Math.floor(r() * 900) + 100) + ' ' + String(Math.floor(r() * 9000) + 1000)
+function vnName(r, female) { return pick(r, HO) + ' ' + (female ? pick(r, DF) + ' ' + pick(r, TF) : pick(r, DM_) + ' ' + pick(r, TM)) }
+let PID = 0
+function player(r, name, member) {
+  const nm = name || (r() < 0.07 ? pick(r, FOREIGN) : vnName(r, r() < 0.22))
+  return { id: 'p' + (++PID), name: nm, short: nm.split(' ').pop(), member: member ?? r() < 0.38, hcp: Math.floor(r() * 28) + 2, caddie: null }
+}
+const shortOf = (p) => p.short
+
+/* ---------- caddies & carts ---------- */
+const CAD = []
+{
+  const r = mul(77)
+  for (let i = 1; i <= 190; i++) {
+    const x = r()
+    CAD.push({ id: 'c' + i, num: i, name: vnName(r, r() < 0.86), lv: x < 0.22 ? 'A' : x < 0.65 ? 'B' : 'C', base: r() < 0.8 ? 'ready' : r() < 0.7 ? 'off' : 'leave', shift: r() < 0.62 ? 'Sáng' : 'Chiều', rounds: 8 + Math.floor(r() * 26), rate: Math.round((4 + r()) * 10) / 10, phone: phone(r), q: Math.floor(r() * 1000) })
+  }
+}
+const CART = []
+{
+  const r = mul(91)
+  for (let i = 1; i <= 100; i++) { const b = Math.round(18 + r() * 82); CART.push({ id: 'X' + pad(i), batt: b, maint: [17, 43, 66].includes(i) }) }
+}
+const cadById = (id) => CAD.find((c) => c.id === id)
+const cartById = (id) => CART.find((c) => c.id === id)
+
+/* ---------- flights ---------- */
+const FL = []
+const FI = {}
+const BLOCKS = { 0: [[1, 720, 740, 'Giải Hội viên tháng ' + (D0.getMonth() + 1), 'Khóa 3 lượt cho giải — xuất phát cùng lúc 12:00']], 3: [[1, 360, 390, 'Bảo dưỡng green', 'Cắt cỏ và tưới green lỗ 1–3']] }
+for (let d = 0; d < 7; d++) {
+  const r = mul(1000 + d * 37)
+  const wk = isWk(d)
+  FL[d] = []
+  for (const tee of [1, 10]) for (const t of TIMES) {
+    if (tee === 10 && t >= CROSS) continue
+    const f = { id: d + '-' + tee + '-' + t, d, tee, t, p: [null, null, null, null], carts: [null, null], delay: 0, go: null, checked: false, block: null, warned: false, src: pick(r, ['Hội viên', 'Website', 'Điện thoại', 'Đại lý tour', 'Khách sạn']) }
+    const bl = (BLOCKS[d] || []).find((b) => b[0] === tee && t >= b[1] && t <= b[2])
+    if (bl) f.block = bl
+    else {
+      let pr = t < CROSS ? 0.8 : t < 660 ? 0.6 : 0.46
+      if (wk) pr += 0.12
+      pr -= d * 0.06
+      if (r() < pr) {
+        const x = r(), n = x < 0.5 ? 4 : x < 0.7 ? 3 : x < 0.92 ? 2 : 1
+        for (let i = 0; i < n; i++) f.p[i] = player(r)
+      }
+    }
+    const y = r(); f.delay = y < 0.68 ? r() * 7 : y < 0.9 ? 10 + r() * 8 : 20 + r() * 8
+    FL[d].push(f); FI[f.id] = f
+  }
+}
+const WAIT = [
+  { id: 'w1', names: ['Đoàn Gia Bảo'], pref: 'Trước 09:00', member: true },
+  { id: 'w2', names: ['Phạm Ngọc Hân', 'Phạm Quốc Việt'], pref: 'Cả ngày', member: false },
+  { id: 'w3', names: ['Kim Min-jun'], pref: 'Sau 11:00', member: false },
+  { id: 'w4', names: ['Lương Thế Vinh'], pref: 'Sáng sớm', member: true },
+  { id: 'w5', names: ['Hà Mỹ Duyên', 'Tạ Hữu Lộc'], pref: 'Trước 12:00', member: false },
+  { id: 'w6', names: ['Trịnh Văn Kiên'], pref: 'Cả ngày', member: false },
+].map((w) => ({ ...w, players: w.names.map((n, i) => player(mul(n.length * 13 + i), n, w.member)) }))
+
+const cnt = (f) => f.p.filter(Boolean).length
+const start = (f) => f.go ?? f.t
+function progress(f) {
+  const el = NOW - start(f)
+  if (el < 0) return null
+  const pg = el * ROUND / (ROUND + f.delay)
+  if (pg >= ROUND) return { done: true, end: start(f) + ROUND + f.delay }
+  let acc = 0
+  const rt = ROUTE[f.tee]
+  for (let k = 0; k < 18; k++) {
+    if (k === 9) { if (pg < acc + TURN) return { hole: -1, k, frac: (pg - acc) / TURN, lag: el - pg }; acc += TURN }
+    const h = rt[k]
+    if (pg < acc + HM[h]) return { hole: h, k, frac: (pg - acc) / HM[h], lag: el - pg }
+    acc += HM[h]
+  }
+  return { done: true, end: start(f) + ROUND + f.delay }
+}
+function status(f) {
+  if (f.block) return 'block'
+  const n = cnt(f)
+  if (f.d > 0) return n ? 'booked' : 'empty'
+  const el = NOW - start(f)
+  if (!n) return el >= 0 ? 'gone' : 'empty'
+  if (el >= 0) return progress(f).done ? 'done' : 'play'
+  if (f.checked || el >= -20) return 'in'
+  return 'booked'
+}
+const paceOf = (lag) => lag < 5 ? 'ok' : lag < 10 ? 'slow' : 'late'
+const ST = { empty: 'Trống', gone: 'Qua giờ', booked: 'Đã đặt', in: 'Đã check-in', play: 'Trên sân', done: 'Đã xong', block: 'Khóa' }
+const holeName = (h) => h < 0 ? 'trạm nghỉ' : 'lỗ ' + (h + 1)
+const canEdit = (f) => !f.block && ['empty', 'booked', 'in'].includes(status(f))
+
+// Pre-assign caddies and carts for today's flights that have already arrived.
+function initAssign() {
+  const r = mul(5)
+  const pool = CAD.filter((c) => c.base === 'ready').sort((a, b) => a.q - b.q)
+  const carts = CART.filter((c) => !c.maint)
+  let ci = 0, ki = 0
+  for (const f of FL[0].slice().sort((a, b) => a.t - b.t)) {
+    const s = status(f)
+    if (!['in', 'play', 'done'].includes(s)) continue
+    if (s === 'in' && r() < 0.45) continue
+    f.checked = true
+    f.p.forEach((p) => { if (p) p.caddie = pool[ci++ % pool.length].id })
+    for (const k of [0, 1]) if (f.p[k * 2] || f.p[k * 2 + 1]) f.carts[k] = carts[ki++ % carts.length].id
+  }
+}
+initAssign()
+function activeFlights() { return FL[0].filter((f) => ['in', 'play'].includes(status(f))) }
+function busyCaddies() { const m = new Map(); for (const f of activeFlights()) f.p.forEach((p) => p && p.caddie && m.set(p.caddie, f)); return m }
+function busyCarts() { const m = new Map(); for (const f of activeFlights()) f.carts.forEach((c) => c && m.set(c, f)); return m }
+function lastEnd(id) { let e = -1; for (const f of FL[0]) if (f.p.some((p) => p && p.caddie === id)) { const g = progress(f); if (g && g.done) e = Math.max(e, g.end) } return e }
+function cadState(c) { const b = busyCaddies().get(c.id); if (b) return status(b) === 'play' ? 'play' : 'wait'; return c.base }
+function caddieQueue() { const busy = busyCaddies(); return CAD.filter((c) => c.base === 'ready' && !busy.has(c.id)).map((c) => ({ c, e: lastEnd(c.id) })).sort((a, b) => a.e - b.e || a.c.q - b.c.q).map((x) => x.c) }
+function cartState(k) { if (k.maint) return 'maint'; if (busyCarts().has(k.id)) return 'busy'; return k.batt < 35 ? 'charge' : 'ready' }
+function readyCarts() { const busy = busyCarts(); return CART.filter((k) => !k.maint && k.batt >= 35 && !busy.has(k.id)).sort((a, b) => b.batt - a.batt) }
+function fee(f) {
+  const wk = isWk(f.d); let g = 0, c = 0, n = 0
+  f.p.forEach((p) => { if (!p) return; n++; g += p.member ? 600000 : wk ? 2650000 : 2150000; c += 450000 })
+  const x = [0, 1].filter((k) => f.p[k * 2] || f.p[k * 2 + 1]).length * 1000000
+  return { g, c, x, t: g + c + x, n }
+}
+
+/* ---------- state ---------- */
+const S = { view: 'bang-tee', day: 0, sel: null, held: null, cheld: null, tee: 1, hole: null, cF: '', cLv: '', cQ: '', sortK: 'num', sortD: 1, page: 0, chk: new Set(), fleetF: '', range: 30, notifRead: false }
+const single = () => matchMedia('(max-width:699px)').matches
+const sheetMode = () => matchMedia('(max-width:999px)').matches
+
+/* ---------- toasts ---------- */
+function toast(msg, undo) {
+  const box = $('#toasts')
+  while (box.children.length >= 2) box.firstElementChild.remove()
+  const el = document.createElement('div')
+  el.className = 'toast'
+  el.innerHTML = `<span>${msg}</span>` + (undo ? '<button type="button">Hoàn tác</button>' : '')
+  box.appendChild(el)
+  if (undo) el.querySelector('button').onclick = () => { undo(); el.remove(); toast('Đã hoàn tác.') }
+  if (G) G.from(el, { y: -10, opacity: 0, duration: 0.25 })
+  setTimeout(() => el.remove(), undo ? 6000 : 3200)
+}
+
+/* ---------- layers & Esc ---------- */
+const LAYERS = []
+function pushLayer(name, close, focusBack) { LAYERS.push({ name, close, back: focusBack || document.activeElement }) }
+function popLayer(name) { const i = LAYERS.map((l) => l.name).lastIndexOf(name); if (i < 0) return; const [l] = LAYERS.splice(i, 1); if (l.back && l.back.focus && document.contains(l.back)) l.back.focus({ preventScroll: true }) }
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (S.held || S.cheld) { S.held = null; S.cheld = null; renderWait(); renderPanel(); return }
+    const top = LAYERS[LAYERS.length - 1]
+    if (top) { e.preventDefault(); top.close() }
+    return
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#pal').classList.contains('on') ? closePal() : openPal() }
+})
+
+/* ---------- strip ---------- */
+function onCourse() {
+  const out = []
+  for (const f of FL[0]) if (status(f) === 'play') { const g = progress(f); out.push({ f, ...g, pace: paceOf(g.lag) }) }
+  return out
+}
+function renderStrip() {
+  const oc = onCourse()
+  const per = Array.from({ length: 18 }, () => [])
+  oc.forEach((x) => { if (x.hole >= 0) per[x.hole].push(x) })
+  const turn = oc.filter((x) => x.hole < 0).length
+  const cell = (h) => {
+    const a = per[h], w = a.some((x) => x.pace === 'late') ? 'late' : a.some((x) => x.pace === 'slow') ? 'slow' : ''
+    const dots = a.slice(0, 3).map((x) => `<u class="${x.pace}"></u>`).join('') + (a.length > 3 ? `<em>+${a.length - 3}</em>` : '')
+    return `<button class="sc ${w ? 'p-' + w : ''} ${S.hole === h ? 'hl' : ''}" data-hole="${h}" aria-label="Lỗ ${h + 1}, par ${PAR[h]}, ${a.length} flight đang chơi"><b>${h + 1}</b><small>Par ${PAR[h]}</small><span class="dots">${dots}</span></button>`
+  }
+  const tot = (lbl, a, b) => `<div class="sc tot"><b>${lbl}</b><small>Par ${PAR.slice(a, b).reduce((x, y) => x + y, 0)}</small><span class="dots"><em>${per.slice(a, b).reduce((x, y) => x + y.length, 0)} flight</em></span></div>`
+  const lagAvg = oc.length ? oc.reduce((a, x) => a + x.lag, 0) / oc.length : 0
+  let live
+  if (oc.length) live = `<b>${oc.length} flight trên sân</b><small>${hm(NOW)} · trễ TB ${Math.round(lagAvg)}′ · ${turn} ở trạm nghỉ</small>`
+  else if (NOW < OPEN) live = `<b>Sân chưa mở</b><small>${hm(NOW)} · tee đầu tiên ${hm(FIRST)}</small>`
+  else if (NOW > LAST) live = `<b>Hết lượt hôm nay</b><small>${hm(NOW)} · tee đầu ngày mai ${hm(FIRST)}</small>`
+  else live = `<b>Sân đang trống</b><small>${hm(NOW)} · chưa có flight xuất phát</small>`
+  let h = '<div class="sc lab"><b>Lỗ</b><small>Đang chơi</small></div>'
+  for (let i = 0; i < 9; i++) h += cell(i)
+  h += tot('OUT', 0, 9)
+  for (let i = 9; i < 18; i++) h += cell(i)
+  h += tot('IN', 9, 18) + `<div class="sc live">${live}</div>`
+  $('#strip').innerHTML = h
+}
+$('#strip').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-hole]'); if (!b) return
+  const h = +b.dataset.hole
+  S.hole = S.hole === h ? null : h
+  if (S.view !== 'tren-san') location.hash = 'tren-san'
+  else renderCourse()
+  renderStrip()
+})
+
+/* ---------- tee view ---------- */
+function greetWord() { const h = new Date().getHours(); return h < 5 ? 'Ca đêm' : h < 11 ? 'Chào buổi sáng' : h < 13 ? 'Chào buổi trưa' : h < 18 ? 'Chào buổi chiều' : 'Chào buổi tối' }
+function dayStats(d) {
+  const fl = FL[d].filter((f) => !f.block)
+  const booked = fl.filter((f) => cnt(f)).length
+  const pl = fl.reduce((a, f) => a + cnt(f), 0)
+  return { booked, pl, fill: Math.round(pl / (fl.length * 4) * 100) }
+}
+function renderTeeHead() {
+  const d = S.day, dd = dayDate(d), st = dayStats(d)
+  $('#teeTitle').innerHTML = `${d === 0 ? 'Hôm nay, ' : ''}${WD[dd.getDay()]} <em>${dm(dd)}</em>`
+  const oc = d === 0 ? onCourse() : []
+  let g
+  if (d > 0) g = `Xem trước ngày ${dmy(dd)} — ${st.booked} flight đã đặt, còn ${FL[d].filter((f) => !f.block).length * 4 - st.pl} ghế trống.`
+  else if (NOW < OPEN) g = `${greetWord()}, Thảo. Sân mở lúc 05:45 — đã có ${st.booked} flight đặt cho hôm nay.`
+  else if (oc.length) g = `${greetWord()}, Thảo. ${oc.length} flight đang trên sân, ${FL[0].filter((f) => status(f) === 'in').length} flight chờ xuất phát.`
+  else g = `${greetWord()}, Thảo. Sân đã hết lượt — ${FL[0].filter((f) => status(f) === 'done').length} flight hoàn thành hôm nay.`
+  $('#greet').textContent = g
+  const q = caddieQueue().length, rc = readyCarts().length
+  $('#teeKpi').innerHTML = `<div><small>Flight đã đặt</small><b>${st.booked}</b></div><div><small>Người chơi</small><b>${st.pl}</b></div><div><small>Lấp đầy</small><b>${st.fill}<sub>%</sub></b></div><div><small>Caddie chờ</small><b>${q}</b></div><div><small>Xe sẵn sàng</small><b>${rc}</b></div>`
+  $('#days').innerHTML = Array.from({ length: 7 }, (_, i) => {
+    const x = dayDate(i), s = dayStats(i)
+    return `<button class="dp ${isWk(i) ? 'wk' : ''}" role="tab" aria-selected="${i === d}" data-day="${i}"><small>${i === 0 ? 'Hôm nay' : i === 1 ? 'Ngày mai' : WD[x.getDay()]}</small><b>${dm(x)}</b><i>${s.fill}%</i></button>`
+  }).join('')
+  renderNavMeta()
+}
+$('#days').addEventListener('click', (e) => { const b = e.target.closest('[data-day]'); if (!b) return; S.day = +b.dataset.day; S.sel = null; renderTee(); scrollSheetToNow() })
+$('#days').addEventListener('keydown', (e) => {
+  if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return
+  S.day = Math.max(0, Math.min(6, S.day + (e.key === 'ArrowRight' ? 1 : -1))); S.sel = null; renderTee()
+  $(`#days [data-day="${S.day}"]`).focus()
+})
+
+function renderWait() {
+  const ul = $('#wq')
+  if (!WAIT.length) { ul.innerHTML = '<li class="wqEmpty">Không còn khách chờ — mọi khách lẻ đã có flight.</li>'; return }
+  ul.innerHTML = WAIT.map((w) => `<li><button class="gch" data-drag="guest" data-w="${w.id}" aria-pressed="${S.held === w.id}" aria-label="${esc(w.names.join(' và '))}, ${w.players.length} người, ${w.pref}. Chọn để xếp vào flight"><span class="av ${w.players.length > 1 ? 'two' : ''}">${w.players.length > 1 ? '×2' : esc(w.names[0].split(' ')[0][0] + w.names[0].split(' ').pop()[0])}</span><span><b>${esc(w.names.map((n) => n.split(' ').pop()).join(' + '))}</b><small>${w.member ? 'Hội viên' : 'Khách lẻ'} · ${esc(w.pref)}</small></span></button></li>`).join('')
+}
+$('#wq').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-w]'); if (!b || DRAG.moved) return
+  S.held = S.held === b.dataset.w ? null : b.dataset.w
+  renderWait(); markDrops()
+  if (S.held) toast('Đã chọn khách — chạm vào một ghế trống để xếp. <kbd>Esc</kbd> để bỏ chọn.')
+})
+
+function rowCells(f, cols, r) {
+  const s = status(f), g = s === 'play' ? progress(f) : null
+  const pace = g ? paceOf(g.lag) : ''
+  const sel = S.sel === f.id ? ' rowSel' : ''
+  let small = ST[s]
+  if (s === 'play') small = (g.hole < 0 ? 'Trạm nghỉ' : 'Lỗ ' + (g.hole + 1)) + (g.lag >= 5 && g.hole >= 0 ? ' +' + Math.round(g.lag) + '′' : '')
+  if (s === 'done') small = '✓ Xong'
+  if (s === 'in') small = 'Check-in'
+  let h = ''
+  if (cols.time) {
+    const nowTag = f.d === 0 && f.tee === 1 && NOW >= f.t && NOW < f.t + 10 ? '<span class="nowTag" title="Giờ hiện tại"></span>' : ''
+    h += `<div class="tc s-${s} ${pace}${sel}${nowTag ? ' nowRow' : ''}" role="rowheader" tabindex="-1" data-f="${f.id}" data-r="${r}" data-c="${cols.base - 1}" style="grid-row:${r + 2};grid-column:1" aria-label="${hm(f.t)} tee ${f.tee}, ${small}">${nowTag}<b>${hm(f.t)}</b><small>${small}</small></div>`
+  }
+  for (let i = 0; i < 4; i++) {
+    const p = f.p[i], c = cols.base + i
+    const open = !p && canEdit(f)
+    const cad = p && p.caddie ? '#' + pad(cadById(p.caddie).num).padStart(3, '0') : p && ['in', 'play'].includes(s) ? 'chưa caddie' : ''
+    const lab = p ? `${p.name}, ${p.member ? 'hội viên' : 'khách'}${cad ? ', caddie ' + cad : ''}` : open ? 'Ghế trống' : 'Không nhận khách'
+    h += `<div class="sl s-${s}${p ? ' has' : ''}${p && p.member ? ' mem' : ''}${open ? ' open' : ''}${i === 3 ? ' e4' : ''}${sel}" role="gridcell" tabindex="-1" data-f="${f.id}" data-s="${i}" data-r="${r}" data-c="${c}" style="grid-row:${r + 2};grid-column:${c + 1}" aria-label="${hm(f.t)} tee ${f.tee} ghế ${i + 1}: ${esc(lab)}" ${p ? `title="${esc(p.name)}"` : ''}>${p ? `<b>${esc(shortOf(p))}</b><i class="${cad === 'chưa caddie' ? 'no' : ''}">${s === 'done' ? '✓ ' : ''}${cad || (p.member ? 'Hội viên' : 'Khách')}</i>` : '<span class="pl" aria-hidden="true">+</span>'}</div>`
+  }
+  return h
+}
+function renderSheet() {
+  const d = S.day, one = single()
+  const sh = $('#sheet')
+  sh.classList.toggle('single', one)
+  const tees = one ? [S.tee] : [1, 10]
+  let h = '<div class="sh" style="grid-row:1;grid-column:1">Giờ</div>'
+  tees.forEach((tee, ti) => {
+    const c0 = one ? 2 : ti === 0 ? 2 : 7
+    h += `<div class="sh" style="grid-row:1;grid-column:${c0}/span 4"><b>Tee ${tee} · ${tee === 1 ? 'OUT' : 'IN'}</b><span>Ghế 1 · 2 · 3 · 4</span></div>`
+    if (!one && ti === 0) h += '<div class="sh" style="grid-row:1;grid-column:6;padding:0"></div>'
+  })
+  const done = new Set()
+  TIMES.forEach((t, r) => {
+    let first = true
+    tees.forEach((tee, ti) => {
+      const base = one ? 1 : ti === 0 ? 1 : 6
+      const f = FI[d + '-' + tee + '-' + t]
+      const showTime = first
+      if (!f) {
+        // Tee 10 closes after the crossover; draw one tall band instead of empty rows.
+        if (showTime) { h += `<div class="tc s-block" role="rowheader" data-r="${r}" data-c="0" style="grid-row:${r + 2};grid-column:1"><b>${hm(t)}</b><small>Chuyển lượt</small></div>`; first = false }
+        if (!done.has('x' + tee)) {
+          done.add('x' + tee)
+          const span = TIMES.filter((x) => x >= CROSS).length
+          h += `<div class="blk cross" style="grid-row:${r + 2}/span ${span};grid-column:${base + 1}/span 4"><div class="stk"><b>Tee 10 chuyển lượt</b><small>Từ ${hm(CROSS)} các flight Tee 1 đi tiếp sang lỗ 10 — không nhận xuất phát mới.</small>${crossList(d)}</div></div>`
+        }
+        return
+      }
+      if (f.block) {
+        if (showTime) { h += timeOnly(f, r); first = false }
+        const key = 'b' + tee + f.block[1]
+        if (!done.has(key)) { done.add(key); const span = TIMES.filter((x) => x >= f.block[1] && x <= f.block[2]).length; h += `<div class="blk" style="grid-row:${r + 2}/span ${span};grid-column:${base + 1}/span 4"><b>${esc(f.block[3])}</b><small>${esc(f.block[4])}</small></div>` }
+        return
+      }
+      h += rowCells(f, { time: showTime, base }, r)
+      first = false
+    })
+    if (!one) h += `<div class="gp" style="grid-row:${r + 2};grid-column:6"></div>`
+  })
+  sh.innerHTML = h
+  markDrops()
+}
+function crossList(d) {
+  if (d !== 0) return ''
+  const a = onCourse().filter((x) => x.f.tee === 1 && (x.hole < 0 || x.k >= 6) && x.k <= 9).sort((x, y) => y.k - x.k || y.frac - x.frac)
+  if (!a.length) return ''
+  return '<span class="crossL"><em>Sắp sang lỗ 10</em>' + a.slice(0, 5).map((x) => `<button class="chip ${x.pace}" data-f="${x.f.id}" aria-label="Flight ${hm(x.f.t)} ở ${holeName(x.hole)}">${hm(x.f.t)} · ${x.hole < 0 ? 'trạm nghỉ' : 'lỗ ' + (x.hole + 1)}</button>`).join('') + '</span>'
+}
+function timeOnly(f, r) { return `<div class="tc s-block" role="rowheader" data-r="${r}" data-c="0" style="grid-row:${r + 2};grid-column:1"><b>${hm(f.t)}</b><small>Khóa</small></div>` }
+function scrollSheetToNow() {
+  if (S.day !== 0) { $('#sheetScroll').scrollTop = 0; return }
+  const idx = Math.max(0, TIMES.findIndex((t) => t > NOW - 30))
+  const el = $(`#sheet [data-r="${idx}"]`)
+  if (!el) return
+  if (!sheetMode()) $('#sheetScroll').scrollTop = Math.max(0, el.offsetTop - 44 - 88)
+}
+$('#jumpNow').onclick = () => {
+  if (S.day !== 0) { S.day = 0; renderTee() }
+  if (sheetMode()) { const idx = Math.max(0, TIMES.findIndex((t) => t > NOW - 30)); const el = $(`#sheet [data-r="${idx}"]`); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 200, behavior: RM ? 'auto' : 'smooth' }) } else scrollSheetToNow()
+}
+$('#teeSeg').addEventListener('click', (e) => { const b = e.target.closest('[data-tee]'); if (!b) return; S.tee = +b.dataset.tee; $$('#teeSeg button').forEach((x) => x.setAttribute('aria-pressed', x === b)); renderSheet() })
+
+// Seat targets light up while a guest is held or dragged.
+function markDrops() {
+  const w = WAIT.find((x) => x.id === (DRAG.kind === 'guest' ? DRAG.id : S.held))
+  $$('#sheet .sl').forEach((el) => el.classList.toggle('dropOk', !!w && fits(FI[el.dataset.f], +el.dataset.s, w.players.length)))
+}
+function fits(f, seat, n) {
+  if (!f || !canEdit(f) || f.p[seat]) return false
+  return 4 - cnt(f) >= n
+}
+function placeGuest(wid, fid, seat) {
+  const w = WAIT.find((x) => x.id === wid), f = FI[fid]
+  if (!w || !f) return
+  if (!canEdit(f)) { toast(`Flight ${hm(f.t)} ${status(f) === 'gone' ? 'đã qua giờ' : 'đã xuất phát'} — không ghép thêm được.`); return }
+  if (f.p[seat]) { toast('Ghế này đã có người. Chọn ghế trống.'); return }
+  if (4 - cnt(f) < w.players.length) { toast(`Flight ${hm(f.t)} chỉ còn ${4 - cnt(f)} ghế, nhóm có ${w.players.length} người.`); return }
+  const snap = f.p.slice(), wi = WAIT.indexOf(w)
+  let s = seat
+  for (const p of w.players) { while (f.p[s]) s = (s + 1) % 4; f.p[s] = p }
+  WAIT.splice(wi, 1)
+  S.held = null; S.sel = f.id
+  renderTee()
+  flash(f.id)
+  toast(`Đã ghép <b>${esc(w.names.join(', '))}</b> vào flight ${hm(f.t)} · Tee ${f.tee}.`, () => { f.p = snap; WAIT.splice(wi, 0, w); renderTee() })
+}
+function flash(fid) { if (!G) return; G.fromTo($$(`#sheet [data-f="${fid}"]`), { backgroundColor: 'rgba(92,191,124,.45)' }, { backgroundColor: 'rgba(92,191,124,0)', duration: 1.1, clearProps: 'backgroundColor' }) }
+
+$('#sheet').addEventListener('click', (e) => {
+  const c = e.target.closest('[data-f]'); if (!c || DRAG.moved) return
+  const f = FI[c.dataset.f]
+  if (c.dataset.s != null && S.held && !f.p[+c.dataset.s]) { placeGuest(S.held, f.id, +c.dataset.s); return }
+  selectFlight(f.id, true)
+})
+$('#sheet').addEventListener('keydown', (e) => {
+  const c = e.target.closest('[data-r]'); if (!c) return
+  const k = e.key
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k)) {
+    e.preventDefault()
+    let r = +c.dataset.r, col = +c.dataset.c
+    const dr = k === 'ArrowUp' ? -1 : k === 'ArrowDown' ? 1 : 0, dc = k === 'ArrowLeft' ? -1 : k === 'ArrowRight' ? 1 : 0
+    for (let n = 0; n < 60; n++) {
+      r += dr; col += dc
+      if (dc && (col === 5)) col += dc
+      const t = $(`#sheet [data-r="${r}"][data-c="${col}"][tabindex]`)
+      if (t) { focusCell(t); return }
+      if (r < 0 || r >= TIMES.length || col < 0 || col > 9) return
+    }
+  }
+  if (k === 'Enter' || k === ' ') { e.preventDefault(); c.click(); const again = $(`#sheet [data-r="${c.dataset.r}"][data-c="${c.dataset.c}"]`); if (again && !sheetMode()) focusCell(again) }
+  if ((k === 'Delete' || k === 'Backspace') && c.dataset.s != null) { e.preventDefault(); removeSeat(c.dataset.f, +c.dataset.s) }
+})
+function focusCell(t) { $$('#sheet [tabindex="0"]').forEach((x) => x.setAttribute('tabindex', '-1')); t.setAttribute('tabindex', '0'); t.focus() }
+function ensureTab() { const sel = S.sel && $(`#sheet [data-f="${S.sel}"][data-c]`); const t = sel || $('#sheet [tabindex]'); if (t && !$('#sheet [tabindex="0"]')) t.setAttribute('tabindex', '0') }
+
+function selectFlight(fid, open) {
+  S.sel = fid
+  $$('#sheet .rowSel').forEach((x) => x.classList.remove('rowSel'))
+  $$(`#sheet [data-f="${fid}"]`).forEach((x) => x.classList.add('rowSel'))
+  renderPanel()
+  if (open && sheetMode()) openSheet()
+}
+function defaultSel() {
+  const fl = FL[S.day].filter((f) => !f.block && cnt(f))
+  const nx = fl.find((f) => ['in', 'booked'].includes(status(f))) || fl.find((f) => status(f) === 'play') || fl[0]
+  return nx ? nx.id : null
+}
+function renderPanel() {
+  if (!S.sel || !FI[S.sel] || FI[S.sel].d !== S.day) S.sel = defaultSel()
+  const fp = $('#fp'), f = FI[S.sel]
+  if (!f) { fp.innerHTML = '<div class="empty"><b>Chưa có flight</b>Chọn một hàng trên bảng tee.</div>'; return }
+  const s = status(f), g = s === 'play' ? progress(f) : null, pace = g ? paceOf(g.lag) : ''
+  const chipC = { play: pace, in: 'in', done: '', booked: '', empty: '', gone: '' }[s] || ''
+  const today = f.d === 0, edit = canEdit(f)
+  const used = new Set(); FL[f.d].forEach((x) => x !== f && ['in', 'play'].includes(status(x)) && x.p.forEach((p) => p && p.caddie && used.add(p.caddie)))
+  const cq = today ? caddieQueue() : []
+  const cadOpts = (p) => {
+    const list = CAD.filter((c) => c.base === 'ready' && (!used.has(c.id) || c.id === p.caddie))
+    return `<option value="">— Chưa có —</option>` + list.map((c) => `<option value="${c.id}" ${p.caddie === c.id ? 'selected' : ''}>#${String(c.num).padStart(3, '0')} ${esc(c.name.split(' ').pop())}</option>`).join('')
+  }
+  let prog = ''
+  if (g) {
+    const k = g.k
+    prog = `<div class="prog"><div class="bar" aria-hidden="true">${ROUTE[f.tee].map((h, i) => `<i class="${i < k ? 'd' : i === k ? 'c ' + pace : ''}"></i>`).join('')}</div><p>${g.hole < 0 ? 'Đang ở trạm nghỉ giữa vòng' : `Đang ở <b>lỗ ${g.hole + 1}</b> (par ${PAR[g.hole]})`} · ${g.lag < 1 ? 'đúng nhịp' : 'chậm ' + Math.round(g.lag) + ' phút so với chuẩn'} · dự kiến về ${hm(start(f) + ROUND + f.delay)}</p></div>`
+  } else if (s === 'done') prog = `<div class="prog"><p>✓ Hoàn thành 18 lỗ lúc ${hm(progress(f).end)} · caddie đã trở về hàng chờ.</p></div>`
+  const seats = f.p.map((p, i) => p
+    ? `<li class="seat" data-cseat="${i}"><span class="n">${i + 1}</span><span><b>${esc(p.name)}</b><small>${p.member ? 'Hội viên' : 'Khách'} · HCP ${p.hcp}</small></span>${s === 'done' ? `<small>${p.caddie ? 'Caddie #' + String(cadById(p.caddie).num).padStart(3, '0') : '—'}</small>` : `<select aria-label="Caddie cho ${esc(p.name)}" data-cs="${i}" class="${!p.caddie && today ? 'miss' : ''}" ${s === 'play' || !today ? 'disabled' : ''}>${cadOpts(p)}</select>`}${edit ? `<button class="rm" data-rm="${i}" aria-label="Xóa ${esc(p.name)} khỏi flight"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>` : '<span></span>'}</li>`
+    : `<li class="seat empty"><span class="n">${i + 1}</span><span>${edit ? 'Ghế trống — kéo khách chờ vào bảng tee' : 'Trống'}</span></li>`).join('')
+  const cartSel = (k) => {
+    if (!(f.p[k * 2] || f.p[k * 2 + 1])) return `<label>Xe ${k + 1} (ghế ${k * 2 + 1}–${k * 2 + 2})<select disabled aria-label="Xe ${k + 1}"><option>Không cần</option></select></label>`
+    const busy = busyCarts(); const list = CART.filter((c) => !c.maint && (!busy.has(c.id) || busy.get(c.id) === f || c.id === f.carts[k]))
+    return `<label>Xe ${k + 1} (ghế ${k * 2 + 1}–${k * 2 + 2})<select data-cart="${k}" aria-label="Xe điện cho ghế ${k * 2 + 1} và ${k * 2 + 2}" ${s === 'play' || s === 'done' || !today ? 'disabled' : ''}><option value="">— Chưa có —</option>${list.map((c) => `<option value="${c.id}" ${f.carts[k] === c.id ? 'selected' : ''}>${c.id} · pin ${c.batt}%</option>`).join('')}</select></label>`
+  }
+  const fe = fee(f)
+  const missing = today && ['in', 'booked'].includes(s) && f.p.some((p) => p && !p.caddie)
+  let note = ''
+  if (today && NOW < OPEN && ['booked', 'in'].includes(s)) note = 'Sân mở lúc 05:45 — chưa thể xuất phát.'
+  else if (missing && s === 'in') note = 'Còn người chưa có caddie — bấm “Tự phân caddie & xe”.'
+  const canGo = today && ['in', 'booked'].includes(s) && NOW >= OPEN && f.t - NOW <= 30 && !f.p.some((p) => p && !p.caddie)
+  fp.innerHTML = `<div class="fpH"><div><small>Flight · ${esc(f.src)}</small><h2>${hm(f.t)} · Tee ${f.tee}</h2><span class="chip ${chipC}">${s === 'done' ? '✓ ' : ''}${ST[s]}${g ? ' · ' + holeName(g.hole) : ''}</span></div><button class="ib fpX" id="fpX" aria-label="Đóng chi tiết flight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="fpB">${prog}${note ? `<p class="fpNote">${note}</p>` : ''}<ol class="seats">${seats}</ol>
+  ${today && edit && cnt(f) ? `<div class="cq"><h4>Hàng chờ caddie · kéo vào ghế</h4><div class="cqL">${cq.slice(0, 6).map((c) => `<button class="cch" data-drag="caddie" data-cid="${c.id}" aria-pressed="${S.cheld === c.id}" aria-label="Caddie số ${c.num} ${esc(c.name)}, hạng ${c.lv}"><i>${c.num}</i>${esc(c.name.split(' ').pop())}</button>`).join('') || '<span class="hint">Hết caddie rảnh.</span>'}</div></div>` : ''}<div class="pair">${cartSel(0)}${cartSel(1)}</div>
+  <dl class="fees"><dt>Phí sân (${fe.n} người)</dt><dd>${vnd(fe.g)}</dd><dt>Caddie</dt><dd>${vnd(fe.c)}</dd><dt>Xe điện</dt><dd>${vnd(fe.x)}</dd><dt class="t">Tổng tạm tính</dt><dd class="t">${vnd(fe.t)}</dd></dl></div>
+  <div class="fpF"><button class="btn" id="fpAuto" ${today && edit && cnt(f) ? '' : 'disabled'}>Tự phân caddie &amp; xe</button><button class="btn" id="fpIn" ${today && s === 'booked' ? '' : 'disabled'}>Check-in</button><button class="btn pri" id="fpGo" ${canGo ? '' : 'disabled'}>Xuất phát</button><button class="btn warn" id="fpCancel" ${edit && cnt(f) ? '' : 'disabled'}>Hủy giữ chỗ</button></div>`
+}
+$('#fp').addEventListener('change', (e) => {
+  const f = FI[S.sel]; if (!f) return
+  const cs = e.target.closest('[data-cs]')
+  if (cs) { const p = f.p[+cs.dataset.cs]; p.caddie = cs.value || null; renderTee(); toast(p.caddie ? `Caddie #${String(cadById(p.caddie).num).padStart(3, '0')} theo ${esc(p.name)}.` : `Đã bỏ caddie của ${esc(p.name)}.`) }
+  const ct = e.target.closest('[data-cart]')
+  if (ct) { f.carts[+ct.dataset.cart] = ct.value || null; renderTee() }
+})
+$('#fp').addEventListener('click', (e) => {
+  const f = FI[S.sel]; if (!f) return
+  const t = e.target
+  if (t.closest('#fpX')) { closeSheet(); return }
+  const rm = t.closest('[data-rm]'); if (rm) { removeSeat(f.id, +rm.dataset.rm); return }
+  const cc = t.closest('[data-cid]'); if (cc && !DRAG.moved) { S.cheld = S.cheld === cc.dataset.cid ? null : cc.dataset.cid; renderPanel(); if (S.cheld) toast('Đã chọn caddie — chạm vào một người trong flight để giao.'); return }
+  const seat = t.closest('[data-cseat]'); if (seat && S.cheld && !t.closest('select,button')) { giveCaddie(S.cheld, f.id, +seat.dataset.cseat); return }
+  if (t.closest('#fpAuto')) autoAssign(f)
+  if (t.closest('#fpIn')) { f.checked = true; renderTee(); toast(`Flight ${hm(f.t)} đã check-in tại quầy.`, () => { f.checked = false; renderTee() }) }
+  if (t.closest('#fpGo')) { const snap = f.go; f.go = NOW; renderAll(); toast(`Flight ${hm(f.t)} xuất phát từ Tee ${f.tee}.`, () => { f.go = snap; renderAll() }) }
+  if (t.closest('#fpCancel')) { const snap = f.p.slice(), cs = f.carts.slice(); f.p = [null, null, null, null]; f.carts = [null, null]; renderTee(); toast(`Đã hủy giữ chỗ flight ${hm(f.t)} · Tee ${f.tee}.`, () => { f.p = snap; f.carts = cs; renderTee() }) }
+})
+function giveCaddie(cid, fid, seat) {
+  const f = FI[fid], p = f && f.p[seat], c = cadById(cid)
+  if (!p || !c) return
+  if (!canEdit(f)) { toast('Flight đã xuất phát — không đổi caddie được.'); return }
+  const old = p.caddie; p.caddie = cid; S.cheld = null
+  renderTee()
+  toast(`Caddie #${String(c.num).padStart(3, '0')} ${esc(c.name.split(' ').pop())} theo ${esc(p.name)}.`, () => { p.caddie = old; renderTee() })
+}
+function removeSeat(fid, i) {
+  const f = FI[fid], p = f && f.p[i]
+  if (!p) return
+  if (!canEdit(f)) { toast('Flight đã xuất phát — không xóa khách được.'); return }
+  f.p[i] = null
+  renderTee()
+  toast(`Đã xóa ${esc(p.name)} khỏi flight ${hm(f.t)}.`, () => { f.p[i] = p; renderTee() })
+}
+function autoAssign(f) {
+  const snapP = f.p.map((p) => p && p.caddie), snapC = f.carts.slice()
+  const q = caddieQueue(); let n = 0, k = 0
+  f.p.forEach((p) => { if (p && !p.caddie && q.length) { p.caddie = q.shift().id; n++ } })
+  const rc = readyCarts()
+  for (const j of [0, 1]) if ((f.p[j * 2] || f.p[j * 2 + 1]) && !f.carts[j] && rc.length) { f.carts[j] = rc.shift().id; k++ }
+  f.checked = true
+  renderTee()
+  if (!n && !k) toast('Flight đã đủ caddie và xe.')
+  else toast(`Đã phân ${n} caddie theo thứ tự hàng chờ và ${k} xe pin cao nhất.`, () => { f.p.forEach((p, i) => { if (p) p.caddie = snapP[i] }); f.carts = snapC; renderTee() })
+}
+
+/* bottom sheet (≤999px) */
+function openSheet() {
+  if ($('#fp').classList.contains('on')) return
+  $('#fp').classList.add('on'); $('#scrim').classList.add('on'); document.body.classList.add('ovl')
+  pushLayer('sheet', closeSheet)
+  setTimeout(() => { const x = $('#fpX'); x && x.focus({ preventScroll: true }) }, 30)
+}
+function closeSheet() { if (!$('#fp').classList.contains('on')) return; $('#fp').classList.remove('on'); document.body.classList.remove('ovl'); if (!$('#nav').classList.contains('on')) $('#scrim').classList.remove('on'); popLayer('sheet') }
+
+function renderNavMeta() {
+  const oc = onCourse().length
+  $('#nvTee').textContent = dayStats(0).booked + ' flight hôm nay'
+  $('#nvCourse').textContent = oc ? oc + ' flight đang chơi' : NOW < OPEN ? 'Sân chưa mở' : 'Không có flight'
+  $('#nvCad').textContent = caddieQueue().length + ' caddie chờ'
+}
+function renderTee() {
+  renderTeeHead(); renderWait(); renderSheet(); renderPanel(); ensureTab()
+}
+
+/* ---------- drag engine (pointer: mouse + touch) ---------- */
+const DRAG = { kind: null, id: null, moved: false, x: 0, y: 0, ghost: null, src: null, hot: null }
+document.addEventListener('pointerdown', (e) => {
+  const el = e.target.closest('[data-drag]'); if (!el || e.button > 0) return
+  DRAG.kind = el.dataset.drag; DRAG.id = el.dataset.w || el.dataset.cid; DRAG.moved = false; DRAG.x = e.clientX; DRAG.y = e.clientY; DRAG.src = el
+})
+document.addEventListener('pointermove', (e) => {
+  if (!DRAG.kind) return
+  if (!DRAG.moved) {
+    if (Math.hypot(e.clientX - DRAG.x, e.clientY - DRAG.y) < 7) return
+    DRAG.moved = true
+    const g = document.createElement('div'); g.className = 'dg-ghost'
+    g.textContent = DRAG.kind === 'guest' ? WAIT.find((w) => w.id === DRAG.id).names.join(' + ') : 'Caddie #' + cadById(DRAG.id).num
+    document.body.appendChild(g); DRAG.ghost = g; DRAG.src.classList.add('dg-src')
+    if (DRAG.kind === 'guest') markDrops()
+  }
+  DRAG.ghost.style.left = e.clientX + 'px'; DRAG.ghost.style.top = e.clientY + 'px'
+  const under = document.elementFromPoint(e.clientX, e.clientY)
+  const t = under && under.closest(DRAG.kind === 'guest' ? '#sheet .sl.dropOk' : '#fp [data-cseat]')
+  if (DRAG.hot && DRAG.hot !== t) DRAG.hot.classList.remove(DRAG.kind === 'guest' ? 'dropHot' : 'cdrop')
+  if (t) t.classList.add(DRAG.kind === 'guest' ? 'dropHot' : 'cdrop')
+  DRAG.hot = t
+  // edge auto-scroll inside the sheet frame
+  const sc = $('#sheetScroll'), r = sc.getBoundingClientRect()
+  if (DRAG.kind === 'guest' && !sheetMode() && e.clientX > r.left && e.clientX < r.right) { if (e.clientY > r.bottom - 40) sc.scrollTop += 12; else if (e.clientY < r.top + 50) sc.scrollTop -= 12 }
+})
+document.addEventListener('pointerup', (e) => {
+  if (!DRAG.kind) return
+  const kind = DRAG.kind, id = DRAG.id, moved = DRAG.moved, hot = DRAG.hot
+  if (DRAG.ghost) DRAG.ghost.remove()
+  if (DRAG.src) DRAG.src.classList.remove('dg-src')
+  if (hot) hot.classList.remove('dropHot', 'cdrop')
+  Object.assign(DRAG, { kind: null, ghost: null, src: null, hot: null })
+  if (moved) {
+    DRAG.moved = true; setTimeout(() => { DRAG.moved = false }, 0)
+    if (hot && kind === 'guest') placeGuest(id, hot.dataset.f, +hot.dataset.s)
+    else if (hot && kind === 'caddie') giveCaddie(id, S.sel, +hot.dataset.cseat)
+    else { markDrops(); toast('Thả vào một ghế trống còn nhận khách nhé.') }
+  }
+})
+document.addEventListener('pointercancel', () => { if (DRAG.ghost) DRAG.ghost.remove(); if (DRAG.src) DRAG.src.classList.remove('dg-src'); Object.assign(DRAG, { kind: null, ghost: null, src: null, hot: null, moved: false }); markDrops() })
+
+/* ---------- course view ---------- */
+function fwPath(h) {
+  const [a, b, c, d] = HOLES[h], mx = (a + c) / 2, my = (b + d) / 2, L = Math.hypot(c - a, d - b)
+  const s = h % 2 ? 1 : -1, ox = -(d - b) / L * 14 * s, oy = (c - a) / L * 14 * s
+  return { d: `M${a} ${b} Q${mx + ox} ${my + oy} ${c} ${d}`, at: (t) => { const u = 1 - t; return [u * u * a + 2 * u * t * (mx + ox) + t * t * c, u * u * b + 2 * u * t * (my + oy) + t * t * d] }, L }
+}
+const FW = HOLES.map((_, h) => fwPath(h))
+function drawMapBase() {
+  const trees = [[60, 210], [62, 560], [210, 560], [395, 190], [430, 290], [570, 290], [605, 190], [790, 560], [938, 560], [940, 210], [470, 70], [530, 70], [260, 420], [740, 420]]
+  let s = `<rect x="40" y="40" width="920" height="560" fill="var(--surface2)"/>`
+  s += `<ellipse cx="500" cy="235" rx="78" ry="46" fill="var(--water)" opacity=".75"/><text class="mapTxt it" x="500" y="241">Hồ Sương</text>`
+  s += `<ellipse cx="240" cy="235" rx="40" ry="26" fill="var(--water)" opacity=".6"/><ellipse cx="760" cy="235" rx="40" ry="26" fill="var(--water)" opacity=".6"/>`
+  s += trees.map(([x, y]) => `<path d="M${x} ${y - 16}l10 18h-20z M${x - 9} ${y - 4}l9 -6 9 6" fill="var(--grass)" opacity=".35"/>`).join('')
+  s += FW.map((f, h) => `<path class="fwEdge" d="${f.d}"/>`).join('')
+  s += FW.map((f, h) => `<path class="fw" data-fw="${h}" d="${f.d}"/>`).join('')
+  s += HOLES.map(([, , c, d]) => `<circle class="gn" cx="${c}" cy="${d}" r="13"/><path d="M${c} ${d}v-18" stroke="var(--ink2)" stroke-width="1.5"/><path d="M${c} ${d - 18}l9 3.5-9 3.5z" fill="var(--flag)"/>`).join('')
+  s += `<g class="club"><rect x="468" y="525" width="64" height="34" rx="6"/><path d="M462 527l38-18 38 18z"/><text class="mapTxt" x="500" y="582">Nhà câu lạc bộ</text></g>`
+  s += `<circle cx="500" cy="345" r="16" fill="var(--sand)"/><text class="mapTxt" x="500" y="390">Trạm nghỉ</text>`
+  s += HOLES.map(([a, b], h) => `<g class="hn" data-hn="${h}"><circle cx="${a}" cy="${b}" r="14"/><text x="${a}" y="${b}">${h + 1}</text></g>`).join('')
+  s += '<g id="mks"></g>'
+  $('#map').innerHTML = s
+}
+let mapDrawn = false
+function renderCourse() {
+  if (!mapDrawn) { drawMapBase(); mapDrawn = true }
+  const oc = onCourse()
+  const per = Array.from({ length: 18 }, () => [])
+  const turn = []
+  oc.forEach((x) => (x.hole >= 0 ? per[x.hole] : turn).push(x))
+  // markers: spread flights on the same hole so dots never overlap the tee number or the green
+  let m = ''
+  per.forEach((a, h) => {
+    const L = FW[h].L, lo = 26 / L, hi = 1 - 24 / L
+    a.sort((x, y) => x.frac - y.frac)
+    const fr = a.map((x) => lo + (hi - lo) * x.frac)
+    for (let i = 1; i < fr.length; i++) fr[i] = Math.max(fr[i], fr[i - 1] + 20 / L)
+    const crowd = fr.length > 1 && fr[fr.length - 1] > hi
+    if (crowd) fr.forEach((_, i) => { fr[i] = lo + (hi - lo) * i / (fr.length - 1) })
+    const [a0, b0, c0, d0] = HOLES[h], nx = -(d0 - b0) / L, ny = (c0 - a0) / L
+    a.forEach((x, i) => { const [px, py] = FW[h].at(Math.min(hi, fr[i])), o = crowd ? (i % 2 ? 11 : -11) : 0; m += mk(x, px + nx * o, py + ny * o) })
+  })
+  turn.forEach((x, i) => { const ang = -Math.PI / 2 + (i - (turn.length - 1) / 2) * 0.55; m += mk(x, 500 + Math.cos(ang) * 32, 345 + Math.sin(ang) * 32) })
+  $('#mks').innerHTML = m
+  $$('#map [data-fw]').forEach((p) => p.classList.toggle('hl', +p.dataset.fw === S.hole))
+  $$('#map [data-hn]').forEach((p) => p.classList.toggle('hl', +p.dataset.hn === S.hole))
+  const mc = $('#mapClosed')
+  mc.hidden = !!oc.length
+  if (!oc.length) mc.innerHTML = NOW < OPEN ? `<b>Sân chưa mở</b><small>Tee đầu tiên ${hm(FIRST)} · ${dayStats(0).booked} flight đã đặt hôm nay.</small>` : NOW > LAST ? `<b>Hết lượt hôm nay</b><small>${FL[0].filter((f) => status(f) === 'done').length} flight đã hoàn thành. Tee đầu ngày mai lúc ${hm(FIRST)}.</small>` : '<b>Chưa có flight trên sân</b><small>Flight đầu tiên sẽ hiện ở đây khi xuất phát.</small>'
+  // ladder
+  const chip = (x) => `<button class="${x.pace}" data-open="${x.f.id}" aria-label="Flight ${hm(x.f.t)} tee ${x.f.tee}, ${x.lag >= 1 ? 'chậm ' + Math.round(x.lag) + ' phút' : 'đúng nhịp'}">${hm(x.f.t)}${x.lag >= 5 ? ' +' + Math.round(x.lag) + '′' : ''}</button>`
+  let l = ''
+  for (let h = 0; h < 18; h++) {
+    l += `<li class="ld ${S.hole === h ? 'hl' : ''}"><b>${h + 1}</b><small>Par ${PAR[h]} · ${HM[h]}′</small><div class="fl">${per[h].map(chip).join('') || '<em>—</em>'}</div></li>`
+    if (h === 8) l += `<li class="ld turn"><b>NGHỈ</b><small>Giữa vòng</small><div class="fl">${turn.map(chip).join('') || '<em>—</em>'}</div></li>`
+  }
+  $('#ladder').innerHTML = l
+  $('#ldCount').textContent = oc.length + ' flight'
+  const lag = oc.length ? Math.round(oc.reduce((a, x) => a + x.lag, 0) / oc.length) : 0
+  $('#csSub').textContent = oc.length ? `${oc.length} flight trên sân · trễ trung bình ${lag} phút · chuẩn 1 vòng ${Math.floor(ROUND / 60)} giờ ${ROUND % 60} phút` : `Không có flight nào trên sân lúc ${hm(NOW)}.`
+  const slow = oc.filter((x) => x.lag >= 5).sort((a, b) => b.lag - a.lag)
+  $('#slowL').innerHTML = slow.length ? slow.map((x) => `<li><b>${hm(x.f.t)} · Tee ${x.f.tee} — ${x.f.p.filter(Boolean).map((p) => esc(p.short)).join(', ')}</b><small><span class="chip ${x.pace}">+${Math.round(x.lag)} phút</span> đang ở ${holeName(x.hole)}${x.f.warned ? ' · đã nhắc' : ''}</small><button class="btn sm" data-warn="${x.f.id}" ${x.f.warned ? 'disabled' : ''}>${x.f.warned ? 'Đã nhắc' : 'Nhắc nhịp'}</button></li>`).join('') : '<li class="empty" style="grid-column:1/-1;border:0"><b>Không có flight trễ</b>Mọi flight trên sân đang đúng nhịp.</li>'
+  $('#warnAll').disabled = !slow.some((x) => !x.f.warned)
+}
+function mk(x, px, py) {
+  return `<g class="mk ${x.pace}" role="button" tabindex="0" data-open="${x.f.id}" data-tip="<b>Flight ${hm(x.f.t)} · Tee ${x.f.tee}</b><br>${esc(x.f.p.filter(Boolean).map((p) => p.short).join(', '))}<br>${x.hole < 0 ? 'Trạm nghỉ' : 'Lỗ ' + (x.hole + 1)} · ${x.lag >= 1 ? 'chậm ' + Math.round(x.lag) + ' phút' : 'đúng nhịp'}" aria-label="Flight ${hm(x.f.t)} tee ${x.f.tee} ở ${holeName(x.hole)}" transform="translate(${px.toFixed(1)} ${py.toFixed(1)})"><circle r="10"/></g>`
+}
+$('#v-tren-san').addEventListener('click', (e) => {
+  const w = e.target.closest('[data-warn]')
+  if (w) { const f = FI[w.dataset.warn]; f.warned = true; renderCourse(); const g = progress(f); toast(`Đã báo marshal ra ${holeName(g.hole)} nhắc flight ${hm(f.t)}.`, () => { f.warned = false; renderCourse() }); return }
+  if (e.target.closest('#warnAll')) { const list = onCourse().filter((x) => x.lag >= 5 && !x.f.warned); list.forEach((x) => { x.f.warned = true }); renderCourse(); toast(`Đã nhắc ${list.length} flight trễ.`, () => { list.forEach((x) => { x.f.warned = false }); renderCourse() }); return }
+  const o = e.target.closest('[data-open]')
+  if (o) openFlight(o.dataset.open)
+})
+$('#map').addEventListener('keydown', (e) => { const o = e.target.closest('[data-open]'); if (o && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openFlight(o.dataset.open) } })
+function openFlight(fid) { const f = FI[fid]; S.day = f.d; S.sel = fid; hideTip(); location.hash = 'bang-tee'; setTimeout(() => { const c = $(`#sheet [data-f="${fid}"]`); if (c && !sheetMode()) $('#sheetScroll').scrollTop = Math.max(0, c.offsetTop - 140); if (sheetMode()) openSheet() }, 30) }
+
+/* ---------- tooltip ---------- */
+const tip = $('#tip')
+function showTip(html, x, y) { tip.innerHTML = html; tip.classList.add('on'); const w = tip.offsetWidth, h = tip.offsetHeight; tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + 'px'; tip.style.top = (y - h - 12 < 8 ? y + 18 : y - h - 12) + 'px' }
+function hideTip() { tip.classList.remove('on') }
+document.addEventListener('pointerover', (e) => { const t = e.target.closest('[data-tip]'); if (t) { const r = t.getBoundingClientRect(); showTip(t.dataset.tip, r.left + r.width / 2, r.top) } })
+document.addEventListener('pointerout', (e) => { if (e.target.closest('[data-tip]')) hideTip() })
+document.addEventListener('focusin', (e) => { const t = e.target.closest && e.target.closest('[data-tip]'); if (t) { const r = t.getBoundingClientRect(); showTip(t.dataset.tip, r.left + r.width / 2, r.top) } })
+document.addEventListener('focusout', (e) => { if (e.target.closest && e.target.closest('[data-tip]')) hideTip() })
+
+/* ---------- caddie view ---------- */
+const CST = { ready: 'Sẵn sàng', play: 'Trên sân', wait: 'Chờ xuất phát', off: 'Nghỉ ca', leave: 'Nghỉ phép' }
+const CSC = { ready: 'ok', play: 'in', wait: 'slow', off: '', leave: 'late' }
+function cadRows() {
+  const q = norm(S.cQ.trim())
+  const st = new Map(CAD.map((c) => [c.id, cadState(c)]))
+  let rows = CAD.filter((c) => (!S.cF || st.get(c.id) === S.cF) && (!S.cLv || c.lv === S.cLv) && (!q || norm(c.name + ' ' + c.num + ' ' + String(c.num).padStart(3, '0') + ' ' + c.phone.replace(/\s/g, '')).includes(q.replace(/^#/, ''))))
+  const k = S.sortK, dir = S.sortD
+  rows.sort((a, b) => { const x = k === 'st' ? CST[st.get(a.id)] : k === 'name' ? a.name.split(' ').pop() + a.name : a[k], y = k === 'st' ? CST[st.get(b.id)] : k === 'name' ? b.name.split(' ').pop() + b.name : b[k]; return (typeof x === 'string' ? x.localeCompare(y, 'vi') : x - y) * dir || a.num - b.num })
+  return { rows, st }
+}
+function renderCaddie() {
+  const { rows, st } = cadRows()
+  const counts = {}; CAD.forEach((c) => { const s = st.get(c.id); counts[s] = (counts[s] || 0) + 1 })
+  $('#cFilt').innerHTML = [['', 'Tất cả', CAD.length], ...Object.keys(CST).map((k) => [k, CST[k], counts[k] || 0])].map(([k, l, n]) => `<button data-cf="${k}" aria-pressed="${S.cF === k}">${l}<em>${n}</em></button>`).join('')
+  const per = 10, pages = Math.max(1, Math.ceil(rows.length / per))
+  S.page = Math.min(S.page, pages - 1)
+  const pg = rows.slice(S.page * per, S.page * per + per)
+  const busy = busyCaddies()
+  $('#tb').innerHTML = pg.length ? pg.map((c) => {
+    const s = st.get(c.id), f = busy.get(c.id)
+    return `<tr class="${S.chk.has(c.id) ? 'sel' : ''}"><td class="cbx"><label class="cbl"><input type="checkbox" class="ck" data-ck="${c.id}" ${S.chk.has(c.id) ? 'checked' : ''} aria-label="Chọn caddie ${esc(c.name)}"></label></td><td data-l="Số áo"><span class="cnum">#${String(c.num).padStart(3, '0')}</span></td><td class="nm">${esc(c.name)}</td><td data-l="Hạng"><span class="lv ${c.lv}">${c.lv}</span></td><td data-l="Trạng thái"><span class="chip ${CSC[s]}">${CST[s]}</span>${f ? ` <small style="color:var(--ink3)">${hm(f.t)}</small>` : ''}</td><td data-l="Ca">${c.shift}</td><td data-l="Vòng tháng" class="num">${c.rounds}</td><td data-l="Đánh giá" class="num"><span class="stars">★</span> ${c.rate.toLocaleString('vi-VN', { minimumFractionDigits: 1 })}</td><td data-l="Điện thoại" class="num">${c.phone}</td></tr>`
+  }).join('') : `<tr><td colspan="9" class="empty" style="height:auto;grid-column:1/-1"><b>Không tìm thấy caddie</b>Thử bỏ bớt bộ lọc hoặc gõ tên không dấu, ví dụ “thao”.<br><br><button class="btn sm" id="clrF">Xóa bộ lọc</button></td></tr>`
+  $$('thead th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === S.sortK ? (S.sortD > 0 ? 'ascending' : 'descending') : 'none'))
+  const nb = []; for (let i = 0; i < pages; i++) if (i < 2 || i > pages - 3 || Math.abs(i - S.page) < 2) nb.push(i)
+  let last = -1, pb = ''
+  nb.forEach((i) => { if (i - last > 1) pb += '<span style="padding:0 4px;align-self:center">…</span>'; pb += `<button data-pg="${i}" aria-current="${i === S.page}" aria-label="Trang ${i + 1}">${i + 1}</button>`; last = i })
+  $('#pager').innerHTML = `<span>${rows.length ? `${S.page * per + 1}–${Math.min(rows.length, S.page * per + per)} / ${rows.length} caddie` : '0 caddie'}</span><div><button data-pg="${S.page - 1}" ${S.page ? '' : 'disabled'} aria-label="Trang trước">‹</button>${pb}<button data-pg="${S.page + 1}" ${S.page < pages - 1 ? '' : 'disabled'} aria-label="Trang sau">›</button></div>`
+  $('#ckAll').checked = pg.length > 0 && pg.every((c) => S.chk.has(c.id))
+  $('#bulk').classList.toggle('on', S.chk.size > 0)
+  $('#bulkN').textContent = S.chk.size + ' caddie đã chọn'
+  const q = caddieQueue()
+  $('#cdSub').textContent = `${CAD.length} caddie · ${counts.play || 0} đang trên sân · ${q.length} trong hàng chờ, người kế tiếp: #${q[0] ? String(q[0].num).padStart(3, '0') + ' ' + q[0].name.split(' ').pop() : '—'}`
+  renderFleet()
+}
+function renderFleet() {
+  const busy = busyCarts()
+  const c = { ready: 0, busy: 0, charge: 0, maint: 0 }
+  $('#fGrid').innerHTML = CART.map((k) => {
+    const s = cartState(k); c[s]++
+    const f = busy.get(k.id)
+    return `<div class="cart ${s} ${S.fleetF && S.fleetF !== s ? 'dim' : ''}" data-tip="<b>Xe ${k.id}</b> · pin ${k.batt}%<br>${{ ready: 'Sẵn sàng', busy: 'Đang dùng — flight ' + (f ? hm(f.t) : ''), charge: 'Đang sạc — dưới 35%', maint: 'Bảo dưỡng định kỳ' }[s]}" role="img" aria-label="Xe ${k.id}, pin ${k.batt}%, ${s}"><b>${k.id}<i></i></b><span class="batt"><u class="${k.batt < 35 ? 'lo' : ''}" style="width:${k.batt}%"></u></span><small>${k.batt}%</small></div>`
+  }).join('')
+  $('#fleetSub').textContent = `${CART.length} xe · ${c.ready} sẵn sàng · ${c.busy} đang dùng · ${c.charge} đang sạc · ${c.maint} bảo dưỡng`
+}
+$('#v-caddie').addEventListener('click', (e) => {
+  const t = e.target
+  const cf = t.closest('[data-cf]'); if (cf) { S.cF = cf.dataset.cf; S.page = 0; renderCaddie(); return }
+  const th = t.closest('th[data-k] button'); if (th) { const k = th.parentElement.dataset.k; S.sortD = S.sortK === k ? -S.sortD : 1; S.sortK = k; renderCaddie(); return }
+  const pg = t.closest('[data-pg]'); if (pg && !pg.disabled) { S.page = +pg.dataset.pg; renderCaddie(); return }
+  if (t.closest('#clrF')) { S.cF = ''; S.cLv = ''; S.cQ = ''; $('#cq').value = ''; $('#cLv').value = ''; renderCaddie(); return }
+  const b = t.closest('[data-bulk]'); if (b) bulk(b.dataset.bulk)
+  const ff = t.closest('#fleetSeg [data-f]'); if (ff) { S.fleetF = ff.dataset.f; $$('#fleetSeg button').forEach((x) => x.setAttribute('aria-pressed', x === ff)); renderFleet() }
+})
+$('#v-caddie').addEventListener('change', (e) => {
+  const ck = e.target.closest('[data-ck]')
+  if (ck) { ck.checked ? S.chk.add(ck.dataset.ck) : S.chk.delete(ck.dataset.ck); renderCaddie(); return }
+  if (e.target.id === 'ckAll') { const { rows } = cadRows(); rows.slice(S.page * 10, S.page * 10 + 10).forEach((c) => e.target.checked ? S.chk.add(c.id) : S.chk.delete(c.id)); renderCaddie() }
+  if (e.target.id === 'cLv') { S.cLv = e.target.value; S.page = 0; renderCaddie() }
+})
+$('#cq').addEventListener('input', (e) => { S.cQ = e.target.value; S.page = 0; renderCaddie() })
+function bulk(a) {
+  const ids = [...S.chk]
+  if (a === 'clear') { S.chk.clear(); renderCaddie(); return }
+  if (a === 'del') {
+    const removed = ids.map((id) => { const i = CAD.findIndex((c) => c.id === id); return [i, CAD[i]] }).sort((x, y) => x[0] - y[0])
+    for (let j = removed.length - 1; j >= 0; j--) CAD.splice(removed[j][0], 1)
+    S.chk.clear(); renderCaddie()
+    toast(`Đã xóa ${removed.length} caddie khỏi danh sách.`, () => { removed.forEach(([i, c]) => CAD.splice(i, 0, c)); renderCaddie() })
+    return
+  }
+  const prev = ids.map((id) => [id, cadById(id).base])
+  ids.forEach((id) => { cadById(id).base = a })
+  S.chk.clear(); renderCaddie()
+  toast(a === 'ready' ? `${ids.length} caddie vào cuối hàng chờ.` : `${ids.length} caddie chuyển sang nghỉ ca.`, () => { prev.forEach(([id, b]) => { const c = cadById(id); if (c) c.base = b }); renderCaddie() })
+}
+
+/* ---------- revenue view ---------- */
+const HIST = []
+{
+  const r = mul(4242)
+  for (let i = 179; i >= 0; i--) {
+    const d = new Date(D0); d.setDate(d.getDate() - i - 1)
+    const wk = [0, 6].includes(d.getDay())
+    const rounds = Math.round(150 + (wk ? 72 : 0) + (r() - 0.5) * 50 + Math.sin(i / 9) * 14)
+    HIST.push({ d, rounds, rev: rounds * (2.15e6 + r() * 0.5e6 + (wk ? 0.35e6 : 0)) })
+  }
+}
+const MIX = [['Phí sân', '#2e7d46', 0.57], ['Caddie', '#7cc48f', 0.17], ['Xe điện', '#a9c9b4', 0.12], ['Nhà hàng', '#e0c98a', 0.09], ['Pro shop', '#b8875a', 0.05]]
+const CH = { bars: [], pts: null, tw: [], i: -1 }
+function rvData() { return HIST.slice(-S.range) }
+function renderRevenue(anim) {
+  const data = rvData(), prev = HIST.slice(-S.range * 2, -S.range)
+  const sum = (a, k) => a.reduce((x, y) => x + y[k], 0)
+  const rev = sum(data, 'rev'), rounds = sum(data, 'rounds'), pr = sum(prev, 'rev'), prr = sum(prev, 'rounds')
+  const cap = data.length * 2 * TIMES.length * 4 * 0.8
+  const dl = (a, b) => { if (!b) return ''; const p = (a - b) / b * 100; return `<span class="dl ${p < 0 ? 'neg' : ''}">${p >= 0 ? '▲' : '▼'} ${Math.abs(p).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}% so với kỳ trước</span>` }
+  const kv = [['Doanh thu', rev, ty, dl(rev, pr)], ['Lượt chơi', rounds, (n) => Math.round(n).toLocaleString('vi-VN'), dl(rounds, prr)], ['Bình quân / khách', rev / rounds, tr, '<span class="dl">gồm phí sân, caddie, xe</span>'], ['Lấp đầy ghế tee', rounds / cap * 100, (n) => Math.round(n) + '%', '<span class="dl">khung 06:00–14:00</span>']]
+  $('#rvK').innerHTML = kv.map(([l, v, f, d], i) => `<div><small>${l}</small><b data-v="${v}" data-i="${i}">${f(v)}</b>${d}</div>`).join('')
+  if (anim && G) $$('#rvK b').forEach((b, i) => { const o = { v: +b.dataset.v * 0.86 }; G.to(o, { v: +b.dataset.v, duration: 0.7, ease: 'power2.out', onUpdate: () => { b.textContent = kv[i][2](o.v) } }) })
+  $('#rvSub').textContent = `${dmy(data[0].d)} – ${dmy(data[data.length - 1].d)} · cuối tuần chiếm ${Math.round(sum(data.filter((x) => [0, 6].includes(x.d.getDay())), 'rev') / rev * 100)}% doanh thu`
+  $('#nvRev').textContent = ty(sum(HIST.slice(-30), 'rev')) + ' / 30 ngày'
+  // mix
+  const sh = S.range === 7 ? [0, 0.01, 0, -0.01, 0] : S.range === 90 ? [0.02, -0.01, 0, -0.005, -0.005] : [0, 0, 0, 0, 0]
+  const mx = MIX.map((m, i) => [m[0], m[1], m[2] + sh[i]])
+  const st = $('#stack')
+  if (!st.children.length) st.innerHTML = mx.map((m) => `<i style="background:${m[1]};flex:0 0 0%"></i>`).join('')
+  requestAnimationFrame(() => [...st.children].forEach((el, i) => { el.style.flexBasis = mx[i][2] * 100 + '%' }))
+  $('#mixL').innerHTML = mx.map((m) => `<li><i style="background:${m[1]}"></i><span>${m[0]}</span><b>${ty(rev * m[2])}</b><em>${Math.round(m[2] * 100)}%</em></li>`).join('')
+  drawChart(anim)
+  renderHeat()
+}
+function drawChart(anim) {
+  const svg = $('#chart'), W = Math.max(280, svg.clientWidth || 600), H = svg.clientHeight || 300
+  const pl = 40, pr = 46, pt = 12, pb = 28, iw = W - pl - pr, ih = H - pt - pb
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+  const data = rvData(), n = data.length
+  const maxR = Math.ceil(Math.max(...data.map((x) => x.rounds)) / 80) * 80, maxV = Math.ceil(Math.max(...data.map((x) => x.rev)) / 4e8) * 4e8
+  const step = iw / n, bw = Math.max(2, Math.min(34, step * 0.62))
+  CH.geo = { pl, pt, iw, ih, step, n, W, H }
+  CH.tw.forEach((t) => t.kill()); CH.tw = []
+  if (!svg.querySelector('#gAx')) svg.innerHTML = '<g id="gAx"></g><g id="gBars"></g><path class="ln" id="cLn"/><line class="xh" id="cXh" y1="0" y2="0" visibility="hidden"/><circle class="dot" id="cDot" r="5" visibility="hidden"/><rect id="cHit" fill="transparent"/>'
+  let ax = ''
+  for (let i = 0; i <= 4; i++) { const y = pt + ih - ih * i / 4; ax += `<line class="gl" x1="${pl}" x2="${W - pr}" y1="${y}" y2="${y}"/><text x="${pl - 6}" y="${y + 4}" text-anchor="end">${Math.round(maxR * i / 4)}</text><text x="${W - pr + 6}" y="${y + 4}">${Math.round(maxV * i / 4 / 1e6)}</text>` }
+  const every = Math.ceil(64 / step)
+  data.forEach((x, i) => { if ((n - 1 - i) % every === 0) ax += `<text x="${pl + step * i + step / 2}" y="${H - 8}" text-anchor="middle">${dm(x.d)}</text>` })
+  $('#gAx').innerHTML = ax
+  const gb = $('#gBars')
+  while (CH.bars.length < n) { const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); r.setAttribute('class', 'br'); r.setAttribute('rx', 2); const l = CH.bars.length; r.setAttribute('x', pl + step * Math.min(l, n - 1)); r.setAttribute('y', pt + ih); r.setAttribute('width', bw); r.setAttribute('height', 0); gb.appendChild(r); CH.bars.push(r) }
+  CH.bars.forEach((r, i) => {
+    if (i < n) {
+      const h = ih * data[i].rounds / maxR, at = { x: pl + step * i + (step - bw) / 2, y: pt + ih - h, width: bw, height: h }
+      if (anim && G) CH.tw.push(G.to(r, { attr: at, opacity: 1, duration: 0.6, ease: 'power3.inOut' })); else { for (const k in at) r.setAttribute(k, at[k]); r.style.opacity = 1 }
+    } else if (anim && G) CH.tw.push(G.to(r, { attr: { y: pt + ih, height: 0 }, opacity: 0, duration: 0.4 }))
+    else { r.setAttribute('height', 0); r.style.opacity = 0 }
+  })
+  // line resampled to a fixed point count so every range morphs from the previous one
+  const N = 90, raw = data.map((x, i) => [pl + step * i + step / 2, pt + ih - ih * x.rev / maxV])
+  const pts = Array.from({ length: N }, (_, j) => { const u = j / (N - 1) * (n - 1), a = Math.floor(u), b = Math.min(n - 1, a + 1), t = u - a; return [raw[a][0] + (raw[b][0] - raw[a][0]) * t, raw[a][1] + (raw[b][1] - raw[a][1]) * t] })
+  const pathOf = (p) => 'M' + p.map((q) => q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join('L')
+  const ln = $('#cLn')
+  if (anim && G && CH.pts && CH.pts.length === N) {
+    const from = CH.pts, o = { t: 0 }
+    CH.tw.push(G.to(o, { t: 1, duration: 0.6, ease: 'power3.inOut', onUpdate: () => ln.setAttribute('d', pathOf(from.map((q, j) => [q[0] + (pts[j][0] - q[0]) * o.t, q[1] + (pts[j][1] - q[1]) * o.t]))) }))
+  } else ln.setAttribute('d', pathOf(pts))
+  CH.pts = pts; CH.raw = raw; CH.data = data
+  const hit = $('#cHit'); hit.setAttribute('x', pl); hit.setAttribute('y', pt); hit.setAttribute('width', iw); hit.setAttribute('height', ih)
+  if (CH.i >= n) CH.i = -1
+}
+function chartAt(i, fromKey) {
+  const g = CH.geo, d = CH.data; if (!d) return
+  i = Math.max(0, Math.min(g.n - 1, i)); CH.i = i
+  const x = g.pl + g.step * i + g.step / 2
+  const xh = $('#cXh'); xh.setAttribute('x1', x); xh.setAttribute('x2', x); xh.setAttribute('y1', g.pt); xh.setAttribute('y2', g.pt + g.ih); xh.setAttribute('visibility', 'visible')
+  const dot = $('#cDot'); dot.setAttribute('cx', x); dot.setAttribute('cy', CH.raw[i][1]); dot.setAttribute('visibility', 'visible')
+  CH.bars.forEach((b, j) => b.classList.toggle('hv', j === i))
+  const svg = $('#chart'), r = svg.getBoundingClientRect(), sx = r.width / g.W
+  const x0 = d[i]
+  showTip(`<b>${WDS[x0.d.getDay()]} ${dmy(x0.d)}</b><br>${x0.rounds} lượt chơi · ${tr(x0.rev)}`, r.left + x * sx, r.top + Math.min(CH.raw[i][1], g.pt + g.ih - g.ih * x0.rounds / (Math.ceil(Math.max(...d.map((y) => y.rounds)) / 80) * 80)) * sx)
+  $('#chart').setAttribute('aria-label', `${dmy(x0.d)}: ${x0.rounds} lượt, ${tr(x0.rev)}`)
+}
+function chartOff() { $('#cXh') && $('#cXh').setAttribute('visibility', 'hidden'); $('#cDot') && $('#cDot').setAttribute('visibility', 'hidden'); CH.bars.forEach((b) => b.classList.remove('hv')); hideTip() }
+$('#chart').addEventListener('pointermove', (e) => { const g = CH.geo; if (!g) return; const r = $('#chart').getBoundingClientRect(), x = (e.clientX - r.left) * g.W / r.width; if (x < g.pl || x > g.pl + g.iw) { chartOff(); return } chartAt(Math.floor((x - g.pl) / g.step)) })
+$('#chart').addEventListener('pointerleave', chartOff)
+$('#chart').addEventListener('blur', chartOff)
+$('#chart').addEventListener('keydown', (e) => { if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return; e.preventDefault(); const n = CH.geo.n; chartAt(e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : (CH.i < 0 ? n - 1 : CH.i + (e.key === 'ArrowRight' ? 1 : -1)), true) })
+$('#rvSeg').addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (!b || +b.dataset.r === S.range) return; S.range = +b.dataset.r; $$('#rvSeg button').forEach((x) => x.setAttribute('aria-pressed', x === b)); chartOff(); renderRevenue(true) })
+function renderHeat() {
+  if ($('#heat').children.length) return
+  const r = mul(808), hrs = [6, 7, 8, 9, 10, 11, 12, 13], days = [1, 2, 3, 4, 5, 6, 0]
+  let h = '<span></span>' + hrs.map((x) => `<span class="hx">${pad(x)}h</span>`).join('')
+  days.forEach((d) => {
+    h += `<span>${WDS[d]}</span>`
+    hrs.forEach((x) => { const wk = d === 0 || d === 6; const p = Math.max(8, Math.min(100, Math.round((x < 8 ? 88 : x < 11 ? 72 : 44) + (wk ? 16 : 0) + (r() - 0.5) * 18))); h += `<div class="hc" style="background:color-mix(in oklab,var(--grass) ${p}%,var(--surface2))" data-tip="<b>${WD[d]} · ${pad(x)}:00–${pad(x)}:59</b><br>Lấp đầy ${p}% ghế tee" role="img" aria-label="${WD[d]} ${x} giờ: ${p}%"></div>` })
+  })
+  $('#heat').innerHTML = h
+}
+
+/* ---------- palette ---------- */
+let PAL = [], palI = 0
+function palItems(q) {
+  const n = norm(q.trim())
+  const views = [['bang-tee', 'Bảng tee'], ['tren-san', 'Trên sân'], ['caddie', 'Caddie & xe'], ['doanh-thu', 'Doanh thu']].map(([h, l]) => ({ g: 'Đi tới', l, s: '#' + h, run: () => { location.hash = h } }))
+  const cmds = [
+    { g: 'Lệnh', l: 'Đặt giờ tee mới', s: 'Mở form', run: () => openBook() },
+    { g: 'Lệnh', l: 'Thêm caddie', s: 'Caddie & xe', run: () => { location.hash = 'caddie'; openCad() } },
+    { g: 'Lệnh', l: 'Đổi giao diện sáng / tối', s: 'Giao diện', run: () => toggleTheme() },
+    { g: 'Lệnh', l: 'Về giờ hiện tại trên bảng tee', s: 'Bảng tee', run: () => { location.hash = 'bang-tee'; setTimeout(() => $('#jumpNow').click(), 40) } },
+    { g: 'Lệnh', l: 'Nhắc tất cả flight trễ', s: 'Trên sân', run: () => { location.hash = 'tren-san'; setTimeout(() => $('#warnAll').disabled || $('#warnAll').click(), 40) } },
+  ]
+  let out = [...views, ...cmds].filter((x) => !n || norm(x.l + ' ' + x.s).includes(n))
+  if (n.length >= 2) {
+    const fl = []
+    for (const d of [0, 1, 2]) for (const f of FL[d]) f.p.forEach((p) => { if (p && norm(p.name).includes(n) && fl.length < 6) fl.push({ g: 'Khách', l: p.name, s: `${d === 0 ? 'Hôm nay' : dm(dayDate(d))} ${hm(f.t)} · Tee ${f.tee}`, run: () => openFlight(f.id) }) })
+    if (/^\d{1,2}[:h]?\d{0,2}$/.test(n)) { const [hh, mm = '0'] = n.split(/[:h]/); const t = +hh * 60 + Math.floor(+mm / 10) * 10; for (const tee of [1, 10]) { const f = FI['0-' + tee + '-' + t]; if (f) fl.push({ g: 'Giờ tee', l: `${hm(t)} · Tee ${tee}`, s: ST[status(f)], run: () => openFlight(f.id) }) } }
+    const cd = CAD.filter((c) => norm(c.name + ' ' + c.num).includes(n)).slice(0, 5).map((c) => ({ g: 'Caddie', l: `#${String(c.num).padStart(3, '0')} ${c.name}`, s: CST[cadState(c)], run: () => { S.cQ = c.name; $('#cq').value = c.name; S.cF = ''; S.page = 0; location.hash = 'caddie'; renderCaddie() } }))
+    out = out.concat(fl, cd)
+  }
+  return out
+}
+function renderPal() {
+  PAL = palItems($('#palIn').value); palI = Math.min(palI, PAL.length - 1)
+  let g = '', h = ''
+  PAL.forEach((x, i) => { if (x.g !== g) { g = x.g; h += `<li class="grp" role="presentation">${g}</li>` } h += `<li role="option" data-i="${i}" aria-selected="${i === palI}"><span>${esc(x.l)}</span><small>${esc(x.s)}</small></li>` })
+  $('#palL').innerHTML = h || '<li class="empty" style="display:block">Không có kết quả. Thử gõ tên khách không dấu, số áo caddie hoặc giờ như “7:40”.</li>'
+}
+function openPal() { $('#toasts').innerHTML = ''; $('#pal').classList.add('on'); $('#palIn').value = ''; palI = 0; renderPal(); pushLayer('pal', closePal); setTimeout(() => $('#palIn').focus(), 10) }
+function closePal() { $('#pal').classList.remove('on'); popLayer('pal') }
+$('#palBtn').onclick = openPal
+$('#palIn').addEventListener('input', () => { palI = 0; renderPal() })
+$('#palIn').addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); palI = (palI + (e.key === 'ArrowDown' ? 1 : -1) + PAL.length) % Math.max(1, PAL.length); renderPal(); const s = $('#palL [aria-selected="true"]'); s && s.scrollIntoView({ block: 'nearest' }) }
+  if (e.key === 'Enter' && PAL[palI]) { e.preventDefault(); const x = PAL[palI]; closePal(); x.run() }
+})
+$('#palL').addEventListener('click', (e) => { const li = e.target.closest('[data-i]'); if (!li) return; const x = PAL[+li.dataset.i]; closePal(); x.run() })
+
+/* ---------- modals & forms ---------- */
+function openModal(id, first) { $('#toasts').innerHTML = ''; const m = $('#' + id); m.classList.add('on'); pushLayer(id, () => closeModal(id)); if (G) G.from(m.querySelector('.mBox'), { y: 18, opacity: 0, duration: 0.22, clearProps: 'all' }); setTimeout(() => $(first).focus(), 30) }
+function closeModal(id) { $('#' + id).classList.remove('on'); popLayer(id) }
+document.addEventListener('click', (e) => { const c = e.target.closest('[data-close]'); if (!c) return; const id = c.dataset.close; id === 'pal' ? closePal() : closeModal(id) })
+function setErr(id, msg) { const f = $('#' + id).closest('.fld'); f.classList.toggle('bad', !!msg); $('#' + id + 'E').textContent = msg || ''; $('#' + id).setAttribute('aria-invalid', msg ? 'true' : 'false') }
+const PHONE_RE = /^0(3|5|7|8|9)\d{8}$/
+function openBook() {
+  $('#bDay').innerHTML = Array.from({ length: 7 }, (_, i) => `<option value="${i}" ${i === S.day ? 'selected' : ''}>${i === 0 ? 'Hôm nay' : i === 1 ? 'Ngày mai' : WD[dayDate(i).getDay()]} · ${dmy(dayDate(i))}</option>`).join('')
+  ;['bName', 'bPhone', 'bTime'].forEach((x) => setErr(x, ''))
+  fillTimes(); openModal('bookM', '#bName')
+}
+function fillTimes() {
+  const d = +$('#bDay').value, tee = +$('[name=bTee]:checked').value, n = +$('[name=bCnt]:checked').value
+  const ok = FL[d].filter((f) => f.tee === tee && canEdit(f) && 4 - cnt(f) >= n && (d > 0 || f.t > NOW + 15))
+  $('#bTime').innerHTML = ok.length ? '<option value="">— Chọn giờ —</option>' + ok.map((f) => `<option value="${f.id}">${hm(f.t)} · còn ${4 - cnt(f)} ghế</option>`).join('') : '<option value="">Không còn giờ phù hợp</option>'
+}
+$('#bookF').addEventListener('change', (e) => { if (['bDay', 'bTee', 'bCnt'].includes(e.target.id || e.target.name)) fillTimes() })
+$('#bName').addEventListener('input', () => $('#bName').closest('.bad') && valName())
+$('#bPhone').addEventListener('input', () => $('#bPhone').closest('.bad') && valPhone())
+const valName = () => { const v = $('#bName').value.trim(); const m = !v ? 'Nhập tên trưởng đoàn.' : v.split(/\s+/).length < 2 ? 'Nhập đủ họ và tên.' : v.length > 40 ? 'Tên dài quá 40 ký tự.' : ''; setErr('bName', m); return !m }
+const valPhone = () => { const v = $('#bPhone').value.replace(/[\s.]/g, ''); const m = !v ? 'Nhập số điện thoại để starter gọi khi đổi giờ.' : !PHONE_RE.test(v) ? 'Số điện thoại 10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09.' : ''; setErr('bPhone', m); return !m }
+$('#bookF').addEventListener('submit', (e) => {
+  e.preventDefault()
+  const a = valName(), b = valPhone(), tv = $('#bTime').value
+  setErr('bTime', tv ? '' : 'Chọn một giờ tee còn chỗ.')
+  if (!a || !b || !tv) { $('#bookF .bad .inp, #bookF .bad select').focus(); return }
+  const f = FI[tv], n = +$('[name=bCnt]:checked').value, type = $('#bType').value, name = $('#bName').value.trim().replace(/\s+/g, ' ')
+  const snap = f.p.slice(), src = f.src
+  const r = mul(name.length * 7 + f.t)
+  let k = 0
+  for (let i = 0; i < 4 && k < n; i++) if (!f.p[i]) { f.p[i] = player(r, k === 0 ? name : name.split(' ').pop() + ' — khách ' + (k + 1), type === 'member' && k === 0); if (k > 0) f.p[i].short = 'Khách ' + (k + 1); k++ }
+  f.src = type === 'agent' ? 'Đại lý tour' : 'Điện thoại'
+  closeModal('bookM')
+  S.day = f.d; S.sel = f.id
+  if (location.hash.slice(1) !== 'bang-tee') location.hash = 'bang-tee'; else renderTee()
+  setTimeout(() => { const c = $(`#sheet [data-f="${f.id}"]`); if (c && !sheetMode()) $('#sheetScroll').scrollTop = Math.max(0, c.offsetTop - 140); flash(f.id) }, 40)
+  toast(`Đã giữ chỗ ${n} người lúc ${hm(f.t)} · Tee ${f.tee}, ${f.d === 0 ? 'hôm nay' : dm(dayDate(f.d))}.`, () => { f.p = snap; f.src = src; renderTee() })
+  $('#bookF').reset()
+})
+$('#bookBtn').onclick = openBook
+function openCad() { ['cName', 'cPhone', 'cNum'].forEach((x) => setErr(x, '')); $('#cNum').value = String(Math.max(...CAD.map((c) => c.num)) + 1); openModal('cadM', '#cName') }
+$('#addCad').onclick = openCad
+$('#cadF').addEventListener('submit', (e) => {
+  e.preventDefault()
+  const nm = $('#cName').value.trim(), ph = $('#cPhone').value.replace(/[\s.]/g, ''), num = +$('#cNum').value
+  const e1 = !nm ? 'Nhập họ tên caddie.' : nm.split(/\s+/).length < 2 ? 'Nhập đủ họ và tên.' : ''
+  const e2 = !ph ? 'Nhập số điện thoại.' : !PHONE_RE.test(ph) ? 'Số điện thoại 10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09.' : ''
+  const e3 = !num || num < 1 || num > 999 ? 'Số áo từ 1 đến 999.' : CAD.some((c) => c.num === num) ? `Số áo #${String(num).padStart(3, '0')} đã có người dùng.` : ''
+  setErr('cName', e1); setErr('cPhone', e2); setErr('cNum', e3)
+  if (e1 || e2 || e3) { $('#cadF .bad .inp').focus(); return }
+  const c = { id: 'c' + Date.now(), num, name: nm.replace(/\s+/g, ' '), lv: $('#cLevel').value, base: 'ready', shift: $('#cShift').value, rounds: 0, rate: 5, phone: ph.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3'), q: 9999 }
+  CAD.push(c); closeModal('cadM'); S.sortK = 'num'; S.sortD = -1; S.page = 0; S.cF = ''; renderCaddie()
+  toast(`Đã thêm caddie #${String(num).padStart(3, '0')} ${esc(c.name)} vào cuối hàng chờ.`, () => { CAD.splice(CAD.indexOf(c), 1); renderCaddie() })
+  $('#cadF').reset()
+})
+;['cName', 'cPhone', 'cNum'].forEach((id) => $('#' + id).addEventListener('input', () => { if ($('#' + id).closest('.bad')) setErr(id, '') }))
+
+/* ---------- notifications ---------- */
+function notifs() {
+  const out = []
+  const late = onCourse().filter((x) => x.pace === 'late')
+  late.slice(0, 2).forEach((x) => out.push(['r', `Flight ${hm(x.f.t)} chậm ${Math.round(x.lag)} phút ở ${holeName(x.hole)}`, 'Cần marshal nhắc nhịp']))
+  const miss = FL[0].filter((f) => status(f) === 'in' && f.p.some((p) => p && !p.caddie))
+  if (miss.length) out.push(['w', `${miss.length} flight đã check-in chưa đủ caddie`, 'Mở bảng tee để tự phân'])
+  const low = CART.filter((k) => !k.maint && k.batt < 35).length
+  out.push(['w', `${low} xe điện pin dưới 35% đang sạc`, 'Trạm sạc khu B'])
+  if (WAIT.length) out.push(['', `${WAIT.length} khách lẻ đang chờ ghép flight`, 'Kéo vào ghế trống trên bảng tee'])
+  out.push(['', `Giải Hội viên tháng ${D0.getMonth() + 1} khóa Tee 1 lúc 12:00–12:20`, 'Lịch đã chặn tự động'])
+  return out
+}
+function renderNotif() { const n = notifs(); $('#notifL').innerHTML = n.map(([c, t, s]) => `<li class="${S.notifRead ? 'rd' : ''}"><i class="${c}"></i><span>${t}<small>${s}</small></span></li>`).join(''); const b = $('#bellN'); b.textContent = n.length; b.hidden = S.notifRead }
+function openNotif() { const p = $('#notif'), b = $('#bellBtn'), r = b.getBoundingClientRect(); renderNotif(); p.style.top = r.bottom + 8 + 'px'; p.style.left = Math.max(12, r.right - 340) + 'px'; p.classList.add('on'); b.setAttribute('aria-expanded', 'true'); pushLayer('notif', closeNotif); setTimeout(() => $('#readAll').focus(), 10) }
+function closeNotif() { $('#notif').classList.remove('on'); $('#bellBtn').setAttribute('aria-expanded', 'false'); popLayer('notif') }
+$('#bellBtn').onclick = (e) => { e.stopPropagation(); $('#notif').classList.contains('on') ? closeNotif() : openNotif() }
+$('#readAll').onclick = () => { S.notifRead = true; renderNotif() }
+document.addEventListener('click', (e) => { if ($('#notif').classList.contains('on') && !e.target.closest('#notif,#bellBtn')) closeNotif() })
+
+/* ---------- mobile nav & theme ---------- */
+function openNav() { $('#nav').classList.add('on'); $('#scrim').classList.add('on'); $('#menuBtn').setAttribute('aria-expanded', 'true'); pushLayer('nav', closeNav, $('#menuBtn')); setTimeout(() => $('#nav .nv').focus(), 30) }
+function closeNav() { if (!$('#nav').classList.contains('on')) return; $('#nav').classList.remove('on'); if (!$('#fp').classList.contains('on')) $('#scrim').classList.remove('on'); $('#menuBtn').setAttribute('aria-expanded', 'false'); popLayer('nav') }
+$('#menuBtn').onclick = openNav
+$('#navX').onclick = closeNav
+$('#scrim').onclick = () => { closeNav(); closeSheet() }
+$('#nav').addEventListener('click', (e) => { if (e.target.closest('.nv')) closeNav() })
+$('#nav').addEventListener('keydown', (e) => { if (e.key !== 'Tab' || !$('#nav').classList.contains('on')) return; const f = $$('#nav a, #nav button'), a = f[0], z = f[f.length - 1]; if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus() } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus() } })
+function applyTheme(t) { document.documentElement.classList.toggle('dark', t === 'dark'); $('#themeBtn').setAttribute('aria-pressed', t === 'dark') }
+function toggleTheme() { const t = document.documentElement.classList.contains('dark') ? 'light' : 'dark'; store.set('doithong-theme', t); applyTheme(t); if (S.view === 'doanh-thu') drawChart(false) }
+applyTheme(store.get('doithong-theme') || 'light')
+$('#themeBtn').onclick = toggleTheme
+$('#themeBtn2').onclick = toggleTheme
+
+/* ---------- router ---------- */
+const VIEWS = { 'bang-tee': 'Bảng tee', 'tren-san': 'Trên sân', caddie: 'Caddie & xe', 'doanh-thu': 'Doanh thu' }
+function renderView(v, first) {
+  if (v === 'bang-tee') { renderTee(); if (first) scrollSheetToNow() }
+  if (v === 'tren-san') renderCourse()
+  if (v === 'caddie') renderCaddie()
+  if (v === 'doanh-thu') renderRevenue(false)
+}
+function route() {
+  let v = location.hash.slice(1)
+  if (!VIEWS[v]) v = 'bang-tee'
+  const changed = S.view !== v
+  S.view = v
+  $$('.view').forEach((s) => s.classList.toggle('on', s.dataset.view === v))
+  $$('.nv').forEach((a) => a.dataset.nav === v ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'))
+  document.title = VIEWS[v] + ' · Đồi Thông Golf'
+  hideTip(); closeSheet()
+  CH.tw.forEach((t) => t.kill()); CH.tw = []
+  renderView(v, true); renderNavMeta()
+  window.scrollTo(0, 0)
+  if (G && changed) G.from($$('.view.on .vh > *, .view.on .card:not(.fp)'), { y: 10, opacity: 0, duration: 0.35, stagger: 0.04, clearProps: 'transform,opacity' })
+}
+addEventListener('hashchange', route)
+function renderAll() { renderStrip(); renderTeeHead(); renderView(S.view, false); renderNotif() }
+let lastSingle = single(), lastSheet = sheetMode(), rzT
+addEventListener('resize', () => {
+  clearTimeout(rzT)
+  rzT = setTimeout(() => {
+    if (single() !== lastSingle || sheetMode() !== lastSheet) { lastSingle = single(); lastSheet = sheetMode(); closeSheet(); if (S.view === 'bang-tee') renderSheet() }
+    if (S.view === 'doanh-thu') drawChart(false)
+  }, 120)
+})
+
+/* ---------- boot ---------- */
+S.view = ''
+renderStrip(); renderNotif(); route()
+$('#nvRev').textContent = ty(HIST.slice(-30).reduce((a, x) => a + x.rev, 0)) + ' / 30 ngày'
+// The browser jumps to the section matching the hash after load; the sticky header would hide its top.
+if ("scrollRestoration" in history) history.scrollRestoration = "manual"
+addEventListener("load", () => window.scrollTo(0, 0))
+if (G) {
+  G.from('#strip .sc', { y: -8, opacity: 0, duration: 0.4, stagger: 0.018, ease: 'power2.out', clearProps: 'transform,opacity' })
+  G.from('.view.on .vh > *, .view.on .days, .view.on .card:not(.fp)', { y: 14, opacity: 0, duration: 0.5, stagger: 0.06, ease: 'power2.out', delay: 0.1, clearProps: 'transform,opacity' })
+}
+if (!STATIC) {
+  setInterval(() => {
+    NOW = curMin()
+    const keep = $('#sheetScroll').scrollTop, foc = document.activeElement
+    renderStrip(); renderTeeHead()
+    if (S.view === 'bang-tee' && !DRAG.kind && !$('#fp').contains(foc) && !$('#sheet').contains(foc)) { renderSheet(); renderPanel(); ensureTab(); $('#sheetScroll').scrollTop = keep }
+    if (S.view === 'tren-san' && !$('#v-tren-san').contains(foc)) renderCourse()
+    if (S.view === 'caddie') renderFleet()
+  }, 30000)
+}
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

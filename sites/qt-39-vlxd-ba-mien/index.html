@@ -1,0 +1,2043 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tổng quan — VLXD Ba Miền</title>
+<meta name="description" content="VLXD Ba Miền — quản trị kho và giao vật liệu xây dựng: lệnh xuất kho, xếp hàng lên xe theo tải trọng, phiếu giao hàng. Thiết kế concept — thương hiệu giả định.">
+<meta name="theme-color" content="#C62A1F">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23C62A1F'/%3E%3Cpath d='M4 25 11 12l4 7 3-5 6 11z' fill='%23F1F0EC'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@400;500;600;700&family=Overpass+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('bm-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+:root{--font:'Archivo Narrow',system-ui,sans-serif;--mono:'Overpass Mono',ui-monospace,monospace;--sw:236px;--pad:28px;--th:62px}
+[data-theme=light]{--bg:#D5D4CF;--panel:#F0EFEB;--panel2:#E5E4DF;--ink:#1B1C1E;--muted:#45474A;--dim:#56585B;--line:#C2C1BB;--line2:#8E8D88;--red:#C62A1F;--red-t:#A5211A;--red-soft:#F4DAD6;--on-red:#FFFFFF;--ok:#2B7149;--ok-soft:#D6EBDD;--amb:#94600F;--amb-soft:#F5E5C6;--side:#BDBCB6;--side-ink:#1B1C1E;--side-dim:#3F4144;--seam:rgba(0,0,0,.09);--hole:rgba(0,0,0,.2);--g-xm:#77818A;--g-thep:#3C5672;--g-catda:#C8984A;--g-gach:#B04F28;--noise:.10;--shadow:0 12px 28px -18px rgba(20,20,20,.45);color-scheme:light}
+[data-theme=dark]{--bg:#141516;--panel:#1D1E20;--panel2:#26282A;--ink:#ECEBE6;--muted:#B5B4AF;--dim:#A2A19C;--line:#323438;--line2:#4C4F54;--red:#FF5446;--red-t:#FF8378;--red-soft:rgba(255,84,70,.15);--on-red:#1A0605;--ok:#5CCB8A;--ok-soft:rgba(92,203,138,.14);--amb:#F1B24A;--amb-soft:rgba(241,178,74,.14);--side:#0E0F10;--side-ink:#ECEBE6;--side-dim:#A9A8A3;--seam:rgba(255,255,255,.05);--hole:rgba(255,255,255,.1);--g-xm:#98A3AC;--g-thep:#6F8DB0;--g-catda:#D9AE62;--g-gach:#D7693D;--noise:.16;--shadow:0 14px 30px -18px rgba(0,0,0,.9);color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:500 15px/1.5 var(--font);-webkit-font-smoothing:antialiased;overflow-x:clip}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:var(--noise);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+h1,h2,h3{margin:0;line-height:1.12}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+kbd{font:600 12px/1 var(--mono);white-space:nowrap;padding:3px 5px 2px;border:1px solid var(--line2);background:var(--panel2);color:var(--muted)}
+svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter}
+.skip{position:absolute;left:12px;top:-60px;z-index:300;background:var(--red);color:var(--on-red);padding:10px 16px;font-weight:700;text-decoration:none}
+.skip:focus{top:12px}
+
+/* ---------- shell ---------- */
+#app{position:relative;z-index:1;display:grid;grid-template-columns:var(--sw) minmax(0,1fr);min-height:100vh}
+#side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;background-color:var(--side);color:var(--side-ink);border-right:2px solid var(--ink);z-index:40;
+  background-image:radial-gradient(circle,var(--hole) 0 2.6px,transparent 3.2px),linear-gradient(to bottom,transparent 0 158px,var(--seam) 158px 160px);background-size:78px 160px,100% 160px;background-position:39px 80px,0 0}
+.plate{background:var(--red);color:#fff;padding:18px 18px 16px;display:flex;gap:12px;align-items:center;position:relative}
+.plate::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:repeating-linear-gradient(90deg,var(--ink) 0 14px,transparent 14px 20px)}
+.mark{width:42px;height:42px;flex:none}
+.brand b{display:block;font:700 22px/1.08 var(--font);letter-spacing:.02em;text-transform:uppercase}
+.brand small{display:block;font:600 12px/1.3 var(--mono);letter-spacing:.04em;text-transform:uppercase;opacity:.9;margin-top:3px}
+.nav{padding:26px 12px 10px;display:flex;flex-direction:column;gap:4px}
+.nav-h{font:700 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--side-dim);padding:0 10px 10px}
+.nv{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 12px;border:0;background:var(--side);color:var(--side-ink);text-align:left;font-weight:600;font-size:16px;letter-spacing:.01em;position:relative;transition:background-color .15s,color .15s}
+/* solid fill so the formwork seams and tie holes in the sidebar never cross a label */
+.nv:hover{background:color-mix(in srgb,var(--ink) 8%,var(--side))}
+.nv .nn{font:600 12px/1 var(--mono);color:var(--side-dim);width:20px}
+.nv .nl{flex:1}
+.nv .nb{min-width:24px;height:22px;padding:0 6px;display:grid;place-items:center;font:700 12px/1 var(--mono);background:var(--ink);color:var(--bg)}
+.nv[aria-current=page]{background:var(--red);color:#fff;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
+.nv[aria-current=page] .nn{color:rgba(255,255,255,.85)}
+[data-theme=dark] .plate{background:#B3261C}
+[data-theme=dark] .nv[aria-current=page]{color:#1A0605}
+[data-theme=dark] .nv[aria-current=page] .nn{color:rgba(26,6,5,.8)}
+.nv[aria-current=page] .nb{background:#fff;color:var(--red-t)}
+.yardcard{margin:auto 14px 12px;border:1.5px solid var(--ink);background:var(--panel);padding:12px 14px;color:var(--ink)}
+.yardcard .yk{font:700 12px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.yardcard .yt{font:700 17px/1.2 var(--font);margin:4px 0 8px}
+.ban{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.35;color:var(--muted)}
+.ban i{width:10px;height:10px;flex:none;margin-top:4px;background:var(--ok)}
+.ban.on i{background:var(--red)}
+.who{display:flex;gap:10px;align-items:center;padding:12px 18px;border-top:1.5px solid var(--ink)}
+.av{width:36px;height:36px;flex:none;display:grid;place-items:center;background:var(--ink);color:var(--bg);font:700 15px/1 var(--mono)}
+.who b{display:block;font-size:15px;line-height:1.2}
+.who small{display:block;font-size:12.5px;color:var(--side-dim)}
+.concept{font-size:12px;color:var(--side-dim);padding:0 18px 14px}
+#navBack{display:none}
+#wrap{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:30;height:var(--th);display:flex;align-items:center;gap:12px;padding:0 var(--pad);background:var(--panel);border-bottom:2px solid var(--ink)}
+.crumb{display:flex;align-items:center;gap:8px;min-width:0;font-size:15px;color:var(--muted);white-space:nowrap}
+.crumb b{color:var(--ink);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.crumb .sl{color:var(--red);font-weight:700}
+.sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;font:600 12.5px/1 var(--mono);border:1.5px solid var(--ok);color:var(--ok);background:var(--ok-soft);white-space:nowrap}
+.chip.on{border-color:var(--red);color:var(--red-t);background:var(--red-soft)}
+.srch{display:flex;align-items:center;gap:10px;height:40px;width:260px;padding:0 10px 0 12px;border:1.5px solid var(--line2);background:var(--panel2);color:var(--dim);text-align:left}
+.srch span{flex:1;font-size:14.5px;white-space:nowrap;overflow:hidden}
+.srch:hover{border-color:var(--ink)}
+.clock{font:700 17px/1 var(--mono);letter-spacing:.02em;white-space:nowrap}
+.ib{width:40px;height:40px;display:grid;place-items:center;border:1.5px solid var(--line2);background:var(--panel2);position:relative;flex:none}
+.ib:hover{border-color:var(--ink)}
+.ib .dot{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;display:grid;place-items:center;font:700 12px/1 var(--mono);background:var(--red);color:#fff}
+#menuBtn{display:none}
+main{flex:1;padding:24px var(--pad) 40px;min-width:0}
+.view{display:none}
+.view.active{display:block}
+.eyebrow{font:700 12px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--red-t)}
+.vhead{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+.vhead h1{font:700 clamp(30px,3.4vw,44px)/1.1 var(--font);letter-spacing:-.005em;margin-top:6px;outline:none}
+.sub{color:var(--muted);font-size:16px;margin-top:6px;max-width:68ch}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 16px;border:1.5px solid var(--ink);background:var(--panel);color:var(--ink);font-weight:700;font-size:15px;letter-spacing:.02em;white-space:nowrap;transition:background-color .15s,color .15s}
+.btn:hover{background:var(--panel2)}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+[data-theme=dark] .btn.red{color:#1A0605}
+.btn.red:hover{background:var(--red-t);border-color:var(--red-t)}
+.btn.sm{min-height:40px;padding:0 12px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn .cnt{font:700 12px/1 var(--mono);background:var(--ink);color:var(--bg);padding:4px 6px}
+.btn.red .cnt{background:#fff;color:var(--red-t)}
+.pn{position:relative;background:var(--panel);border:1px solid var(--line2);box-shadow:var(--shadow)}
+.pn::before,.pn::after{content:"";position:absolute;width:12px;height:12px;pointer-events:none}
+.pn::before{left:-1px;top:-1px;border-left:3px solid var(--red);border-top:3px solid var(--red)}
+.pn::after{right:-1px;bottom:-1px;border-right:3px solid var(--ink);border-bottom:3px solid var(--ink)}
+.ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:16px 18px 12px;border-bottom:1px dashed var(--line2)}
+.ph .tag{font:700 12px/1 var(--mono);color:var(--red-t);letter-spacing:.06em}
+.ph h2{font:700 18px/1.2 var(--font);text-transform:uppercase;letter-spacing:.03em}
+.ph .note{color:var(--dim);font-size:14px}
+.ph .r{margin-left:auto}
+.seg{display:inline-flex;border:1.5px solid var(--ink)}
+.seg button{min-height:34px;padding:0 12px;border:0;background:transparent;font-weight:700;font-size:14px;white-space:nowrap}
+.seg button+button{border-left:1.5px solid var(--ink)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;font:700 12px/1 var(--font);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;border:1.5px solid currentColor}
+.st-cho{color:var(--red-t);background:var(--red-soft)}
+.st-mot{color:var(--amb);background:var(--amb-soft)}
+.st-len{color:var(--ink);background:var(--panel2)}
+.st-giao{color:var(--g-thep);background:transparent}
+[data-theme=dark] .st-giao{color:#8FB0D6}
+.st-xong{color:var(--ok);background:var(--ok-soft)}
+.st-huy{color:var(--dim);background:transparent;border-style:dashed}
+
+/* ---------- overview ---------- */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+.hero h1{font:700 clamp(32px,3.8vw,50px)/1.1 var(--font);margin-top:6px;outline:none}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--panel);border:2px solid var(--ink);margin-bottom:20px}
+.kpi{padding:16px 18px 14px;position:relative;min-width:0}
+.kpi+.kpi{border-left:1px solid var(--line2)}
+.kpi .kl{font:700 12px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kpi .kv{display:flex;align-items:baseline;gap:6px;margin:8px 0 10px;white-space:nowrap}
+.kpi .kv b{font:700 40px/1 var(--mono);letter-spacing:-.03em}
+.kpi .kv small{font:600 15px/1 var(--font);color:var(--muted)}
+.kpi.alert .kv b{color:var(--red-t)}
+.rul{height:16px;position:relative;background:repeating-linear-gradient(90deg,var(--line2) 0 1px,transparent 1px 10%) bottom/100% 7px no-repeat,repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 2.5%) bottom/100% 4px no-repeat;border-bottom:1.5px solid var(--ink)}
+.rul i{position:absolute;left:0;top:2px;height:6px;background:var(--red);width:0}
+.rul em{position:absolute;top:-2px;width:2px;height:14px;background:var(--ink)}
+.kd{font-size:13.5px;color:var(--muted);margin-top:8px}
+.trk-mini{display:flex;gap:5px;margin:6px 0 2px}
+.trk-mini i{width:22px;height:13px;border:1.5px solid var(--ink);position:relative}
+.trk-mini i.on{background:var(--red);border-color:var(--red)}
+.g2{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px;margin-bottom:20px}
+.g2.b{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:12px 18px 0;font-size:13.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.legend i{width:12px;height:12px}
+.legend .pl{width:18px;height:0;border-top:2px dashed var(--ink)}
+.chwrap{padding:6px 12px 6px 6px;position:relative}
+#chart{display:block;width:100%;height:260px;outline:none}
+#chart:focus-visible{outline:3px solid var(--red);outline-offset:-3px}
+#chart .ax{font:500 11px var(--mono);fill:var(--dim)}
+#chart .gl{stroke:var(--line);stroke-width:1}
+#chart .base{stroke:var(--ink);stroke-width:1.5}
+#chart .plan{stroke:var(--ink);stroke-width:1.5;stroke-dasharray:6 4;opacity:.75}
+#chart .band{fill:var(--ink);opacity:.07}
+.chsum{padding:4px 18px 16px;color:var(--muted);font-size:14px}
+.chsum b{color:var(--ink)}
+#fleet li+li{border-top:1px solid var(--line)}
+.fl{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"p n s" "b b w";gap:6px 12px;align-items:center;width:100%;padding:12px 18px;border:0;background:transparent;text-align:left}
+.fl:hover{background:var(--panel2)}
+.fl-p{grid-area:p;font:700 14.5px/1 var(--mono);padding:5px 7px 4px;border:1.5px solid var(--ink);background:#F7E25B;color:#151515;white-space:nowrap}
+.fl-n{grid-area:n;font-size:14.5px;line-height:1.25;color:var(--muted);min-width:0}
+.fl .pill{grid-area:s}
+.fl-bar{grid-area:b;height:8px;background:var(--panel2);border:1px solid var(--line2);position:relative}
+.fl-bar i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.fl-bar i.over{background:var(--red)}
+.fl-w{grid-area:w;font:600 13px/1 var(--mono);color:var(--muted);white-space:nowrap;min-width:118px;text-align:right}
+.yard{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));border-bottom:1px solid var(--line)}
+.yc{background:var(--panel);border:0;box-shadow:inset -1px -1px 0 var(--line);padding:10px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-height:132px}
+.yc:hover{background:var(--panel2)}
+.yc svg{width:76px;height:54px}
+.yc .yn{font-weight:700;font-size:14px;line-height:1.2}
+.yc .yq{font:600 12px/1.2 var(--mono);color:var(--muted)}
+.yc.low .yq{color:var(--red-t)}
+.yc .yl{font:700 12px/1.2 var(--mono);color:var(--dim);text-transform:uppercase}
+.yc.low .yl{color:var(--red-t)}
+.ynote{padding:12px 18px 16px;color:var(--muted);font-size:14px}
+#gate li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:11px 18px;border-bottom:1px solid var(--line)}
+#gate li:last-child{border-bottom:0}
+.gd{font:700 12px/1 var(--mono);width:40px;padding:6px 0 5px;text-align:center;background:var(--ink);color:var(--bg)}
+.gd.out{background:var(--red);color:#fff}
+.gm b{font:700 14px/1.2 var(--mono)}
+.gm span{display:block;font-size:13.5px;color:var(--muted);line-height:1.3}
+.gw{text-align:right;font:700 15px/1.1 var(--mono);white-space:nowrap}
+.gw small{display:block;font:500 12px/1.3 var(--mono);color:var(--dim)}
+.livep{display:inline-flex;align-items:center;gap:6px;font:700 12px/1 var(--mono);letter-spacing:.08em;color:var(--red-t)}
+.livep i{width:8px;height:8px;background:var(--red)}
+.livep.off{color:var(--dim)}
+.livep.off i{background:var(--dim)}
+
+/* ---------- loading (xếp xe) ---------- */
+.ld{display:grid;grid-template-columns:minmax(300px,350px) minmax(0,1fr);gap:20px;align-items:start}
+.queue{position:sticky;top:calc(var(--th) + 16px);max-height:calc(100vh - var(--th) - 32px);display:flex;flex-direction:column}
+.queue.bm-hot{outline:3px dashed var(--red);outline-offset:-3px}
+#qList{overflow:auto;padding:10px 12px 14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.oc{border:1.5px solid var(--line2);background:var(--panel2);padding:10px 12px}
+.oc.flash{border-color:var(--red)}
+.oc header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.oc header b{font:700 13px/1 var(--mono)}
+.slot{font:600 12px/1 var(--mono);color:var(--muted);white-space:nowrap}
+.slot.today{color:var(--red-t)}
+.oc-c{font-weight:700;font-size:15.5px;margin-top:6px;line-height:1.25}
+.oc-s{font-size:13.5px;color:var(--muted);line-height:1.35}
+.chips{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.lnc{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto 22px;gap:8px;align-items:center;min-height:42px;padding:0 6px 0 10px;border:1.5px solid var(--ink);background:var(--panel);text-align:left;user-select:none;-webkit-user-select:none;transition:background-color .12s}
+.lnc:hover{background:var(--bg)}
+.lnc[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.lnc .sw{width:10px;height:22px}
+.lnc .lm{font-weight:700;font-size:14.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lnc .lq{font:500 12.5px/1 var(--mono);color:var(--muted);white-space:nowrap}
+.lnc[aria-pressed=true] .lq{color:inherit;opacity:.8}
+.lnc .lw{font:700 13px/1 var(--mono);white-space:nowrap}
+.grip{display:grid;place-items:center;height:36px;color:var(--dim);touch-action:none;cursor:grab}
+.grip svg{width:14px;height:20px}
+.lnc[aria-pressed=true] .grip{color:inherit}
+.oc footer{font:600 12px/1.3 var(--mono);color:var(--muted);margin-top:8px}
+.qempty{padding:26px 16px;text-align:center;color:var(--muted)}
+.qempty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.trucks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.trk{display:flex;flex-direction:column;transition:border-color .12s,background-color .12s}
+.trk .ph{padding:12px 14px 10px}
+.trk .plt{font:700 15px/1 var(--mono);padding:6px 8px 5px;border:1.5px solid var(--ink);background:#F7E25B;color:#151515;white-space:nowrap}
+.trk .tn{font-weight:700;font-size:15.5px}
+.trk .r{display:flex;align-items:center;gap:8px}
+.trk .drv{font-size:13.5px;color:var(--muted);padding:8px 14px 0}
+.trk.bm-ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok-soft) 55%,var(--panel))}
+.trk.bm-over{border-color:var(--amb);background:color-mix(in srgb,var(--amb-soft) 55%,var(--panel))}
+.trk.bm-no{opacity:.55}
+.trk.bm-hot{outline:3px solid var(--ok);outline-offset:2px}
+.trk.bm-hot.bm-over{outline-color:var(--amb)}
+.trk.away .drop{cursor:default}
+.drop{display:block;width:100%;border:0;background:transparent;padding:6px 10px 0}
+.drop svg{display:block;width:100%;height:auto;overflow:visible}
+.bed{fill:var(--panel2);stroke:var(--ink);stroke-width:1.5}
+.bed-o{fill:none;stroke:var(--ink);stroke-width:2}
+.bed-o.over{stroke:var(--red);stroke-width:3}
+.stake{stroke:var(--ink);stroke-width:1.5;opacity:.55}
+.cab{fill:var(--ink)}
+.win{fill:var(--panel2)}
+.stripe{fill:var(--red)}
+.chs{fill:var(--ink)}
+.whl{fill:var(--ink)}
+.hub{fill:var(--panel2)}
+.gnd{stroke:var(--line2);stroke-width:1.5;stroke-dasharray:3 4}
+.sg{stroke:var(--panel);stroke-width:1.5}
+.trk.away .sg{opacity:.62}
+.sgt{font:700 11.5px var(--font);fill:#fff;text-anchor:middle;pointer-events:none}
+.sgt.dk{fill:#231A0E}
+.capl{stroke:var(--red);stroke-width:2.5}
+.capt{font:700 11px var(--mono);fill:var(--red-t);text-anchor:middle}
+.away-t{font:700 13px var(--mono);fill:var(--muted);text-anchor:middle}
+.meter{display:flex;align-items:center;gap:10px;padding:6px 14px 10px}
+.meter .mb{flex:1;height:10px;border:1.5px solid var(--ink);position:relative;background:var(--panel2)}
+.meter .mb i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.meter .mb i.over{background:var(--red)}
+.meter b{font:700 14px/1 var(--mono);white-space:nowrap}
+.meter b.over{color:var(--red-t)}
+.man{padding:0 14px;display:flex;flex-direction:column;gap:4px;min-height:46px}
+.man li{display:flex;align-items:center;gap:8px;min-width:0}
+.mf{flex:1;min-width:0;display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:8px;align-items:center;min-height:40px;padding:0 8px;border:1px solid var(--line);background:var(--panel2);text-align:left;font-size:14px;user-select:none;-webkit-user-select:none}
+.mf .sw{width:10px;height:18px}
+.mf span:nth-child(2){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mf[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.mf .lw{font:700 12.5px/1 var(--mono);white-space:nowrap}
+.mx{width:40px;height:40px;flex:none;display:grid;place-items:center;border:1px solid var(--line2);background:transparent}
+.mx:hover{border-color:var(--red);color:var(--red-t)}
+.man .none{font-size:14px;color:var(--dim);padding:10px 0;border:1.5px dashed var(--line2);text-align:center}
+.trk-f{display:flex;gap:8px;padding:12px 14px 14px;margin-top:auto}
+.trk-f .btn{flex:1;min-width:0;padding:0 8px}
+.knum{font:700 12px/1 var(--mono);padding:4px 6px 3px;border:1.5px solid var(--line2);color:var(--muted)}
+.okin{font:700 12px/1.2 var(--mono);color:var(--ok);letter-spacing:.04em}
+.pick{position:fixed;left:var(--sw);right:0;bottom:0;z-index:35;background:var(--ink);color:var(--bg);display:flex;align-items:center;gap:14px;padding:12px var(--pad);border-top:4px solid var(--red)}
+.pick .pk-l{min-width:0;flex:0 1 250px}
+body.picking #toasts{bottom:96px}
+.pick .pk-k{display:block;font:700 12px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#FF8A7E}
+.pick b{display:block;font-size:15.5px;line-height:1.25}
+.pk-t{display:flex;gap:8px;overflow-x:auto;flex:1;min-width:0;padding:2px}
+.pkt{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:44px;padding:5px 8px;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:inherit;text-align:left}
+.pkt b{font:700 13px/1.1 var(--mono)}
+.pkt small{font-size:12.5px;line-height:1.2;opacity:.85;white-space:nowrap}
+.pkt.ok{border-color:#5CCB8A}
+.pkt.over{border-color:#F1B24A}
+.pkt:disabled{opacity:.35;cursor:not-allowed}
+.pk-a{display:flex;gap:8px;flex:none}
+.pick .btn{background:transparent;color:inherit;border-color:rgba(255,255,255,.5)}
+.pick kbd{background:transparent;color:inherit;border-color:rgba(255,255,255,.4)}
+body.picking main{padding-bottom:120px}
+.bm-ghost{position:fixed;left:0;top:0;z-index:250;pointer-events:none;padding:8px 12px;background:var(--ink);color:var(--bg);font-weight:700;font-size:14px;border-left:6px solid var(--red);box-shadow:0 14px 30px -10px rgba(0,0,0,.5);white-space:nowrap}
+body.bm-dragging,body.bm-dragging *{cursor:grabbing!important}
+
+/* ---------- table ---------- */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px;border-bottom:1px dashed var(--line2)}
+.fsearch{display:flex;align-items:center;gap:8px;height:42px;padding:0 12px;border:1.5px solid var(--line2);background:var(--panel2);flex:1 1 240px;min-width:0}
+.fsearch:focus-within{border-color:var(--ink)}
+.fsearch input{border:0;background:transparent;outline:none;flex:1;min-width:0;height:100%;font-size:15px}
+.sel{height:42px;padding:0 10px;border:1.5px solid var(--line2);background:var(--panel2);font-weight:600;min-width:0}
+.stchips{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px 0}
+.stc{min-height:36px;padding:0 10px;border:1.5px solid var(--line2);background:transparent;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.stc small{font:600 12px/1 var(--mono);color:var(--dim)}
+.stc[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.stc[aria-pressed=true] small{color:inherit;opacity:.8}
+.bulk{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 16px 0;padding:8px 10px 8px 14px;background:var(--ink);color:var(--bg)}
+.bulk b{font-weight:700;margin-right:auto}
+.bulk .btn{background:transparent;color:inherit;border-color:rgba(255,255,255,.45);min-height:38px}
+[data-theme=dark] .bulk .btn{border-color:rgba(0,0,0,.4)}
+.tw{overflow-x:auto;margin-top:12px;position:relative}
+.tb{width:100%;border-collapse:collapse;min-width:960px}
+.tb th{font:700 12px/1.2 var(--mono);letter-spacing:.03em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 8px;height:40px;border-bottom:2px solid var(--ink);white-space:nowrap;background:var(--panel2)}
+.tb th button{border:0;background:transparent;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;display:inline-flex;align-items:center;gap:4px;padding:8px 0}
+.tb th[aria-sort] button{color:var(--ink)}
+.tb th button svg{width:12px;height:12px;opacity:.5}
+.tb th[aria-sort] button svg{opacity:1;color:var(--red)}
+.tb td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:14.5px}
+.tb tr.on td{background:var(--red-soft)}
+.tb .r{text-align:right}
+.tb .c0{width:44px}
+.ck{width:20px;height:20px;accent-color:var(--red);margin:0}
+.tcode{font:700 13px/1 var(--mono);white-space:nowrap}
+.tcus b{display:block;font-weight:700;line-height:1.25}
+.tcus small{display:block;color:var(--muted);font-size:13px;line-height:1.3}
+.tmat{display:flex;flex-direction:column;gap:3px}
+.tmat i{width:8px;height:16px;flex:none}
+.tmat span{white-space:nowrap}
+.tnum{font:600 13.5px/1 var(--mono);white-space:nowrap}
+.tday{font:600 13px/1.25 var(--mono);white-space:nowrap}
+.tday small{display:block;font-size:12px;color:var(--dim)}
+.tact{display:flex;gap:6px;justify-content:flex-end}
+.tact button{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line2);background:transparent}
+.tact button:hover{border-color:var(--ink)}
+.tact .del:hover{border-color:var(--red);color:var(--red-t)}
+.pager{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;padding:12px 16px 16px}
+.pager .pi{color:var(--muted);font-size:14px}
+.pager .pb{display:flex;gap:4px}
+.pager button{min-width:40px;height:40px;border:1.5px solid var(--line2);background:transparent;font:700 13px/1 var(--mono)}
+.pager button[aria-current=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.pager button:disabled{opacity:.35;cursor:not-allowed}
+.tempty{padding:48px 16px;text-align:center}
+.tempty b{display:block;font-size:20px;margin-bottom:6px}
+.tempty p{color:var(--muted);margin-bottom:14px}
+.scrollhint{display:none;font:600 12px/1 var(--mono);color:var(--dim);padding:8px 16px 0}
+
+/* ---------- form ---------- */
+.fgrid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+.fs{border:0;margin:0;padding:16px 18px 18px;border-bottom:1px dashed var(--line2)}
+.fs legend{float:left;width:100%;padding:0;margin-bottom:12px;font:700 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--red-t)}
+.frow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;clear:both}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld.w2{grid-column:1/-1}
+.fld label{font-weight:700;font-size:14.5px}
+.fld input,.fld select{height:44px;padding:0 12px;border:1.5px solid var(--line2);background:var(--panel2);font-size:15px;width:100%;min-width:0}
+.fld input:focus,.fld select:focus,.lr select:focus,.lr input:focus{outline:none;border-color:var(--ink);box-shadow:inset 0 -3px 0 var(--red)}
+.fld.bad input,.fld.bad select{border-color:var(--red);background:var(--red-soft)}
+.err{color:var(--red-t);font-size:13.5px;font-weight:600;line-height:1.3;min-height:0}
+.err:empty{display:none}
+.hint{font-size:13px;color:var(--dim)}
+.lines{display:flex;flex-direction:column;gap:10px;clear:both}
+.lr{display:grid;grid-template-columns:minmax(0,1fr) 170px 74px 44px;gap:8px;align-items:center}
+.lr select,.lr input{height:44px;padding:0 10px;border:1.5px solid var(--line2);background:var(--panel2);font-size:15px;width:100%;min-width:0}
+.qw{display:flex;align-items:center;border:1.5px solid var(--line2);background:var(--panel2)}
+.qw input{border:0;background:transparent}
+.qw .u{font:600 12.5px/1 var(--mono);color:var(--muted);padding:0 10px 0 2px;white-space:nowrap}
+.lr.bad .qw,.lr.badm select{border-color:var(--red);background:var(--red-soft)}
+.lr .lwt{font:700 13.5px/1 var(--mono);text-align:right;white-space:nowrap}
+.lr .rm{width:44px;height:44px;display:grid;place-items:center;border:1.5px solid var(--line2);background:transparent}
+.lr .rm:hover{border-color:var(--red);color:var(--red-t)}
+.lr .err{grid-column:1/-1}
+.addl{margin-top:12px}
+.fbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:center;padding:16px 18px}
+.fbar .ferr{margin-right:auto;color:var(--red-t);font-weight:700}
+.sumbox{position:sticky;top:calc(var(--th) + 16px)}
+.sumbox .sb{padding:14px 18px}
+.sumbox dl{margin:0;display:grid;grid-template-columns:auto auto;gap:8px 12px}
+.sumbox dt{color:var(--muted)}
+.sumbox dd{margin:0;text-align:right;font:700 15px/1.3 var(--mono)}
+.sumbox .big{font:700 34px/1 var(--mono);letter-spacing:-.02em}
+.sug{border-top:1px dashed var(--line2);padding:14px 18px}
+.sug h3{font:700 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.sug li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.sug li:last-child{border-bottom:0}
+.sug li small{grid-column:1/-1;color:var(--muted);font-size:13px}
+.sug .mb{grid-column:1/-1;height:8px;border:1.5px solid var(--ink);position:relative;background:var(--panel2)}
+.sug .mb i{position:absolute;inset:0 auto 0 0;background:var(--ink)}
+.warnbox{margin:0 18px 16px;padding:10px 12px;border:1.5px solid var(--red);background:var(--red-soft);color:var(--red-t);font-weight:600;font-size:14px}
+
+/* ---------- overlays ---------- */
+#toasts{position:fixed;bottom:20px;left:calc(var(--sw) + var(--pad));z-index:220;display:flex;flex-direction:column;gap:8px;width:min(460px,calc(100vw - 24px));pointer-events:none}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:10px 10px 10px 14px;background:var(--ink);color:var(--bg);border-left:6px solid var(--red);box-shadow:0 16px 30px -14px rgba(0,0,0,.6);font-size:14.5px;line-height:1.35}
+.toast .tm{flex:1;min-width:0}
+.toast button{flex:none;min-height:36px;border:1.5px solid rgba(255,255,255,.45);background:transparent;color:inherit;font-weight:700;padding:0 10px}
+[data-theme=dark] .toast button{border-color:rgba(0,0,0,.35)}
+.toast .tx{width:36px;padding:0;font-size:18px}
+.m-toasts{display:flex;flex-direction:column;gap:6px;padding:0 18px}
+.m-toasts:empty{display:none}
+.m-toasts .toast{box-shadow:none}
+#tip{position:fixed;z-index:210;pointer-events:none;background:var(--ink);color:var(--bg);padding:10px 12px;font-size:13.5px;line-height:1.4;min-width:170px;border-top:4px solid var(--red)}
+#tip b{display:block;font:700 13px/1.2 var(--mono);margin-bottom:6px}
+#tip .tr{display:flex;justify-content:space-between;gap:16px;align-items:center}
+#tip .tr span{display:inline-flex;align-items:center;gap:6px}
+#tip .tr i{width:9px;height:9px;display:inline-block}
+#tip .tt{border-top:1px solid rgba(127,127,127,.5);margin-top:4px;padding-top:4px;font-weight:700}
+#pop{position:fixed;top:calc(var(--th) - 4px);right:var(--pad);z-index:60;width:min(380px,calc(100vw - 24px));background:var(--panel);border:2px solid var(--ink);box-shadow:var(--shadow)}
+#pop h2{font:700 13px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:14px 16px;border-bottom:1px dashed var(--line2)}
+#pop button{display:flex;gap:12px;width:100%;padding:12px 16px;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left}
+#pop button:hover{background:var(--panel2)}
+#pop .pi{width:34px;height:34px;flex:none;display:grid;place-items:center}
+#pop b{display:block;font-size:15px;line-height:1.3}
+#pop small{display:block;color:var(--muted);font-size:13.5px}
+#palBack,#mBack{position:fixed;inset:0;z-index:150;background:rgba(15,15,15,.5);visibility:hidden;opacity:0}
+#pal{position:fixed;left:50%;top:12vh;z-index:160;width:min(600px,calc(100vw - 24px));background:var(--panel);border:2px solid var(--ink);border-top:6px solid var(--red);box-shadow:0 30px 60px -20px rgba(0,0,0,.6);visibility:hidden;opacity:0}
+.pal-in{display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1.5px solid var(--line2)}
+.pal-in input{flex:1;height:56px;border:0;background:transparent;outline:none;font-size:18px;min-width:0}
+#palList{max-height:min(420px,60vh);overflow:auto;padding:6px 0}
+.pal-g{font:700 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding:12px 16px 6px}
+.pal-o{display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;min-height:44px}
+.pal-o span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pal-o small{color:var(--dim);font-size:13px;white-space:nowrap}
+.pal-o.on{background:var(--ink);color:var(--bg)}
+.pal-o.on small{color:inherit;opacity:.75}
+.pal-o mark{background:var(--red);color:#fff}
+.pal-none{padding:22px 16px;color:var(--muted)}
+.pal-f{display:flex;gap:14px;padding:10px 16px;border-top:1px solid var(--line);font-size:13px;color:var(--dim);flex-wrap:wrap}
+#modal{position:fixed;left:50%;top:50%;z-index:170;width:min(820px,calc(100vw - 32px));max-height:calc(100vh - 48px);display:flex;flex-direction:column;background:var(--panel);border:2px solid var(--ink);box-shadow:0 30px 60px -20px rgba(0,0,0,.6);visibility:hidden;opacity:0}
+.m-h{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:2px solid var(--ink)}
+.m-h h2{font:700 19px/1.2 var(--font);text-transform:uppercase;letter-spacing:.03em;flex:1}
+.m-b{overflow:auto;padding:18px;flex:1;min-height:0}
+.m-f{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding:14px 18px;border-top:1.5px solid var(--line2);align-items:center}
+.m-f .mwarn{margin-right:auto;color:var(--red-t);font-weight:700;font-size:14.5px}
+.dn{border:1.5px solid var(--ink);background:var(--panel)}
+.dn-h{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 16px;border-bottom:1.5px solid var(--ink)}
+.dn-h .mark{width:46px;height:46px}
+.dn-h b{display:block;font:700 18px/1.15 var(--font);text-transform:uppercase}
+.dn-h small{display:block;color:var(--muted);font-size:13px}
+.dn-no{text-align:right;font:700 13px/1.4 var(--mono)}
+.dn-no span{display:block;color:var(--red-t);font-size:16px}
+.dn-t{font:700 22px/1.15 var(--font);text-align:center;text-transform:uppercase;letter-spacing:.04em;padding:14px 16px 4px}
+.dn-st{text-align:center;color:var(--muted);font-size:13.5px;padding-bottom:12px}
+.dn-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.dn-meta div{padding:10px 12px;min-width:0}
+.dn-meta div+div{border-left:1px solid var(--line2)}
+.dn-meta small{display:block;font:700 12px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.dn-meta b{display:block;font-size:15px;line-height:1.3}
+.dn-stop{padding:12px 16px 4px}
+.dn-stop h3{font:700 14.5px/1.3 var(--font);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.dn-stop h3 .n{font:700 12px/1 var(--mono);background:var(--ink);color:var(--bg);padding:4px 6px 3px}
+.dn-stop p{color:var(--muted);font-size:13.5px;margin:3px 0 8px}
+.dn table{width:100%;border-collapse:collapse;font-size:14px}
+.dn th{font:700 12px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1.5px solid var(--ink)}
+.dn td{padding:7px 8px;border-bottom:1px solid var(--line)}
+.dn .r{text-align:right;font-family:var(--mono);white-space:nowrap}
+.dn-tot{display:flex;justify-content:flex-end;gap:24px;flex-wrap:wrap;padding:12px 16px;border-top:1.5px solid var(--ink);font-size:14.5px}
+.dn-tot b{font:700 16px/1 var(--mono)}
+.dn-tot .over{color:var(--red-t)}
+.dn-sig{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line2)}
+.dn-sig div{padding:10px 12px 46px;text-align:center;font-size:13.5px;font-weight:700}
+.dn-sig div+div{border-left:1px solid var(--line2)}
+.dn-sig small{display:block;font-weight:500;color:var(--dim);font-size:12px}
+#intro{position:fixed;inset:0;z-index:400;background:var(--bg);display:grid;place-items:center}
+#intro .ii{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+#intro .bar{width:240px;height:12px;background:var(--red)}
+#intro .it{font:700 46px/1.1 var(--font);text-transform:uppercase;letter-spacing:.02em}
+#intro .is{font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.rm #intro{display:none}
+
+/* ---------- responsive ---------- */
+@media (max-width:1279px){
+  .srch{width:200px}
+  .g2,.g2.b{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .kpi .kv b{font-size:34px}
+  .fgrid{grid-template-columns:minmax(0,1fr) 320px}
+  .lr{grid-template-columns:minmax(0,1fr) 150px 66px 44px}
+  .chip{display:none}
+  .ld{grid-template-columns:1fr}
+  .queue{position:relative;top:auto;max-height:none}
+  #qList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;align-items:start}
+  #qList .qempty{grid-column:1/-1}
+}
+@media (max-width:1099px){
+  :root{--sw:84px;--pad:20px}
+  .plate{padding:14px 0;justify-content:center}
+  .brand,.nav-h,.nv .nl,.yardcard,.who div,.concept{display:none}
+  .who{justify-content:center;padding:12px 0}
+  .nv{flex-direction:column;justify-content:center;gap:3px;min-height:58px;padding:6px 0}
+  .nv .nn{width:auto;text-align:center}
+  .nv .nb{position:absolute;top:4px;right:6px;min-width:20px;height:18px;font-size:12px}
+  .nv[aria-current=page]{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%)}
+  .nav{padding:20px 8px 10px}
+  .g2,.g2.b{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi:nth-child(3){border-left:0}
+  .kpi:nth-child(n+3){border-top:1px solid var(--line2)}
+  .fgrid{grid-template-columns:1fr}
+  .sumbox{position:relative;top:auto}
+  .scrollhint{display:block}
+}
+@media (max-width:819px){
+  :root{--pad:14px;--th:58px}
+  #app{grid-template-columns:minmax(0,1fr)}
+  #side{position:fixed;left:0;top:0;bottom:0;width:min(300px,86vw);height:auto;transform:translateX(-102%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s}
+  #side.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+  .plate{padding:16px 18px;justify-content:flex-start}
+  .brand,.nav-h,.nv .nl,.yardcard,.who div,.concept{display:block}
+  .who{justify-content:flex-start;padding:12px 18px}
+  .nv{flex-direction:row;justify-content:flex-start;gap:10px;min-height:48px;padding:0 12px}
+  .nv .nn{width:20px}
+  .nv .nb{position:static}
+  #navBack{display:block;position:fixed;inset:0;z-index:35;background:rgba(10,10,10,.5);opacity:0;visibility:hidden;transition:opacity .2s,visibility 0s linear .2s}
+  #navBack.open{opacity:1;visibility:visible;transition:opacity .2s}
+  #menuBtn{display:grid}
+  .srch{width:40px;padding:0;justify-content:center}
+  .srch span,.srch kbd,.clock,#avBtn{display:none}
+  .crumb .home,.crumb .sl{display:none}
+  .top{gap:8px}
+  main{padding-top:18px}
+  .hero h1,.vhead h1{font-size:32px}
+  .kpi{padding:12px 12px 12px}
+  .kpi .kl{font-size:12px;letter-spacing:.02em}
+  .kpi .kv b{font-size:28px}
+  .kpi .kd{font-size:12.5px}
+  .hero .acts,.vhead .acts{width:100%}
+  .hero .acts .btn,.vhead .acts .btn{flex:1 1 0;padding:0 10px}
+  #qList{grid-template-columns:1fr}
+  .fl{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"p s" "n n" "b w"}
+  .fl-p{justify-self:start}
+  .fl-n{white-space:normal}
+  .trucks{grid-template-columns:1fr}
+  .pick{left:0;flex-wrap:wrap;gap:8px 10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
+  .pick .pk-l,.pk-t,.pk-a{flex:1 1 100%}
+  .pk-a .btn{flex:1}
+  .pk-a #pkX kbd{display:none}
+  body.picking main{padding-bottom:210px}
+  #toasts,body.picking #toasts{left:50%;transform:translateX(-50%);top:calc(var(--th) + 8px);bottom:auto}
+  .tools{padding:12px}
+  .stchips{padding:10px 12px 0;flex-wrap:nowrap;overflow-x:auto}
+  .bulk{margin:10px 12px 0}
+  .scrollhint{display:none}
+  .tw{overflow:visible;margin-top:10px}
+  .tb{min-width:0}
+  .tb thead{display:none}
+  .tb,.tb tbody{display:block}
+  .tb tr{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:6px 10px;padding:12px;border-bottom:1px solid var(--line);align-items:center}
+  .tb td{display:block;padding:0;border:0;font-size:14px}
+  .tb tr.on{background:var(--red-soft)}
+  .tb tr.on td{background:transparent}
+  .tb td.c0{grid-row:1;grid-column:1}
+  .tb td.tdc{grid-row:1;grid-column:2}
+  .tb td.tds{grid-row:1;grid-column:3}
+  .tb td.tdu{grid-column:2/4;order:1}
+  .tb td.tdm{grid-column:2/4;order:2}
+  .tb td.tdk{grid-column:2;order:3}
+  .tb td.tdd{grid-column:3;order:4;text-align:right}
+  .tb td.tdw{grid-column:2;order:5;text-align:left}
+  .tb td.tdv{grid-column:3;order:6}
+  .tb td.tda{grid-column:2/4;order:7}
+  .tb td.tde{grid-column:1/-1}
+  .tact{justify-content:flex-start}
+  .tb td[data-l]::before{content:attr(data-l);display:block;font:700 12px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:2px}
+  .tb td.tdd small{display:inline}
+  .pager{justify-content:center}
+  .pager .pi{width:100%;text-align:center}
+  .frow{grid-template-columns:1fr}
+  .lr{grid-template-columns:minmax(0,1fr) 44px;grid-template-areas:"m x" "q w"}
+  .lr select{grid-area:m}
+  .lr .qw{grid-area:q}
+  .lr .lwt{grid-area:w}
+  .lr .rm{grid-area:x}
+  .lr .lwt{width:auto;padding-right:2px}
+  .fbar .btn{flex:1 1 140px}
+  .fbar .ferr{flex-basis:100%}
+  #modal{top:auto;bottom:0;left:0;width:100%;max-height:calc(100vh - 56px);border-width:2px 0 0}
+  .dn-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dn-meta div:nth-child(3){border-left:0}
+  .dn-meta div:nth-child(n+3){border-top:1px solid var(--line2)}
+  .dn-h{grid-template-columns:auto minmax(0,1fr)}
+  .dn-no{grid-column:1/-1;text-align:left}
+  .m-b{padding:12px}
+  .m-f .btn{flex:1 1 140px}
+  #pop{right:10px}
+}
+@media (max-width:420px){
+  .lr{grid-template-columns:minmax(0,1fr) 44px}
+  .dn-sig div{padding-bottom:34px}
+}
+/* touch: hit areas >= 40px */
+@media (pointer:coarse),(max-width:820px){
+  .seg button,.stc,.tb th button{min-height:40px}
+  .ckh{display:inline-grid;place-items:center;width:40px;height:40px;margin:-10px;vertical-align:middle}
+}
+.rm *,.rm *::before,.rm *::after{transition:none!important;animation:none!important}
+@media print{#side,.top,#toasts,#pick,#pal,#palBack,#mBack,.m-h,.m-f,main{display:none!important}#modal{position:static;transform:none!important;width:100%;max-height:none;border:0;box-shadow:none;visibility:visible!important;opacity:1!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Bỏ qua điều hướng</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="bm-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="var(--red)" opacity=".18"/><rect width="3" height="8" fill="var(--red)" opacity=".75"/></pattern>
+  </defs>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M1 5h13v11H1zM14 9h4l4 4v3h-8z"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21h4"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H3v-8h18v8h-3"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 21h20zM12 10v5M12 18v.5"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M2 20h20M4 20v-6h16v6M8 14V8h8v6M12 8V4"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V3h8v3M6 6l1 15h10l1-15"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chl" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-chr" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H5v20h14V7zM14 2v5h5M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M5 9v12h14V9"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 14 20"><g fill="currentColor" stroke="none"><rect x="2" y="2" width="3" height="3"/><rect x="9" y="2" width="3" height="3"/><rect x="2" y="8.5" width="3" height="3"/><rect x="9" y="8.5" width="3" height="3"/><rect x="2" y="15" width="3" height="3"/><rect x="9" y="15" width="3" height="3"/></g></symbol>
+  <symbol id="i-mark" viewBox="0 0 42 42"><rect width="42" height="42" fill="#fff"/><path d="M4 35 14 15l6 11 5-8 13 17z" fill="#C62A1F"/><path d="M4 35h34" stroke="#1B1C1E" stroke-width="3"/></symbol>
+</svg>
+
+<div id="intro" aria-hidden="true"><div class="ii"><div class="bar"></div><div class="it">VLXD Ba Miền</div><div class="is">Kho &amp; giao vật liệu xây dựng</div></div></div>
+
+<div id="app">
+  <aside id="side" aria-label="Điều hướng chính">
+    <div class="plate">
+      <svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg>
+      <div class="brand"><b>VLXD Ba Miền</b><small>Kho &amp; giao VLXD</small></div>
+    </div>
+    <nav class="nav" aria-label="Màn hình">
+      <p class="nav-h">Điều phối kho</p>
+      <button type="button" class="nv" data-go="tong-quan" aria-label="Tổng quan"><span class="nn">01</span><svg class="i"><use href="#i-grid"/></svg><span class="nl">Tổng quan</span></button>
+      <button type="button" class="nv" data-go="xep-xe" aria-label="Xếp xe"><span class="nn">02</span><svg class="i"><use href="#i-truck"/></svg><span class="nl">Xếp xe</span><span class="nb" id="nbQ">0</span></button>
+      <button type="button" class="nv" data-go="lenh-xuat" aria-label="Lệnh xuất kho"><span class="nn">03</span><svg class="i"><use href="#i-list"/></svg><span class="nl">Lệnh xuất kho</span></button>
+      <button type="button" class="nv" data-go="tao-lenh" aria-label="Tạo lệnh xuất"><span class="nn">04</span><svg class="i"><use href="#i-plus"/></svg><span class="nl">Tạo lệnh xuất</span></button>
+    </nav>
+    <div class="yardcard">
+      <p class="yk">Ca hôm nay</p>
+      <p class="yt" id="shiftTxt">Ca ngày · 6 xe</p>
+      <p class="ban" id="banSide"><i></i><span></span></p>
+    </div>
+    <div class="who"><span class="av" aria-hidden="true">MH</span><div><b>Đặng Mỹ Hạnh</b><small>Điều phối kho Dĩ An</small></div></div>
+    <p class="concept">Thiết kế concept — thương hiệu giả định.</p>
+  </aside>
+  <div id="navBack"></div>
+
+  <div id="wrap">
+    <header class="top">
+      <button type="button" class="ib" id="menuBtn" aria-label="Mở menu điều hướng" aria-expanded="false" aria-controls="side"><svg class="i"><use href="#i-menu"/></svg></button>
+      <p class="crumb"><span class="home">Kho Dĩ An</span><span class="sl">/</span><b id="crumbV">Tổng quan</b></p>
+      <span class="sp"></span>
+      <span class="chip" id="banTop"></span>
+      <button type="button" class="srch" id="searchBtn" aria-label="Mở bảng lệnh tìm kiếm (Ctrl K)"><svg class="i"><use href="#i-search"/></svg><span>Tìm kiếm</span><kbd>Ctrl K</kbd></button>
+      <span class="clock" id="clock" aria-label="Giờ hiện tại">--:--</span>
+      <button type="button" class="ib" id="themeBtn" aria-label="Chuyển giao diện"></button>
+      <button type="button" class="ib" id="bellBtn" aria-label="Thông báo" aria-expanded="false" aria-controls="pop"><svg class="i"><use href="#i-bell"/></svg><span class="dot">3</span></button>
+      <button type="button" class="ib" id="avBtn" aria-label="Tài khoản: Đặng Mỹ Hạnh"><b class="mono" style="font-size:13px">MH</b></button>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <!-- ============ TỔNG QUAN ============ -->
+      <section class="view" id="view-tong-quan" aria-labelledby="h-tong-quan">
+        <div class="hero" data-in>
+          <div>
+            <p class="eyebrow" id="todayTxt">Hôm nay</p>
+            <h1 id="h-tong-quan" tabindex="-1"><span id="greet">Chào buổi sáng</span>, chị Hạnh.</h1>
+            <p class="sub" id="heroSub"></p>
+          </div>
+          <div class="acts">
+            <button type="button" class="btn" data-go="xep-xe"><svg class="i"><use href="#i-truck"/></svg>Xếp xe <span class="cnt" id="heroQ">0</span></button>
+            <button type="button" class="btn red" data-go="tao-lenh"><svg class="i"><use href="#i-plus"/></svg>Tạo lệnh xuất</button>
+          </div>
+        </div>
+        <div class="kpis" data-in>
+          <div class="kpi"><p class="kl">Xuất kho 24 giờ qua</p><p class="kv"><b id="k1">0</b><small>tấn</small></p><div class="rul" aria-hidden="true"><i id="k1r"></i><em style="left:100%"></em></div><p class="kd" id="k1d"></p></div>
+          <div class="kpi"><p class="kl">Doanh số đã xuất</p><p class="kv"><b id="k2">0</b><small>tỷ ₫</small></p><div class="rul" aria-hidden="true"><i id="k2r"></i><em style="left:100%"></em></div><p class="kd" id="k2d"></p></div>
+          <div class="kpi" id="k3c"><p class="kl">Lệnh chờ xếp xe</p><p class="kv"><b id="k3">0</b><small>lệnh</small></p><div class="rul" aria-hidden="true"><i id="k3r"></i></div><p class="kd" id="k3d"></p></div>
+          <div class="kpi"><p class="kl">Xe trên đường</p><p class="kv"><b id="k4">0</b><small id="k4s">/ 6 xe</small></p><div class="trk-mini" id="k4m" aria-hidden="true"></div><p class="kd" id="k4d"></p></div>
+        </div>
+        <div class="g2">
+          <article class="pn" data-in>
+            <div class="ph"><span class="tag">A-01</span><h2>Sản lượng xuất kho</h2><span class="note">tấn / ngày</span>
+              <div class="seg r" role="group" aria-label="Khoảng thời gian">
+                <button type="button" data-rg="7" aria-pressed="false">7 ngày</button><button type="button" data-rg="14" aria-pressed="true">14 ngày</button><button type="button" data-rg="30" aria-pressed="false">30 ngày</button>
+              </div>
+            </div>
+            <div class="legend" id="legend"></div>
+            <div class="chwrap"><svg id="chart" role="img" tabindex="0" aria-label="Biểu đồ cột chồng sản lượng xuất kho theo ngày. Dùng phím mũi tên để xem từng ngày."></svg></div>
+            <p class="chsum" id="chSum"></p>
+          </article>
+          <article class="pn" data-in>
+            <div class="ph"><span class="tag">A-02</span><h2>Đội xe hôm nay</h2><button type="button" class="btn sm r" data-go="xep-xe">Mở bàn xếp xe</button></div>
+            <ul id="fleet"></ul>
+          </article>
+        </div>
+        <div class="g2 b">
+          <article class="pn" data-in>
+            <div class="ph"><span class="tag">A-03</span><h2>Tồn bãi</h2><span class="note">so với sức chứa</span></div>
+            <div class="yard" id="yard"></div>
+            <p class="ynote" id="yNote"></p>
+          </article>
+          <article class="pn" data-in>
+            <div class="ph"><span class="tag">A-04</span><h2>Cổng cân số 2</h2><span class="livep r" id="livePill"><i></i>TRỰC TIẾP</span></div>
+            <ol id="gate"></ol>
+          </article>
+        </div>
+      </section>
+
+      <!-- ============ XẾP XE ============ -->
+      <section class="view" id="view-xep-xe" aria-labelledby="h-xep-xe">
+        <div class="vhead" data-in>
+          <div>
+            <p class="eyebrow">Điều phối · bãi xe Dĩ An</p>
+            <h1 id="h-xep-xe" tabindex="-1">Xếp hàng lên xe</h1>
+            <p class="sub">Kéo một dòng vật tư vào thùng xe, hoặc chạm dòng rồi chạm xe. Bàn phím: <kbd>Enter</kbd> cầm dòng, <kbd>1</kbd>–<kbd>6</kbd> chọn xe, <kbd>Ctrl Z</kbd> hoàn tác.</p>
+          </div>
+          <div class="acts">
+            <button type="button" class="btn" id="undoBtn"><svg class="i"><use href="#i-undo"/></svg>Hoàn tác</button>
+            <button type="button" class="btn" id="clearBtn">Dỡ hết xe ở bãi</button>
+            <button type="button" class="btn red" id="autoBtn"><svg class="i"><use href="#i-bolt"/></svg>Tự xếp theo tải trọng</button>
+          </div>
+        </div>
+        <div class="ld">
+          <aside class="queue pn" data-drop="queue" aria-labelledby="qH" data-in>
+            <div class="ph"><span class="tag">B-01</span><h2 id="qH">Lệnh chờ xếp</h2><span class="note mono" id="qSum"></span></div>
+            <div id="qList"></div>
+          </aside>
+          <div class="trucks" id="trucks" data-in></div>
+        </div>
+      </section>
+
+      <!-- ============ LỆNH XUẤT ============ -->
+      <section class="view" id="view-lenh-xuat" aria-labelledby="h-lenh-xuat">
+        <div class="vhead" data-in>
+          <div>
+            <p class="eyebrow">Sổ lệnh · 45 ngày gần nhất</p>
+            <h1 id="h-lenh-xuat" tabindex="-1">Lệnh xuất kho</h1>
+            <p class="sub">Tìm không cần gõ dấu: “cat vang”, “thu duc”, “051”.</p>
+          </div>
+          <div class="acts"><button type="button" class="btn red" data-go="tao-lenh"><svg class="i"><use href="#i-plus"/></svg>Tạo lệnh xuất</button></div>
+        </div>
+        <div class="pn" data-in>
+          <div class="stchips" id="stChips" role="group" aria-label="Lọc theo trạng thái"></div>
+          <div class="tools">
+            <label class="fsearch"><svg class="i"><use href="#i-search"/></svg><span class="sr">Tìm lệnh</span><input id="tQ" type="search" placeholder="Mã lệnh, khách, công trình, vật tư…" autocomplete="off"></label>
+            <label class="sr" for="tKv">Khu vực</label>
+            <select id="tKv" class="sel"></select>
+            <label class="sr" for="tMat">Vật tư</label>
+            <select id="tMat" class="sel"></select>
+          </div>
+          <div class="bulk" id="bulk" hidden>
+            <b id="bulkN">Đã chọn 0 lệnh</b>
+            <button type="button" class="btn sm" id="bkDone"><svg class="i"><use href="#i-check"/></svg>Đã giao</button>
+            <button type="button" class="btn sm" id="bkCancel">Hủy lệnh</button>
+            <button type="button" class="btn sm" id="bkDel"><svg class="i"><use href="#i-trash"/></svg>Xóa</button>
+            <button type="button" class="btn sm" id="bkClear">Bỏ chọn</button>
+          </div>
+          <p class="scrollhint">Bảng rộng — vuốt ngang trong khung để xem đủ cột →</p>
+          <div class="tw">
+            <table class="tb">
+              <thead><tr>
+                <th class="c0"><label class="ckh"><input type="checkbox" class="ck" id="selAll" aria-label="Chọn tất cả lệnh trong trang"></label></th>
+                <th data-s="id"><button type="button">Mã lệnh<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th data-s="cus"><button type="button">Khách hàng · công trình<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th data-s="kv"><button type="button">Khu vực<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th>Vật tư</th>
+                <th data-s="w" class="r"><button type="button">Khối lượng<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th data-s="v" class="r"><button type="button">Giá trị<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th data-s="day"><button type="button">Ngày giao<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th data-s="st"><button type="button">Trạng thái<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th class="r"><span class="sr">Thao tác</span></th>
+              </tr></thead>
+              <tbody id="tBody"></tbody>
+            </table>
+          </div>
+          <div class="pager" id="pager"></div>
+        </div>
+      </section>
+
+      <!-- ============ TẠO LỆNH ============ -->
+      <section class="view" id="view-tao-lenh" aria-labelledby="h-tao-lenh">
+        <div class="vhead" data-in>
+          <div>
+            <p class="eyebrow">Lệnh mới · vào hàng chờ xếp xe</p>
+            <h1 id="h-tao-lenh" tabindex="-1">Tạo lệnh xuất kho</h1>
+            <p class="sub">Khối lượng tự quy đổi ra tấn theo đơn vị bao, cây, m³, viên. Hệ thống gợi ý loại xe và cảnh báo giờ cấm tải nội đô.</p>
+          </div>
+        </div>
+        <div class="fgrid">
+          <form class="pn" id="oForm" novalidate data-in>
+            <fieldset class="fs">
+              <legend>Khách hàng &amp; công trình</legend>
+              <div class="frow">
+                <div class="fld"><label for="fCus">Khách hàng / công ty</label><input id="fCus" autocomplete="off" placeholder="VD: Anh Trần Quốc Bảo"><p class="err" id="fCusE"></p></div>
+                <div class="fld"><label for="fPhone">Số điện thoại nhận hàng</label><input id="fPhone" inputmode="tel" autocomplete="off" placeholder="09xx xxx xxx"><p class="err" id="fPhoneE"></p></div>
+                <div class="fld w2"><label for="fSite">Địa chỉ công trình</label><input id="fSite" autocomplete="off" placeholder="Số nhà, đường, phường"><p class="err" id="fSiteE"></p></div>
+              </div>
+            </fieldset>
+            <fieldset class="fs">
+              <legend>Giao hàng</legend>
+              <div class="frow">
+                <div class="fld"><label for="fKv">Khu vực giao</label><select id="fKv"></select><p class="err" id="fKvE"></p></div>
+                <div class="fld"><label for="fDate">Ngày giao</label><input id="fDate" type="text" inputmode="numeric" placeholder="dd/mm/yyyy" maxlength="10" autocomplete="off"><p class="err" id="fDateE"></p></div>
+                <div class="fld w2"><label for="fSlot">Khung giờ</label><select id="fSlot"></select><p class="hint" id="fSlotH"></p><p class="err" id="fSlotE"></p></div>
+              </div>
+            </fieldset>
+            <fieldset class="fs">
+              <legend>Vật tư xuất</legend>
+              <div class="lines" id="lines"></div>
+              <p class="err" id="linesE"></p>
+              <button type="button" class="btn sm addl" id="addLine"><svg class="i"><use href="#i-plus"/></svg>Thêm dòng vật tư</button>
+            </fieldset>
+            <div class="fbar">
+              <p class="ferr" id="fErr" role="alert"></p>
+              <button type="reset" class="btn" id="fReset">Làm lại</button>
+              <button type="submit" class="btn" id="fSave" value="save">Lưu lệnh</button>
+              <button type="submit" class="btn red" id="fSaveGo" value="go"><svg class="i"><use href="#i-truck"/></svg>Lưu &amp; xếp xe</button>
+            </div>
+          </form>
+          <aside class="pn sumbox" aria-labelledby="sumH" data-in>
+            <div class="ph"><span class="tag">C-02</span><h2 id="sumH">Tạm tính lệnh</h2></div>
+            <div class="sb">
+              <dl>
+                <dt>Tổng khối lượng</dt><dd><span class="big" id="sT">0</span> t</dd>
+                <dt>Giá trị hàng</dt><dd id="sV">0 ₫</dd>
+                <dt>Số dòng</dt><dd id="sN">0</dd>
+              </dl>
+            </div>
+            <div class="sug"><h3>Xe đề xuất</h3><ul id="sSug"></ul></div>
+            <p class="warnbox" id="sWarn" hidden></p>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div id="pick" class="pick" hidden role="region" aria-label="Dòng vật tư đang cầm">
+  <div class="pk-l"><span class="pk-k">Đang cầm</span><b id="pkTxt"></b></div>
+  <div class="pk-t" id="pkTrucks"></div>
+  <div class="pk-a"><button type="button" class="btn sm" id="pkOff">Gỡ khỏi xe</button><button type="button" class="btn sm" id="pkX">Hủy <kbd>Esc</kbd></button></div>
+</div>
+<div id="toasts" aria-live="polite"></div>
+<div id="tip" hidden></div>
+<div id="pop" hidden><h2>Thông báo</h2><ul id="popList"></ul></div>
+<div id="palBack"></div>
+<div id="pal" role="dialog" aria-modal="true" aria-label="Bảng lệnh">
+  <div class="pal-in"><svg class="i"><use href="#i-search"/></svg><input id="palIn" role="combobox" aria-expanded="true" aria-controls="palList" aria-label="Gõ lệnh hoặc tìm lệnh xuất, xe, khách hàng" placeholder="Gõ lệnh, mã lệnh, biển số, khách…" autocomplete="off"><kbd>Esc</kbd></div>
+  <ul id="palList" role="listbox" aria-label="Kết quả"></ul>
+  <div class="pal-f"><span><kbd>↑</kbd> <kbd>↓</kbd> chọn</span><span><kbd>Enter</kbd> chạy</span><span><kbd>Esc</kbd> đóng</span></div>
+</div>
+<div id="mBack"></div>
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="m-h"><h2 id="mTitle">Phiếu giao hàng</h2><button type="button" class="ib" id="mX" aria-label="Đóng phiếu giao hàng"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="m-b" id="mBody"></div>
+  <div class="m-toasts" id="mToasts" aria-live="polite"></div>
+  <div class="m-f"><p class="mwarn" id="mWarn"></p><button type="button" class="btn" id="mPrint"><svg class="i"><use href="#i-print"/></svg>In phiếu</button><button type="button" class="btn red" id="mGo"><svg class="i"><use href="#i-truck"/></svg>Xác nhận xuất xe</button></div>
+</div>
+<div id="bmlive" class="sr" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+(() => {
+'use strict'
+const G = window.gsap
+G.config({ nullTargetWarn: false })
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+// ?static freezes the clock, the weighbridge feed and "x phút trước" labels after the first render.
+const STATIC = /\bstatic\b/.test(location.search)
+const root = document.documentElement
+if (RM) { root.classList.add('rm'); G.globalTimeline.timeScale(60) }
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const store = {
+  get(k) { try { return localStorage.getItem(k) } catch { return null } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch { /* private mode */ } },
+}
+
+/* ---------- helpers ---------- */
+function mulberry(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
+const NOW0 = new Date()
+const DAY = 864e5
+const today = new Date(NOW0.getFullYear(), NOW0.getMonth(), NOW0.getDate())
+const nowT = () => (STATIC ? NOW0 : new Date())
+const pad = (n) => String(n).padStart(2, '0')
+const dayAt = (off) => new Date(today.getTime() + off * DAY)
+const dm = (d) => pad(d.getDate()) + '/' + pad(d.getMonth() + 1)
+const dmy = (d) => dm(d) + '/' + d.getFullYear()
+const hm = (d) => pad(d.getHours()) + ':' + pad(d.getMinutes())
+const fmt = (n) => Math.round(n).toLocaleString('vi-VN')
+const t1 = (n) => (Math.round(n * 10) / 10).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const vnd = (n) => fmt(n) + ' ₫'
+const short = (n) => n >= 1e9 ? (n / 1e9).toFixed(2).replace('.', ',') + ' tỷ' : n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + ' tr' : n >= 1e3 ? Math.round(n / 1e3) + 'k' : String(Math.round(n))
+const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').toLowerCase()
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v))
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const icon = (n) => '<svg class="i"><use href="#i-' + n + '"/></svg>'
+const WD = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy']
+function ago(ts) {
+  const m = Math.round((nowT() - ts) / 6e4)
+  if (m < 1) return 'vừa xong'
+  if (m < 60) return m + ' phút trước'
+  const h = Math.floor(m / 60)
+  return h < 24 ? h + ' giờ ' + (m % 60 ? (m % 60) + ' phút ' : '') + 'trước' : Math.round(h / 24) + ' ngày trước'
+}
+function dayLabel(off) { return off === 0 ? 'Hôm nay' : off === 1 ? 'Ngày mai' : off === -1 ? 'Hôm qua' : dm(dayAt(off)) }
+const live = (msg) => { const el = $('#bmlive'); el.textContent = ''; setTimeout(() => (el.textContent = msg), 30) }
+const HR = NOW0.getHours()
+
+/* ---------- city truck ban (xe trên 2,5 t vào nội đô) ---------- */
+const BANS = [[6, 9], [16, 20]]
+function banInfo(d) {
+  const h = d.getHours() + d.getMinutes() / 60
+  for (const [a, b] of BANS) if (h >= a && h < b) return { on: true, txt: 'Giờ cấm tải nội đô · hết lúc ' + pad(b) + ':00' }
+  const next = BANS.find(([a]) => a > h) || BANS[0]
+  return { on: false, txt: 'Được vào nội đô · cấm lại lúc ' + pad(next[0]) + ':00' }
+}
+const NOIDO = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Phú Nhuận', 'Gò Vấp']
+const KV = ['TP. Thủ Đức', 'Quận 12', 'Gò Vấp', 'Bình Thạnh', 'Phú Nhuận', 'Quận 1', 'Quận 3', 'Quận 7', 'Hóc Môn', 'Dĩ An', 'Thuận An', 'Tân Uyên']
+const SLOTS = ['5–7h', '7–9h', '9–11h', '13–15h', '15–17h', '17–19h', '20–22h']
+const BAN_SLOTS = ['5–7h', '7–9h', '15–17h', '17–19h']
+
+/* ---------- materials ---------- */
+// id, name, short, unit, tons per unit, kind (roi = rời, kien = kiện), price per unit, group
+const MATS = [
+  ['xm40', 'Xi măng PCB40 Đồng Lam bao 50 kg', 'Xi măng PCB40', 'bao', 0.05, 'kien', 92000, 'xm'],
+  ['xm30', 'Xi măng PCB30 xây tô bao 50 kg', 'Xi măng PCB30', 'bao', 0.05, 'kien', 84000, 'xm'],
+  ['d10', 'Thép vằn D10 cây 11,7 m', 'Thép D10', 'cây', 0.0072, 'kien', 118000, 'thep'],
+  ['d16', 'Thép vằn D16 cây 11,7 m', 'Thép D16', 'cây', 0.0185, 'kien', 296000, 'thep'],
+  ['p6', 'Thép cuộn Φ6', 'Thép cuộn Φ6', 'tấn', 1, 'kien', 15600000, 'thep'],
+  ['catv', 'Cát vàng bê tông', 'Cát vàng', 'm³', 1.45, 'roi', 420000, 'catda'],
+  ['catx', 'Cát xây tô', 'Cát xây', 'm³', 1.38, 'roi', 300000, 'catda'],
+  ['da12', 'Đá 1x2 xanh', 'Đá 1x2', 'm³', 1.5, 'roi', 390000, 'catda'],
+  ['dami', 'Đá mi bụi', 'Đá mi', 'm³', 1.42, 'roi', 280000, 'catda'],
+  ['gong', 'Gạch ống 8x8x18 tuynel', 'Gạch ống', 'viên', 0.00115, 'kien', 1250, 'gach'],
+  ['gthe', 'Gạch thẻ 4x8x18', 'Gạch thẻ', 'viên', 0.001, 'kien', 1300, 'gach'],
+]
+const MM = {}
+MATS.forEach(([id, name, sh, u, t, kind, p, g]) => (MM[id] = { id, name, sh, u, t, kind, p, g }))
+const GROUPS = [['catda', 'Cát, đá'], ['xm', 'Xi măng'], ['gach', 'Gạch'], ['thep', 'Thép']]
+const qtxt = (l) => fmt(l.q) + ' ' + MM[l.m].u
+const lineW = (l) => l.q * MM[l.m].t
+const lineV = (l) => l.q * MM[l.m].p
+const ordW = (o) => o.lines.reduce((s, l) => s + lineW(l), 0)
+const ordV = (o) => o.lines.reduce((s, l) => s + lineV(l), 0)
+
+/* ---------- fleet ---------- */
+const TRUCKS = [
+  { id: 'T1', plate: '61C-215.48', kind: 'ben', cap: 15, name: 'Ben 15 tấn', drv: 'Nguyễn Văn Tâm', ph: '0908 214 553', st: 'bai', back: 0 },
+  { id: 'T2', plate: '61C-307.92', kind: 'ben', cap: 8, name: 'Ben 8 tấn', drv: 'Lê Hoàng Phúc', ph: '0937 610 284', st: 'bai', back: 0 },
+  { id: 'T3', plate: '61H-118.05', kind: 'thung', cap: 8, name: 'Thùng 8 tấn', drv: 'Trần Minh Đức', ph: '0918 552 049', st: 'bai', back: 0 },
+  { id: 'T4', plate: '61C-422.60', kind: 'thung', cap: 5, name: 'Cẩu 5 tấn', drv: 'Phạm Quốc Huy', ph: '0972 330 815', st: 'bai', back: 0 },
+  { id: 'T5', plate: '61H-094.33', kind: 'thung', cap: 2.5, name: 'Thùng 2,5 tấn', drv: 'Võ Thành Nhân', ph: '0389 476 120', st: 'bai', back: 0 },
+  { id: 'T6', plate: '61C-559.71', kind: 'ben', cap: 15, name: 'Ben 15 tấn', drv: 'Hồ Văn Lợi', ph: '0903 785 642', st: 'giao', back: NOW0.getTime() + 52 * 6e4 },
+]
+const TR = {}
+TRUCKS.forEach((t) => (TR[t.id] = t))
+
+/* ---------- orders ---------- */
+const CUS = [
+  ['Anh Trần Quốc Bảo', 'Nhà phố 3 tầng · 128/4 Lê Văn Việt', 'TP. Thủ Đức', '0903 418 227'],
+  ['Cty XD Hưng Thịnh Phát', 'Chung cư mini · 22 Đường số 9, P. Linh Tây', 'TP. Thủ Đức', '0283 896 1140'],
+  ['Chị Lê Thị Ngọc Hân', 'Sửa nhà · 45 Nguyễn Ảnh Thủ', 'Quận 12', '0938 205 671'],
+  ['Nhà thầu Phúc Lợi', 'Xưởng may · KCN Sóng Thần 2', 'Dĩ An', '0919 664 302'],
+  ['Anh Võ Minh Khoa', 'Biệt thự vườn · 17 đường ĐT743', 'Thuận An', '0977 120 854'],
+  ['Chị Phạm Thu Trang', 'Nhà phố · 31 Lê Văn Thọ', 'Gò Vấp', '0906 733 418'],
+  ['Cty TNHH XD Đất Lành', 'Trường mầm non · 5 Phan Văn Hớn', 'Hóc Môn', '0902 551 960'],
+  ['Anh Lý Gia Hưng', 'Nhà xưởng · 9 Quốc lộ 1K', 'Dĩ An', '0985 302 117'],
+  ['Chị Huỳnh Mỹ Duyên', 'Quán cà phê · 77 Phan Đăng Lưu', 'Bình Thạnh', '0933 870 245'],
+  ['Anh Nguyễn Hữu Tài', 'Nhà cấp 4 · 88 Tô Ký', 'Quận 12', '0918 447 093'],
+  ['Chị Đặng Kim Liên', 'Nhà trọ 12 phòng · 302 Thạnh Xuân 25', 'Quận 12', '0369 512 774'],
+  ['Cty Kiến Trúc Mộc Gia', 'Showroom · 210 Kha Vạn Cân', 'TP. Thủ Đức', '0907 219 336'],
+  ['Cty CP Địa Ốc Sao Phương Nam', 'Nhà mẫu · 12 Nguyễn Văn Linh', 'Quận 7', '0909 655 802'],
+  ['Cty XD Minh Tâm', 'Trụ sở · 140 Võ Văn Ngân', 'TP. Thủ Đức', '0913 008 426'],
+  ['Anh Bùi Thanh Sơn', 'Nhà phố · 56 Hoàng Văn Thụ', 'Phú Nhuận', '0937 441 580'],
+  ['Anh Đỗ Văn Lâm', 'Kè ao · ấp Tân Thạnh', 'Tân Uyên', '0388 902 615'],
+]
+let seq = 30
+const code = (off) => { const d = dayAt(off); return 'LX-' + pad(d.getDate()) + pad(d.getMonth() + 1) + '-' + String(++seq).padStart(3, '0') }
+const ORD = []
+function mkOrd(ci, off, slot, st, lines, xe) {
+  const c = CUS[ci]
+  const o = { id: code(off), cus: c[0], site: c[1], kv: c[2], ph: c[3], day: off, slot, st, xe: xe || '', lines: lines.map(([m, q]) => ({ m, q })) }
+  ORD.push(o); return o
+}
+// history (delivered / cancelled / on partner trucks)
+const hr = mulberry(39)
+const pickM = () => MATS[Math.floor(hr() * MATS.length)][0]
+function qtyFor(m) {
+  const u = MM[m].u
+  if (u === 'bao') return 20 + Math.floor(hr() * 15) * 10
+  if (u === 'cây') return MM[m].id === 'd10' ? 60 + Math.floor(hr() * 20) * 10 : 20 + Math.floor(hr() * 12) * 10
+  if (u === 'tấn') return 1 + Math.floor(hr() * 3)
+  if (u === 'm³') return 2 + Math.floor(hr() * 8)
+  return 1000 + Math.floor(hr() * 12) * 500
+}
+const PARTNER = ['Xe đối tác Tín Phát', '61C-559.71', '61C-215.48', '61H-118.05', '61C-422.60', '61C-307.92']
+for (let i = 0; i < 31; i++) {
+  const off = -12 + Math.floor(i * 12 / 31)
+  const n = 1 + Math.floor(hr() * 3), ls = []
+  const used = new Set()
+  for (let k = 0; k < n; k++) { const m = pickM(); if (used.has(m)) continue; used.add(m); ls.push([m, qtyFor(m)]) }
+  const st = i % 11 === 4 ? 'huy' : 'xong'
+  mkOrd(Math.floor(hr() * CUS.length), off, SLOTS[Math.floor(hr() * SLOTS.length)], st, ls, st === 'xong' ? PARTNER[Math.floor(hr() * PARTNER.length)] : '')
+}
+// out today on a partner truck
+;[[12, [['xm40', 120], ['d16', 60]]], [13, [['gong', 4000]]], [11, [['da12', 5], ['catv', 3]]], [15, [['dami', 6]]]].forEach(([ci, ls]) => mkOrd(ci, 0, '9–11h', 'giao', ls, 'Xe đối tác Tín Phát'))
+// on truck T6 (en route)
+const oA = mkOrd(9, 0, '13–15h', 'open', [['catv', 7]])
+const oB = mkOrd(10, 0, '13–15h', 'open', [['catv', 3]])
+// waiting queue
+const oQ = [
+  mkOrd(0, 0, '13–15h', 'open', [['catv', 6], ['xm40', 80], ['d10', 120]]),
+  mkOrd(1, 0, '9–11h', 'open', [['da12', 9], ['xm40', 160]]),
+  mkOrd(2, 0, '15–17h', 'open', [['gong', 3000], ['catx', 2]]),
+  mkOrd(3, 0, '7–9h', 'open', [['d16', 180], ['p6', 1]]),
+  mkOrd(4, 0, '13–15h', 'open', [['catv', 4], ['dami', 3]]),
+  mkOrd(5, 0, '20–22h', 'open', [['xm30', 40], ['gthe', 1500]]),
+  mkOrd(6, 1, '7–9h', 'open', [['gong', 6000], ['xm40', 100]]),
+  mkOrd(7, 1, '9–11h', 'open', [['da12', 6]]),
+  mkOrd(8, 1, '20–22h', 'open', [['xm30', 30], ['catx', 1]]),
+]
+const ASSIGN = new Map()
+const DONE = new Set()
+ASSIGN.set(oA.id + '#0', 'T6'); ASSIGN.set(oB.id + '#0', 'T6')
+ASSIGN.set(oQ[3].id + '#0', 'T3'); ASSIGN.set(oQ[3].id + '#1', 'T3')
+ORD.forEach((o, i) => (o.ts = NOW0.getTime() - (ORD.length - i) * 37 * 6e4))
+
+const STS = { cho: ['Chờ xếp', 'st-cho'], mot: ['Lên xe một phần', 'st-mot'], len: ['Đã lên xe', 'st-len'], giao: ['Đang giao', 'st-giao'], xong: ['Đã giao', 'st-xong'], huy: ['Đã hủy', 'st-huy'] }
+const ST_ORDER = ['cho', 'mot', 'len', 'giao', 'xong', 'huy']
+function getLine(k) { const j = k.lastIndexOf('#'); const o = ORD.find((x) => x.id === k.slice(0, j)); return o ? { o, l: o.lines[+k.slice(j + 1)], i: +k.slice(j + 1) } : null }
+function lineSt(k) { if (DONE.has(k)) return 'done'; const t = ASSIGN.get(k); if (!t) return 'wait'; return TR[t].st === 'giao' ? 'road' : 'load' }
+function ordSt(o) {
+  if (o.st !== 'open') return o.st
+  const s = o.lines.map((_, i) => lineSt(o.id + '#' + i))
+  if (s.every((x) => x === 'done')) return 'xong'
+  if (s.every((x) => x === 'road' || x === 'done')) return 'giao'
+  if (s.every((x) => x !== 'wait')) return 'len'
+  return s.some((x) => x !== 'wait') ? 'mot' : 'cho'
+}
+const keysOf = (tid) => [...ASSIGN].filter(([, t]) => t === tid).map(([k]) => k).filter((k) => getLine(k))
+const loadOf = (tid) => keysOf(tid).reduce((s, k) => s + lineW(getLine(k).l), 0)
+const benMat = (tid) => { const ks = keysOf(tid); return ks.length ? getLine(ks[0]).l.m : null }
+const queueOrders = () => ORD.filter((o) => o.st === 'open' && o.lines.some((_, i) => lineSt(o.id + '#' + i) === 'wait')).sort((a, b) => a.day - b.day || SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot))
+function canTake(tr, k) {
+  const g = getLine(k); if (!g) return { ok: false, why: 'Dòng không còn tồn tại.' }
+  const m = MM[g.l.m]
+  if (tr.st === 'giao') return { ok: false, why: 'Xe ' + tr.plate + ' đang đi giao.' }
+  if (ASSIGN.get(k) === tr.id) return { ok: false, why: 'Dòng này đã nằm trên xe ' + tr.plate + '.' }
+  if (tr.kind === 'ben' && m.kind !== 'roi') return { ok: false, why: 'Xe ben chỉ chở cát, đá rời — ' + m.sh + ' cần xe thùng hoặc xe cẩu.' }
+  if (tr.kind === 'thung' && m.kind === 'roi') return { ok: false, why: tr.name + ' không chở hàng rời — ' + m.sh + ' cần xe ben.' }
+  const bm = benMat(tr.id)
+  if (tr.kind === 'ben' && bm && bm !== g.l.m) return { ok: false, why: 'Xe ' + tr.plate + ' đang chở ' + MM[bm].sh + ', không đổ lẫn ' + m.sh + '.' }
+  const after = loadOf(tr.id) + lineW(g.l)
+  return { ok: true, over: after > tr.cap + 1e-9, after }
+}
+
+/* ---------- yard stock, KPI extras, gate feed ---------- */
+const STOCK = { xm40: [2380, 4000], xm30: [640, 2000], d10: [1150, 2500], d16: [420, 1500], p6: [18, 40], catv: [310, 600], catx: [95, 400], da12: [520, 700], dami: [180, 400], gong: [38000, 60000], gthe: [9500, 40000] }
+const EXTRA = { t: 0, v: 0 }
+const fr = mulberry(5)
+const FEED = []
+const gateNotes = [['T1', 'out', 'Đá 1x2 → TP. Thủ Đức', 13.5], ['T4', 'in', 'Về bãi · thùng rỗng', 0], ['T6', 'out', 'Cát vàng → Quận 12', 14.5], ['T2', 'in', 'Về bãi · thùng rỗng', 0], ['T3', 'out', 'Xi măng, thép → Dĩ An', 7.2], ['T5', 'in', 'Về bãi · thùng rỗng', 0]]
+gateNotes.forEach(([tid, dir, note, net], i) => {
+  const tare = TR[tid].cap * 0.62 + fr() * 0.6
+  FEED.push({ ts: NOW0.getTime() - (8 + i * 23 + Math.floor(fr() * 9)) * 6e4, plate: TR[tid].plate, name: TR[tid].name, dir, note, gross: tare + net, net })
+})
+
+/* ---------- daily output (60 closed days, tons by group) ---------- */
+const DAYS = 60
+const cr = mulberry(11)
+const DATA = []
+for (let i = 0; i < DAYS; i++) {
+  const d = dayAt(i - DAYS)
+  const sun = d.getDay() === 0
+  const base = sun ? 70 + cr() * 30 : 165 + cr() * 70 + Math.sin(i / 6) * 14
+  const sh = [0.5 + cr() * 0.08, 0.22 + cr() * 0.05, 0.14 + cr() * 0.04]
+  const g = [base * sh[0], base * sh[1], base * sh[2]]
+  g.push(Math.max(4, base - g[0] - g[1] - g[2]))
+  DATA.push({ d, g, tot: g.reduce((a, b) => a + b, 0) })
+}
+const PLAN = 200
+
+/* ---------- theme ---------- */
+const themeBtn = $('#themeBtn')
+function syncThemeBtn() {
+  const d = root.dataset.theme === 'dark'
+  themeBtn.innerHTML = icon(d ? 'sun' : 'moon')
+  themeBtn.setAttribute('aria-label', d ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối')
+}
+function setTheme(t) { root.dataset.theme = t; store.set('bm-theme', t); syncThemeBtn() }
+themeBtn.addEventListener('click', () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'))
+syncThemeBtn()
+
+/* ---------- toast (max 2; inside the modal while it is open) ---------- */
+let modalOpen = false
+function toast(msg, { undo } = {}) {
+  const box = modalOpen ? $('#mToasts') : $('#toasts')
+  const el = document.createElement('div')
+  el.className = 'toast'
+  el.setAttribute('role', 'status')
+  el.innerHTML = '<span class="tm">' + msg + '</span>' + (undo ? '<button type="button" class="t-undo">Hoàn tác</button>' : '') + '<button type="button" class="tx" aria-label="Đóng thông báo">×</button>'
+  box.appendChild(el)
+  while (box.children.length > 2) box.firstElementChild.remove()
+  const kill = () => { if (!el.isConnected) return; G.to(el, { opacity: 0, duration: 0.18, onComplete: () => el.remove() }) }
+  if (!RM) G.from(el, { y: -10, opacity: 0, duration: 0.3, ease: 'power3.out', clearProps: 'transform,opacity' })
+  el.querySelector('.tx').addEventListener('click', kill)
+  if (undo) el.querySelector('.t-undo').addEventListener('click', () => { undo(); kill(); toast('Đã hoàn tác.') })
+  setTimeout(kill, undo ? 7000 : 4200)
+}
+
+/* ---------- tooltip ---------- */
+const tip = $('#tip')
+function showTip(html, x, y) {
+  tip.innerHTML = html; tip.hidden = false
+  const w = tip.offsetWidth, h = tip.offsetHeight
+  let l = x + 16, t = y - h - 12
+  if (l + w > innerWidth - 8) l = x - w - 16
+  if (t < 70) t = y + 18
+  tip.style.left = clamp(l, 8, innerWidth - w - 8) + 'px'; tip.style.top = clamp(t, 8, innerHeight - h - 8) + 'px'
+}
+const hideTip = () => (tip.hidden = true)
+
+/* ---------- undo snapshots ---------- */
+function snap() { return JSON.stringify({ o: ORD, a: [...ASSIGN], d: [...DONE], t: TRUCKS.map((t) => [t.st, t.back]), s: STOCK, x: EXTRA, f: FEED }) }
+function restore(s) {
+  const v = JSON.parse(s)
+  ORD.splice(0, ORD.length, ...v.o)
+  ASSIGN.clear(); v.a.forEach(([k, t]) => ASSIGN.set(k, t))
+  DONE.clear(); v.d.forEach((k) => DONE.add(k))
+  TRUCKS.forEach((t, i) => { t.st = v.t[i][0]; t.back = v.t[i][1] })
+  Object.assign(STOCK, v.s); Object.assign(EXTRA, v.x)
+  FEED.splice(0, FEED.length, ...v.f)
+  setPick(null)
+  refreshAll()
+}
+const HIST = []
+function commit() { HIST.push(snap()); if (HIST.length > 60) HIST.shift(); syncUndo() }
+function syncUndo() { $('#undoBtn').disabled = !HIST.length }
+
+/* ================= TỔNG QUAN ================= */
+const GREET = HR < 5 ? 'Khuya rồi' : HR < 11 ? 'Chào buổi sáng' : HR < 13 ? 'Chào buổi trưa' : HR < 18 ? 'Chào buổi chiều' : 'Chào buổi tối'
+$('#greet').textContent = GREET
+$('#todayTxt').textContent = WD[NOW0.getDay()] + ' · ' + dmy(NOW0) + ' · Kho Dĩ An'
+$('#shiftTxt').textContent = (HR >= 6 && HR < 18 ? 'Ca ngày' : 'Ca đêm') + ' · 6 xe · 4 tài xế trực'
+function renderBan() {
+  const b = banInfo(nowT())
+  const t = $('#banTop'); t.textContent = b.txt; t.classList.toggle('on', b.on)
+  const s = $('#banSide'); s.classList.toggle('on', b.on); s.querySelector('span').textContent = b.txt
+  return b
+}
+function kpiData() {
+  const q = queueOrders().length
+  const road = TRUCKS.filter((t) => t.st === 'giao').length
+  return { t: 168.4 + EXTRA.t, v: 1.384e9 + EXTRA.v, q, road }
+}
+function renderKPIs(anim) {
+  const k = kpiData()
+  const set = (id, v, f) => {
+    const el = $('#' + id)
+    if (anim && !RM) { const o = { v: 0 }; G.to(o, { v, duration: 0.9, ease: 'power2.out', onUpdate: () => (el.textContent = f(o.v)) }) } else el.textContent = f(v)
+  }
+  set('k1', k.t, t1)
+  set('k2', k.v / 1e9, (x) => x.toFixed(2).replace('.', ','))
+  set('k3', k.q, (x) => String(Math.round(x)))
+  set('k4', k.road, (x) => String(Math.round(x)))
+  $('#k1r').style.width = Math.min(100, k.t / 220 * 100) + '%'
+  $('#k1d').textContent = Math.round(k.t / 220 * 100) + '% kế hoạch 220 t · TB 30 ngày ' + Math.round(DATA.slice(-30).reduce((s, d) => s + d.tot, 0) / 30) + ' t'
+  $('#k2r').style.width = Math.min(100, k.v / 1.8e9 * 100) + '%'
+  $('#k2d').textContent = Math.round(k.v / 1.8e9 * 100) + '% mục tiêu 1,8 tỷ ₫ / ngày'
+  const qs = queueOrders(), wt = qs.reduce((s, o) => s + o.lines.reduce((a, l, i) => a + (lineSt(o.id + '#' + i) === 'wait' ? lineW(l) : 0), 0), 0)
+  $('#k3r').style.width = Math.min(100, k.q / 12 * 100) + '%'
+  $('#k3c').classList.toggle('alert', k.q > 5)
+  $('#k3d').textContent = k.q ? t1(wt) + ' t chưa lên xe · ' + qs.filter((o) => o.day === 0).length + ' lệnh giao hôm nay' : 'Đã xếp hết hàng chờ'
+  $('#k4m').innerHTML = TRUCKS.map((t) => '<i class="' + (t.st === 'giao' ? 'on' : '') + '"></i>').join('')
+  const away = TRUCKS.filter((t) => t.st === 'giao')
+  $('#k4d').textContent = away.length ? 'Sớm nhất về lúc ' + hm(new Date(Math.min(...away.map((t) => t.back)))) : 'Cả 6 xe đang ở bãi'
+  const b = renderBan()
+  $('#heroSub').textContent = k.q + ' lệnh chờ xếp xe · ' + k.road + ' xe đang giao · ' + b.txt.charAt(0).toLowerCase() + b.txt.slice(1)
+  $('#heroQ').textContent = k.q
+  $('#nbQ').textContent = k.q
+  $('#nbQ').hidden = !k.q
+}
+
+/* ---- chart (stacked bars; range change morphs the window) ---- */
+const CH = { win: 14, max: 250 }
+let chIdx = null, chBuilt = 0, chGeo = null
+function maxFor(n) { let m = PLAN; for (let i = DAYS - n; i < DAYS; i++) m = Math.max(m, DATA[i].tot); return Math.ceil(m * 1.08 / 50) * 50 }
+$('#legend').innerHTML = GROUPS.map(([g, l]) => '<span><i style="background:var(--g-' + g + ')"></i>' + l + '</span>').join('') + '<span><i class="pl"></i>Kế hoạch ' + PLAN + ' t/ngày</span>'
+function buildChart() {
+  const svg = $('#chart')
+  const W = Math.max(280, Math.round(svg.clientWidth || 600)), H = 260
+  chBuilt = W
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H)
+  const L = 46, R = 8, T = 12, B = 30
+  chGeo = { W, H, L, R, T, B, pw: W - L - R, ph: H - T - B }
+  let h = '<defs><clipPath id="bm-chclip"><rect x="' + L + '" y="0" width="' + chGeo.pw + '" height="' + (H - B + 1) + '"/></clipPath></defs><g id="chGrid"></g><rect class="band" id="chBand" x="0" y="' + T + '" width="0" height="' + chGeo.ph + '" visibility="hidden"/><g clip-path="url(#bm-chclip)" id="chBars">'
+  for (let i = 0; i < DAYS; i++) { h += '<g data-i="' + i + '">'; for (let g = 0; g < 4; g++) h += '<rect fill="var(--g-' + GROUPS[g][0] + ')"/>'; h += '</g>' }
+  h += '</g><line class="plan" id="chPlan" x1="' + L + '" x2="' + (W - R) + '"/><line class="base" x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '"/><g id="chX"></g>'
+  svg.innerHTML = h
+  let xs = ''
+  for (let i = 0; i < DAYS; i++) xs += '<text class="ax" text-anchor="middle" y="' + (H - B + 18) + '" data-i="' + i + '">' + dm(DATA[i].d) + '</text>'
+  $('#chX').innerHTML = xs
+  placeChart()
+}
+function placeChart() {
+  if (!chGeo) return
+  const { L, T, pw, ph, H, B, W, R } = chGeo
+  const slot = pw / CH.win, start = DAYS - CH.win
+  const y = (v) => T + ph - v / CH.max * ph
+  // y grid — 5 lines; labels sit in the left gutter, lines start after it
+  const step = CH.max / 5
+  let gh = ''
+  for (let k = 1; k <= 5; k++) { const v = step * k; gh += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text class="ax" x="' + (L - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + Math.round(v) + '</text>' }
+  $('#chGrid').innerHTML = gh + '<text class="ax" x="' + (L - 8) + '" y="' + (H - B + 4) + '" text-anchor="end">0</text>'
+  $$('#chBars > g').forEach((gEl) => {
+    const i = +gEl.dataset.i, d = DATA[i]
+    const x = L + (i - start) * slot + slot * 0.16, w = Math.max(1, slot * 0.68)
+    let acc = 0
+    ;[...gEl.children].forEach((r, g) => { const v = d.g[g]; r.setAttribute('x', x); r.setAttribute('width', w); r.setAttribute('y', y(acc + v)); r.setAttribute('height', Math.max(0, y(acc) - y(acc + v))); acc += v })
+  })
+  const py = y(PLAN); $('#chPlan').setAttribute('y1', py); $('#chPlan').setAttribute('y2', py)
+  const every = [1, 2, 3, 5, 7, 10, 14].find((k) => k * slot >= 46) || 14
+  $$('#chX text').forEach((t) => {
+    const i = +t.dataset.i, cx = L + (i - start + 0.5) * slot
+    const show = (DAYS - 1 - i) % every === 0 && cx > L + 18 && cx < W - R - 18
+    t.setAttribute('x', cx); t.setAttribute('visibility', show ? 'visible' : 'hidden')
+  })
+  if (chIdx != null) placeBand()
+}
+function placeBand() {
+  const { L, pw } = chGeo, slot = pw / CH.win, start = DAYS - CH.win
+  const b = $('#chBand'); b.setAttribute('x', L + (chIdx - start) * slot); b.setAttribute('width', slot); b.setAttribute('visibility', 'visible')
+}
+function chTip(i, x, y) {
+  chIdx = i; placeBand()
+  const d = DATA[i]
+  let h = '<b>' + WD[d.d.getDay()] + ' ' + dmy(d.d) + '</b>'
+  for (let g = 3; g >= 0; g--) h += '<div class="tr"><span><i style="background:var(--g-' + GROUPS[g][0] + ')"></i>' + GROUPS[g][1] + '</span><span class="mono">' + t1(d.g[g]) + ' t</span></div>'
+  h += '<div class="tr tt"><span>Tổng</span><span class="mono">' + t1(d.tot) + ' t · ' + Math.round(d.tot / PLAN * 100) + '% KH</span></div>'
+  showTip(h, x, y)
+}
+function hideBand() { chIdx = null; $('#chBand')?.setAttribute('visibility', 'hidden'); hideTip() }
+const chartEl = $('#chart')
+chartEl.addEventListener('pointermove', (e) => {
+  if (!chGeo) return
+  const r = chartEl.getBoundingClientRect(), sx = (e.clientX - r.left) * chGeo.W / r.width
+  if (sx < chGeo.L) return hideBand()
+  const i = clamp(Math.floor((sx - chGeo.L) / (chGeo.pw / CH.win)) + DAYS - CH.win, DAYS - CH.win, DAYS - 1)
+  chTip(i, e.clientX, e.clientY)
+})
+chartEl.addEventListener('pointerleave', hideBand)
+chartEl.addEventListener('keydown', (e) => {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
+  e.preventDefault()
+  const lo = DAYS - CH.win
+  let i = chIdx == null ? DAYS - 1 : chIdx
+  i = e.key === 'Home' ? lo : e.key === 'End' ? DAYS - 1 : clamp(i + (e.key === 'ArrowLeft' ? -1 : 1), lo, DAYS - 1)
+  const r = chartEl.getBoundingClientRect(), slot = r.width * (chGeo.pw / chGeo.W) / CH.win
+  chTip(i, r.left + (chGeo.L / chGeo.W) * r.width + (i - lo + 0.5) * slot, r.top + r.height * 0.35)
+})
+chartEl.addEventListener('blur', hideBand)
+let chTw = null
+function setRange(n, anim = true) {
+  $$('[data-rg]').forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.rg === n)))
+  hideBand()
+  chTw?.kill()
+  const to = { win: n, max: maxFor(n) }
+  if (!anim || RM) { Object.assign(CH, to); placeChart() } else chTw = G.to(CH, { ...to, duration: 0.75, ease: 'power3.inOut', onUpdate: placeChart })
+  const sl = DATA.slice(DAYS - n), tot = sl.reduce((s, d) => s + d.tot, 0), best = sl.reduce((a, b) => (b.tot > a.tot ? b : a))
+  $('#chSum').innerHTML = n + ' ngày đã chốt: <b class="mono">' + fmt(tot) + ' t</b> · trung bình <b class="mono">' + fmt(tot / n) + ' t/ngày</b> · cao nhất ' + dm(best.d) + ' (' + fmt(best.tot) + ' t) · ' + sl.filter((d) => d.tot >= PLAN).length + '/' + n + ' ngày đạt kế hoạch'
+}
+$$('[data-rg]').forEach((b) => b.addEventListener('click', () => setRange(+b.dataset.rg)))
+
+/* ---- fleet, yard, gate ---- */
+function truckState(t) {
+  if (t.st === 'giao') return ['Đang giao · về ' + hm(new Date(t.back)), 'st-giao']
+  return loadOf(t.id) > 0 ? ['Đang xếp hàng', 'st-mot'] : ['Chờ ở bãi', 'st-len']
+}
+function renderFleet() {
+  $('#fleet').innerHTML = TRUCKS.map((t) => {
+    const ld = loadOf(t.id), [s, c] = truckState(t), over = ld > t.cap + 1e-9
+    return '<li><button type="button" class="fl" data-tr="' + t.id + '" aria-label="Xe ' + t.plate + ', ' + t.name + ', ' + s + ', tải ' + t1(ld) + ' trên ' + t1(t.cap) + ' tấn"><span class="fl-p">' + t.plate + '</span><span class="fl-n">' + t.name + ' · ' + t.drv + '</span><span class="pill ' + c + '">' + s + '</span><span class="fl-bar"><i class="' + (over ? 'over' : '') + '" style="width:' + Math.min(100, ld / t.cap * 100) + '%"></i></span><span class="fl-w">' + t1(ld) + ' / ' + t1(t.cap) + ' t</span></button></li>'
+  }).join('')
+  $$('#fleet .fl').forEach((b) => b.addEventListener('click', () => { go('xep-xe'); setTimeout(() => { const c = $('.trk[data-drop="' + b.dataset.tr + '"]'); c?.scrollIntoView({ block: 'center', behavior: RM ? 'auto' : 'smooth' }); c?.querySelector('.drop')?.focus({ preventScroll: true }) }, 60) }))
+}
+function yardSVG(m, f) {
+  const k = MM[m], g = 'var(--g-' + k.g + ')'
+  if (k.kind === 'roi') return '<svg viewBox="0 0 76 54" aria-hidden="true"><path d="M2 50 Q38 -38 74 50" fill="none" stroke="var(--line2)" stroke-dasharray="3 3"/><path d="M2 50 Q38 ' + (50 - 88 * f) + ' 74 50 Z" fill="' + g + '"/><line x1="0" x2="76" y1="50.5" y2="50.5" stroke="var(--ink)" stroke-width="1.5"/></svg>'
+  let s = '<svg viewBox="0 0 76 54" aria-hidden="true"><rect x="8" y="6" width="60" height="44" fill="none" stroke="var(--line2)" stroke-dasharray="3 3"/>'
+  if (k.g === 'thep') { const n = Math.max(1, Math.round(f * 11)); for (let i = 0; i < n; i++) s += '<rect x="6" y="' + (46 - i * 4) + '" width="64" height="2.6" fill="' + g + '"/>' }
+  else { const rows = Math.max(1, Math.round(f * 6)), cols = k.g === 'xm' ? 3 : 4, cw = 60 / cols; for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) s += '<rect x="' + (8 + c * cw + 0.8) + '" y="' + (50 - (r + 1) * 7.3 + 0.8) + '" width="' + (cw - 1.6) + '" height="5.7" fill="' + g + '"/>' }
+  return s + '<line x1="0" x2="76" y1="50.5" y2="50.5" stroke="var(--ink)" stroke-width="1.5"/></svg>'
+}
+function renderYard() {
+  const low = []
+  $('#yard').innerHTML = Object.keys(STOCK).map((m) => {
+    const [q, cap] = STOCK[m], f = clamp(q / cap, 0, 1), isLow = f < 0.33
+    if (isLow) low.push(MM[m].sh)
+    return '<button type="button" class="yc' + (isLow ? ' low' : '') + '" data-mat="' + m + '" title="' + esc(MM[m].name) + '" aria-label="' + esc(MM[m].sh) + ': tồn ' + fmt(q) + ' ' + MM[m].u + ', ' + Math.round(f * 100) + '% sức chứa. Xem lệnh có vật tư này">' + yardSVG(m, f) + '<span class="yn">' + MM[m].sh + '</span><span class="yq">' + fmt(q) + ' ' + MM[m].u + '</span><span class="yl">' + Math.round(f * 100) + '%' + (isLow ? ' · sắp hết' : '') + '</span></button>'
+  }).join('')
+  $('#yNote').textContent = low.length ? 'Dưới 33% sức chứa: ' + low.join(', ') + '. Bấm một ô để xem các lệnh đang cần vật tư đó.' : 'Mọi vật tư trên 33% sức chứa bãi.'
+  $$('#yard .yc').forEach((b) => b.addEventListener('click', () => { T.mat = b.dataset.mat; T.st = 'all'; T.q = ''; T.kv = ''; T.page = 0; go('lenh-xuat') }))
+}
+function renderGate() {
+  $('#gate').innerHTML = FEED.slice(0, 6).map((f) => '<li><span class="gd ' + (f.dir === 'out' ? 'out' : '') + '">' + (f.dir === 'out' ? 'RA' : 'VÀO') + '</span><div class="gm"><b>' + f.plate + '</b><span>' + esc(f.name + ' · ' + f.note) + ' · <span data-ago="' + f.ts + '" style="display:inline">' + ago(f.ts) + '</span></span></div><div class="gw">' + t1(f.gross) + ' t<small>' + (f.net ? 'hàng ' + t1(f.net) + ' t' : 'xe rỗng') + '</small></div></li>').join('')
+}
+function refreshOverview(anim) { renderKPIs(anim); renderFleet(); renderYard(); renderGate() }
+
+/* ================= XẾP XE ================= */
+let pick = null
+const PREV = {}, PREVS = {}
+function chipHTML(k, cls) {
+  const { o, l } = getLine(k), m = MM[l.m]
+  const lbl = m.sh + ' ' + qtxt(l) + ', ' + t1(lineW(l)) + ' tấn, lệnh ' + o.id
+  return '<button type="button" class="' + cls + '" data-k="' + k + '" aria-pressed="' + (pick === k) + '" aria-label="' + esc(lbl) + (cls === 'mf' ? ' — chạm để cầm, chuyển xe khác' : ' — chạm để cầm, rồi chọn xe') + '"><span class="sw" style="background:var(--g-' + m.g + ')"></span>' +
+    (cls === 'mf' ? '<span>' + o.id.slice(-3) + ' · ' + m.sh + ' ' + qtxt(l) + '</span><span class="lw">' + t1(lineW(l)) + ' t</span>' : '<span class="lm">' + m.sh + '</span><span class="lq">' + qtxt(l) + '</span><span class="lw">' + t1(lineW(l)) + ' t</span><span class="grip">' + '<svg aria-hidden="true"><use href="#i-grip"/></svg></span>') + '</button>'
+}
+function renderQueue() {
+  const qs = queueOrders()
+  let wt = 0
+  $('#qList').innerHTML = qs.length ? qs.map((o) => {
+    const ks = o.lines.map((_, i) => o.id + '#' + i), wait = ks.filter((k) => lineSt(k) === 'wait')
+    wait.forEach((k) => (wt += lineW(getLine(k).l)))
+    const nd = NOIDO.includes(o.kv)
+    return '<article class="oc" data-o="' + o.id + '"><header><b>' + o.id + '</b><span class="slot' + (o.day === 0 ? ' today' : '') + '">' + dayLabel(o.day) + ' · ' + o.slot + '</span></header><p class="oc-c">' + esc(o.cus) + '</p><p class="oc-s">' + esc(o.site) + ' · ' + o.kv + (nd ? ' · nội đô' : '') + '</p><div class="chips">' + wait.map((k) => chipHTML(k, 'lnc')).join('') + '</div>' + (wait.length < ks.length ? '<footer>' + (ks.length - wait.length) + '/' + ks.length + ' dòng đã lên xe</footer>' : '') + '</article>'
+  }).join('') : '<div class="qempty"><b>Đã xếp hết hàng chờ</b>Lệnh mới tạo sẽ xuất hiện ở đây.</div>'
+  $('#qSum').textContent = qs.length + ' lệnh · ' + t1(wt) + ' t'
+}
+function truckSVG(t) {
+  const ks = keysOf(t.id), ld = loadOf(t.id), scale = Math.max(t.cap, ld), over = ld > t.cap + 1e-9
+  const bx = 10, bw = 192, by = 22, bh = 52
+  const bed = t.kind === 'ben' ? 'M' + bx + ' ' + by + ' H' + (bx + bw) + ' L' + (bx + bw - 7) + ' ' + (by + bh) + ' H' + (bx + 7) + ' Z' : 'M' + bx + ' ' + by + ' H' + (bx + bw) + ' V' + (by + bh) + ' H' + bx + ' Z'
+  let x = bx, segs = ''
+  ks.forEach((k) => {
+    const { o, l } = getLine(k), m = MM[l.m], w = lineW(l), sw = bw * w / scale
+    segs += '<rect class="sg" data-k="' + k + '" x="' + x + '" y="' + by + '" width="' + sw + '" height="' + bh + '" fill="var(--g-' + m.g + ')"><title>' + o.id + ' · ' + m.sh + ' ' + qtxt(l) + ' · ' + t1(w) + ' t</title></rect>'
+    const lab = sw > m.sh.length * 6.4 + 12 ? m.sh : sw > 40 ? t1(w) + ' t' : ''
+    if (lab) segs += '<text class="sgt' + (m.g === 'catda' ? ' dk' : '') + '" x="' + (x + sw / 2) + '" y="' + (by + bh / 2 + 4) + '">' + lab + '</text>'
+    x += sw
+  })
+  let cap = '', capL = ''
+  // hatch sits inside the bed clip; the limit line and its label sit above the bed, outside the clip
+  if (over) { const cx = bx + bw * t.cap / scale; cap = '<rect x="' + cx + '" y="' + by + '" width="' + (bx + bw - cx) + '" height="' + bh + '" fill="url(#bm-hatch)"/>'; capL = '<line class="capl" x1="' + cx + '" x2="' + cx + '" y1="' + (by - 6) + '" y2="' + (by + bh) + '"/><text class="capt" x="' + clamp(cx, 40, 180) + '" y="' + (by - 10) + '">giới hạn ' + t1(t.cap) + ' t</text>' }
+  let stakes = ''
+  // stake stubs at the rails only, so they never cross the bed label
+  if (t.kind === 'thung') for (let s = bx + 32; s < bx + bw; s += 32) stakes += '<line class="stake" x1="' + s + '" x2="' + s + '" y1="' + by + '" y2="' + (by + 9) + '"/><line class="stake" x1="' + s + '" x2="' + s + '" y1="' + (by + bh - 9) + '" y2="' + (by + bh) + '"/>'
+  const away = t.st === 'giao' && !ks.length ? '<text class="away-t" x="' + (bx + bw / 2) + '" y="' + (by + bh / 2 + 5) + '">đang chạy</text>' : ''
+  const empty = !ks.length && t.st !== 'giao' ? '<text class="away-t" x="' + (bx + bw / 2) + '" y="' + (by + bh / 2 + 5) + '">thùng trống</text>' : ''
+  return '<svg viewBox="0 0 296 104" aria-hidden="true"><line class="gnd" x1="0" x2="296" y1="101" y2="101"/><g class="bd"><path class="bed" d="' + bed + '"/><g clip-path="url(#bmc-' + t.id + ')">' + segs + cap + '</g><defs><clipPath id="bmc-' + t.id + '"><path d="' + bed + '"/></clipPath></defs>' + stakes + away + empty + '<path class="bed-o' + (over ? ' over' : '') + '" d="' + bed + '"/>' + capL + '<rect class="chs" x="6" y="76" width="284" height="6"/><path class="cab" d="M212 79 V30 L220 22 H262 L288 48 V79 Z"/><path class="win" d="M246 29 H260 L279 48 H246 Z"/><rect class="stripe" x="212" y="60" width="76" height="5"/></g><g><circle class="whl" cx="48" cy="89" r="11"/><circle class="hub" cx="48" cy="89" r="4"/><circle class="whl" cx="78" cy="89" r="11"/><circle class="hub" cx="78" cy="89" r="4"/><circle class="whl" cx="256" cy="89" r="11"/><circle class="hub" cx="256" cy="89" r="4"/></g></svg>'
+}
+function renderTrucks() {
+  $('#trucks').innerHTML = TRUCKS.map((t, n) => {
+    const ks = keysOf(t.id), ld = loadOf(t.id), over = ld > t.cap + 1e-9, [s, c] = truckState(t)
+    const away = t.st === 'giao'
+    return '<article class="trk pn' + (away ? ' away' : '') + '" data-drop="' + t.id + '" aria-label="Xe ' + t.plate + '"><div class="ph"><span class="plt">' + t.plate + '</span><span class="tn">' + t.name + '</span><span class="r"><span class="pill ' + c + '">' + s + '</span><span class="knum" title="Phím tắt">' + (n + 1) + '</span></span></div>' +
+      '<p class="drv">' + t.drv + ' · ' + t.ph + (t.cap <= 2.5 ? ' · <span class="okin">vào nội đô mọi giờ</span>' : '') + '</p>' +
+      '<button type="button" class="drop" aria-label="' + (away ? 'Xe ' + t.plate + ' đang đi giao' : 'Xếp dòng đang cầm lên xe ' + t.plate) + '">' + truckSVG(t) + '</button>' +
+      '<div class="meter"><span class="mb"><i class="' + (over ? 'over' : '') + '" style="width:' + Math.min(100, ld / t.cap * 100) + '%"></i></span><b class="' + (over ? 'over' : '') + '">' + t1(ld) + ' / ' + t1(t.cap) + ' t' + (over ? ' · vượt ' + t1(ld - t.cap) + ' t' : ' · ' + Math.round(ld / t.cap * 100) + '%') + '</b></div>' +
+      '<ul class="man">' + (ks.length ? ks.map((k) => '<li>' + (away ? '<span class="mf" style="cursor:default"><span class="sw" style="background:var(--g-' + MM[getLine(k).l.m].g + ')"></span><span>' + getLine(k).o.id.slice(-3) + ' · ' + MM[getLine(k).l.m].sh + ' ' + qtxt(getLine(k).l) + '</span><span class="lw">' + t1(lineW(getLine(k).l)) + ' t</span></span>' : chipHTML(k, 'mf') + '<button type="button" class="mx" data-un="' + k + '" aria-label="Gỡ dòng ' + esc(MM[getLine(k).l.m].sh) + ' khỏi xe ' + t.plate + '">' + icon('x') + '</button>') + '</li>').join('') : '<li class="none">' + (t.kind === 'ben' ? 'Chỉ nhận cát, đá rời · một loại mỗi chuyến' : 'Nhận xi măng, thép, gạch') + '</li>') + '</ul>' +
+      '<div class="trk-f">' + (away ? '<button type="button" class="btn sm" data-note="' + t.id + '">' + icon('doc') + 'Xem phiếu</button><button type="button" class="btn sm" data-back="' + t.id + '">' + icon('check') + 'Đã về bãi</button>' : '<button type="button" class="btn sm" data-note="' + t.id + '"' + (ks.length ? '' : ' disabled') + '>' + icon('doc') + 'Phiếu giao hàng</button><button type="button" class="btn sm red" data-ship="' + t.id + '"' + (ks.length && !over ? '' : ' disabled') + '>' + icon('truck') + 'Xuất xe</button>') + '</div></article>'
+  }).join('')
+  // morph: segments grow from their previous size, the body sinks with the load
+  $$('#trucks .sg').forEach((r) => {
+    const k = r.dataset.k, tid = r.closest('.trk').dataset.drop, x = +r.getAttribute('x'), w = +r.getAttribute('width'), p = PREV[k]
+    if (!RM) { if (p && p.t === tid) { if (p.x !== x || p.w !== w) G.fromTo(r, { attr: { x: p.x, width: p.w } }, { attr: { x, width: w }, duration: 0.4, ease: 'power2.out' }) } else G.fromTo(r, { attr: { width: 0 } }, { attr: { width: w }, duration: 0.45, ease: 'power3.out' }) }
+    PREV[k] = { t: tid, x, w }
+  })
+  TRUCKS.forEach((t) => {
+    const bd = $('.trk[data-drop="' + t.id + '"] .bd'), sink = Math.min(1.25, loadOf(t.id) / t.cap) * 4
+    if (bd) { if (RM || PREVS[t.id] == null) G.set(bd, { y: sink }); else G.fromTo(bd, { y: PREVS[t.id] }, { y: sink, duration: 0.5, ease: 'back.out(3)' }) }
+    PREVS[t.id] = sink
+  })
+  markTargets()
+}
+function renderLoading() { renderQueue(); renderTrucks(); renderPickBar() }
+
+/* ---- pick / drop ---- */
+function markTargets(hot) {
+  $$('.trk').forEach((c) => {
+    const t = TR[c.dataset.drop]
+    c.classList.remove('bm-ok', 'bm-over', 'bm-no', 'bm-hot')
+    if (!pick) return
+    const r = canTake(t, pick)
+    c.classList.add(r.ok ? (r.over ? 'bm-over' : 'bm-ok') : 'bm-no')
+    if (hot === t.id) c.classList.add('bm-hot')
+  })
+  $('.queue').classList.toggle('bm-hot', hot === 'queue')
+}
+function setPick(k) {
+  pick = k && getLine(k) ? k : null
+  $$('[data-k]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === pick)))
+  document.body.classList.toggle('picking', !!pick && current === 'xep-xe')
+  markTargets(); renderPickBar()
+}
+function renderPickBar() {
+  const bar = $('#pick')
+  if (!pick || current !== 'xep-xe') { bar.hidden = true; document.body.classList.remove('picking'); return }
+  const { o, l } = getLine(pick), m = MM[l.m], on = ASSIGN.get(pick)
+  $('#pkTxt').textContent = m.sh + ' ' + qtxt(l) + ' · ' + t1(lineW(l)) + ' t — ' + o.id + (on ? ' (đang trên ' + TR[on].plate + ')' : '')
+  $('#pkTrucks').innerHTML = TRUCKS.map((t, n) => {
+    const r = canTake(t, pick), left = t.cap - loadOf(t.id)
+    return '<button type="button" class="pkt ' + (r.ok ? (r.over ? 'over' : 'ok') : '') + '" data-pk="' + t.id + '"' + (r.ok ? '' : ' disabled') + ' aria-label="Xếp lên xe ' + t.plate + (r.ok ? (r.over ? ', sẽ vượt tải' : ', còn ' + t1(left) + ' tấn') : ', không nhận') + '"><b>' + (n + 1) + ' · ' + t.plate + '</b><small>' + (t.st === 'giao' ? 'đang đi giao' : r.ok ? (r.over ? 'vượt tải ' + t1(r.after - t.cap) + ' t' : 'còn ' + t1(left) + ' t') : t.kind === 'ben' ? 'chỉ hàng rời' + (benMat(t.id) ? ' · ' + MM[benMat(t.id)].sh : '') : 'không chở rời') + '</small></button>'
+  }).join('')
+  $('#pkOff').hidden = !on
+  bar.hidden = false
+  document.body.classList.add('picking')
+}
+function assign(k, tid) {
+  const t = TR[tid], r = canTake(t, k)
+  if (!r.ok) { toast(r.why); live(r.why); return false }
+  commit()
+  ASSIGN.set(k, tid)
+  const { l } = getLine(k)
+  setPick(null); renderLoading()
+  const msg = MM[l.m].sh + ' ' + qtxt(l) + ' đã lên xe ' + t.plate + ' · ' + t1(loadOf(tid)) + '/' + t1(t.cap) + ' t'
+  if (r.over) toast('Xe ' + t.plate + ' vượt tải ' + t1(r.after - t.cap) + ' t — gỡ bớt trước khi xuất xe.')
+  live(msg)
+  return true
+}
+function unassign(k) {
+  if (!ASSIGN.has(k)) return
+  commit()
+  const t = TR[ASSIGN.get(k)]
+  ASSIGN.delete(k); delete PREV[k]
+  setPick(null); renderLoading()
+  live('Đã gỡ khỏi xe ' + t.plate + ', dòng trở về hàng chờ.')
+}
+function undoLoad() {
+  if (!HIST.length) { toast('Chưa có thao tác nào để hoàn tác.'); return }
+  restore(HIST.pop()); syncUndo(); live('Đã hoàn tác một bước xếp xe.')
+}
+function autoLoad() {
+  const waits = []
+  queueOrders().forEach((o) => o.lines.forEach((l, i) => { const k = o.id + '#' + i; if (lineSt(k) === 'wait') waits.push(k) }))
+  if (!waits.length) { toast('Không còn dòng nào chờ xếp.'); return }
+  commit()
+  // best fit decreasing, keeping one bulk material per dump truck
+  waits.sort((a, b) => lineW(getLine(b).l) - lineW(getLine(a).l))
+  let n = 0
+  const used = new Set()
+  for (const k of waits) {
+    let best = null, bestLeft = Infinity
+    for (const t of TRUCKS) { const r = canTake(t, k); if (r.ok && !r.over) { const left = t.cap - r.after; if (left < bestLeft) { best = t; bestLeft = left } } }
+    if (best) { ASSIGN.set(k, best.id); used.add(best.id); n++ }
+  }
+  renderLoading()
+  if (!n) { HIST.pop(); syncUndo(); toast('Không xếp thêm được: các xe ở bãi đã đầy hoặc không hợp loại hàng.'); return }
+  toast('Đã xếp ' + n + ' dòng lên ' + used.size + ' xe · còn ' + (waits.length - n) + ' dòng chờ chuyến sau.', { undo: () => { restore(HIST.pop() || snap()); syncUndo() } })
+}
+function clearYard() {
+  const ks = [...ASSIGN].filter(([, t]) => TR[t].st !== 'giao').map(([k]) => k)
+  if (!ks.length) { toast('Các xe ở bãi đều đang trống.'); return }
+  commit()
+  ks.forEach((k) => ASSIGN.delete(k))
+  renderLoading()
+  toast('Đã dỡ ' + ks.length + ' dòng về hàng chờ.', { undo: () => { restore(HIST.pop() || snap()); syncUndo() } })
+}
+$('#autoBtn').addEventListener('click', autoLoad)
+$('#undoBtn').addEventListener('click', undoLoad)
+$('#clearBtn').addEventListener('click', clearYard)
+$('#pkX').addEventListener('click', () => { const k = pick; setPick(null); $('[data-k="' + k + '"]')?.focus() })
+$('#pkOff').addEventListener('click', () => pick && unassign(pick))
+$('#pkTrucks').addEventListener('click', (e) => { const b = e.target.closest('[data-pk]'); if (b && pick) assign(pick, b.dataset.pk) })
+
+// click / tap handling inside the loading view
+let suppressClick = false
+$('#view-xep-xe').addEventListener('click', (e) => {
+  if (suppressClick) { suppressClick = false; return }
+  const un = e.target.closest('[data-un]'); if (un) { unassign(un.dataset.un); return }
+  const chip = e.target.closest('[data-k]')
+  if (chip) { setPick(pick === chip.dataset.k ? null : chip.dataset.k); if (pick) live('Đang cầm ' + chip.getAttribute('aria-label').split(' — ')[0] + '. Chọn xe bằng phím 1 đến 6.'); return }
+  const drop = e.target.closest('.drop')
+  if (drop) { const tid = drop.closest('.trk').dataset.drop; if (pick) assign(pick, tid); else if (TR[tid].st !== 'giao') toast('Chọn một dòng vật tư ở cột trái trước, rồi chạm xe.'); return }
+  const nb = e.target.closest('[data-note]'); if (nb) { openNote(nb.dataset.note); return }
+  const sb = e.target.closest('[data-ship]'); if (sb) { openNote(sb.dataset.ship); return }
+  const bb = e.target.closest('[data-back]'); if (bb) { truckBack(bb.dataset.back); return }
+  if (pick && e.target.closest('.queue') && ASSIGN.has(pick)) unassign(pick)
+})
+
+// pointer drag (mouse/pen anywhere on the chip, touch only from the grip so lists still scroll)
+let drag = null
+document.addEventListener('pointerdown', (e) => {
+  const chip = e.target.closest('#view-xep-xe [data-k]')
+  if (!chip || e.button !== 0) return
+  if (e.pointerType === 'touch' && !e.target.closest('.grip')) return
+  drag = { k: chip.dataset.k, x0: e.clientX, y0: e.clientY, on: false, ghost: null, hot: null, chip }
+})
+addEventListener('pointermove', (e) => {
+  if (!drag) return
+  if (!drag.on) {
+    if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return
+    drag.on = true
+    setPick(drag.k)
+    const { l, o } = getLine(drag.k)
+    drag.ghost = document.createElement('div'); drag.ghost.className = 'bm-ghost'
+    drag.ghost.textContent = MM[l.m].sh + ' ' + qtxt(l) + ' · ' + t1(lineW(l)) + ' t · ' + o.id.slice(-3)
+    document.body.appendChild(drag.ghost); document.body.classList.add('bm-dragging')
+  }
+  e.preventDefault()
+  G.set(drag.ghost, { x: e.clientX + 14, y: e.clientY + 12 })
+  const el = document.elementFromPoint(e.clientX, e.clientY)
+  const tg = el?.closest('[data-drop]')?.dataset.drop || null
+  if (tg !== drag.hot) { drag.hot = tg; markTargets(tg) }
+}, { passive: false })
+function endDrag(cancel) {
+  if (!drag) return
+  const d = drag; drag = null
+  if (!d.on) return
+  d.ghost?.remove(); document.body.classList.remove('bm-dragging')
+  suppressClick = true; setTimeout(() => (suppressClick = false), 50)
+  if (cancel || !d.hot) { setPick(null); live('Đã hủy kéo.'); return }
+  if (d.hot === 'queue') { if (ASSIGN.has(d.k)) unassign(d.k); else setPick(null); return }
+  assign(d.k, d.hot)
+}
+addEventListener('pointerup', () => endDrag(false))
+addEventListener('pointercancel', () => endDrag(true))
+
+/* ---- delivery note modal ---- */
+let noteTruck = null, modalReturn = null
+function noteNo(t) { return 'PGH-' + pad(today.getDate()) + pad(today.getMonth() + 1) + '-' + t.id.slice(1).padStart(2, '0') }
+function renderNote(t) {
+  const ks = keysOf(t.id), ld = loadOf(t.id), over = ld > t.cap + 1e-9
+  const stops = []
+  ks.forEach((k) => { const { o } = getLine(k); let s = stops.find((x) => x.o === o); if (!s) stops.push((s = { o, ks: [] })); s.ks.push(k) })
+  let n = 0
+  const away = t.st === 'giao'
+  $('#mTitle').textContent = 'Phiếu giao hàng · ' + t.plate
+  $('#mBody').innerHTML = '<div class="dn"><div class="dn-h"><svg class="mark" aria-hidden="true"><use href="#i-mark"/></svg><div><b>VLXD Ba Miền</b><small>Kho Dĩ An · 14 đường số 3, KCN Tân Đông Hiệp · 0274 3 728 119</small></div><p class="dn-no">Số phiếu<span>' + noteNo(t) + '</span>' + dmy(NOW0) + '</p></div>' +
+    '<p class="dn-t">Phiếu giao hàng kiêm xuất kho</p><p class="dn-st">' + (away ? 'Đã xuất cổng · đang giao' : 'Bản nháp — chưa xuất cổng') + ' · ' + stops.length + ' điểm giao</p>' +
+    '<div class="dn-meta"><div><small>Biển số</small><b class="mono">' + t.plate + '</b></div><div><small>Loại xe</small><b>' + t.name + '</b></div><div><small>Tài xế</small><b>' + t.drv + '</b></div><div><small>Điện thoại</small><b class="mono">' + t.ph + '</b></div></div>' +
+    stops.map((s) => '<div class="dn-stop"><h3><span class="n">ĐIỂM ' + (++n) + '</span>' + esc(s.o.cus) + ' <span class="mono" style="font-size:12.5px;color:var(--muted)">' + s.o.id + '</span></h3><p>' + esc(s.o.site) + ', ' + s.o.kv + ' · ' + s.o.ph + ' · ' + dayLabel(s.o.day) + ' ' + s.o.slot + (NOIDO.includes(s.o.kv) && t.cap > 2.5 ? ' · <b style="color:var(--red-t)">nội đô — tránh giờ cấm tải</b>' : '') + '</p><table><thead><tr><th>Vật tư</th><th class="r">Số lượng</th><th class="r">Khối lượng</th></tr></thead><tbody>' + s.ks.map((k) => { const { l } = getLine(k); return '<tr><td>' + esc(MM[l.m].name) + '</td><td class="r">' + qtxt(l) + '</td><td class="r">' + t1(lineW(l)) + ' t</td></tr>' }).join('') + '</tbody></table></div>').join('') +
+    '<div class="dn-tot"><span>Tổng hàng <b class="' + (over ? 'over' : '') + '">' + t1(ld) + ' t</b></span><span>Tải trọng cho phép <b>' + t1(t.cap) + ' t</b></span><span>Giá trị <b>' + short(ks.reduce((s, k) => s + lineV(getLine(k).l), 0)) + ' ₫</b></span></div>' +
+    '<div class="dn-sig"><div>Thủ kho<small>ký, ghi rõ họ tên</small></div><div>Tài xế<small>' + t.drv + '</small></div><div>Người nhận hàng<small>ký khi nhận đủ</small></div></div></div>'
+  $('#mWarn').textContent = over ? 'Vượt tải ' + t1(ld - t.cap) + ' t — gỡ bớt hàng trước khi xuất.' : !ks.length ? 'Xe chưa có hàng.' : ''
+  $('#mGo').hidden = away
+  $('#mGo').disabled = over || !ks.length
+}
+function openNote(tid) {
+  const t = TR[tid]
+  if (!t || modalOpen) return
+  if (palOpen) closePal()
+  setPick(null)
+  noteTruck = tid; modalReturn = document.activeElement
+  // toasts raised before the modal move inside it, so nothing floats over the dialog's buttons
+  $$('#toasts .toast').slice(-2).forEach((el) => $('#mToasts').appendChild(el))
+  renderNote(t)
+  modalOpen = true
+  $('#app').inert = true; $('#pick').inert = true
+  const m = $('#modal'), b = $('#mBack')
+  G.killTweensOf([m, b])
+  G.set([m, b], { visibility: 'visible' })
+  G.to(b, { opacity: 1, duration: 0.2 })
+  if (innerWidth < 820) G.fromTo(m, { opacity: 1, yPercent: 100, xPercent: 0 }, { yPercent: 0, duration: RM ? 0 : 0.35, ease: 'power3.out' })
+  else G.fromTo(m, { opacity: 0, xPercent: -50, yPercent: -46 }, { opacity: 1, yPercent: -50, duration: RM ? 0 : 0.3, ease: 'power3.out' })
+  $('#mBody').scrollTop = 0
+  setTimeout(() => $('#mX').focus(), 30)
+}
+function closeNote() {
+  if (!modalOpen) return
+  modalOpen = false
+  $('#app').inert = false; $('#pick').inert = false
+  $('#mToasts').innerHTML = ''
+  const m = $('#modal'), b = $('#mBack')
+  G.to(b, { opacity: 0, duration: 0.15, onComplete: () => { if (!modalOpen) G.set(b, { visibility: 'hidden' }) } })
+  G.to(m, { opacity: 0, duration: 0.15, onComplete: () => { if (!modalOpen) G.set(m, { visibility: 'hidden' }) } })
+  modalReturn?.focus?.()
+}
+$('#mX').addEventListener('click', closeNote)
+$('#mBack').addEventListener('click', closeNote)
+$('#mPrint').addEventListener('click', () => toast('Đã gửi ' + noteNo(TR[noteTruck]) + ' tới máy in phòng cân (2 liên).'))
+$('#mGo').addEventListener('click', () => { const tid = noteTruck; closeNote(); ship(tid) })
+$('#modal').addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return
+  const f = $$('#modal button:not([disabled]):not([hidden])').filter((b) => b.offsetParent)
+  if (!f.length) return
+  if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus() }
+  else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus() }
+})
+function ship(tid) {
+  const t = TR[tid], ks = keysOf(tid), ld = loadOf(tid)
+  if (!ks.length || ld > t.cap + 1e-9 || t.st === 'giao') return
+  const s0 = snap()
+  t.st = 'giao'; t.back = nowT().getTime() + (55 + ks.length * 12) * 6e4
+  let v = 0
+  ks.forEach((k) => { const { l } = getLine(k); v += lineV(l); if (STOCK[l.m]) STOCK[l.m][0] = Math.max(0, STOCK[l.m][0] - l.q) })
+  EXTRA.t += ld; EXTRA.v += v
+  const stops = new Set(ks.map((k) => getLine(k).o.kv))
+  FEED.unshift({ ts: nowT().getTime(), plate: t.plate, name: t.name, dir: 'out', note: [...new Set(ks.map((k) => MM[getLine(k).l.m].sh))].join(', ') + ' → ' + [...stops].join(', '), gross: t.cap * 0.62 + ld, net: ld })
+  refreshAll()
+  toast('Xe ' + t.plate + ' đã xuất cổng với ' + t1(ld) + ' t · ' + new Set(ks.map((k) => getLine(k).o.id)).size + ' điểm giao.', { undo: () => restore(s0) })
+}
+function truckBack(tid) {
+  const t = TR[tid]; if (t.st !== 'giao') return
+  const s0 = snap(), ks = keysOf(tid)
+  ks.forEach((k) => { ASSIGN.delete(k); DONE.add(k) })
+  t.st = 'bai'; t.back = 0
+  FEED.unshift({ ts: nowT().getTime(), plate: t.plate, name: t.name, dir: 'in', note: 'Về bãi · thùng rỗng', gross: t.cap * 0.62, net: 0 })
+  refreshAll()
+  toast('Xe ' + t.plate + ' đã về bãi · ' + ks.length + ' dòng chuyển sang Đã giao.', { undo: () => restore(s0) })
+}
+
+/* ================= LỆNH XUẤT (table) ================= */
+const T = { q: '', st: 'all', kv: '', mat: '', sort: 'day', dir: -1, page: 0, sel: new Set() }
+const PER = 10
+$('#tKv').innerHTML = '<option value="">Mọi khu vực</option>' + KV.map((k) => '<option>' + k + '</option>').join('')
+$('#tMat').innerHTML = '<option value="">Mọi vật tư</option>' + MATS.map((m) => '<option value="' + m[0] + '">' + m[2] + '</option>').join('')
+function ordText(o) { return norm(o.id + ' ' + o.cus + ' ' + o.site + ' ' + o.kv + ' ' + o.lines.map((l) => MM[l.m].name).join(' ')) }
+function rowsT(ignoreSt) {
+  const q = norm(T.q.trim())
+  let r = ORD.filter((o) => (!q || ordText(o).includes(q)) && (!T.kv || o.kv === T.kv) && (!T.mat || o.lines.some((l) => l.m === T.mat)))
+  if (!ignoreSt && T.st !== 'all') r = r.filter((o) => { const s = ordSt(o); return T.st === 'len' ? s === 'len' || s === 'mot' : s === T.st })
+  const key = { id: (o) => o.id.slice(-3), cus: (o) => norm(o.cus), kv: (o) => norm(o.kv), w: ordW, v: ordV, day: (o) => o.day * 10 + SLOTS.indexOf(o.slot), st: (o) => ST_ORDER.indexOf(ordSt(o)) }[T.sort]
+  return r.sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * T.dir || (a.id < b.id ? 1 : -1) })
+}
+function renderChips() {
+  const base = rowsT(true), cnt = (s) => base.filter((o) => { const x = ordSt(o); return s === 'len' ? x === 'len' || x === 'mot' : x === s }).length
+  const list = [['all', 'Tất cả', base.length], ['cho', 'Chờ xếp', cnt('cho')], ['len', 'Đã lên xe', cnt('len')], ['giao', 'Đang giao', cnt('giao')], ['xong', 'Đã giao', cnt('xong')], ['huy', 'Đã hủy', cnt('huy')]]
+  $('#stChips').innerHTML = list.map(([k, l, n]) => '<button type="button" class="stc" data-st="' + k + '" aria-pressed="' + (T.st === k) + '">' + l + ' <small>' + n + '</small></button>').join('')
+}
+function renderTable() {
+  renderChips()
+  $('#tQ').value = T.q; $('#tKv').value = T.kv; $('#tMat').value = T.mat
+  const rows = rowsT(), pages = Math.max(1, Math.ceil(rows.length / PER))
+  T.page = clamp(T.page, 0, pages - 1)
+  const pg = rows.slice(T.page * PER, T.page * PER + PER)
+  $$('.tb th[data-s]').forEach((th) => { if (th.dataset.s === T.sort) th.setAttribute('aria-sort', T.dir > 0 ? 'ascending' : 'descending'); else th.removeAttribute('aria-sort'); th.querySelector('use').setAttribute('href', th.dataset.s === T.sort ? (T.dir > 0 ? '#i-up' : '#i-down') : '#i-sort') })
+  $('#tBody').innerHTML = pg.length ? pg.map((o) => {
+    const s = ordSt(o), on = T.sel.has(o.id), w = ordW(o)
+    const mats = o.lines.slice(0, 2).map((l) => '<span><i style="background:var(--g-' + MM[l.m].g + ');display:inline-block;margin-right:4px;vertical-align:-3px"></i>' + MM[l.m].sh + ' ' + qtxt(l) + '</span>').join('') + (o.lines.length > 2 ? '<span class="tnum">+' + (o.lines.length - 2) + '</span>' : '')
+    return '<tr class="' + (on ? 'on' : '') + '" data-id="' + o.id + '"><td class="c0"><label class="ckh"><input type="checkbox" class="ck" data-ck="' + o.id + '"' + (on ? ' checked' : '') + ' aria-label="Chọn lệnh ' + o.id + '"></label></td><td class="tdc"><span class="tcode">' + o.id + '</span></td><td class="tdu tcus"><b>' + esc(o.cus) + '</b><small>' + esc(o.site) + '</small></td><td class="tdk" data-l="Khu vực">' + o.kv + '</td><td class="tdm"><span class="tmat">' + mats + '</span></td><td class="r tdw" data-l="Khối lượng"><span class="tnum">' + t1(w) + ' t</span></td><td class="r tdv" data-l="Giá trị"><span class="tnum" title="' + vnd(ordV(o)) + '">' + short(ordV(o)) + ' ₫</span></td><td class="tdd" data-l="Ngày giao"><span class="tday">' + dayLabel(o.day) + ' <small>' + o.slot + '</small></span></td><td class="tds"><span class="pill ' + STS[s][1] + '">' + STS[s][0] + '</span></td><td class="tda"><span class="tact">' + (s === 'cho' || s === 'mot' ? '<button type="button" data-load="' + o.id + '" aria-label="Xếp xe cho lệnh ' + o.id + '" title="Xếp xe">' + icon('truck') + '</button>' : '') + '<button type="button" class="del" data-del="' + o.id + '" aria-label="Xóa lệnh ' + o.id + '" title="Xóa">' + icon('trash') + '</button></span></td></tr>'
+  }).join('') : '<tr><td colspan="10" class="tde"><div class="tempty"><b>Không có lệnh nào khớp</b><p>Thử bỏ dấu, đổi trạng thái hoặc khu vực.</p><button type="button" class="btn sm" id="tReset">Xóa bộ lọc</button></div></td></tr>'
+  const all = pg.length && pg.every((o) => T.sel.has(o.id))
+  $('#selAll').checked = !!all
+  $('#selAll').indeterminate = !all && pg.some((o) => T.sel.has(o.id))
+  let pb = '<button type="button" data-pg="' + (T.page - 1) + '" aria-label="Trang trước"' + (T.page ? '' : ' disabled') + '>' + icon('chl') + '</button>'
+  for (let i = 0; i < pages; i++) pb += '<button type="button" data-pg="' + i + '" aria-label="Trang ' + (i + 1) + '" aria-current="' + (i === T.page) + '">' + (i + 1) + '</button>'
+  pb += '<button type="button" data-pg="' + (T.page + 1) + '" aria-label="Trang sau"' + (T.page < pages - 1 ? '' : ' disabled') + '>' + icon('chr') + '</button>'
+  $('#pager').innerHTML = '<span class="pi">' + (rows.length ? (T.page * PER + 1) + '–' + Math.min(rows.length, T.page * PER + PER) + ' / ' + rows.length + ' lệnh · ' + t1(rows.reduce((s, o) => s + ordW(o), 0)) + ' t' : '0 lệnh') + '</span><span class="pb">' + pb + '</span>'
+  $('#bulk').hidden = !T.sel.size
+  $('#bulkN').textContent = 'Đã chọn ' + T.sel.size + ' lệnh'
+}
+$('#tQ').addEventListener('input', (e) => { T.q = e.target.value; T.page = 0; renderTable() })
+$('#tKv').addEventListener('change', (e) => { T.kv = e.target.value; T.page = 0; renderTable() })
+$('#tMat').addEventListener('change', (e) => { T.mat = e.target.value; T.page = 0; renderTable() })
+$('#stChips').addEventListener('click', (e) => { const b = e.target.closest('[data-st]'); if (b) { T.st = b.dataset.st; T.page = 0; renderTable() } })
+$$('.tb th[data-s] button').forEach((b) => b.addEventListener('click', () => { const s = b.parentElement.dataset.s; if (T.sort === s) T.dir *= -1; else { T.sort = s; T.dir = ['w', 'v', 'day'].includes(s) ? -1 : 1 } renderTable() }))
+$('#selAll').addEventListener('change', (e) => { const rows = rowsT().slice(T.page * PER, T.page * PER + PER); rows.forEach((o) => (e.target.checked ? T.sel.add(o.id) : T.sel.delete(o.id))); renderTable() })
+$('#pager').addEventListener('click', (e) => { const b = e.target.closest('[data-pg]'); if (b && !b.disabled) { T.page = +b.dataset.pg; renderTable(); $('#tBody').closest('.pn').scrollIntoView({ block: 'start', behavior: 'auto' }) } })
+$('#tBody').addEventListener('change', (e) => { const c = e.target.closest('[data-ck]'); if (c) { c.checked ? T.sel.add(c.dataset.ck) : T.sel.delete(c.dataset.ck); renderTable(); $('[data-ck="' + c.dataset.ck + '"]')?.focus() } })
+$('#tBody').addEventListener('click', (e) => {
+  if (e.target.closest('#tReset')) { Object.assign(T, { q: '', st: 'all', kv: '', mat: '', page: 0 }); renderTable(); $('#tQ').focus(); return }
+  const d = e.target.closest('[data-del]'); if (d) { delOrders([d.dataset.del]); return }
+  const l = e.target.closest('[data-load]'); if (l) { go('xep-xe'); setTimeout(() => { const c = $('.oc[data-o="' + l.dataset.load + '"]'); if (c) { c.classList.add('flash'); c.scrollIntoView({ block: 'center' }); c.querySelector('[data-k]')?.focus({ preventScroll: true }); setTimeout(() => c.classList.remove('flash'), 1600) } }, 60) }
+})
+function dropLines(ids) { [...ASSIGN.keys()].forEach((k) => { const id = k.slice(0, k.lastIndexOf('#')); if (ids.includes(id) && TR[ASSIGN.get(k)].st !== 'giao') ASSIGN.delete(k) }) }
+function delOrders(ids) {
+  const s0 = snap()
+  dropLines(ids)
+  ids.forEach((id) => { const i = ORD.findIndex((o) => o.id === id); if (i >= 0) ORD.splice(i, 1); T.sel.delete(id) })
+  refreshAll()
+  toast('Đã xóa ' + (ids.length > 1 ? ids.length + ' lệnh' : 'lệnh ' + ids[0]) + '.', { undo: () => restore(s0) })
+}
+function bulkSet(st, label) {
+  const ids = [...T.sel], s0 = snap()
+  let n = 0
+  ids.forEach((id) => {
+    const o = ORD.find((x) => x.id === id); if (!o) return
+    if (st === 'xong') { o.lines.forEach((_, i) => { const k = id + '#' + i; ASSIGN.delete(k); DONE.add(k) }); o.st = 'xong'; n++ }
+    if (st === 'huy' && ordSt(o) !== 'xong') { dropLines([id]); o.st = 'huy'; n++ }
+  })
+  T.sel.clear(); refreshAll()
+  toast(label + ' ' + n + ' lệnh' + (n < ids.length ? ' (bỏ qua ' + (ids.length - n) + ' lệnh đã giao)' : '') + '.', { undo: () => restore(s0) })
+}
+$('#bkDone').addEventListener('click', () => bulkSet('xong', 'Đã đánh dấu giao xong'))
+$('#bkCancel').addEventListener('click', () => bulkSet('huy', 'Đã hủy'))
+$('#bkDel').addEventListener('click', () => delOrders([...T.sel]))
+$('#bkClear').addEventListener('click', () => { T.sel.clear(); renderTable() })
+
+/* ================= TẠO LỆNH (form) ================= */
+$('#fKv').innerHTML = '<option value="">Chọn khu vực</option>' + KV.map((k) => '<option>' + k + (NOIDO.includes(k) ? ' (nội đô)' : '') + '</option>').join('')
+$$('#fKv option').forEach((o) => { if (o.value) o.value = o.textContent.replace(' (nội đô)', '') })
+$('#fSlot').innerHTML = SLOTS.map((s) => '<option' + (s === '9–11h' ? ' selected' : '') + '>' + s + '</option>').join('')
+const iso = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+let LR = [], lrId = 0
+function addLR(m = '', q = '', focus) {
+  LR.push({ id: ++lrId, m, q }); renderLR()
+  if (focus) $('#lm' + lrId)?.focus()
+}
+function renderLR() {
+  $('#lines').innerHTML = LR.map((r, i) => {
+    const m = MM[r.m], w = m && +r.q > 0 ? +r.q * m.t : 0
+    return '<div class="lr" data-r="' + r.id + '"><label class="sr" for="lm' + r.id + '">Vật tư dòng ' + (i + 1) + '</label><select id="lm' + r.id + '" data-f="m"><option value="">Chọn vật tư</option>' + MATS.map((x) => '<option value="' + x[0] + '"' + (x[0] === r.m ? ' selected' : '') + '>' + x[1] + '</option>').join('') + '</select><label class="qw"><span class="sr">Số lượng dòng ' + (i + 1) + '</span><input id="lq' + r.id + '" data-f="q" type="number" min="0" step="any" inputmode="decimal" value="' + esc(r.q) + '" placeholder="Số lượng"><span class="u">' + (m ? m.u : '—') + '</span></label><span class="lwt">' + (w ? t1(w) + ' t' : '— t') + '</span><button type="button" class="rm" data-rm="' + r.id + '" aria-label="Xóa dòng vật tư ' + (i + 1) + '">' + icon('x') + '</button><p class="err" id="le' + r.id + '"></p></div>'
+  }).join('')
+  renderSum()
+}
+$('#lines').addEventListener('input', (e) => {
+  const row = e.target.closest('.lr'); if (!row) return
+  const r = LR.find((x) => x.id === +row.dataset.r)
+  if (e.target.dataset.f === 'q') { r.q = e.target.value; const m = MM[r.m]; row.querySelector('.lwt').textContent = m && +r.q > 0 ? t1(+r.q * m.t) + ' t' : '— t'; if (row.classList.contains('bad')) vLine(r); renderSum() }
+})
+$('#lines').addEventListener('change', (e) => {
+  const row = e.target.closest('.lr'); if (!row || e.target.dataset.f !== 'm') return
+  const r = LR.find((x) => x.id === +row.dataset.r); r.m = e.target.value
+  renderLR(); $('#lm' + r.id).focus(); if ($('#le' + r.id).textContent || r.q) vLine(r)
+})
+$('#lines').addEventListener('focusout', (e) => { const row = e.target.closest('.lr'); if (row && e.target.dataset.f === 'q') vLine(LR.find((x) => x.id === +row.dataset.r)) })
+$('#lines').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-rm]'); if (!b) return
+  const i = LR.findIndex((x) => x.id === +b.dataset.rm), r = LR[i]
+  LR.splice(i, 1); renderLR()
+  ;($('#lines .lr:nth-child(' + Math.max(1, i) + ') select') || $('#addLine')).focus()
+  if (r.m || r.q) toast('Đã xóa dòng ' + (r.m ? MM[r.m].sh : 'vật tư') + '.', { undo: () => { LR.splice(i, 0, r); renderLR() } })
+})
+$('#addLine').addEventListener('click', () => { if (LR.length >= 6) { toast('Tối đa 6 dòng mỗi lệnh — tách thành lệnh khác.'); return } addLR('', '', true) })
+function vLine(r) {
+  if (!r) return true
+  const row = $('.lr[data-r="' + r.id + '"]'), m = MM[r.m], q = +r.q
+  let msg = '', badM = false
+  if (!r.m) { msg = 'Chọn vật tư cho dòng này.'; badM = true }
+  else if (LR.some((x) => x !== r && x.m === r.m && LR.indexOf(x) < LR.indexOf(r))) { msg = 'Vật tư này đã có ở dòng trên — gộp số lượng vào một dòng.'; badM = true }
+  else if (r.q === '' || !(q > 0)) msg = 'Nhập số lượng lớn hơn 0.'
+  else if (m.u !== 'm³' && m.u !== 'tấn' && !Number.isInteger(q)) msg = 'Số ' + m.u + ' phải là số nguyên.'
+  else if (q * m.t > 15) msg = 'Dòng nặng ' + t1(q * m.t) + ' t, vượt xe lớn nhất 15 t — tách thành 2 dòng.'
+  row?.classList.toggle('bad', !!msg && !badM); row?.classList.toggle('badm', badM)
+  const e = $('#le' + r.id); if (e) e.textContent = msg
+  return !msg
+}
+function totals() { let t = 0, v = 0; LR.forEach((r) => { const m = MM[r.m]; if (m && +r.q > 0) { t += +r.q * m.t; v += +r.q * m.p } }); return { t, v } }
+function renderSum() {
+  const { t, v } = totals()
+  $('#sT').textContent = t1(t); $('#sV').textContent = vnd(v); $('#sN').textContent = LR.filter((r) => r.m && +r.q > 0).length
+  const by = {}
+  LR.forEach((r) => { const m = MM[r.m]; if (!m || !(+r.q > 0)) return; const key = m.kind === 'roi' ? r.m : 'kien'; by[key] = (by[key] || 0) + +r.q * m.t })
+  const sug = Object.entries(by).map(([k, w]) => {
+    const roi = k !== 'kien', pool = TRUCKS.filter((x) => (roi ? x.kind === 'ben' : x.kind === 'thung')).sort((a, b) => a.cap - b.cap)
+    const fit = pool.find((x) => x.cap >= w) || pool[pool.length - 1]
+    const trips = Math.ceil(w / fit.cap)
+    return '<li><span>' + (roi ? MM[k].sh + ' (rời)' : 'Hàng kiện') + ' · <b class="mono">' + t1(w) + ' t</b></span><b>' + fit.name + (trips > 1 ? ' × ' + trips : '') + '</b><span class="mb"><i style="width:' + Math.min(100, w / (fit.cap * trips) * 100) + '%"></i></span><small>' + (roi ? 'Xe ben, mỗi chuyến một loại hàng rời' : 'Xe thùng / xe cẩu') + ' · lấp ' + Math.round(w / (fit.cap * trips) * 100) + '% tải trọng</small></li>'
+  })
+  $('#sSug').innerHTML = sug.join('') || '<li><small>Thêm vật tư để xem loại xe phù hợp.</small></li>'
+  const kv = $('#fKv').value, slot = $('#fSlot').value, warn = NOIDO.includes(kv) && BAN_SLOTS.includes(slot) && t > 2.5
+  $('#sWarn').hidden = !warn
+  $('#sWarn').textContent = warn ? kv + ' là khu nội đô: khung ' + slot + ' rơi vào giờ cấm xe trên 2,5 t. Chọn khung 9–11h, 13–15h hoặc 20–22h.' : ''
+  $('#fSlotH').textContent = NOIDO.includes(kv) ? 'Nội đô cấm xe trên 2,5 t từ 6–9h và 16–20h.' : ''
+}
+function fErr(id, m) { $('#' + id).closest('.fld').classList.toggle('bad', !!m); $('#' + id + 'E').textContent = m; $('#' + id).setAttribute('aria-invalid', String(!!m)); if (m) $('#' + id).setAttribute('aria-describedby', id + 'E'); else $('#' + id).removeAttribute('aria-describedby') }
+function vField(id) {
+  const v = $('#' + id).value.trim()
+  let m = ''
+  if (id === 'fCus' && v.length < 2) m = 'Nhập tên khách hàng hoặc công ty.'
+  if (id === 'fPhone') { const p = v.replace(/[\s.]/g, ''); if (!p) m = 'Nhập số điện thoại người nhận hàng.'; else if (!/^0[35789]\d{8}$/.test(p)) m = 'Số điện thoại cần 10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09.' }
+  if (id === 'fSite' && v.length < 6) m = 'Nhập địa chỉ công trình (số nhà, đường).'
+  if (id === 'fKv' && !v) m = 'Chọn khu vực giao.'
+  if (id === 'fDate') { if (!v) m = 'Nhập ngày giao.'; else { const d = dmyDate(v); if (!d) m = 'Ngày không hợp lệ, nhập theo dd/mm/yyyy.'; else if (d < today) m = 'Ngày giao không được ở quá khứ.'; else if (d - today > 14 * DAY) m = 'Chỉ nhận lệnh giao trước tối đa 14 ngày.' } }
+  if (id === 'fSlot') { const kv = $('#fKv').value; if (NOIDO.includes(kv) && BAN_SLOTS.includes(v) && totals().t > 2.5) m = 'Khu nội đô cấm xe trên 2,5 t lúc 6–9h và 16–20h. Chọn khung khác hoặc tách lệnh nhỏ.' }
+  fErr(id, m); return !m
+}
+const FIELDS = ['fCus', 'fPhone', 'fSite', 'fKv', 'fDate', 'fSlot']
+// dd/mm/yyyy text date (native date inputs show mm/dd/yyyy on English systems)
+function dmyDate(v) { const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(v).trim()); if (!m) return null; const d = new Date(+m[3], m[2] - 1, +m[1]); return d.getDate() === +m[1] && d.getMonth() === m[2] - 1 ? d : null }
+$('#fDate').addEventListener('input', (e) => { if (e.inputType && e.inputType.startsWith('delete')) return; let v = e.target.value.replace(/\D/g, '').slice(0, 8); if (v.length > 4) v = v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4); else if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2); e.target.value = v })
+FIELDS.forEach((id) => {
+  $('#' + id).addEventListener('blur', () => vField(id))
+  $('#' + id).addEventListener('input', () => { if ($('#' + id).closest('.fld').classList.contains('bad')) vField(id) })
+  $('#' + id).addEventListener('change', () => { renderSum(); if (id === 'fKv' || id === 'fSlot') { if ($('#fSlot').closest('.fld').classList.contains('bad') || $('#fSlotE').textContent) vField('fSlot') } })
+})
+function resetForm() {
+  FIELDS.forEach((id) => fErr(id, ''))
+  $('#fCus').value = ''; $('#fPhone').value = ''; $('#fSite').value = ''; $('#fKv').value = ''; $('#fSlot').value = '9–11h'
+  $('#fDate').value = dmy(dayAt(1)); $('#fErr').textContent = ''; $('#linesE').textContent = ''
+  LR = []; addLR()
+}
+$('#oForm').addEventListener('reset', (e) => { e.preventDefault(); resetForm(); $('#fCus').focus() })
+$('#oForm').addEventListener('submit', (e) => {
+  e.preventDefault()
+  const goLoad = e.submitter?.value === 'go'
+  const okF = FIELDS.map(vField).every(Boolean)
+  const filled = LR.filter((r) => r.m || r.q)
+  let okL = true
+  filled.forEach((r) => { if (!vLine(r)) okL = false })
+  $('#linesE').textContent = filled.length ? '' : 'Thêm ít nhất một dòng vật tư.'
+  if (!filled.length) okL = false
+  if (!okF || !okL) {
+    const n = $$('#oForm .fld.bad').length + $$('#oForm .lr.bad, #oForm .lr.badm').length + (filled.length ? 0 : 1)
+    $('#fErr').textContent = 'Còn ' + n + ' chỗ cần sửa.'
+    const b = $('#oForm .fld.bad input, #oForm .fld.bad select, #oForm .lr.badm select, #oForm .lr.bad input')
+    ;(b || $('#addLine')).focus()
+    return
+  }
+  $('#fErr').textContent = ''
+  const d = dmyDate($('#fDate').value), off = Math.round((d - today) / DAY)
+  const o = { id: code(off), cus: $('#fCus').value.trim(), site: $('#fSite').value.trim(), kv: $('#fKv').value, ph: $('#fPhone').value.trim(), day: off, slot: $('#fSlot').value, st: 'open', xe: '', ts: nowT().getTime(), lines: filled.map((r) => ({ m: r.m, q: +r.q })) }
+  const keep = LR
+  ORD.push(o)
+  resetForm()
+  refreshAll()
+  toast('Đã tạo ' + o.id + ' · ' + t1(ordW(o)) + ' t, vào hàng chờ xếp xe.', { undo: () => { const i = ORD.indexOf(o); if (i >= 0) ORD.splice(i, 1); dropLines([o.id]); LR = keep; renderLR(); refreshAll() } })
+  if (goLoad) { go('xep-xe'); setTimeout(() => { const c = $('.oc[data-o="' + o.id + '"]'); c?.scrollIntoView({ block: 'center' }); c?.classList.add('flash'); c?.querySelector('[data-k]')?.focus({ preventScroll: true }) }, 60) }
+})
+
+/* ================= notifications ================= */
+const pop = $('#pop'), bellBtn = $('#bellBtn')
+let popOpen = false
+function renderPop() {
+  const low = Object.keys(STOCK).filter((m) => STOCK[m][0] / STOCK[m][1] < 0.33).map((m) => MM[m].sh)
+  const late = queueOrders().find((o) => o.day === 0)
+  const away = TRUCKS.find((t) => t.st === 'giao')
+  const items = [
+    ['alert', 'var(--red-soft)', 'var(--red-t)', 'Tồn bãi thấp: ' + (low.slice(0, 3).join(', ') || 'không có'), 'Dưới 33% sức chứa, cần đặt nhà máy', () => go('tong-quan')],
+    ['truck', 'var(--amb-soft)', 'var(--amb)', late ? late.id + ' giao ' + late.slot + ' hôm nay chưa lên xe' : 'Lệnh hôm nay đã lên xe hết', late ? esc(late.cus) + ' · ' + late.kv : 'Không còn lệnh trễ', () => go('xep-xe')],
+    ['scale', 'var(--panel2)', 'var(--ink)', away ? away.plate + ' về bãi lúc ' + hm(new Date(away.back)) : 'Cả đội xe đang ở bãi', away ? away.drv + ' · ' + away.name : 'Sẵn sàng nhận chuyến mới', () => go('xep-xe')],
+  ]
+  $('#popList').innerHTML = items.map((x, i) => '<li><button type="button" data-pi="' + i + '"><span class="pi" style="background:' + x[1] + ';color:' + x[2] + '">' + icon(x[0]) + '</span><span><b>' + x[3] + '</b><small>' + x[4] + '</small></span></button></li>').join('')
+  $$('#popList [data-pi]').forEach((b) => b.addEventListener('click', () => { togglePop(false); items[+b.dataset.pi][5]() }))
+}
+function togglePop(on) {
+  popOpen = on ?? !popOpen
+  pop.hidden = !popOpen; bellBtn.setAttribute('aria-expanded', String(popOpen))
+  if (popOpen) { renderPop(); if (!RM) G.from(pop, { y: -8, opacity: 0, duration: 0.22, clearProps: 'transform,opacity' }); setTimeout(() => $('#popList button')?.focus(), 20) }
+}
+bellBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePop() })
+document.addEventListener('click', (e) => { if (popOpen && !pop.contains(e.target) && !bellBtn.contains(e.target)) togglePop(false) })
+$('#avBtn').addEventListener('click', () => toast('Đăng nhập: Đặng Mỹ Hạnh · điều phối kho Dĩ An.'))
+
+/* ================= mobile nav ================= */
+const side = $('#side'), menuBtn = $('#menuBtn'), navBack = $('#navBack')
+let navOpen = false
+function setNav(on) {
+  navOpen = on
+  side.classList.toggle('open', on); navBack.classList.toggle('open', on)
+  menuBtn.setAttribute('aria-expanded', String(on))
+  menuBtn.setAttribute('aria-label', on ? 'Đóng menu điều hướng' : 'Mở menu điều hướng')
+  $('#wrap').inert = on
+  if (on) setTimeout(() => ($('.nv[aria-current=page]', side) || $('.nv', side)).focus(), 60)
+}
+menuBtn.addEventListener('click', () => setNav(!navOpen))
+navBack.addEventListener('click', () => { setNav(false); menuBtn.focus() })
+addEventListener('resize', () => { if (navOpen && innerWidth >= 820) setNav(false) })
+side.addEventListener('keydown', (e) => {
+  if (!navOpen || e.key !== 'Tab') return
+  const f = $$('button', side).filter((b) => b.offsetParent)
+  if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus() }
+  else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus() }
+})
+$('.skip').addEventListener('click', (e) => { e.preventDefault(); $('#main').focus() })
+
+/* ================= router ================= */
+const VIEWS = { 'tong-quan': 'Tổng quan', 'xep-xe': 'Xếp xe', 'lenh-xuat': 'Lệnh xuất kho', 'tao-lenh': 'Tạo lệnh xuất' }
+let current = null
+function refreshAll() {
+  renderKPIs()
+  if (current === 'tong-quan') refreshOverview()
+  if (current === 'xep-xe') renderLoading()
+  if (current === 'lenh-xuat') renderTable()
+  if (current === 'tao-lenh') renderSum()
+  if (popOpen) renderPop()
+}
+function go(view, { first = false } = {}) {
+  if (!VIEWS[view]) view = 'tong-quan'
+  if (navOpen) setNav(false)
+  if (popOpen) togglePop(false)
+  if (modalOpen) closeNote()
+  hideBand()
+  const prev = current
+  if (view === prev) { renderView(view); return }
+  current = view
+  if (pick) setPick(null)
+  $$('.nv').forEach((b) => (b.dataset.go === view ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')))
+  document.title = VIEWS[view] + ' — VLXD Ba Miền'
+  $('#crumbV').textContent = VIEWS[view]
+  try { history.replaceState(null, '', location.search + '#' + view) } catch { location.hash = view }
+  if (prev) $('#view-' + prev).classList.remove('active')
+  $('#view-' + view).classList.add('active')
+  if (prev) window.scrollTo(0, 0)
+  renderView(view, !first)
+  if (!first) {
+    if (!RM) G.fromTo($$('[data-in]', $('#view-' + view)), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.04, ease: 'power3.out', clearProps: 'transform,opacity' })
+    $('#h-' + view).focus({ preventScroll: true })
+  }
+}
+function renderView(view, anim) {
+  if (view === 'tong-quan') { refreshOverview(anim); if (chBuilt !== Math.round($('#chart').clientWidth)) buildChart(); if (anim) { CH.win = Math.min(30, +$('[data-rg][aria-pressed=true]').dataset.rg * 2); CH.max = maxFor(CH.win); placeChart(); setRange(+$('[data-rg][aria-pressed=true]').dataset.rg) } }
+  if (view === 'xep-xe') renderLoading()
+  if (view === 'lenh-xuat') renderTable()
+  if (view === 'tao-lenh') renderSum()
+}
+$$('[data-go]').forEach((b) => b.addEventListener('click', () => go(b.dataset.go)))
+addEventListener('hashchange', () => { const h = location.hash.slice(1); if (VIEWS[h] && h !== current) go(h) })
+let rsT = 0
+addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (current === 'tong-quan') buildChart(); hideTip() }, 120) })
+
+/* ================= command palette ================= */
+const pal = $('#pal'), palBack = $('#palBack'), palIn = $('#palIn'), palList = $('#palList')
+let palOpen = false, palIdx = 0, palItems = [], palReturn = null
+G.set(pal, { xPercent: -50 })
+function commands() {
+  const ic = { 'tong-quan': 'grid', 'xep-xe': 'truck', 'lenh-xuat': 'list', 'tao-lenh': 'plus' }
+  const dark = root.dataset.theme === 'dark'
+  return [
+    ...Object.entries(VIEWS).map(([k, l]) => ({ g: 'Đi tới', ic: ic[k], l, hint: 'Màn hình', run: () => go(k) })),
+    { g: 'Lệnh', ic: 'bolt', l: 'Tự xếp hàng chờ lên xe theo tải trọng', hint: 'Xếp xe', run: () => { go('xep-xe'); autoLoad() } },
+    { g: 'Lệnh', ic: 'undo', l: 'Hoàn tác bước xếp xe', hint: HIST.length + ' bước', run: () => { go('xep-xe'); undoLoad() } },
+    { g: 'Lệnh', ic: 'list', l: 'Xem lệnh đang chờ xếp', hint: 'Lệnh xuất', run: () => { Object.assign(T, { st: 'cho', q: '', kv: '', mat: '', page: 0 }); go('lenh-xuat') } },
+    { g: 'Lệnh', ic: dark ? 'sun' : 'moon', l: dark ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối', hint: 'Giao diện', run: () => setTheme(dark ? 'light' : 'dark') },
+  ]
+}
+function hl(label, q) { if (!q) return esc(label); const i = norm(label).indexOf(q); return i < 0 ? esc(label) : esc(label.slice(0, i)) + '<mark>' + esc(label.slice(i, i + q.length)) + '</mark>' + esc(label.slice(i + q.length)) }
+function renderPal() {
+  const q = norm(palIn.value.trim())
+  palItems = commands().filter((c) => !q || norm(c.l).includes(q))
+  if (q.length >= 2) {
+    palItems = palItems.concat(TRUCKS.filter((t) => norm(t.plate + ' ' + t.name + ' ' + t.drv).includes(q)).map((t) => ({ g: 'Xe', ic: 'truck', l: t.plate + ' · ' + t.name + ' · ' + t.drv, hint: truckState(t)[0], run: () => { go('xep-xe'); setTimeout(() => $('.trk[data-drop="' + t.id + '"]')?.scrollIntoView({ block: 'center' }), 60) } })))
+    palItems = palItems.concat(ORD.filter((o) => ordText(o).includes(q)).slice(0, 6).map((o) => ({ g: 'Lệnh xuất', ic: 'doc', l: o.id + ' · ' + o.cus, hint: STS[ordSt(o)][0], run: () => { Object.assign(T, { q: o.id, st: 'all', kv: '', mat: '', page: 0 }); go('lenh-xuat') } })))
+  }
+  palIdx = clamp(palIdx, 0, Math.max(0, palItems.length - 1))
+  let g = '', h = ''
+  palItems.forEach((c, i) => { if (c.g !== g) { g = c.g; h += '<li class="pal-g" role="presentation">' + g + '</li>' } h += '<li class="pal-o' + (i === palIdx ? ' on' : '') + '" role="option" id="po' + i + '" aria-selected="' + (i === palIdx) + '" data-i="' + i + '">' + icon(c.ic) + '<span>' + hl(c.l, q) + '</span><small>' + esc(c.hint) + '</small></li>' })
+  palList.innerHTML = h || '<li class="pal-none">Không tìm thấy kết quả cho “' + esc(palIn.value) + '”.</li>'
+  palIn.setAttribute('aria-activedescendant', palItems.length ? 'po' + palIdx : '')
+}
+function setPalIdx(i) {
+  if (!palItems.length) return
+  palIdx = (i + palItems.length) % palItems.length
+  $$('.pal-o', palList).forEach((o) => { const on = +o.dataset.i === palIdx; o.classList.toggle('on', on); o.setAttribute('aria-selected', String(on)) })
+  palIn.setAttribute('aria-activedescendant', 'po' + palIdx)
+  $('#po' + palIdx)?.scrollIntoView({ block: 'nearest' })
+}
+function openPal() {
+  if (palOpen || modalOpen) return
+  if (popOpen) togglePop(false)
+  if (navOpen) setNav(false)
+  palOpen = true; palReturn = document.activeElement
+  palIn.value = ''; palIdx = 0; renderPal()
+  $('#app').inert = true
+  G.killTweensOf([pal, palBack])
+  G.set([pal, palBack], { visibility: 'visible' })
+  G.to(palBack, { opacity: 1, duration: 0.2 })
+  G.fromTo(pal, { opacity: 0, y: -14 }, { opacity: 1, y: 0, duration: RM ? 0 : 0.28, ease: 'power3.out' })
+  setTimeout(() => palIn.focus(), 20)
+}
+function closePal(run) {
+  if (!palOpen) return
+  palOpen = false
+  $('#app').inert = false
+  G.to(palBack, { opacity: 0, duration: 0.15, onComplete: () => { if (!palOpen) G.set(palBack, { visibility: 'hidden' }) } })
+  G.to(pal, { opacity: 0, duration: 0.15, onComplete: () => { if (!palOpen) G.set(pal, { visibility: 'hidden' }) } })
+  if (run) setTimeout(run, 40)
+  else palReturn?.focus?.()
+}
+palIn.addEventListener('input', () => { palIdx = 0; renderPal() })
+palIn.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); setPalIdx(palIdx + 1) }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setPalIdx(palIdx - 1) }
+  else if (e.key === 'Enter') { e.preventDefault(); const c = palItems[palIdx]; if (c) closePal(c.run) }
+  else if (e.key === 'Tab') e.preventDefault()
+})
+palList.addEventListener('pointermove', (e) => { const o = e.target.closest('.pal-o'); if (o && +o.dataset.i !== palIdx) setPalIdx(+o.dataset.i) })
+palList.addEventListener('click', (e) => { const o = e.target.closest('.pal-o'); if (o) closePal(palItems[+o.dataset.i].run) })
+palBack.addEventListener('click', () => closePal())
+$('#searchBtn').addEventListener('click', openPal)
+
+/* ================= global keys ================= */
+addEventListener('keydown', (e) => {
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palOpen ? closePal() : openPal(); return }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !typing && current === 'xep-xe' && !palOpen && !modalOpen) { e.preventDefault(); undoLoad(); return }
+  if (e.key === 'Escape') {
+    if (palOpen) closePal()
+    else if (modalOpen) closeNote()
+    else if (drag && drag.on) endDrag(true)
+    else if (pick) { const k = pick; setPick(null); $('[data-k="' + k + '"]')?.focus(); live('Đã bỏ cầm.') }
+    else if (popOpen) { togglePop(false); bellBtn.focus() }
+    else if (navOpen) { setNav(false); menuBtn.focus() }
+    else if (!tip.hidden) hideBand()
+    else if (T.sel.size && current === 'lenh-xuat') { T.sel.clear(); renderTable() }
+    return
+  }
+  if (palOpen || modalOpen || typing) return
+  if (current === 'xep-xe' && pick && /^[1-6]$/.test(e.key)) { e.preventDefault(); assign(pick, TRUCKS[+e.key - 1].id); return }
+  if (e.key === '/') { e.preventDefault(); openPal() }
+})
+
+/* ================= clock & live ================= */
+function tick() { $('#clock').textContent = hm(nowT()); renderBan() }
+tick()
+if (!STATIC) {
+  setInterval(tick, 15000)
+  setInterval(() => $$('[data-ago]').forEach((s) => (s.textContent = ago(+s.dataset.ago))), 30000)
+}
+function scheduleLive() {
+  if (STATIC) return
+  setTimeout(() => {
+    const out = Math.random() < 0.5
+    FEED.unshift({ ts: Date.now(), plate: 'Xe đối tác ' + ['51D-', '61C-', '60C-'][Math.floor(Math.random() * 3)] + (100 + Math.floor(Math.random() * 899)) + '.' + pad(Math.floor(Math.random() * 99)), name: out ? 'Ben 10 tấn' : 'Xe nhà máy', dir: out ? 'out' : 'in', note: out ? 'Đá 1x2 → Tân Uyên' : 'Nhập xi măng PCB40 · 400 bao', gross: out ? 16.4 + Math.random() * 2 : 26 + Math.random() * 2, net: out ? 9.5 + Math.random() : 20 })
+    FEED.length = Math.min(FEED.length, 12)
+    if (!out) STOCK.xm40[0] = Math.min(STOCK.xm40[1], STOCK.xm40[0] + 400)
+    if (current === 'tong-quan') { renderGate(); if (!RM) G.from('#gate li:first-child', { opacity: 0, x: -12, duration: 0.4, clearProps: 'transform,opacity' }); renderYard() }
+    scheduleLive()
+  }, 11000 + Math.random() * 7000)
+}
+if (STATIC) { $('#livePill').classList.add('off'); $('#livePill').lastChild.textContent = 'ẢNH TĨNH' }
+
+/* ================= boot ================= */
+syncUndo()
+resetForm()
+renderKPIs()
+const initial = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'tong-quan'
+go(initial, { first: true })
+buildChart(); setRange(14, false)
+if (document.fonts) document.fonts.ready.then(() => { if (current === 'tong-quan') buildChart() })
+
+const introEl = $('#intro')
+function intro() {
+  const v = $('#view-' + current)
+  const tl = G.timeline({ defaults: { ease: 'power3.out' } })
+  tl.from('.nv', { x: -12, opacity: 0, duration: 0.3, stagger: 0.04, clearProps: 'transform,opacity' }, 0)
+    .from($$('[data-in]', v), { y: 16, opacity: 0, duration: 0.42, stagger: 0.05, clearProps: 'transform,opacity' }, 0.04)
+  if (current === 'tong-quan') { renderKPIs(true); CH.win = 30; CH.max = maxFor(30); placeChart(); setRange(14) }
+  scheduleLive()
+}
+if (RM) { introEl.remove(); scheduleLive() }
+else {
+  // red steel bar slides in, the name stamps under it, then hands over — well under 1.5s
+  G.timeline()
+    .from('#intro .bar', { scaleX: 0, transformOrigin: 'left center', duration: 0.32, ease: 'power3.inOut' })
+    .from('#intro .it', { y: 18, opacity: 0, duration: 0.25 }, 0.18)
+    .from('#intro .is', { opacity: 0, duration: 0.2 }, 0.3)
+    .to(introEl, { opacity: 0, duration: 0.25, ease: 'power2.in', onComplete: () => introEl.remove() }, 0.7)
+    .add(intro, 0.78)
+}
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

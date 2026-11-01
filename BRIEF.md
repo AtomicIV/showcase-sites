@@ -53,6 +53,10 @@ purposeful motion, scroll storytelling, and at least one interaction people want
 - Unique ids, always: when a marquee duplicates its HTML (`html + html`) or the same inline SVG
   is rendered twice, any `id` inside (clipPath, gradient, mask) gets duplicated. Generate each
   copy separately with its own id prefix. `tools/deep.cjs` reports duplicates.
+- Never put `transform` in a CSS `transition` on an element GSAP also moves (buttons, cells,
+  off-canvas panels): the two fight and the element freezes part-way (seen on qt-01-nhip-admin: nav buttons
+  stuck 10px high, heatmap cells stuck at scale 0). Use the separate `scale`/`translate` CSS
+  properties for hover/active effects, and `clearProps` on intro tweens of CSS-positioned elements.
 
 ## QA you must run (headless Chrome — the in-app browser pane can't run animations here)
 
@@ -185,3 +189,46 @@ in `tools/shots/deep/`); `extra[...]` is usually a marquee or a self-running dem
 | 68 | `68-blocksmith` | Blocksmith | Toy brand | Commerce | Kids & Pets | Glossy primary-colour plastic, chunky blocks, bouncy physics | Build-a-robot from snap-together parts (head/body/legs/colours) — it dances when done |
 | 69 | `69-kindred` | Kindred | Dating app | Landing | Tech & Software | Risograph pinks and reds, handwritten notes, warm and human | Swipeable profile-prompt card stack (pointer, touch and keyboard) with a match moment |
 | 70 | `70-rook-calder` | Rook Calder | Tattoo artist | Personal brand | Arts & Culture | Traditional flash sheet: cream paper, bold black line, red and green ink | Pick a flash design → preview it on an illustrated forearm (size, placement), book a consult |
+
+## Batch 4 — sites 71–100 (to reach a hundred)
+
+Same constraints, checklist, lessons, QA (including `smoke` and `deep`) and `meta.json` format
+(with `"field"`) as batch 3. Every site must look clearly different from all 70 existing ones —
+open `thumbs/` and check before you settle on an art direction.
+Batch 4 leans on Landing pages (only 4 so far): treat those as single-product launch pages with a
+strong hero, a product demo, pricing or sign-up, and FAQ.
+
+Site 100's folder has three digits (`100-mosaic`); the tools handle it.
+
+| # | Folder | Brand | Sector | Category | Field | Art direction | Signature interaction |
+|---|---|---|---|---|---|---|---|
+| 71 | `71-drift` | Drift | Sleep & soundscape app | Landing | Health & Wellness | Nocturnal: deep indigo, a slow moon, soft grain, very calm motion | Soundscape mixer: rain / waves / fire / wind generated with Web Audio (only after a click), per-layer volume, sleep timer that fades out |
+| 72 | `72-stride` | Stride | Running club app | Landing | Sport & Outdoors | Night track: asphalt black, lane lines, neon lime, motion-blur type | Pace calculator (distance + goal time → splits table) and a route that draws itself with a live runner dot |
+| 73 | `73-tally` | Tally | Tax & receipts app for freelancers | Landing | Finance & Property | Paper receipts, thermal-print mono type, warm off-white, stamp red | Drag receipts into category trays; totals, deductible amount and a quarter summary update live (clearly illustrative) |
+| 74 | `74-cadence` | Cadence | AI music mastering | AI | Media & Entertainment | Studio console: brushed metal, VU needles, warm amber lights | Pick a genre and loudness target; a generated Web Audio loop plays with A/B before/after, meters and a spectrum react |
+| 75 | `75-wayfinder` | Wayfinder | AI travel planner | AI | Travel & Leisure | Paper map, postage stamps, handwritten route lines, sunny palette | Pick a city + days + interests → an itinerary appears on a stylised map; drag stops between days and the route redraws |
+| 76 | `76-clause` | Clause | AI contract review | AI | Tech & Software | Legal paper, redline ink, precise serif + mono, calm blue accents | Pick a sample contract; risky clauses highlight one by one with plain-English notes and suggested rewrites you can accept |
+| 77 | `77-sprout` | Sprout | Coding app for kids 6–10 | Landing | Kids & Pets | Bright, chunky, friendly mascot, rounded type, bouncy motion | Block-coding puzzle: drag move/turn/repeat blocks to guide a robot across a grid to a star (several levels) |
+| 78 | `78-pulse` | Pulse Heart Clinic | Cardiology clinic | Company | Health & Wellness | Clinical warm white, deep red ECG line, reassuring editorial type | Heart-rate zone explorer: age + resting rate → zones on an animated ECG; plus an appointment slot picker (state clearly: not medical advice) |
+| 79 | `79-noor-haddad` | Noor Haddad | Interior designer | Personal brand | Home & Living | Warm plaster, arches, terracotta and olive, editorial serif | Moodboard: drag fabric, paint and material swatches onto a room illustration; the room recolours and a palette card builds |
+| 80 | `80-felix-wren` | Felix Wren | Film director & cinematographer | Personal brand | Media & Entertainment | Letterboxed frames, film-strip edges, cinematic colour grades | Colour-grading desk: a generated scene with a before/after split, grade presets and lift/gamma/gain wheels |
+| 81 | `81-amara-cole` | Amara Cole | Polar explorer & speaker | Personal brand | Sport & Outdoors | Arctic white and ice blue, wind-blown type, expedition log feel | 60-day expedition scrubber: drag through days; route, temperature, sledge weight and journal entry change |
+| 82 | `82-jules-moreau` | Jules Moreau | Industrial designer | Personal brand | Home & Living | Product studio, technical callouts, soft shadows, neutral greys + one orange | Exploded-view viewer: a lamp pulls apart into labelled parts on scroll and on a slider; tap parts for materials |
+| 83 | `83-dex-marlowe` | Dex Marlowe | Stand-up comedian | Personal brand | Media & Entertainment | Brick wall, single spotlight, marquee letters, punchy condensed type | Build a set: drag bits into a running order; a timer and laugh-meter curve update; tour dates computed from today |
+| 84 | `84-lucia-reyes` | Lucía Reyes | Cellist & composer | Personal brand | Arts & Culture | Concert hall: black and gold, flowing staff lines, elegant serif | Playable score: tap phrases on a drawn staff to hear them (Web Audio, after a click), tempo control, highlighted notes |
+| 85 | `85-coastline-rail` | Coastline Rail | High-speed rail operator | Company | Travel & Leisure | Swiss-style timetable grid, signal red, precise sans | Journey planner with a split-flap departures board; pick stations, see times, seats and a route line along the coast |
+| 86 | `86-forge-silicon` | Forge Silicon | Chip designer | Company | Science & Industry | Wafer macro in iridescent foil, circuit traces, dark lab | Die-shot explorer: zoom into a drawn chip, hover blocks (cores, cache, I/O) for specs; scroll shows a wafer being diced |
+| 87 | `87-hollow-pine` | Hollow Pine | Summer camp | Company | Kids & Pets | Illustrated campfire, pine greens, badge patches, hand lettering | Build your week: pick dates, cabin and activities; a camp badge and daily schedule assemble; spaces left computed |
+| 88 | `88-northbank-library` | Northbank Library | Public library | Company | Education & Causes | Card-catalogue drawers, typewriter labels, oak and brass | Card catalogue: open drawers, search, flip cards; a shelf of spines you can pull out; events computed from today |
+| 89 | `89-harbourlight-vets` | Harbourlight Vets | Veterinary clinic | Company | Kids & Pets | Soft seaside pastels, friendly illustrated animals | Pick your pet → visit type → slot; the pet illustration reacts; vaccine reminder timeline (illustrative) |
+| 90 | `90-quarry` | Quarry | Climbing gym | Company | Sport & Outdoors | Chalk-dusted walls, coloured holds, grippy bold type | Route setter: tap holds on a wall to build a problem; grade estimate, move count and a route card |
+| 91 | `91-null-sector` | Null Sector | Esports team | Company | Media & Entertainment | Glitch neon on black, angular HUD, scanlines | Roster cards with stat radar charts and a tournament bracket you click through to predict winners |
+| 92 | `92-loom-and-ewe` | Loom & Ewe | Yarn & knitting shop | Commerce | Fashion & Beauty | Woolly textures, knit-stitch patterns, cosy autumn palette | Colourwork designer: paint a pixel knit chart; it renders as a knitted swatch; yarn amounts and kit price update |
+| 93 | `93-ember-oak` | Ember & Oak | Chef's knives | Commerce | Food & Drink | Forge: dark steel, ember orange, Damascus patterns | Knife configurator: blade shape, steel, handle wood, engraving — live render, specs and price |
+| 94 | `94-paper-tiger` | Paper Tiger | Stationery & notebooks | Commerce | Arts & Culture | Letterpress, paper grain, bold tiger-orange spot colour | Notebook builder: cover colour, paper ruling, page count, foil initials; flip through pages of the result |
+| 95 | `95-optic` | Optic | Eyewear | Commerce | Fashion & Beauty | Clean optical-lab white, lens refractions, playful acetate colours | Try-on on illustrated face shapes: switch frames and colours, frame-width guide, lens options and price |
+| 96 | `96-grove-tea` | Grove Tea | Loose-leaf tea | Commerce | Food & Drink | Misty tea terraces, celadon greens, slow steam | Brew guide: pick a tea → water temperature, leaf amount and a steeping timer while the leaves unfurl |
+| 97 | `97-seedline` | Seedline | Garden seed shop | Commerce | Home & Living | Seed-packet illustrations, kraft paper, botanical prints | Plot planner: drop seeds onto a garden grid; spacing warnings and a bloom/harvest calendar across the months |
+| 98 | `98-relay` | Relay | Team chat app | Landing | Tech & Software | Playful UI with sticker-like message bubbles and a bold sans | Live mock workspace: messages arrive, threads open, you can react, reply and switch channels |
+| 99 | `99-signal-summit` | Signal Summit | Tech conference | Landing | Tech & Software | Bold grid, big numbers, swinging 3D lanyard, electric blue/yellow | Badge maker: type name/role, pick a track; a swinging lanyard badge renders; agenda builder for your track |
+| 100 | `100-mosaic` | Mosaic | AI photo restoration | AI | Arts & Culture | Archival darkroom, sepia to colour, film grain | Before/after restoration on generated "old photos": scratches heal, colour returns, a slider and step toggles |

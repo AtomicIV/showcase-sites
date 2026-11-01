@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VietCloud Infrastructure — Hạ tầng Cloud Server NVMe, Kubernetes Managed & Chống DDoS Tier III</title>
+<meta name="description" content="VietCloud Infrastructure cung cấp Cloud Server NVMe Gen4, Managed Kubernetes và lá chắn Anti-DDoS 1.2 Tbps tại trung tâm dữ liệu chuẩn Tier III Hà Nội và TP.HCM.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23080C18'/%3E%3Crect x='12' y='16' width='40' height='12' rx='4' fill='none' stroke='%2300E5FF' stroke-width='2.5'/%3E%3Crect x='12' y='36' width='40' height='12' rx='4' fill='none' stroke='%23818CF8' stroke-width='2.5'/%3E%3Ccircle cx='20' cy='22' r='2.5' fill='%2300E5FF'/%3E%3Ccircle cx='20' cy='42' r='2.5' fill='%23818CF8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080C18; --bg2:#121A30; --card:#17223E;
+  --pri:#00E5FF; --acc:#818CF8; --text:#F1F5F9; --muted:#94A3B8;
+  --line:rgba(0,229,255,.22);
+  --head:"Lexend", sans-serif; --body:"Be Vietnam Pro", sans-serif; --mono:"IBM Plex Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:600}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.3vw,58px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pri)}
+.kick::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px 2px rgba(129,140,248,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:#080C18;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;cursor:pointer;transition:transform .35s var(--ease),background .3s}
+.btn:hover{background:#67E8F9;border-color:#67E8F9;transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--pri);color:var(--pri)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(8,12,24,.93);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:21px;font-weight:700;color:var(--text)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 75% 25%,rgba(0,229,255,.16),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(129,140,248,.16),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(36px,4.8vw,66px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:50ch;color:var(--muted);font-size:17.5px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:30px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-box{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-box canvas{width:100%;height:auto;border-radius:10px;cursor:crosshair}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Pinned Ceph & Anti-DDoS */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:240px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--acc)}
+.pstep h3{font-size:clamp(24px,2.4vw,34px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:44ch}
+.pr-vis{background:#050811;border:1px solid var(--line);border-radius:16px;padding:20px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive VPC & Cloud Pricing Configurator */
+.sim{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.sim-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.sim-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.sim-stage canvas{width:100%;height:auto;border-radius:10px;background:#050811}
+.sim-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.sim-info{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:18px}
+.mode-tabs{display:grid;grid-template-columns:1fr;gap:10px}
+.m-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left}
+.m-btn .mono{font-size:10px;color:var(--acc);display:block}
+.m-btn b{font-family:var(--head);font-size:18px}
+.m-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(0,229,255,.12)}
+.quote-box{padding:16px;background:rgba(129,140,248,.12);border-left:3px solid var(--pri);border-radius:6px;display:grid;gap:6px;font-size:14.5px}
+.quote-box strong{font-family:var(--head);font-size:22px;color:var(--pri)}
+
+.specs{padding:110px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.scard .mono{color:var(--pri)}
+.scard h3{font-size:21px}
+.scard p{color:var(--muted);font-size:15px}
+
+.cases{padding:110px 0;background:var(--bg);border-top:1px solid var(--line)}
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ccard{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.ccard .mono{color:var(--acc)}
+.ccard h3{font-size:22px}
+.ccard p{color:var(--muted);font-size:15px}
+
+.cta{padding:110px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(0,229,255,.18),transparent 70%),var(--bg2);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--pri)}
+
+footer{background:#04060D;border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.sim-shell,.case-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .spec-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.sim-controls,.spec-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="VietCloud Infrastructure Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="8" rx="2" fill="none" stroke="#00E5FF" stroke-width="2"/><rect x="4" y="18" width="24" height="8" rx="2" fill="none" stroke="#818CF8" stroke-width="2"/><circle cx="9" cy="10" r="1.5" fill="#00E5FF"/><circle cx="9" cy="22" r="1.5" fill="#818CF8"/></svg>
+      VietCloud Infra
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Kiến Trúc Ceph & DDoS</a></li>
+        <li><a href="#sim">Cấu Hình VPC & K8s</a></li>
+        <li><a href="#specs">Datacenter Tier III</a></li>
+        <li><a href="#cases">Giải Pháp Ngành</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#trial">Nhận 5.000.000đ Credit</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Kiến trúc Lưu trữ Ceph NVMe</a>
+  <a href="#sim">Tính cước Cloud Server & Kubernetes</a>
+  <a href="#specs">Hạ tầng Datacenter Hà Nội & TP.HCM</a>
+  <a href="#cases">Khách hàng Fintech & Thương mại điện tử</a>
+  <a href="#trial">Nhận 5 Triệu Credit Dùng thử</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Hạ tầng Đám mây Nội địa · Uptime Cam kết 99.99%</p>
+        <h1 id="hero-h"><span class="mask"><span>Cloud Server NVMe Gen4</span></span><span class="mask"><span>độ trễ nội địa <em>dưới 3ms.</em></span></span></h1>
+        <p class="hero-lead hf">Không còn nỗi lo đứt cáp quang biển AAG/APG. VietCloud vận hành cụm máy chủ AMD EPYC kết hợp ổ cứng Enterprise NVMe nhân 3 bản sao tại Datacenter chuẩn Uptime Tier III Hòa Lạc (Hà Nội) và Quận 7 (TP.HCM).</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#sim">Khởi tạo Cụm VPC & Tính cước</a>
+          <a class="btn ghost" href="#process">Khám phá Lá chắn Anti-DDoS</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>1.2M IOPS</strong><span>Đọc/Ghi Ceph NVMe Gen4</span></div>
+          <div><strong>1.2 Tbps</strong><span>Băng thông lọc sạch DDoS</span></div>
+          <div><strong>99.99%</strong><span>SLA cam kết hoàn tiền 200%</span></div>
+        </div>
+      </div>
+      <div class="hero-box hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Sơ đồ mạng truyền dẫn Bắc Nam giữa Datacenter Hà Nội và TP.HCM cùng bộ lọc chống DDoS"></canvas>
+        <div class="hero-meta">
+          <span>Di chuột để kiểm tra luồng định tuyến BGP Anycast</span>
+          <span style="color:var(--pri)">REGION: VN-HN-01 ⇄ VN-SGN-02</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Kiến trúc Chịu lỗi Cấp độ Nhà mạng</p>
+        <h2 id="pr-h">Nhân 3 bản sao NVMe &<br><em>Lọc sạch 1.2 Tbps DDoS</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Tầng 01 · Lá chắn Anti-DDoS BGP Anycast 1.2 Tbps</p>
+            <h3>Phát hiện và cắt tấn công SYN Flood, UDP/HTTP Flood trong 1.5s</h3>
+            <p>Kết nối trực tiếp trạm trung chuyển Internet quốc gia VNIX cùng Viettel, VNPT, FPT giúp phân tách lưu lượng bẩn ngay tại biên mà không ảnh hưởng người dùng thật.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Tầng 02 · Máy chủ AMD EPYC Thế hệ 4 & RAM DDR5 ECC</p>
+            <h3>Hiệu năng đơn nhân vượt trội cho Database & Microservices</h3>
+            <p>Mỗi vCPU là một luồng xử lý vật lý độc lập (No CPU Steal), băng thông mạng nội bộ 100 Gbps RoCEv2 giữa các cụm Node tính toán.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Tầng 03 · Lưu trữ phân tán Ceph NVMe 3x Replication</p>
+            <h3>Tự động phục hồi (Self-healing) khi hỏng ổ cứng vật lý</h3>
+            <p>Mỗi khối dữ liệu của bạn được ghi đồng thời lên 3 máy chủ lưu trữ thuộc 3 tủ Rack khác nhau, loại bỏ hoàn toàn điểm lỗi đơn lẻ (Single Point of Failure).</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Tầng 04 · Sao lưu Đa vùng Bắc – Nam (Disaster Recovery)</p>
+            <h3>Đồng bộ Snapshot bất biến giữa Hà Nội và TP.HCM</h3>
+            <p>Đáp ứng tiêu chuẩn an toàn thông tin cấp độ 3, Nghị định 53/2022/NĐ-CP về lưu trữ dữ liệu tại Việt Nam và PCI-DSS cho tổ chức tài chính.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Lớp hạ tầng: <b id="pLayer">Lọc DDoS Anycast</b></span>
+          <span>Thông lượng: <b id="pBw">100 Gbps</b></span>
+          <span>Độ sẵn sàng: <b id="pPct">99.99%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sim" id="sim" aria-labelledby="sim-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trình thiết kế Kiến trúc Đám mây</p>
+          <h2 id="sim-h" style="margin-top:16px">Bộ cấu hình Cloud Server &<br><em>Cụm Kubernetes (K8s)</em></h2>
+        </div>
+        <p class="rv">Chọn gói dịch vụ, kéo thanh trượt số nhân vCPU và dung lượng RAM để xem sơ đồ kiến trúc mạng VPC đa vùng trực tiếp trên canvas cùng bảng tính chi phí hàng tháng.</p>
+      </div>
+      <div class="sim-shell">
+        <div class="sim-stage">
+          <canvas id="simC" width="680" height="400" role="img" aria-label="Sơ đồ kiến trúc mạng VPC Load Balancer, Worker Nodes và Ceph NVMe Storage"></canvas>
+          <div class="sim-controls">
+            <div class="sl-row">
+              <label for="cpuR"><span>Tổng số nhân xử lý (vCPU)</span><b id="vCpu">16 vCPU</b></label>
+              <input id="cpuR" type="range" min="4" max="64" step="4" value="16">
+            </div>
+            <div class="sl-row">
+              <label for="ramR"><span>Dung lượng bộ nhớ (RAM DDR5)</span><b id="vRam">32 GB</b></label>
+              <input id="ramR" type="range" min="8" max="256" step="8" value="32">
+            </div>
+          </div>
+        </div>
+        <div class="sim-info">
+          <span class="mono" style="color:var(--pri)">Chọn kiến trúc hạ tầng triển khai</span>
+          <div class="mode-tabs" id="tierTabs" role="group" aria-label="Chọn loại Cloud">
+            <button type="button" class="m-btn" data-t="0" aria-pressed="true">
+              <span class="mono">AMD EPYC 9004 · Enterprise NVMe</span>
+              <b>Cloud Server Compute NVMe</b>
+            </button>
+            <button type="button" class="m-btn" data-t="1" aria-pressed="false">
+              <span class="mono">Auto-healing · Miễn phí Control Plane</span>
+              <b>Managed Kubernetes (VietCloud K8s)</b>
+            </button>
+            <button type="button" class="m-btn" data-t="2" aria-pressed="false">
+              <span class="mono">NVIDIA L40S / H100 · LLM Inference</span>
+              <b>GPU AI Cloud & Huấn luyện Mô hình</b>
+            </button>
+          </div>
+          <div>
+            <span class="mono" style="color:var(--acc)" id="tSpec">Băng thông trong nước: 10 Gbps · Quốc tế: 500 Mbps</span>
+            <h3 id="tTitle" style="font-size:23px;margin:6px 0 8px">Khởi tạo máy chủ ảo trong 25 giây</h3>
+            <p id="tDesc" style="color:var(--muted);font-size:15px">Hỗ trợ sẵn Terraform Provider, Cloud-init, tường lửa VPC Security Group và cân bằng tải Load Balancer L4/L7.</p>
+          </div>
+          <div class="quote-box" id="cQuote" role="status" aria-live="polite">
+            <span class="mono">Cước phí ước tính (Đã gồm 500GB NVMe & IP Tĩnh):</span>
+            <strong id="cPrice">3.840.000 VNĐ / tháng</strong>
+            <span id="cHourly" style="color:var(--muted);font-size:13.5px">Hoặc tính theo giờ sử dụng: 5.330 VNĐ/giờ · Miễn phí băng thông Data Transfer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="specs" id="specs" aria-labelledby="sp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Tiêu chuẩn Trung tâm Dữ liệu</p>
+          <h2 id="sp-h" style="margin-top:16px">Đạt chuẩn Quốc tế <em>Uptime Tier III</em></h2>
+        </div>
+        <p class="rv">Đội ngũ kỹ sư SysAdmin & DevSecOps trực vận hành NOC 24/7/365 tại Hà Nội và TP.HCM, hỗ trợ kỹ thuật trực tiếp bằng tiếng Việt trong 5 phút.</p>
+      </div>
+      <div class="spec-grid">
+        <article class="scard rv">
+          <span class="mono">ISO 27001 & 27017</span>
+          <h3>Tuân thủ Nghị định 53</h3>
+          <p>Toàn bộ máy chủ đặt tại lãnh thổ Việt Nam, đáp ứng đầy đủ quy định kiểm toán ngân hàng và cơ quan nhà nước.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">IaC & DevOps Ready</span>
+          <h3>Terraform & Ansible</h3>
+          <p>Cung cấp API chuẩn OpenStack/AWS S3 tương thích hoàn toàn với quy trình CI/CD GitLab, GitHub Actions.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">Database-as-a-Service</span>
+          <h3>PostgreSQL & Redis HA</h3>
+          <p>Cụm cơ sở dữ liệu Master-Replica tự động chuyển đổi dự phòng (Failover) không mất giao dịch.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">Zero Egress Fee</span>
+          <h3>Không thu phí Băng thông</h3>
+          <p>Khác với Cloud ngoại, VietCloud miễn phí 100% lưu lượng truyền tải dữ liệu ra/vào giúp tiết kiệm 40% hóa đơn.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cases" id="cases" aria-labelledby="ca-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Nền tảng Vững chắc</p>
+          <h2 id="ca-h" style="margin-top:16px">Vận hành hệ thống chịu tải triệu người dùng</h2>
+        </div>
+        <p class="rv">Được lựa chọn bởi các sàn thương mại điện tử, cổng thanh toán Fintech, studio phát hành Game và tập đoàn bán lẻ hàng đầu.</p>
+      </div>
+      <div class="case-grid">
+        <article class="ccard rv">
+          <span class="mono">Thương mại Điện tử Flash Sale</span>
+          <h3>Auto-scaling 120 Node K8s giờ cao điểm</h3>
+          <p>Tự động mở rộng cụm Worker Node trong 40 giây vào các đợt Mega Sale 11/11, 12/12 và thu gọn ngay khi hết chiến dịch.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Cổng Thanh Toán & Ngân Hàng Số</span>
+          <h3>Kết nối Kênh thuê riêng MPLS/Direct Connect</h3>
+          <p>Thiết lập đường truyền cáp quang riêng biệt nối thẳng từ hội sở ngân hàng vào VPC trên VietCloud với độ bảo mật tuyệt đối.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Nhà Phát Hành Game Online</span>
+          <h3>Chặn đứng các đợt DDoS 800 Gbps</h3>
+          <p>Duy trì ping ổn định 5ms cho game thủ 3 miền Bắc – Trung – Nam ngay cả khi máy chủ bị tấn công botnet cường độ cao.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="trial" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Chương trình Hỗ trợ Chuyển đổi Hạ tầng</p>
+        <h2 id="cta-h" style="margin-top:14px">Nhận Gói Tín Dụng 5.000.000 VNĐ &<br><em>Kỹ Sư Hỗ Trợ Migration Miễn Phí</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="uName">Họ và tên (CTO / Tech Lead / DevOps)</label>
+            <input id="uName" type="text" placeholder="Lê Hoàng Nam — Trưởng phòng Hạ tầng" required>
+          </div>
+          <div>
+            <label for="uEmail">Email doanh nghiệp</label>
+            <input id="uEmail" type="email" placeholder="nam.lh@fintechviet.vn" required>
+          </div>
+          <div>
+            <label for="uRegion">Vùng Datacenter ưu tiên</label>
+            <select id="uRegion">
+              <option value="hn">VN-HN-01 (Khu Công nghệ cao Hòa Lạc - Hà Nội)</option>
+              <option value="sgn">VN-SGN-02 (Khu Chế xuất Tân Thuận - TP.HCM)</option>
+              <option value="multi">Multi-AZ Bắc – Nam (Active - Active)</option>
+            </select>
+          </div>
+          <div>
+            <label for="uWork">Nhu cầu sử dụng chính</label>
+            <select id="uWork">
+              <option value="k8s">Managed Kubernetes & Microservices</option>
+              <option value="vm">Cloud Server NVMe & Database HA</option>
+              <option value="gpu">Cụm GPU AI Huấn luyện LLM Tiếng Việt</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Nhận Voucher 5 Triệu & Khởi Tạo VPC</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">VietCloud Infrastructure</a>
+      <ul class="f-nav">
+        <li><a href="#process">Ceph NVMe & Anti-DDoS</a></li>
+        <li><a href="#sim">Bảng Giá Cloud</a></li>
+        <li><a href="#specs">Tier III Datacenter</a></li>
+        <li><a href="#cases">Khách Hàng</a></li>
+        <li><a href="#trial">Nhận Credit</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> VietCloud Infrastructure · Hạ tầng Điện toán Đám mây Chuẩn Tier III</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  function drawTopology(ctx, w, h, tier = 0, cpu = 16, ram = 32, pulse = 0.5) {
+    ctx.fillStyle = '#050811';
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle hex/grid lines
+    ctx.strokeStyle = 'rgba(0,229,255,0.1)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 44) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 44) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+
+    // DDoS Shield + Load Balancer at Left
+    const lbX = 95, lbY = h / 2;
+    ctx.strokeStyle = '#00E5FF';
+    ctx.fillStyle = 'rgba(0,229,255,0.12)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(lbX, lbY, 44, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#F1F5F9';
+    ctx.font = '600 10px "IBM Plex Mono", monospace';
+    ctx.fillText('ANTI-DDOS', lbX - 28, lbY - 4);
+    ctx.fillStyle = '#00E5FF';
+    ctx.fillText('1.2 Tbps', lbX - 24, lbY + 12);
+
+    // Compute / K8s Worker Nodes in Middle
+    const nodeCount = Math.min(6, Math.max(2, Math.ceil(cpu / 12)));
+    const midX = w * 0.5;
+    const spanY = h - 110;
+    const stepY = spanY / (nodeCount + 1);
+
+    // Ceph Storage Replicas at Right
+    const stX = w - 110;
+    const replicas = ['NVMe OSD #1 (HN)', 'NVMe OSD #2 (HN)', 'NVMe OSD #3 (SGN)'];
+
+    for (let i = 0; i < nodeCount; i++) {
+      const ny = 55 + stepY * (i + 1);
+      // Line from LB to Node
+      ctx.strokeStyle = 'rgba(0,229,255,0.45)';
+      ctx.beginPath(); ctx.moveTo(lbX + 44, lbY); ctx.lineTo(midX - 65, ny); ctx.stroke();
+
+      // Animated packet dot
+      const px = lbX + 44 + ((midX - 109) * ((pulse + i * 0.2) % 1));
+      const py = lbY + (ny - lbY) * ((pulse + i * 0.2) % 1);
+      ctx.fillStyle = '#00E5FF';
+      ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI * 2); ctx.fill();
+
+      // Node Box
+      ctx.fillStyle = '#121A30';
+      ctx.strokeStyle = tier === 2 ? '#F59E0B' : tier === 1 ? '#818CF8' : '#00E5FF';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.roundRect(midX - 65, ny - 20, 130, 40, 6); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#F1F5F9';
+      ctx.font = '600 10px "IBM Plex Mono", monospace';
+      const pfx = tier === 2 ? 'GPU-L40S' : tier === 1 ? 'K8S-NODE' : 'VM-NVME';
+      ctx.fillText(`${pfx}-0${i + 1}`, midX - 52, ny - 3);
+      ctx.fillStyle = '#94A3B8';
+      ctx.fillText(`${Math.round(cpu / nodeCount)}vCPU · ${Math.round(ram / nodeCount)}GB`, midX - 52, ny + 12);
+
+      // Connect Node to 3 Ceph Replicas
+      replicas.forEach((_, rIdx) => {
+        const ry = 100 + rIdx * 105;
+        ctx.strokeStyle = 'rgba(129,140,248,0.28)';
+        ctx.beginPath(); ctx.moveTo(midX + 65, ny); ctx.lineTo(stX - 55, ry); ctx.stroke();
+      });
+    }
+
+    replicas.forEach((label, rIdx) => {
+      const ry = 100 + rIdx * 105;
+      ctx.fillStyle = 'rgba(129,140,248,0.16)';
+      ctx.strokeStyle = '#818CF8';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.roundRect(stX - 55, ry - 24, 115, 48, 6); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#F1F5F9';
+      ctx.font = '600 10px "IBM Plex Mono", monospace';
+      ctx.fillText(label, stX - 46, ry - 4);
+      ctx.fillStyle = '#00E5FF';
+      ctx.fillText('REPLICA SYNC OK', stX - 46, ry + 13);
+    });
+
+    // Top HUD
+    ctx.fillStyle = 'rgba(18,26,48,0.9)';
+    ctx.fillRect(14, 12, w - 28, 32);
+    ctx.fillStyle = '#00E5FF';
+    ctx.font = '600 11px "IBM Plex Mono", monospace';
+    ctx.fillText(`VPC TOPOLOGY · ${nodeCount} ACTIVE NODES · ${cpu} vCPU / ${ram} GB RAM · CEPH 3X REPLICA`, 26, 32);
+  }
+
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  drawTopology(heroX, 580, 420, 1, 24, 64, 0.35);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    const p = (e.clientX - r.left) / r.width;
+    drawTopology(heroX, 580, 420, 1, 24, 64, p);
+  });
+
+  // Pinned Scroll Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const LAYERS = [
+    ['Lọc DDoS Anycast', '1.2 Tbps', 0],
+    ['Cụm Compute AMD EPYC', '100 Gbps RoCE', 0],
+    ['Lưu trữ Ceph NVMe 3x', '1.2M IOPS', 1],
+    ['Đồng bộ DR Bắc – Nam', 'Ping < 18ms', 2]
+  ];
+  function renderPin(p) {
+    const step = p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3;
+    const ly = LAYERS[step];
+    drawTopology(pinX, 660, 440, ly[2], 16 + step * 8, 32 + step * 16, p);
+    $('#pLayer').textContent = ly[0];
+    $('#pBw').textContent = ly[1];
+    $('#pPct').textContent = `${(99.9 + p * 0.09).toFixed(2)}%`;
+  }
+  renderPin(0.5);
+
+  // Interactive Configurator
+  const TIERS = [
+    {
+      spec: 'Băng thông trong nước: 10 Gbps · Quốc tế: 500 Mbps',
+      title: 'Khởi tạo máy chủ ảo NVMe trong 25 giây',
+      desc: 'Hỗ trợ sẵn Terraform Provider, Cloud-init, tường lửa VPC Security Group và cân bằng tải Load Balancer L4/L7.',
+      mult: 1
+    },
+    {
+      spec: 'Miễn phí Master Control Plane · Tự động Auto-scaling',
+      title: 'Cụm Managed Kubernetes chuẩn CNCF',
+      desc: 'Tích hợp sẵn Container Registry riêng, Ingress NGINX, Prometheus & Grafana giám sát tài nguyên Pod trực quan.',
+      mult: 1.25
+    },
+    {
+      spec: 'Card NVIDIA L40S 48GB VRAM · NVLink tốc độ cao',
+      title: 'Hạ tầng GPU Cloud cho AI & LLM Tiếng Việt',
+      desc: 'Môi trường cài sẵn PyTorch, CUDA, vLLM và JupyterLab giúp fine-tune mô hình ngôn ngữ lớn và OCR tốc độ cao.',
+      mult: 2.8
+    }
+  ];
+
+  const simC = $('#simC'), simX = simC.getContext('2d');
+  let curTier = 0, curCpu = 16, curRam = 32;
+
+  function updateSim() {
+    drawTopology(simX, 680, 400, curTier, curCpu, curRam, 0.6);
+    const t = TIERS[curTier];
+    const monthly = Math.round((curCpu * 140000 + curRam * 50000) * t.mult);
+    const hourly = Math.round(monthly / 720);
+    $('#tSpec').textContent = t.spec;
+    $('#tTitle').textContent = t.title;
+    $('#tDesc').textContent = t.desc;
+    $('#cPrice').textContent = `${monthly.toLocaleString('vi-VN')} VNĐ / tháng`;
+    $('#cHourly').textContent = `Hoặc tính theo giờ sử dụng: ${hourly.toLocaleString('vi-VN')} VNĐ/giờ · Miễn phí băng thông Data Transfer`;
+  }
+
+  $$('#tierTabs .m-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curTier = +btn.dataset.t;
+      $$('#tierTabs .m-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === curTier));
+      updateSim();
+    });
+  });
+  $('#cpuR').addEventListener('input', (e) => {
+    curCpu = +e.target.value;
+    $('#vCpu').textContent = `${curCpu} vCPU`;
+    updateSim();
+  });
+  $('#ramR').addEventListener('input', (e) => {
+    curRam = +e.target.value;
+    $('#vRam').textContent = `${curRam} GB`;
+    updateSim();
+  });
+  updateSim();
+
+  // Nav & Mobile Menu
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#uName').value.trim();
+    $('#ctaOk').textContent = n ? `Cảm ơn ${n}! Mã voucher 5.000.000 VNĐ Credit và thông tin truy cập VietCloud Console đã được gửi tới email của bạn.` : 'Vui lòng nhập họ tên và email doanh nghiệp.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.8, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1598 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lịch phòng — Phòng Thu Tím</title>
+<meta name="description" content="Phần mềm quản trị phòng thu Phòng Thu Tím: lịch phòng kiểu bàn dựng nhạc kéo-thả, dự án và danh sách track, chi phí, sổ đặt phòng.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23160E25'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%23B56CFF' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23FF4FD8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@400..800&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('ptt-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+:root{--fd:'Unbounded',system-ui,sans-serif;--fm:'Space Mono',ui-monospace,monospace;--tb:64px;--ease:cubic-bezier(.2,.8,.2,1);--r:14px;--hdr:132px;--lane:100px}
+[data-theme=dark]{--bg:#0B0613;--bg2:#120A1F;--pn:#160E25;--pn2:#1D1430;--pn3:#2A1C42;--ink:#F3EDFF;--mut:#C7B9E2;--dim:#A797C6;--ln:rgba(190,160,255,.13);--ln2:rgba(190,160,255,.26);--acc:#B56CFF;--accI:#14061F;--acc2:#FF4FD8;--cy:#3DF2E0;--li:#C8FF4D;--bad:#FF6B88;--badS:rgba(255,95,126,.16);--ok:#5CF2A8;--lcd:#06030B;--lcdI:#3DF2E0;--r0:#B56CFF;--r1:#FF4FD8;--r2:#3DF2E0;--r3:#C8FF4D;--glo:.55;--shadow:0 20px 44px -26px rgba(0,0,0,.95);--back:rgba(5,2,10,.66);--grid:rgba(190,160,255,.07);color-scheme:dark}
+[data-theme=light]{--bg:#F4F0FB;--bg2:#ECE4F8;--pn:#FFFFFF;--pn2:#F7F3FD;--pn3:#EBE2F9;--ink:#1A0F2E;--mut:#4A3E63;--dim:#605476;--ln:rgba(60,30,110,.13);--ln2:rgba(60,30,110,.24);--acc:#6A21D6;--accI:#FFFFFF;--acc2:#B3128A;--cy:#077A73;--li:#4F6E00;--bad:#C4173B;--badS:rgba(196,23,59,.09);--ok:#11804F;--lcd:#1B1030;--lcdI:#7DF5EA;--r0:#6A21D6;--r1:#B3128A;--r2:#077A73;--r3:#557500;--glo:0;--shadow:0 16px 36px -24px rgba(50,20,100,.32);--back:rgba(26,15,46,.42);--grid:rgba(60,30,110,.07);color-scheme:light}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:400 13px/1.55 var(--fm);overflow-x:clip;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(900px 420px at 88% -8%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 70%),radial-gradient(700px 380px at -6% 105%,color-mix(in srgb,var(--acc2) 10%,transparent),transparent 70%)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+h1,h2,h3{font-family:var(--fd);line-height:1.2;margin:0;font-weight:700}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+kbd{font:700 12px/1 var(--fm);padding:3px 5px;border-radius:5px;border:1px solid var(--ln2);background:var(--pn2);color:var(--mut);white-space:nowrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* ===== transport bar ===== */
+.tb{position:sticky;top:0;z-index:40;height:var(--tb);display:flex;align-items:center;gap:12px;padding:0 18px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--ln)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);flex:none}
+.brand b{font:800 14px/1.15 var(--fd);letter-spacing:-.01em;display:block}
+.brand small{font:400 12px/1.2 var(--fm);color:var(--dim);letter-spacing:.06em;display:block}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--pn3);display:grid;place-items:center;box-shadow:0 0 18px -4px color-mix(in srgb,var(--acc) calc(var(--glo)*100%),transparent)}
+.pads{display:flex;gap:6px;flex:none}
+.pad{position:relative;display:flex;align-items:center;gap:9px;height:44px;padding:0 14px 0 11px;border-radius:11px;border:1px solid var(--ln);background:var(--pn);color:var(--mut);font:600 12px/1.2 var(--fd);text-decoration:none;transition:border-color .2s,background-color .2s,color .2s}
+.pad:hover{color:var(--ink);border-color:var(--ln2)}
+.pad .led{width:7px;height:7px;border-radius:50%;background:var(--ln2);flex:none}
+.pad .n{font:400 12px var(--fm);color:var(--dim)}
+.pad[aria-current=page]{color:var(--ink);border-color:color-mix(in srgb,var(--acc) 70%,transparent);background:color-mix(in srgb,var(--acc) 15%,var(--pn))}
+.pad[aria-current=page] .led{background:var(--acc2);box-shadow:0 0 9px var(--acc2)}
+.lcd{flex:1;min-width:0;height:44px;display:flex;align-items:center;gap:12px;padding:0 14px;border-radius:11px;background:var(--lcd);color:var(--lcdI);font:700 12px/1.3 var(--fm);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),inset 0 3px 10px rgba(0,0,0,.6)}
+.lcd .sep{opacity:.4}
+.lcd .t{font-size:15px;text-shadow:0 0 10px color-mix(in srgb,var(--lcdI) 60%,transparent)}
+.lcd .rec{color:#FF7AD9}
+.tools{display:flex;align-items:center;gap:6px;flex:none}
+.ib{width:42px;height:42px;display:grid;place-items:center;border-radius:11px;border:1px solid var(--ln);background:var(--pn);color:var(--mut);position:relative}
+.ib:hover{color:var(--ink);border-color:var(--ln2)}
+.ib .dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--acc2);box-shadow:0 0 0 2px var(--pn)}
+.srch{display:flex;align-items:center;gap:10px;height:42px;padding:0 10px 0 12px;border-radius:11px;border:1px solid var(--ln);background:var(--pn);color:var(--dim);font-size:12px}
+.srch:hover{border-color:var(--ln2);color:var(--mut)}
+.ava{display:flex;align-items:center;gap:9px;height:42px;padding:0 12px 0 5px;border-radius:11px;border:1px solid var(--ln);background:var(--pn);text-align:left}
+.ava i{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font:700 12px var(--fd);font-style:normal;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+.ava b{display:block;font:600 12px/1.2 var(--fd)}
+.ava small{display:block;font-size:12px;color:var(--dim);line-height:1.3}
+.burger{display:none}
+/* ===== main ===== */
+.main{max-width:1720px;margin:0 auto;padding:18px 22px 28px}
+.view{display:none}
+.view.on{display:block}
+.vh{display:flex;align-items:flex-end;justify-content:space-between;gap:14px 18px;flex-wrap:wrap;margin-bottom:14px}
+.crumb{font:400 12px var(--fm);color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.crumb b{color:var(--acc2);font-weight:700}
+.vh h1{font-size:23px;margin-top:4px;letter-spacing:-.01em}
+.vh h1 em{font-style:normal;color:var(--acc)}
+.vtools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 15px;border-radius:10px;border:1px solid var(--ln2);background:var(--pn);color:var(--ink);font:600 12px/1.2 var(--fd);white-space:nowrap}
+.btn:hover{border-color:var(--acc)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--accI);box-shadow:0 8px 24px -10px color-mix(in srgb,var(--acc) calc(var(--glo)*160%),transparent)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+.btn.sm{min-height:36px;padding:0 11px;font-size:12px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.seg{display:inline-flex;padding:3px;border-radius:11px;border:1px solid var(--ln);background:var(--pn)}
+.seg button{min-height:34px;padding:0 12px;border-radius:8px;font:600 12px var(--fd);color:var(--mut);white-space:nowrap}
+.seg button[aria-pressed=true]{background:var(--pn3);color:var(--ink);box-shadow:inset 0 0 0 1px var(--ln2)}
+.panel{background:var(--pn);border:1px solid var(--ln);border-radius:var(--r);box-shadow:var(--shadow)}
+.ph2{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px;padding:14px 16px 0}
+.ph2 h2{font-size:13px;letter-spacing:.01em}
+.ph2 small{color:var(--dim);font-size:12px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.legend i{width:16px;height:10px;border-radius:3px;border:1px solid var(--acc);background:color-mix(in srgb,var(--acc) 22%,transparent)}
+.legend i.gc{border-style:dashed;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--acc) 30%,transparent) 0 3px,transparent 3px 6px)}
+.legend i.xong{border-color:var(--ln2);background:var(--pn3)}
+/* ===== calendar (arrangement) ===== */
+.cal{display:grid;grid-template-columns:minmax(0,1fr) 312px;gap:16px;align-items:start}
+.strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(70px,1fr);gap:6px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:8px;scrollbar-width:thin}
+.day{display:flex;flex-direction:column;gap:5px;padding:8px 8px 7px;border-radius:10px;border:1px solid var(--ln);background:var(--pn);text-align:left;min-width:0;position:relative}
+.day .dl{display:flex;justify-content:space-between;gap:4px;font:700 12px/1.2 var(--fm);color:var(--mut);white-space:nowrap}
+.day .dl em{font-style:normal;color:var(--dim);font-weight:400}
+.day svg{width:100%;height:26px;display:block}
+.day .oc{height:3px;border-radius:2px;background:var(--pn3);overflow:hidden}
+.day .oc i{display:block;height:100%;background:var(--acc)}
+.day.past{opacity:.78}
+.day.today .dl{color:var(--acc2)}
+.day[aria-pressed=true]{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,var(--pn));opacity:1}
+.arrp{overflow:hidden;position:relative}
+.arr{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;position:relative}
+.arr-in{position:relative;--pph:50px}
+.ruler{display:flex;height:34px;border-bottom:1px solid var(--ln);background:var(--pn2);position:relative}
+.rc{position:sticky;left:0;z-index:6;width:var(--hdr);flex:none;background:var(--pn2);border-right:1px solid var(--ln);display:flex;align-items:center;padding:0 12px;font-size:12px;color:var(--dim);letter-spacing:.08em}
+.rt{position:relative;flex:1}
+.tick{position:absolute;top:0;bottom:0;border-left:1px solid var(--ln);font-size:12px;color:var(--dim);padding:9px 0 0 5px;white-space:nowrap}
+.tick.maj{color:var(--mut);font-weight:700}
+.phl{position:absolute;top:6px;z-index:3;transform:translateX(-50%);padding:2px 7px;border-radius:6px;background:var(--acc2);color:#14061F;font:700 12px/1.3 var(--fm);white-space:nowrap;box-shadow:0 0 14px -2px color-mix(in srgb,var(--acc2) calc(var(--glo)*160%),transparent)}
+.lanes{position:relative}
+.lane{display:flex;height:var(--lane);border-bottom:1px solid var(--ln)}
+.lane:last-child{border-bottom:0}
+.lh{position:sticky;left:0;z-index:6;width:var(--hdr);flex:none;background:var(--pn);border-right:1px solid var(--ln);padding:10px 10px 10px 14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.lh::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--c);box-shadow:0 0 10px color-mix(in srgb,var(--c) calc(var(--glo)*100%),transparent)}
+.lh b{font:700 12px/1.3 var(--fd);white-space:nowrap}
+.lh small{font-size:12px;color:var(--dim);line-height:1.35}
+.lh .lst{margin-top:auto;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);white-space:nowrap}
+.lh .lst.on{color:var(--c)}
+.vu{display:inline-flex;align-items:flex-end;gap:2px;height:12px}
+.vu i{width:3px;height:100%;background:var(--c);border-radius:1px;transform-origin:bottom;animation:vu 0.9s ease-in-out infinite alternate}
+.vu i:nth-child(2){animation-duration:.7s;animation-delay:-.3s}.vu i:nth-child(3){animation-duration:1.1s;animation-delay:-.6s}.vu i:nth-child(4){animation-duration:.6s;animation-delay:-.2s}
+@keyframes vu{0%{transform:scaleY(.25)}100%{transform:scaleY(1)}}
+.st .vu i,.rm .vu i{animation:none;transform:scaleY(.7)}
+.st .vu i:nth-child(odd),.rm .vu i:nth-child(odd){transform:scaleY(.45)}
+.lt{flex:1;position:relative;background-image:linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:var(--pph) 100%}
+.clips{position:absolute;top:0;bottom:0;left:var(--hdr);right:0}
+.pt-pastz{position:absolute;top:0;bottom:0;left:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(135deg,transparent 0 9px,color-mix(in srgb,var(--ink) 5%,transparent) 9px 10px)}
+.phx{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;z-index:1;background:var(--acc2);box-shadow:0 0 12px color-mix(in srgb,var(--acc2) calc(var(--glo)*160%),transparent);pointer-events:none}
+.clip{position:absolute;z-index:2;border-radius:9px;background:color-mix(in srgb,var(--c) 15%,var(--pn));border:1px solid color-mix(in srgb,var(--c) 62%,transparent);color:var(--ink);overflow:hidden;cursor:grab;touch-action:pan-x pan-y;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;transition:box-shadow .2s,background-color .2s,border-color .2s}
+.clip:hover{border-color:var(--c)}
+.clip .ch{display:flex;align-items:center;gap:5px;padding:7px 9px 0;font:600 12px/1.35 var(--fd);white-space:nowrap;min-height:22px}
+.clip .ct{display:flex;align-items:center;gap:5px;padding:1px 9px 0;font-size:12px;line-height:1.35;color:var(--mut);white-space:nowrap}
+.clip .cp{padding:0 9px;font-size:12px;line-height:1.35;color:var(--c);white-space:nowrap}
+.clip .wv{flex:1;min-height:8px;width:100%;color:var(--c);opacity:.5;margin-top:2px}
+.clip .wv path{fill:currentColor}
+.clip .rz{position:absolute;right:0;top:0;bottom:0;width:10px;cursor:ew-resize}
+.clip .rz::after{content:'';position:absolute;right:3px;top:50%;width:2px;height:18px;margin-top:-9px;border-radius:2px;background:var(--c);opacity:.6}
+.clip.gc{border-style:dashed;background-image:repeating-linear-gradient(135deg,color-mix(in srgb,var(--c) 13%,transparent) 0 6px,transparent 6px 12px)}
+.clip.xong{background:var(--pn2);border-color:var(--ln2);cursor:pointer}
+.clip.xong .wv{color:var(--dim);opacity:.35}
+.clip.xong .cp{color:var(--mut)}
+.clip .ok{font-style:normal;color:var(--ok);font-family:var(--fm);font-weight:700}
+.clip .rec{width:8px;height:8px;border-radius:50%;background:var(--bad);box-shadow:0 0 8px var(--bad);flex:none}
+.clip.dang{cursor:pointer;box-shadow:0 0 0 1px var(--c),0 0 24px -6px color-mix(in srgb,var(--c) calc(var(--glo)*180%),transparent)}
+.clip.sel{box-shadow:0 0 0 2px var(--ink),0 10px 26px -10px rgba(0,0,0,.6);z-index:4}
+.clip.sel{touch-action:none}
+.clip.pt-drag{cursor:grabbing;z-index:7;opacity:.95;box-shadow:0 0 0 2px var(--cy),0 16px 36px -12px rgba(0,0,0,.7)}
+.clip.pt-clash{border-color:var(--bad);background:var(--badS);box-shadow:0 0 0 2px var(--bad)}
+.pt-ghost{position:absolute;z-index:3;border-radius:9px;border:1.5px dashed var(--acc);background:color-mix(in srgb,var(--acc) 14%,transparent);font:700 12px/1.3 var(--fm);color:var(--ink);padding:7px 9px;white-space:nowrap;overflow:hidden;pointer-events:none}
+.pt-ghost.bad{border-color:var(--bad);background:var(--badS)}
+.arr-hint{display:flex;flex-wrap:wrap;gap:6px 14px;padding:10px 14px;border-top:1px solid var(--ln);font-size:12px;color:var(--dim)}
+.arr-hint .kb{white-space:nowrap}
+.scroll-hint{display:none}
+/* inspector */
+.insp{position:sticky;top:calc(var(--tb) + 16px);display:flex;flex-direction:column;gap:12px}
+.isec{padding:14px 16px}
+.ish{font:700 12px/1.3 var(--fm);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:0 0 10px;display:flex;justify-content:space-between;gap:8px}
+.live{display:flex;flex-direction:column;gap:8px}
+.lv{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--c) 10%,var(--pn2));border:1px solid color-mix(in srgb,var(--c) 40%,transparent);text-align:left;width:100%}
+.lv b{font:600 12px/1.3 var(--fd);grid-column:2}
+.lv small{grid-column:2;font-size:12px;color:var(--mut)}
+.lv .vu{grid-row:1/3}
+.lv .pg{grid-column:1/-1;height:3px;border-radius:2px;background:var(--pn3);margin-top:6px;overflow:hidden}
+.lv .pg i{display:block;height:100%;background:var(--c)}
+.lv em{grid-row:1/3;grid-column:3;font-style:normal;font-size:12px;color:var(--c);font-weight:700}
+.nx{display:flex;flex-direction:column}
+.nx button{display:grid;grid-template-columns:52px 1fr;gap:2px 8px;padding:8px 0;border-top:1px dashed var(--ln);text-align:left}
+.nx button:first-child{border-top:0}
+.nx time{font-weight:700;color:var(--c);grid-row:1/3}
+.nx b{font:600 12px/1.35 var(--fd)}
+.nx small{color:var(--dim);font-size:12px}
+.empty-s{color:var(--mut);font-size:12px;margin:0}
+.rates{display:grid;grid-template-columns:1fr auto;gap:6px 10px;font-size:12px}
+.rates span{display:flex;align-items:center;gap:7px}
+.rates span::before{content:'';width:8px;height:8px;border-radius:2px;background:var(--c)}
+.rates b{text-align:right}
+.rates p{grid-column:1/-1;margin:4px 0 0;color:var(--dim);font-size:12px}
+.is-sel{padding:0;overflow:hidden}
+.is-h{padding:14px 16px 12px;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 18%,transparent),transparent);border-bottom:1px solid var(--ln)}
+.is-top{display:flex;align-items:center;gap:8px}
+.is-top .code{font-size:12px;color:var(--dim);margin-right:auto}
+.is-top .ib{width:36px;height:36px}
+.is-h h2{font-size:17px;margin-top:8px}
+.is-sub{margin:3px 0 0;font-size:12px;color:var(--mut)}
+.lnk{color:var(--c);text-decoration:underline;text-underline-offset:3px;font-size:12px;text-align:left}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:20px;font:700 12px/1.5 var(--fm);letter-spacing:.03em;white-space:nowrap;border:1px solid currentColor}
+.st-xn{color:var(--acc)}.st-gc{color:var(--acc2)}.st-dang{color:var(--bad)}.st-xong{color:var(--ok)}.st-huy{color:var(--dim)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0;padding:12px 16px;font-size:12px}
+.kv dt{color:var(--dim)}
+.kv dd{margin:0;text-align:right}
+.nudge{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 16px 12px}
+.nudge button{min-height:40px;border-radius:9px;border:1px solid var(--ln);background:var(--pn2);font-size:12px;color:var(--mut)}
+.nudge button:hover{color:var(--ink);border-color:var(--c)}
+.nudge p{grid-column:1/-1;margin:0 0 2px;font-size:12px;color:var(--dim)}
+.lock{margin:0 16px 12px;padding:9px 11px;border-radius:9px;background:var(--pn2);font-size:12px;color:var(--mut)}
+.bill{margin:0 16px;padding:10px 0;border-top:1px dashed var(--ln2);display:grid;grid-template-columns:1fr auto;gap:5px 10px;font-size:12px}
+.bill span{color:var(--mut)}
+.bill b{text-align:right;font-weight:400}
+.bill .tot{font:700 14px var(--fm);color:var(--ink)}
+.bill .tot+b{font:700 14px var(--fm);color:var(--c)}
+.is-act{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 16px}
+.is-act .btn{flex:1}
+/* ===== projects ===== */
+.prj{display:grid;grid-template-columns:290px minmax(0,1fr);gap:16px;align-items:start}
+.plist{display:flex;flex-direction:column;gap:8px}
+.pc{display:grid;grid-template-columns:56px 1fr;gap:4px 12px;align-items:center;padding:9px;border-radius:12px;border:1px solid var(--ln);background:var(--pn);text-align:left;width:100%}
+.pc .cov{grid-row:1/4;width:56px;height:56px;border-radius:8px}
+.pc b{font:700 12px/1.3 var(--fd)}
+.pc small{font-size:12px;color:var(--dim)}
+.pc .pb{height:4px;border-radius:2px;background:var(--pn3);overflow:hidden}
+.pc .pb i{display:block;height:100%;background:var(--hue)}
+.pc[aria-pressed=true]{border-color:var(--hue);background:color-mix(in srgb,var(--hue) 10%,var(--pn))}
+.cov{display:block;flex:none}
+.phero{display:grid;grid-template-columns:150px 1fr;gap:20px;padding:18px;align-items:center}
+.phero .cov{width:150px;height:150px;border-radius:12px;box-shadow:0 16px 40px -18px color-mix(in srgb,var(--hue) 70%,transparent)}
+.phero h2{font-size:26px;letter-spacing:-.01em;margin:4px 0 2px}
+.phero .art{font-size:12.5px;color:var(--mut)}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;background:color-mix(in srgb,var(--hue) 18%,transparent);color:var(--ink);font-size:12px;font-weight:700;letter-spacing:.04em}
+.pstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.pstat{padding:10px 12px;border-radius:10px;background:var(--pn2);border:1px solid var(--ln);min-width:0}
+.pstat small{display:block;font-size:12px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
+.pstat b{display:block;font:700 16px/1.35 var(--fm);white-space:nowrap}
+.pstat .bar{height:4px;border-radius:2px;background:var(--pn3);margin-top:6px;overflow:hidden;position:relative}
+.pstat .bar i{display:block;height:100%;background:var(--hue)}
+.pstat .bar i.over{background:var(--bad)}
+.stgsum{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:0 18px 16px}
+.stgsum div{font-size:12px;color:var(--mut)}
+.stgsum div b{font:700 12px var(--fm);color:var(--ink);float:right}
+.stgsum .bar{height:6px;border-radius:3px;background:var(--pn3);margin-top:5px;overflow:hidden}
+.stgsum .bar i{display:block;height:100%;background:var(--hue)}
+.nses{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 16px}
+.nses button{display:flex;flex-direction:column;align-items:flex-start;padding:7px 11px;border-radius:9px;border:1px solid var(--ln);background:var(--pn2);font-size:12px;color:var(--mut);text-align:left}
+.nses button b{font:600 12px/1.35 var(--fd);color:var(--ink)}
+.tl{margin-top:14px}
+.tlh,.trk{display:grid;grid-template-columns:40px 30px minmax(0,1fr) 70px 220px 44px;align-items:center;gap:10px;padding:0 14px}
+.tlh{height:38px;font-size:12px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--ln)}
+.trk{min-height:62px;border-bottom:1px solid var(--ln);background:var(--pn);position:relative}
+.trk.pt-lift{z-index:5;box-shadow:0 14px 34px -14px rgba(0,0,0,.7),0 0 0 1px var(--hue);border-radius:10px}
+.grip{width:40px;height:40px;border-radius:9px;display:grid;place-items:center;color:var(--dim);cursor:grab;touch-action:none}
+.grip:hover{color:var(--ink);background:var(--pn2)}
+.trk .no{font:700 12px var(--fm);color:var(--dim)}
+.trk .tn{min-width:0}
+.trk .tn b{display:block;font:600 12px/1.4 var(--fd)}
+.trk .tn small{font-size:12px;color:var(--dim)}
+.trk .du{font-size:12px;text-align:right}
+.stgs{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.stg{min-height:40px;border-radius:8px;border:1px solid var(--ln);background:var(--pn2);font-size:12px;line-height:1.2;color:var(--dim);padding:0 2px}
+.stg[aria-pressed=true]{background:color-mix(in srgb,var(--hue) 22%,var(--pn));border-color:color-mix(in srgb,var(--hue) 70%,transparent);color:var(--ink)}
+.del{width:40px;height:40px;border-radius:9px;display:grid;place-items:center;color:var(--dim)}
+.del:hover{color:var(--bad);background:var(--badS)}
+.tlf{padding:14px;display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr)) auto;gap:10px;align-items:start;border-top:1px solid var(--ln)}
+.tlt{display:flex;justify-content:space-between;padding:12px 14px;font-size:12px;color:var(--mut);gap:10px;flex-wrap:wrap}
+.tlt b{color:var(--ink)}
+/* ===== fields ===== */
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld label,.fld .lb{font-size:12px;color:var(--mut);letter-spacing:.04em}
+.fld input[type=text],.fld select{height:42px;width:100%;padding:0 11px;border-radius:9px;border:1px solid var(--ln2);background:var(--pn2);font-size:12.5px;outline:none}
+.fld input:focus,.fld select:focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 22%,transparent)}
+.fld.err input,.fld.err select{border-color:var(--bad)}
+.fld .em{font-size:12px;color:var(--bad);line-height:1.4;min-height:0}
+.fld .em:empty{display:none}
+.chk{display:flex;align-items:center;gap:9px;min-height:40px;font-size:12px;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--acc)}
+/* ===== cost ===== */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi{padding:14px 16px;position:relative;overflow:hidden}
+.kpi small{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.kpi .kv2{display:block;font:700 22px/1.3 var(--fm);margin-top:4px;white-space:nowrap}
+.kpi .kd{font-size:12px;color:var(--mut)}
+.kpi .kd.up{color:var(--ok)}.kpi .kd.dn{color:var(--bad)}
+.kpi::after{content:'';position:absolute;left:16px;right:16px;bottom:0;height:2px;background:linear-gradient(90deg,var(--acc),var(--acc2));opacity:.7}
+.cgrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;margin-bottom:16px}
+.chart{padding:4px 8px 8px;position:relative}
+.chart svg{display:block;width:100%;height:280px;overflow:visible}
+.chart svg:focus-visible{outline:2px solid var(--cy)}
+.ax{font:400 12px var(--fm);fill:var(--dim)}
+.axl{stroke:var(--grid);stroke-width:1}
+.tgt{stroke:var(--cy);stroke-width:1.5;stroke-dasharray:5 4}
+.tgtl{font:700 12px var(--fm);fill:var(--cy)}
+.cb{transition:opacity .2s}
+.cbars.hov .cb{opacity:.45}.cbars.hov .cb.on{opacity:1}
+.knobs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:10px 14px 16px}
+.knob{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.knob svg{width:96px;height:96px}
+.knob b{font:600 12px/1.3 var(--fd)}
+.knob small{font-size:12px;color:var(--dim)}
+.kt{font:700 17px var(--fm);fill:var(--ink)}
+.pcost{padding:6px 16px 14px}
+.pcr{display:grid;grid-template-columns:200px minmax(0,1fr);gap:6px 18px;align-items:center;padding:12px 0;border-top:1px solid var(--ln)}
+.pcr:first-child{border-top:0}
+.pcr .who{display:flex;align-items:center;gap:10px;min-width:0}
+.pcr .who .cov{width:38px;height:38px;border-radius:7px}
+.pcr .who b{display:block;font:600 12px/1.3 var(--fd)}
+.pcr .who small{display:block;font-size:12px;color:var(--dim)}
+.sbar{position:relative;height:22px;border-radius:6px;background:var(--pn2);overflow:visible}
+.sbar .sg{position:absolute;top:0;bottom:0}
+.sbar .sg:first-child{border-radius:6px 0 0 6px}
+.sbar .bud{position:absolute;top:-5px;bottom:-5px;width:2px;margin-left:-1px;background:var(--ink);border-radius:2px;z-index:1}
+.pcr .cap{grid-column:2;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--mut)}
+.pcr .cap b{color:var(--ink)}
+.pcr .cap .over{color:var(--bad);font-weight:700}
+.clg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--mut);padding:0 16px 4px}
+.clg span{display:inline-flex;align-items:center;gap:6px}
+.clg i{width:10px;height:10px;border-radius:3px}
+/* ===== table ===== */
+.tbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--ln)}
+.sbox{position:relative;flex:1;min-width:220px}
+.sbox .i{position:absolute;left:11px;top:12px;color:var(--dim);width:16px;height:16px}
+.sbox input{height:42px;width:100%;padding:0 12px 0 34px;border-radius:9px;border:1px solid var(--ln2);background:var(--pn2);font-size:12.5px;outline:none}
+.sbox input:focus{border-color:var(--acc)}
+.tsel{height:42px;padding:0 10px;border-radius:9px;border:1px solid var(--ln2);background:var(--pn2);font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px 0}
+.chip{min-height:34px;padding:0 11px;border-radius:20px;border:1px solid var(--ln);font-size:12px;color:var(--mut);white-space:nowrap}
+.chip b{color:var(--ink);margin-left:4px}
+.chip[aria-pressed=true]{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--ink)}
+.bulk{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 16px 0;padding:8px 10px 8px 14px;border-radius:11px;background:color-mix(in srgb,var(--acc) 14%,var(--pn2));border:1px solid color-mix(in srgb,var(--acc) 50%,transparent);font-size:12px}
+.bulk.on{display:flex}
+.bulk span{margin-right:auto;font-weight:700}
+.twrap{overflow-x:auto;padding:6px 0 0}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font:400 12px var(--fm);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);text-align:left;padding:0 10px;height:40px;border-bottom:1px solid var(--ln);white-space:nowrap}
+th button{display:inline-flex;align-items:center;gap:4px;min-height:32px;letter-spacing:inherit;text-transform:inherit;color:inherit;font-size:12px}
+th button[aria-sort]{color:var(--ink)}
+th button .ar{font-size:12px;width:10px}
+td{padding:10px;border-bottom:1px solid var(--ln);vertical-align:middle}
+tr.on td{background:color-mix(in srgb,var(--acc) 8%,transparent)}
+tbody tr:hover td{background:var(--pn2)}
+td.ck,th.ck{width:44px;padding-left:16px}
+td .who2{display:flex;align-items:center;gap:9px;text-align:left}
+td .who2 i{width:6px;height:28px;border-radius:3px;background:var(--c);flex:none}
+td .who2 b{display:block;font:600 12px/1.35 var(--fd)}
+td .who2 small{display:block;font-size:12px;color:var(--dim)}
+td.num{text-align:right;white-space:nowrap}
+th.num{text-align:right}
+td.nw{white-space:nowrap}
+.tfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;font-size:12px;color:var(--mut)}
+.pager{display:flex;gap:4px}
+.pager button{min-width:38px;height:38px;border-radius:9px;border:1px solid var(--ln);font-size:12px}
+.pager button[aria-current=true]{background:var(--acc);border-color:var(--acc);color:var(--accI)}
+.pager button[disabled]{opacity:.35}
+.empty{padding:46px 16px;text-align:center;color:var(--mut)}
+.empty b{display:block;font:700 14px var(--fd);color:var(--ink);margin-bottom:6px}
+.empty svg{width:56px;height:56px;margin-bottom:8px;color:var(--acc)}
+/* ===== overlays ===== */
+.back{position:fixed;inset:0;z-index:60;background:var(--back);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .2s}
+.back.on{opacity:1;pointer-events:auto}
+.modal{position:fixed;z-index:61;left:50%;top:84px;width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 104px);display:flex;flex-direction:column;translate:-50% 10px;opacity:0;pointer-events:none;transition:opacity .2s,translate .25s var(--ease);background:var(--pn);border:1px solid var(--ln2);border-radius:16px;box-shadow:0 30px 80px -24px rgba(0,0,0,.8)}
+.modal.on{opacity:1;translate:-50% 0;pointer-events:auto}
+.mh{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--ln)}
+.mh h2{font-size:16px;margin-right:auto}
+.mb{padding:16px 18px;overflow:auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 12px}
+.mb .c2{grid-column:span 2}.mb .c3{grid-column:span 3}.mb .c6{grid-column:1/-1}
+.msum{grid-column:1/-1;border-radius:11px;background:var(--pn2);border:1px solid var(--ln);padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:12px}
+.msum span{color:var(--mut)}
+.msum b{text-align:right;font-weight:400}
+.msum .tot{font:700 13px var(--fm);color:var(--ink)}
+.msum .tot+b{font:700 15px var(--fm);color:var(--acc)}
+.mf{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;border-top:1px solid var(--ln)}
+.pop{position:fixed;z-index:55;width:340px;max-width:calc(100vw - 24px);background:var(--pn);border:1px solid var(--ln2);border-radius:14px;box-shadow:0 24px 60px -20px rgba(0,0,0,.75);opacity:0;pointer-events:none;translate:0 -6px;transition:opacity .18s,translate .2s var(--ease)}
+.pop.on{opacity:1;pointer-events:auto;translate:0 0}
+.pop h3{font-size:12px;padding:14px 16px 8px}
+.ntf{display:flex;flex-direction:column;padding:0 8px 8px}
+.ntf button{display:grid;grid-template-columns:10px 1fr;gap:2px 10px;padding:9px 8px;border-radius:9px;text-align:left;font-size:12px}
+.ntf button:hover{background:var(--pn2)}
+.ntf i{width:8px;height:8px;border-radius:50%;background:var(--c);margin-top:5px;grid-row:1/3}
+.ntf small{color:var(--dim);font-size:12px}
+.pal{position:fixed;z-index:70;left:50%;top:90px;width:min(580px,calc(100vw - 24px));translate:-50% -8px;opacity:0;pointer-events:none;transition:opacity .18s,translate .2s var(--ease);background:var(--pn);border:1px solid var(--ln2);border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8);overflow:hidden}
+.pal.on{opacity:1;translate:-50% 0;pointer-events:auto}
+.pal .pin{display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--ln)}
+.pal .pin input{flex:1;height:54px;border:0;background:none;outline:none;font-size:14px}
+.pal ul{list-style:none;margin:0;padding:8px;max-height:min(380px,60vh);overflow:auto}
+.pal li button{display:flex;align-items:center;gap:10px;width:100%;padding:10px;border-radius:9px;text-align:left;font-size:12.5px}
+.pal li small{margin-left:auto;color:var(--dim);font-size:12px;white-space:nowrap}
+.pal li .gk{font:700 12px var(--fm);letter-spacing:.08em;color:var(--dim);padding:8px 10px 2px}
+.pal li button[aria-selected=true]{background:color-mix(in srgb,var(--acc) 16%,transparent)}
+.drw{position:fixed;z-index:62;top:0;right:0;bottom:0;width:min(320px,86vw);background:var(--pn);border-left:1px solid var(--ln2);padding:16px;display:flex;flex-direction:column;gap:14px;transform:translateX(105%);transition:transform .28s var(--ease);visibility:hidden}
+.drw.on{transform:none;visibility:visible}
+.drw .dh{display:flex;align-items:center;justify-content:space-between}
+.drw .dbtn{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 12px;border-radius:10px;border:1px solid var(--ln);font:600 12px var(--fd);text-align:left}
+.drw p{margin:auto 0 0;font-size:12px;color:var(--dim)}
+.toasts{position:fixed;z-index:80;left:20px;bottom:20px;display:flex;flex-direction:column;gap:8px;width:min(380px,calc(100vw - 32px));pointer-events:none}
+body.mo .toasts{left:50%;bottom:auto;top:14px;translate:-50% 0}
+.toast{display:flex;align-items:center;gap:10px;padding:11px 12px 11px 14px;border-radius:12px;background:var(--pn3);border:1px solid var(--ln2);box-shadow:0 18px 40px -16px rgba(0,0,0,.7);font-size:12px;pointer-events:auto}
+.toast::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.toast.bad::before{background:var(--bad)}
+.toast span{flex:1}
+.toast button{font:700 12px var(--fd);color:var(--acc2);min-height:32px;padding:0 6px}
+.tip{position:fixed;z-index:90;pointer-events:none;padding:8px 10px;border-radius:9px;background:var(--lcd);color:#F3EDFF;font-size:12px;line-height:1.5;box-shadow:0 12px 30px -10px rgba(0,0,0,.7);opacity:0;transition:opacity .12s;max-width:240px}
+.tip.on{opacity:1}
+.tip b{font-family:var(--fd);font-size:12px}
+span.nw{white-space:nowrap}
+.anc{position:absolute;top:0;left:0;width:1px;height:1px}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;max-width:1720px;margin:0 auto;padding:12px 22px 22px;font-size:12px;color:var(--dim)}
+.tabbar{display:none}
+/* ===== responsive ===== */
+@media (max-width:1599px){
+  .lcd .x1,.lcd .x2{display:none}
+  .srch span{display:none}
+  .ava b,.ava small{display:none}
+  .ava{padding:0 5px}
+}
+@media (max-width:1279px){
+  .cal{grid-template-columns:minmax(0,1fr)}
+  .cal > div{min-width:0}
+  .lcd .x3,.lcd .x3+.sep{display:none}
+  .insp{position:static;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+  .insp .is-sel{position:fixed;z-index:50;right:16px;top:calc(var(--tb) + 12px);width:340px;max-height:calc(100vh - var(--tb) - 28px);overflow:auto;box-shadow:0 30px 70px -20px rgba(0,0,0,.8)}
+  .lcd .x2{display:none}
+  .cgrid{grid-template-columns:1fr}
+  .knobs{grid-template-columns:repeat(4,1fr)}
+}
+@media (max-width:1180px){
+  .lcd .x1,.lcd .x2{display:none}
+  .ava b,.ava small{display:none}
+  .ava{padding:0 5px}
+  .srch span,.srch kbd{display:none}
+  .srch{width:42px;padding:0;justify-content:center}
+  .pad{padding:0 12px 0 10px}
+  .pad .n{display:none}
+}
+@media (max-width:899px){
+  :root{--tb:58px;--hdr:92px;--lane:88px}
+  .tb{gap:8px;padding:0 12px}
+  .pads{display:none}
+  .brand small{display:none}
+  .lcd{height:38px;padding:0 10px;font-size:12px;gap:8px}
+  .lcd .t{font-size:13px}
+  .lcd .x3{display:none}
+  .tools .bell-w,.tools .ava,.tools .thm{display:none}
+  .burger{display:grid}
+  .main{padding:14px 14px 96px}
+  .foot{padding-bottom:96px}
+  .tabbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;z-index:45;left:0;right:0;bottom:0;height:68px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--ln);gap:6px}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:10px;color:var(--dim);font:600 12px/1.2 var(--fd);text-decoration:none}
+  .tabbar a[aria-current=page]{color:var(--ink);background:color-mix(in srgb,var(--acc) 16%,transparent)}
+  .tabbar a[aria-current=page] .i{color:var(--acc2)}
+  .vh h1{font-size:19px}
+  .insp{grid-template-columns:1fr 1fr}
+  .insp .isec.rt3{grid-column:1/-1}
+  .insp .is-sel{left:0;right:0;top:auto;bottom:68px;width:auto;max-height:64vh;border-radius:16px 16px 0 0}
+  .lh{padding:8px 8px 8px 12px}
+  .lh small{display:none}
+  .lh b{font-size:12px}
+  .lh .lst{font-size:12px}
+  .arr-hint .kb{display:none}
+  td.c-id,td.c-eng,thead th:nth-child(2),thead th:nth-child(7){display:none}
+  .scroll-hint{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);padding:8px 14px 0}
+  .prj{grid-template-columns:1fr}
+  .plist{flex-direction:row;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+  .pc{min-width:236px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .toasts{left:50%;bottom:auto;top:calc(var(--tb) + 8px);translate:-50% 0}
+  body.mo .toasts{top:10px}
+  .modal{top:auto;bottom:0;width:100vw;max-height:92vh;border-radius:18px 18px 0 0;translate:-50% 30px}
+  .modal.on{translate:-50% 0}
+  .mf{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+}
+@media (max-width:760px){
+  .tlh{display:none}
+  .trk{grid-template-columns:40px minmax(0,1fr) 40px;grid-template-areas:'g n d' 's s s';gap:6px 8px;padding:10px 12px}
+  .trk .grip{grid-area:g}.trk .no{display:none}.trk .tn{grid-area:n}.trk .du{display:none}.trk .stgs{grid-area:s}.trk .del{grid-area:d}
+  .tlf{grid-template-columns:1fr 1fr}
+  .tlf .fld:first-child{grid-column:1/-1}
+  .tlf .btn{grid-column:1/-1}
+  .phero{grid-template-columns:96px 1fr;gap:14px;padding:14px}
+  .phero .cov{width:96px;height:96px}
+  .phero h2{font-size:19px}
+  .pstats{grid-column:1/-1;grid-template-columns:1fr 1fr}
+  .pstats .pstat:last-child{grid-column:1/-1}
+  .stgsum{grid-template-columns:1fr 1fr}
+  .pcr{grid-template-columns:1fr}
+  .pcr .cap{grid-column:1}
+  .mb{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .mb .c2,.mb .c3{grid-column:span 1}
+  .mb .w2{grid-column:1/-1}
+  thead{display:none}
+  table,tbody{display:block}
+  tbody tr{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 8px;padding:12px 14px 12px 0;border-bottom:1px solid var(--ln)}
+  tbody tr:hover td{background:none}
+  tr.on{background:color-mix(in srgb,var(--acc) 8%,transparent)}
+  tr.on td{background:none}
+  td{display:block;padding:0;border:0}
+  td.ck{grid-row:1/4;padding-left:14px;padding-top:2px}
+  td.c-who{grid-column:2}
+  td.c-st{grid-column:3;grid-row:1;text-align:right}
+  td.c-room,td.c-date,td.c-time,td.c-eng{grid-column:2;font-size:12px;color:var(--mut)}
+  td.c-eng{display:none}
+  td.c-cost{grid-column:3;grid-row:2/4;align-self:end;text-align:right;font-weight:700}
+  td.c-id{display:none}
+  td.c-date::before{content:'Ngày: ';color:var(--dim)}
+  td.c-time::before{content:'Giờ: ';color:var(--dim)}
+  td.c-room::before{content:'Phòng: ';color:var(--dim)}
+  .tfoot{justify-content:center}
+}
+@media (max-width:520px){
+  .brand b{font-size:12px}
+  .brand .bt{display:none}
+  .phero{grid-template-columns:1fr}
+  .phero > .cov{display:none}
+  .tsel{flex:1}
+  .insp{grid-template-columns:1fr}
+  .strip{grid-auto-columns:76px}
+  .kpi .kv2{font-size:18px}
+  .knobs{grid-template-columns:repeat(2,1fr)}
+  .vtools{width:100%}
+  .vtools .grow{flex:1}
+  .chart svg{height:240px}
+  .chart-h small{display:none}
+  .pc{min-width:220px}
+}
+.rm *,.rm *::before,.rm *::after{transition-duration:0s!important;animation:none!important}
+.ckl{display:inline-grid;place-items:center;width:40px;height:40px;margin:-13px;cursor:pointer;vertical-align:middle}
+/* tablet: the header LCD has room for the date and live-room readout again */
+@media (min-width:700px) and (max-width:899px){.lcd .x1,.lcd .x3{display:inline}:root{--hdr:100px}}
+@media (pointer:coarse){
+  .ckl input{width:18px;height:18px}
+  .brand{min-height:40px;min-width:40px}
+  .seg button,.chip{min-height:40px}
+  th button,.who2{min-height:40px}
+  .pager button{min-width:40px;height:40px}
+}
+</style>
+</head>
+<body>
+<!-- hash targets for the view links: routing is JS, these keep #view anchors valid and land at the top -->
+<span class="anc" id="lich-phong"></span><span class="anc" id="du-an"></span><span class="anc" id="chi-phi"></span><span class="anc" id="dat-phong"></span>
+<header class="tb">
+  <a class="brand" href="#lich-phong" aria-label="Phòng Thu Tím — về lịch phòng">
+    <span class="logo"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#B56CFF" stroke-width="2.4"/><circle cx="12" cy="12" r="5" fill="none" stroke="#B56CFF" stroke-width="1" opacity=".6"/><circle cx="12" cy="12" r="2.4" fill="#FF4FD8"/></svg></span>
+    <span class="bt"><b>Phòng Thu Tím</b><small>STUDIO · QUẬN 3</small></span>
+  </a>
+  <nav class="pads" aria-label="Màn hình chính">
+    <a class="pad" href="#lich-phong" data-v="lich-phong"><span class="led"></span>Lịch phòng<span class="n">1</span></a>
+    <a class="pad" href="#du-an" data-v="du-an"><span class="led"></span>Dự án<span class="n">2</span></a>
+    <a class="pad" href="#chi-phi" data-v="chi-phi"><span class="led"></span>Chi phí<span class="n">3</span></a>
+    <a class="pad" href="#dat-phong" data-v="dat-phong"><span class="led"></span>Sổ đặt phòng<span class="n">4</span></a>
+  </nav>
+  <div class="lcd" id="lcd" aria-live="off" role="status"></div>
+  <div class="tools">
+    <button class="srch" id="palBtn" aria-label="Mở bảng lệnh (Ctrl K)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Tìm lệnh, khách…</span><kbd>Ctrl K</kbd></button>
+    <button class="ib thm" id="thmBtn" aria-label="Đổi giao diện sáng/tối"></button>
+    <span class="bell-w"><button class="ib" id="bellBtn" aria-label="Thông báo" aria-expanded="false" aria-controls="ntfPop"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg><span class="dot"></span></button></span>
+    <button class="ava" id="avaBtn" aria-label="Tài khoản: Quách Ngọc Diệp, quản lý phòng thu"><i>ND</i><span><b>Ngọc Diệp</b><small>Quản lý phòng thu</small></span></button>
+    <button class="ib burger" id="burger" aria-label="Mở menu" aria-expanded="false" aria-controls="drw"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  </div>
+</header>
+
+<main class="main" id="main">
+  <section class="view" id="v-lich-phong" aria-labelledby="h-lich"></section>
+  <section class="view" id="v-du-an" aria-labelledby="h-duan"></section>
+  <section class="view" id="v-chi-phi" aria-labelledby="h-chiphi"></section>
+  <section class="view" id="v-dat-phong" aria-labelledby="h-datphong"></section>
+</main>
+<footer class="foot"><span>Phòng Thu Tím · 214 Võ Văn Tần, Quận 3 · 48 kHz / 24-bit · Hotline 0283 930 9494</span><span>Thiết kế concept — thương hiệu giả định.</span></footer>
+
+<nav class="tabbar" aria-label="Màn hình chính (di động)">
+  <a href="#lich-phong" data-v="lich-phong"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Lịch</a>
+  <a href="#du-an" data-v="du-an"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg>Dự án</a>
+  <a href="#chi-phi" data-v="chi-phi"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M10 20V5M15 20v-7M20 20V8"/></svg>Chi phí</a>
+  <a href="#dat-phong" data-v="dat-phong"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Đặt phòng</a>
+</nav>
+
+<div class="back" id="back"></div>
+<div class="modal" id="bkm" role="dialog" aria-modal="true" aria-labelledby="bkmT">
+  <div class="mh"><h2 id="bkmT">Đặt phòng thu</h2><button class="ib" data-close="bkm" aria-label="Đóng biểu mẫu"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <form id="bkf" novalidate style="display:contents">
+    <div class="mb">
+      <div class="fld c3 w2"><label for="fWho">Khách / nghệ sĩ</label><input type="text" id="fWho" autocomplete="off" placeholder="Vd. Lam Thư"><span class="em"></span></div>
+      <div class="fld c3 w2"><label for="fPhone">Số điện thoại</label><input type="text" id="fPhone" inputmode="tel" autocomplete="off" placeholder="09x xxx xxxx"><span class="em"></span></div>
+      <div class="fld c3 w2"><label for="fProj">Dự án</label><select id="fProj"></select><span class="em"></span></div>
+      <div class="fld c3 w2"><label for="fRoom">Phòng</label><select id="fRoom"></select><span class="em"></span></div>
+      <div class="fld c2"><label for="fDate">Ngày (dd/mm/yyyy)</label><input type="text" id="fDate" inputmode="numeric" autocomplete="off" placeholder="dd/mm/yyyy"><span class="em"></span></div>
+      <div class="fld c2"><label for="fStart">Bắt đầu</label><select id="fStart"></select><span class="em"></span></div>
+      <div class="fld c2 w2"><label for="fDur">Thời lượng</label><select id="fDur"></select><span class="em"></span></div>
+      <div class="fld c3 w2"><label for="fEng">Kỹ sư âm thanh</label><select id="fEng"></select><span class="em"></span></div>
+      <div class="fld c3 w2"><span class="lb">Thêm</span><label class="chk"><input type="checkbox" id="fMic">Micro Neumann U87 (350k)</label><label class="chk"><input type="checkbox" id="fNc">Nhạc công session (1,2 tr)</label><label class="chk"><input type="checkbox" id="fHold">Chỉ giữ chỗ, chưa đặt cọc</label></div>
+      <div class="msum" id="fSum" aria-live="polite"></div>
+    </div>
+    <div class="mf"><button type="button" class="btn" data-close="bkm">Để sau</button><button type="submit" class="btn pri" id="fSubmit">Đặt phòng</button></div>
+  </form>
+</div>
+<div class="pop" id="ntfPop" role="dialog" aria-label="Thông báo"></div>
+<div class="pop" id="avaPop" role="dialog" aria-label="Tài khoản"></div>
+<div class="pal" id="pal" role="dialog" aria-modal="true" aria-label="Bảng lệnh">
+  <div class="pin"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="palIn" type="text" aria-label="Tìm lệnh, khách, dự án, track" placeholder="Gõ để tìm: dự án, khách, mã PT-, lệnh…" autocomplete="off"><kbd>Esc</kbd></div>
+  <ul id="palList" role="listbox" aria-label="Kết quả"></ul>
+</div>
+<aside class="drw" id="drw" aria-label="Menu" aria-hidden="true"></aside>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+'use strict'
+const STATIC = /(^|[?&])static(=|&|$)/.test(location.search)
+const root = document.documentElement
+if (STATIC) root.classList.add('st')
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+if (RM) root.classList.add('rm')
+const G = window.gsap && !RM ? window.gsap : null
+const $ = (s, el = document) => el.querySelector(s)
+const $$ = (s, el = document) => [...el.querySelectorAll(s)]
+const store = { get(k) { try { return localStorage.getItem(k) } catch { return null } }, set(k, v) { try { localStorage.setItem(k, v) } catch { /* private mode */ } } }
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const fold = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').toLowerCase()
+const money = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ₫'
+const trv = (v) => v >= 1e6 ? (Math.round(v / 1e5) / 10).toString().replace('.', ',') + ' tr' : Math.round(v / 1000) + 'k'
+const pad2 = (n) => String(n).padStart(2, '0')
+const hm = (h) => { const m = Math.round(h * 60); return pad2(Math.floor(m / 60) % 24) + ':' + pad2(m % 60) }
+const durTxt = (d) => { const h = Math.floor(d), m = Math.round((d - h) * 60); return h + ' giờ' + (m ? ' ' + m + ' phút' : '') }
+const mmss = (s) => Math.floor(s / 60) + ':' + pad2(s % 60)
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+const snap = (h) => Math.round(h * 2) / 2
+function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+const I = {
+  x: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  plus: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  l: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>',
+  r: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>',
+  grip: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="3"/></svg>',
+  trash: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  sun: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+  search: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  disc: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg>',
+  wave: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 7v10M21 12h0"/></svg>',
+}
+
+/* ================= time base: a studio day runs 08:00 → 02:00 next morning ================= */
+const OPEN = 8, CLOSE = 26, SPAN = CLOSE - OPEN
+let NOW = new Date()
+const base = new Date(NOW); base.setHours(0, 0, 0, 0)
+if (NOW.getHours() < 6) base.setDate(base.getDate() - 1)
+let NH = (NOW - base) / 36e5
+const dayDate = (d) => { const x = new Date(base); x.setDate(x.getDate() + d); return x }
+const WD = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'], WDF = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+const dmy = (dt) => pad2(dt.getDate()) + '/' + pad2(dt.getMonth() + 1) + '/' + dt.getFullYear()
+const dm = (dt) => pad2(dt.getDate()) + '/' + pad2(dt.getMonth() + 1)
+const dayName = (d) => d === 0 ? 'Hôm nay' : d === 1 ? 'Ngày mai' : d === -1 ? 'Hôm qua' : WDF[dayDate(d).getDay()]
+function shiftLabel() { const h = NOW.getHours(); return h < 2 ? 'Ca đêm' : h < 6 ? 'Đã đóng cửa' : h < 8 ? 'Sắp mở cửa' : h < 12 ? 'Ca sáng' : h < 18 ? 'Ca chiều' : h < 22 ? 'Ca tối' : 'Ca đêm' }
+
+/* ================= seed data ================= */
+const ROOMS = [
+  { n: 'Thạch Anh', kind: 'Thu ban nhạc', rate: 850000, c: '--r0' },
+  { n: 'Oải Hương', kind: 'Buồng thu giọng', rate: 450000, c: '--r1' },
+  { n: 'Cực Tím', kind: 'Mix · master', rate: 600000, c: '--r2' },
+  { n: 'Mận', kind: 'Podcast 4 mic', rate: 300000, c: '--r3' },
+]
+const ENG = [{ n: 'Trịnh Quân', fee: 300000 }, { n: 'Lý Hà My', fee: 250000 }, { n: 'Đoàn Khôi', fee: 200000 }, { n: 'Tự vận hành', fee: 0 }]
+const ADD = { mic: 350000, nc: 1200000 }
+const ST = { xn: 'Đã xác nhận', gc: 'Giữ chỗ', dang: 'Đang thu', xong: 'Đã xong', huy: 'Đã hủy' }
+const STAGES = ['Thu âm', 'Biên tập', 'Mix', 'Master']
+const WALK = [['Nguyễn Hoàng Nam', 'Hoàng Nam'], ['Trần Bảo Ngọc', 'Bảo Ngọc'], ['Phạm Gia Huy', 'Gia Huy'], ['Lê Minh Thư', 'Minh Thư'], ['Võ Quốc Bảo', 'Quốc Bảo'], ['Đặng Tường Vi', 'Tường Vi'], ['Huỳnh Đức Anh', 'Đức Anh'], ['Bùi Khánh Linh', 'Khánh Linh'], ['Phan Thanh Tâm', 'Thanh Tâm'], ['Hồ Ngọc Hân', 'Ngọc Hân'], ['Studio Quảng Cáo Mộc', 'Mộc'], ['Nhóm Acoustic Gác Xép', 'Gác Xép']]
+const PROJ = [
+  { a: 'Mây Lặng', sh: 'Mây Lặng', t: 'Gió Mùa Cũ', type: 'EP', g: 'Indie folk', rooms: [1, 2], win: [-34, 12], f: 1.22, dl: 18, hue: '#B56CFF', hue2: '#3DF2E0', ph: '0903 418 226',
+    tr: [['Gió Mùa Cũ', 84, 'Rê thứ', 236, 4], ['Ga Tàu Không Tên', 92, 'La thứ', 251, 4], ['Mưa Trên Mái Tôn', 76, 'Fa trưởng', 284, 3], ['Thư Gửi Đà Lạt', 68, 'Đô trưởng', 219, 2], ['Chiều Hồ Tây', 100, 'Mi thứ', 242, 1], ['Lặng', 60, 'Si giáng trưởng', 198, 0]] },
+  { a: 'Ban nhạc Ngõ Hẹp', sh: 'Ngõ Hẹp', t: 'Đèn Đường', type: 'Album', g: 'Rock', rooms: [0, 2], win: [-48, 14], f: 0.93, dl: 40, hue: '#FF4FD8', hue2: '#FFB547', ph: '0938 205 771',
+    tr: [['Đèn Đường', 128, 'Mi thứ', 262, 3], ['Ngõ 47', 140, 'La trưởng', 231, 3], ['Xe Ôm Đêm', 118, 'Rê trưởng', 247, 2], ['Gác Trọ', 96, 'Son trưởng', 275, 2], ['Còi Tầm', 150, 'Mi thứ', 203, 1], ['Phố Không Ngủ', 132, 'Fa thăng thứ', 266, 1], ['Khói', 88, 'Đô thăng thứ', 318, 0], ['Về Muộn', 72, 'Son trưởng', 290, 0]] },
+  { a: 'Lam Thư', sh: 'Lam Thư', t: 'Nửa Đêm Sài Gòn', type: 'Single', g: 'Pop', rooms: [1, 2], win: [-16, 6], f: 1.35, dl: 6, hue: '#3DF2E0', hue2: '#B56CFF', ph: '0977 640 312',
+    tr: [['Nửa Đêm Sài Gòn', 104, 'Son thứ', 214, 3], ['Nửa Đêm Sài Gòn (bản mộc)', 90, 'Son thứ', 226, 2], ['Nửa Đêm Sài Gòn (bản phối lại)', 122, 'Son thứ', 198, 4]] },
+  { a: 'Kha Vũ', sh: 'Kha Vũ', t: 'Bê Tông', type: 'Mixtape', g: 'Rap', rooms: [1, 2], win: [-40, 9], f: 1.12, dl: 25, hue: '#C8FF4D', hue2: '#FF4FD8', ph: '0369 882 054',
+    tr: [['Mở màn: Công Trường', 90, 'Đô thứ', 74, 4], ['Bê Tông', 94, 'Đô thứ', 197, 4], ['Tầng 12', 86, 'Fa thứ', 212, 4], ['Giàn Giáo', 140, 'Son thứ', 188, 3], ['Cát Bụi Quận 4', 92, 'Si giáng thứ', 224, 2], ['Hết Ca', 80, 'Mi giáng trưởng', 236, 1], ['Khép Lại', 70, 'Đô thứ', 96, 0]] },
+  { a: 'Podcast Cà Phê Muối', sh: 'Cà Phê Muối', t: 'Mùa 2', type: 'Podcast', g: 'Trò chuyện', rooms: [3], win: [-60, 14], f: 1.28, dl: 30, hue: '#FFB547', hue2: '#C8FF4D', ph: '0908 117 365',
+    tr: [['Tập 01 · Quán cóc đầu hẻm', 0, '', 2460, 4], ['Tập 02 · Người pha cà phê lúc 4 giờ sáng', 0, '', 2890, 4], ['Tập 03 · Chợ đêm và những chiếc xe đẩy', 0, '', 3120, 3], ['Tập 04 · Ban công tầng ba', 0, '', 2735, 2], ['Tập 05 · Những lá thư không gửi', 0, '', 2980, 1], ['Tập 06 · Hẻm cụt', 0, '', 2700, 0]] },
+  { a: 'Hợp xướng Sơn Ca', sh: 'Sơn Ca', t: 'Tuổi Thơ Xanh', type: 'Album thiếu nhi', g: 'Hợp xướng', rooms: [0], win: [-20, 12], f: 1.2, dl: 12, hue: '#7FA8FF', hue2: '#C8FF4D', ph: '0912 556 038',
+    tr: [['Tuổi Thơ Xanh', 108, 'Đô trưởng', 182, 2], ['Diều Giấy Đỏ', 116, 'Son trưởng', 154, 1], ['Sân Trường Nắng', 124, 'Rê trưởng', 167, 1], ['Trăng Rằm Ngõ Nhỏ', 72, 'Fa trưởng', 201, 0], ['Ru Em Giấc Trưa', 64, 'La giáng trưởng', 176, 0]] },
+]
+let tseq = 1
+PROJ.forEach((p, i) => { p.i = i; p.tracks = p.tr.map(([n, bpm, key, sec, stg]) => ({ id: 't' + tseq++, n, bpm, key, sec, stg })) })
+const KEYS = [...new Set(['Đô trưởng', 'Đô thứ', 'Rê trưởng', 'Rê thứ', 'Mi trưởng', 'Mi thứ', 'Fa trưởng', 'Fa thứ', 'Son trưởng', 'Son thứ', 'La trưởng', 'La thứ', 'Si trưởng', 'Si thứ', ...PROJ.flatMap((p) => p.tracks.map((t) => t.key)).filter(Boolean)])]
+
+const BK = []
+let seq = 4100
+for (let d = -89; d <= 14; d++) for (let r = 0; r < 4; r++) {
+  const rnd = mulberry(d * 131 + r * 7919 + 99991)
+  const pk = (a) => a[Math.floor(rnd() * a.length)]
+  let h = OPEN + pk([0, 0.5, 1, 1, 2, 3])
+  const busy = d > 3 ? 0.16 + (d - 3) * 0.05 : r === 2 ? 0.1 : 0.15
+  while (true) {
+    const dur = r === 3 ? pk([1.5, 2, 2, 2.5]) : r === 2 ? pk([3, 4, 4, 5]) : pk([2, 2.5, 3, 3, 4])
+    if (h + dur > CLOSE) break
+    if (rnd() < busy) { h += pk([1, 1.5, 2, 3]); continue }
+    const cands = PROJ.filter((p) => p.rooms.includes(r) && d >= p.win[0] && d <= p.win[1])
+    const proj = cands.length && rnd() < 0.5 ? pk(cands).i : -1
+    const b = { id: 'PT-' + seq++, d, room: r, s: h, dur, proj, wi: Math.floor(rnd() * WALK.length), eng: r === 3 ? pk([3, 3, 2]) : pk([0, 1, 1, 2, 2, 3]), mic: r < 2 && rnd() < 0.3, nc: r === 0 && rnd() < 0.25, st: 'xn' }
+    b.ph = proj >= 0 ? PROJ[proj].ph : '09' + Math.floor(rnd() * 9) + ' ' + String(Math.floor(rnd() * 1e3)).padStart(3, '0') + ' ' + String(Math.floor(rnd() * 1e4)).padStart(4, '0')
+    const x = rnd()
+    if (d < 0 && x < 0.06) b.st = 'huy'
+    else if (d > 0 && x < 0.28) b.st = 'gc'
+    else if (d > 0 && x < 0.32) b.st = 'huy'
+    BK.push(b)
+    h += dur + pk([0, 0.5, 0.5, 1, 1.5])
+  }
+}
+const byId = (id) => BK.find((b) => b.id === id)
+const absS = (b) => b.d * 24 + b.s, absE = (b) => b.d * 24 + b.s + b.dur
+function stOf(b) { if (b.st === 'huy') return 'huy'; if (absE(b) <= NH) return 'xong'; if (absS(b) <= NH) return 'dang'; return b.st }
+const movable = (b) => b.st !== 'huy' && absS(b) > NH
+const who = (b) => b.proj >= 0 ? PROJ[b.proj].a : WALK[b.wi][0]
+const whoS = (b) => b.proj >= 0 ? PROJ[b.proj].sh : WALK[b.wi][1]
+function costParts(b) {
+  const R = ROOMS[b.room].rate
+  const night = Math.max(0, b.s + b.dur - Math.max(b.s, 22))
+  const room = R * b.dur, nightX = Math.round(R * night * 0.2), eng = ENG[b.eng].fee * b.dur, add = (b.mic ? ADD.mic : 0) + (b.nc ? ADD.nc : 0)
+  return { room, nightX, eng, add, total: room + nightX + eng + add }
+}
+const cost = (b) => costParts(b).total
+PROJ.forEach((p) => { const tot = BK.filter((b) => b.proj === p.i && b.st !== 'huy').reduce((a, b) => a + cost(b), 0); p.budget = Math.max(5e6, Math.round(tot * p.f / 1e6) * 1e6) })
+
+/* ================= undo + toasts ================= */
+const undoStack = []
+function pushUndo(label, fn) { undoStack.push({ label, fn }); if (undoStack.length > 30) undoStack.shift() }
+function doUndo() { const u = undoStack.pop(); if (!u) { toast('Không còn thao tác để hoàn tác.', { bad: true }); return } u.fn(); refresh(); toast('Đã hoàn tác: ' + u.label) }
+function toast(msg, o = {}) {
+  const box = $('#toasts')
+  while (box.children.length >= 2) box.firstElementChild.remove()
+  const t = document.createElement('div')
+  t.className = 'toast' + (o.bad ? ' bad' : '')
+  t.innerHTML = `<span>${esc(msg)}</span>` + (o.undo ? '<button type="button">Hoàn tác</button>' : '') + `<button type="button" aria-label="Đóng thông báo">${I.x}</button>`
+  box.append(t)
+  const btns = $$('button', t)
+  if (o.undo) btns[0].onclick = () => { t.remove(); doUndo() }
+  btns[btns.length - 1].onclick = () => t.remove()
+  if (G) G.from(t, { y: 10, opacity: 0, duration: 0.25, clearProps: 'all' })
+  setTimeout(() => t.remove(), o.undo ? 7000 : 4200)
+}
+
+/* ================= theme ================= */
+function setTheme(t, save) {
+  root.dataset.theme = t
+  if (save) store.set('ptt-theme', t)
+  $('#thmBtn').innerHTML = t === 'dark' ? I.sun : I.moon
+  $('#thmBtn').setAttribute('aria-label', t === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối')
+}
+setTheme(root.dataset.theme === 'light' ? 'light' : 'dark')
+$('#thmBtn').onclick = () => { setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark', true); refresh() }
+
+/* ================= LCD ================= */
+function liveNow() { return BK.filter((b) => b.d === 0 && stOf(b) === 'dang') }
+function renderLcd() {
+  const n = NOW, live = liveNow().length
+  $('#lcd').innerHTML = `<span class="x1">${WD[n.getDay()]} ${dmy(n)}</span><span class="sep x1">▸</span><span class="t">${pad2(n.getHours())}:${pad2(n.getMinutes())}</span><span class="sep">▸</span><span>${shiftLabel()}</span><span class="sep x3">▸</span><span class="x3 ${live ? 'rec' : ''}">${live ? '● ' + live + ' phòng đang thu' : 'Không phòng nào đang thu'}</span><span class="sep x2">▸</span><span class="x2">${BK.filter((b) => b.d === 0 && b.st !== 'huy').length} buổi hôm nay</span>`
+}
+
+/* ================= router ================= */
+const VIEWS = { 'lich-phong': 'Lịch phòng', 'du-an': 'Dự án & track', 'chi-phi': 'Chi phí & doanh thu', 'dat-phong': 'Sổ đặt phòng' }
+const R = { 'lich-phong': () => renderCal(), 'du-an': () => renderProj(), 'chi-phi': () => renderCost(), 'dat-phong': () => renderBook() }
+let cur = ''
+function route() {
+  let v = location.hash.slice(1)
+  if (!VIEWS[v]) v = 'lich-phong'
+  const changed = v !== cur
+  cur = v
+  $$('.view').forEach((s) => s.classList.toggle('on', s.id === 'v-' + v))
+  $$('[data-v]').forEach((a) => a.dataset.v === v ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'))
+  document.title = VIEWS[v] + ' — Phòng Thu Tím'
+  closeAll(true)
+  R[v]()
+  if (changed && G && booted && !STATIC) G.from($$('#v-' + v + ' .vh, #v-' + v + ' .panel'), { y: 10, opacity: 0, duration: 0.35, stagger: 0.04, clearProps: 'all' })
+  if (changed && booted) window.scrollTo(0, 0)
+}
+function refresh() { renderLcd(); R[cur]() }
+let booted = false
+window.addEventListener('hashchange', route)
+
+/* ================= CALENDAR (arrangement) ================= */
+const cal = { d: 0, sel: null, pph: 50 }
+const MX = document.createElement('canvas').getContext('2d')
+const fits = (s, font, w) => { MX.font = font; return MX.measureText(s).width <= w }
+const F_CLIP = '600 12px Unbounded', F_MONO = '400 12px "Space Mono"'
+const waveCache = {}
+function wave(id) {
+  if (waveCache[id]) return waveCache[id]
+  const r = mulberry(+id.slice(3) * 17), N = 34, top = [], bot = []
+  for (let i = 0; i <= N; i++) { const a = 0.15 + Math.abs(Math.sin(i * 0.55 + r() * 2)) * 0.55 * (0.5 + r() * 0.6); const x = (i / N * 100).toFixed(1); top.push(x + ',' + (10 - a * 9).toFixed(1)); bot.unshift(x + ',' + (10 + a * 9).toFixed(1)) }
+  return (waveCache[id] = 'M' + top.join('L') + 'L' + bot.join('L') + 'Z')
+}
+function laneH() { return parseFloat(getComputedStyle(root).getPropertyValue('--lane')) || 100 }
+function hdrW() { return parseFloat(getComputedStyle(root).getPropertyValue('--hdr')) || 132 }
+function dayBk(d) { return BK.filter((b) => b.d === d && b.st !== 'huy') }
+function clash(b, d, room, s, dur) { return BK.find((o) => o !== b && o.st !== 'huy' && o.d === d && o.room === room && o.s < s + dur && s < o.s + o.dur) }
+function validate(b, d, room, s, dur) {
+  if (s < OPEN || s + dur > CLOSE) return 'Ngoài giờ mở cửa (08:00–02:00).'
+  if (d * 24 + s < NH) return 'Không dời vào khung giờ đã qua.'
+  const c = clash(b, d, room, s, dur)
+  if (c) return `Trùng ${c.id} · ${whoS(c)} (${hm(c.s)}–${hm(c.s + c.dur)}) ở phòng ${ROOMS[room].n}.`
+  return ''
+}
+function renderCal() {
+  const v = $('#v-lich-phong'), dd = dayDate(cal.d)
+  if (!v.dataset.built) {
+    v.dataset.built = 1
+    v.innerHTML = `<div class="vh"><div><div class="crumb">Phòng Thu Tím / <b>Lịch phòng</b></div><h1 id="h-lich"></h1></div>
+      <div class="vtools"><div class="seg" role="group" aria-label="Chọn ngày"><button type="button" data-cd="-1" aria-label="Ngày trước">${I.l}</button><button type="button" data-cd="0" id="todayBtn">Hôm nay</button><button type="button" data-cd="1" aria-label="Ngày sau">${I.r}</button></div>
+      <button class="btn pri grow" type="button" data-new>${I.plus}Đặt phòng</button></div></div>
+      <div class="cal"><div><div class="strip" id="strip" role="group" aria-label="14 ngày"></div>
+      <div class="panel arrp"><div class="ph2" style="padding-bottom:10px"><h2 id="arrT">Bàn dựng lịch</h2><div class="legend"><span><i></i>Đã xác nhận</span><span><i class="gc"></i>Giữ chỗ</span><span><i class="xong"></i>Đã xong</span></div></div>
+      <div class="scroll-hint">${I.r}Vuốt ngang để xem cả ngày 08:00 → 02:00</div>
+      <div class="arr" id="arr"></div>
+      <div class="arr-hint"><span>Kéo khối để dời giờ/đổi phòng · kéo mép phải để đổi thời lượng · kéo trên ô trống để vẽ buổi mới</span><span class="kb"><kbd>←</kbd><kbd>→</kbd> dời 30′ · <kbd>↑</kbd><kbd>↓</kbd> đổi phòng · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> thời lượng · <kbd>Del</kbd> hủy · <kbd>Ctrl Z</kbd> hoàn tác</span></div></div></div>
+      <aside class="insp" id="insp" aria-label="Chi tiết"></aside></div>`
+    $$('[data-cd]', v).forEach((b) => b.onclick = () => { const k = +b.dataset.cd; cal.d = k === 0 ? 0 : clamp(cal.d + k, -14, 14); cal.sel = null; renderCal() })
+    bindArr($('#arr'))
+  }
+  $('#h-lich').innerHTML = `${dayName(cal.d)} <em>${cal.d === 0 || Math.abs(cal.d) === 1 ? WD[dd.getDay()] + ' ' : ''}${dmy(dd)}</em>`
+  $('#todayBtn').setAttribute('aria-pressed', String(cal.d === 0))
+  $('[data-cd="-1"]', v).disabled = cal.d <= -14
+  $('[data-cd="1"]', v).disabled = cal.d >= 14
+  const bk = dayBk(cal.d)
+  $('#arrT').textContent = `Bàn dựng lịch · ${bk.length} buổi · ${Math.round(bk.reduce((a, b) => a + b.dur, 0) / (SPAN * 4) * 100)}% lấp đầy`
+  renderStrip(); renderArr(); renderInsp()
+}
+function renderStrip() {
+  const st = clamp(cal.d - 3, -14, 1)
+  let h = ''
+  for (let d = st; d < st + 14; d++) {
+    const dt = dayDate(d), bk = dayBk(d), oc = Math.round(bk.reduce((a, b) => a + b.dur, 0) / (SPAN * 4) * 100)
+    let bars = ''
+    bk.forEach((b) => { bars += `<rect x="${((b.s - OPEN) / SPAN * 100).toFixed(1)}" y="${b.room * 6.5}" width="${(b.dur / SPAN * 100 - 0.8).toFixed(1)}" height="5" rx="1.2" fill="var(${ROOMS[b.room].c})" opacity="${absE(b) <= NH ? 0.45 : 0.95}"/>` })
+    h += `<button type="button" class="day${d < 0 ? ' past' : ''}${d === 0 ? ' today' : ''}" data-day="${d}" aria-pressed="${d === cal.d}" aria-label="${dayName(d)} ${dmy(dt)}, ${bk.length} buổi, lấp đầy ${oc}%"><span class="dl">${d === 0 ? 'Hôm nay' : WD[dt.getDay()] + '<em>' + dm(dt) + '</em>'}</span><svg viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true">${bars}</svg><span class="oc"><i style="width:${oc}%"></i></span></button>`
+  }
+  const s = $('#strip'); s.innerHTML = h
+  $$('.day', s).forEach((b) => b.onclick = () => { cal.d = +b.dataset.day; cal.sel = null; renderCal() })
+  const on = $('.day[aria-pressed=true]', s); if (on && s.scrollWidth > s.clientWidth) s.scrollLeft = on.offsetLeft - s.clientWidth / 2 + on.offsetWidth / 2
+}
+function clipInner(b, w, s = b.s, dur = b.dur) {
+  const st = stOf(b), ic = st === 'xong' ? '<i class="ok">✓</i>' : st === 'dang' ? '<i class="rec"></i>' : ''
+  const avail = w - 20
+  const nm = fits(who(b), F_CLIP, avail) ? who(b) : fits(whoS(b), F_CLIP, avail) ? whoS(b) : ''
+  const tf = hm(s) + '–' + hm(s + dur)
+  const tw = w - 20 - (ic ? 14 : 0), tm = fits(tf, F_MONO, tw) ? tf : fits(hm(s), F_MONO, tw) ? hm(s) : ''
+  const pj = b.proj >= 0 && fits(PROJ[b.proj].t, F_MONO, w - 20) ? PROJ[b.proj].t : ''
+  return `<div class="ch">${esc(nm)}</div><div class="ct">${ic}${tm}</div>${pj ? `<div class="cp">${esc(pj)}</div>` : ''}<svg class="wv" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path d="${wave(b.id)}"/></svg>${movable(b) ? '<span class="rz" aria-hidden="true"></span>' : ''}`
+}
+function renderArr() {
+  const arr = $('#arr'), hdr = hdrW(), LH = laneH()
+  const avail = arr.clientWidth - hdr
+  cal.pph = Math.max(innerWidth < 900 ? 60 : 44, Math.floor(avail / SPAN * 10) / 10)
+  const pph = cal.pph, W = hdr + SPAN * pph
+  const showNow = cal.d === 0 && NH >= OPEN && NH <= CLOSE
+  let ticks = ''
+  for (let i = 0; i < SPAN; i++) {
+    const hh = OPEN + i
+    const tx = i * pph, nx = (NH - OPEN) * pph, near = showNow && nx - 28 < tx + 44 && nx + 28 > tx + 2
+    ticks += `<span class="tick${hh % 6 === 0 ? ' maj' : ''}" style="left:${i * pph}px">${near ? '' : pad2(hh % 24) + ':00'}</span>`
+  }
+  let lanes = ''
+  ROOMS.forEach((rm, r) => {
+    const live = cal.d === 0 && BK.find((b) => b.d === 0 && b.room === r && stOf(b) === 'dang')
+    const nx = cal.d === 0 && BK.filter((b) => b.d === 0 && b.room === r && b.st !== 'huy' && absS(b) > NH).sort((a, b) => a.s - b.s)[0]
+    const stt = live ? `<span class="lst on"><span class="vu" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Đang thu</span>` : cal.d === 0 ? `<span class="lst">${nx ? 'Tiếp: ' + hm(nx.s) : NH >= CLOSE ? 'Đã đóng' : NH < OPEN ? 'Chưa mở' : 'Trống'}</span>` : `<span class="lst">${dayBk(cal.d).filter((b) => b.room === r).length} buổi</span>`
+    lanes += `<div class="lane" style="--c:var(${rm.c})"><div class="lh"><b>${rm.n}</b><small>${rm.kind}<br>${trv(rm.rate)}/giờ</small>${stt}</div><div class="lt" data-room="${r}"></div></div>`
+  })
+  let clips = ''
+  dayBk(cal.d).forEach((b) => {
+    const w = b.dur * pph - 3
+    clips += `<div class="clip ${stOf(b)}${cal.sel === b.id ? ' sel' : ''}" role="button" tabindex="0" data-id="${b.id}" style="--c:var(${ROOMS[b.room].c});left:${(b.s - OPEN) * pph + 1.5}px;top:${b.room * LH + 7}px;width:${w}px;height:${LH - 14}px" aria-label="${esc(who(b))}, phòng ${ROOMS[b.room].n}, ${hm(b.s)} đến ${hm(b.s + b.dur)}, ${ST[stOf(b)]}" title="${esc(who(b))} · ${hm(b.s)}–${hm(b.s + b.dur)}">${clipInner(b, w)}</div>`
+  })
+  const pastW = cal.d < 0 ? SPAN * pph : cal.d === 0 ? clamp(NH - OPEN, 0, SPAN) * pph : 0
+  const nowX = (NH - OPEN) * pph
+  arr.innerHTML = `<div class="arr-in" style="width:${W}px;--pph:${pph}px"><div class="ruler"><div class="rc">PHÒNG</div><div class="rt">${ticks}${showNow ? `<span class="phl" style="left:${nowX}px">${hm(NH)}</span>` : ''}</div></div>
+    <div class="lanes">${lanes}<div class="clips" id="clips">${pastW ? `<div class="pt-pastz" style="width:${pastW}px"></div>` : ''}${showNow ? `<div class="phx" style="left:${nowX}px"></div>` : ''}${clips}</div></div></div>`
+  if (!arr.dataset.scrolled || arr.dataset.scrolled !== String(cal.d)) {
+    arr.dataset.scrolled = cal.d
+    if (arr.scrollWidth > arr.clientWidth) {
+      const target = cal.d === 0 && NH > OPEN ? (Math.min(NH, CLOSE) - OPEN) * pph - (arr.clientWidth - hdr) * 0.35 : 0
+      arr.scrollLeft = clamp(target, 0, arr.scrollWidth)
+    }
+  }
+}
+function selectClip(id, focus) {
+  cal.sel = id
+  $$('#clips .clip').forEach((c) => c.classList.toggle('sel', c.dataset.id === id))
+  renderInsp()
+  if (focus) { const c = $(`#clips .clip[data-id="${id}"]`); c && c.focus({ preventScroll: true }) }
+}
+function renderInsp() {
+  const box = $('#insp'); if (!box) return
+  const b = cal.sel && byId(cal.sel)
+  let h = ''
+  const wide = innerWidth >= 1280
+  if (b) h += inspSel(b)
+  if (!b || !wide) h += inspIdle()
+  box.innerHTML = h
+  $$('[data-nd]', box).forEach((x) => x.onclick = () => nudge(b, x.dataset.nd))
+  $$('[data-act]', box).forEach((x) => x.onclick = () => act(x.dataset.act, b))
+  $$('[data-go]', box).forEach((x) => x.onclick = () => goBooking(x.dataset.go))
+  $$('[data-proj]', box).forEach((x) => x.onclick = () => { projSel = +x.dataset.proj; location.hash = 'du-an' })
+}
+function inspSel(b) {
+  const st = stOf(b), c = costParts(b), dt = dayDate(b.d)
+  const extras = [b.mic && 'Micro U87', b.nc && 'Nhạc công session'].filter(Boolean).join(', ') || 'Không'
+  return `<section class="panel is-sel" aria-label="Buổi thu đang chọn"><div class="is-h" style="--c:var(${ROOMS[b.room].c})"><div class="is-top"><span class="pill st-${st}">${ST[st]}</span><span class="code">${b.id}</span><button class="ib" data-act="close" aria-label="Đóng chi tiết">${I.x}</button></div>
+    <h2>${esc(who(b))}</h2><p class="is-sub">${b.proj >= 0 ? `<button class="lnk" data-proj="${b.proj}">${esc(PROJ[b.proj].type)} · ${esc(PROJ[b.proj].t)}</button>` : 'Khách lẻ'}</p></div>
+    <dl class="kv"><dt>Ngày</dt><dd>${WD[dt.getDay()]} ${dmy(dt)}</dd><dt>Giờ</dt><dd>${hm(b.s)}–${hm(b.s + b.dur)} · ${durTxt(b.dur)}</dd><dt>Phòng</dt><dd>${ROOMS[b.room].n}</dd><dt>Kỹ sư</dt><dd>${ENG[b.eng].n}</dd><dt>Điện thoại</dt><dd>${b.ph}</dd><dt>Thêm</dt><dd>${extras}</dd></dl>
+    ${movable(b) ? `<div class="nudge" role="group" aria-label="Dời lịch"><p>Dời nhanh (chạm hoặc phím mũi tên)</p><button type="button" data-nd="s-">−30′</button><button type="button" data-nd="s+">+30′</button><button type="button" data-nd="d+">Dài thêm 30′</button><button type="button" data-nd="r-">Phòng trên</button><button type="button" data-nd="r+">Phòng dưới</button><button type="button" data-nd="d-">Ngắn bớt 30′</button></div>` : `<p class="lock">${st === 'xong' ? '✓ Buổi thu đã xong — chỉ xem và xuất hóa đơn.' : st === 'dang' ? '● Đang thu — không dời được khi phiên đang chạy.' : 'Buổi này đã hủy.'}</p>`}
+    <div class="bill"><span>Phòng ${trv(ROOMS[b.room].rate)} × ${String(b.dur).replace('.', ',')} giờ</span><b>${money(c.room)}</b><span>Kỹ sư (${ENG[b.eng].n})</span><b>${money(c.eng)}</b><span>Phụ phí sau 22:00</span><b>${money(c.nightX)}</b><span>Thiết bị & nhạc công</span><b>${money(c.add)}</b><span class="tot">Tổng</span><b>${money(c.total)}</b></div>
+    <div class="is-act">${b.st === 'gc' && movable(b) ? '<button class="btn pri sm" data-act="confirm">Xác nhận cọc</button>' : ''}${movable(b) ? '<button class="btn sm" data-act="edit">Sửa</button><button class="btn sm bad" data-act="cancel">Hủy buổi</button>' : '<button class="btn sm" data-act="invoice">Xuất hóa đơn</button>'}</div></section>`
+}
+function inspIdle() {
+  const live = liveNow()
+  const next = BK.filter((b) => b.d === 0 && b.st !== 'huy' && absS(b) > NH).sort((a, b) => a.s - b.s || a.room - b.room).slice(0, 4)
+  const tmr = !next.length && BK.filter((b) => b.d === 1 && b.st !== 'huy').sort((a, b) => a.s - b.s)[0]
+  const lv = live.length ? live.map((b) => `<button class="lv" data-go="${b.id}" style="--c:var(${ROOMS[b.room].c})"><span class="vu" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b>${esc(who(b))}</b><small>${ROOMS[b.room].n} · ${hm(b.s)}–${hm(b.s + b.dur)} · còn ${hm(absE(b) - NH).replace(':', 'g')}</small><span class="pg"><i style="width:${Math.round((NH - absS(b)) / b.dur * 100)}%"></i></span></button>`).join('')
+    : `<p class="empty-s">${NH < OPEN ? 'Studio mở cửa lúc 08:00. Phòng đang được chuẩn bị.' : NH >= CLOSE ? 'Đã đóng cửa lúc 02:00 — hẹn 08:00 sáng nay.' : 'Chưa có phòng nào đang thu.'}</p>`
+  const nx = next.length ? next.map((b) => `<button data-go="${b.id}" style="--c:var(${ROOMS[b.room].c})"><time>${hm(b.s)}</time><b>${esc(who(b))}</b><small>${ROOMS[b.room].n} · ${durTxt(b.dur)}${b.st === 'gc' ? ' · giữ chỗ' : ''}</small></button>`).join('')
+    : `<p class="empty-s">Hết lịch hôm nay.${tmr ? ` Ngày mai mở màn ${hm(tmr.s)} · ${esc(whoS(tmr))} (${ROOMS[tmr.room].n}).` : ''}</p>`
+  return `<section class="panel isec"><h3 class="ish"><span>Đang thu</span><span>${live.length}/4 phòng</span></h3><div class="live">${lv}</div></section>
+    <section class="panel isec"><h3 class="ish"><span>Tiếp theo hôm nay</span></h3><div class="nx">${nx}</div></section>
+    <section class="panel isec rt3"><h3 class="ish"><span>Bảng giá phòng</span></h3><div class="rates">${ROOMS.map((r) => `<span style="--c:var(${r.c})">${r.n}</span><b>${trv(r.rate)}/giờ</b>`).join('')}<p>Phụ phí +20% giá phòng cho giờ sau 22:00. Kỹ sư tính theo giờ.</p></div></section>`
+}
+function commitMove(b, s, room, dur, verb) {
+  const err = validate(b, b.d, room, s, dur)
+  if (err) { toast(err, { bad: true }); return false }
+  if (s === b.s && room === b.room && dur === b.dur) return false
+  const prev = { s: b.s, room: b.room, dur: b.dur }
+  Object.assign(b, { s, room, dur })
+  pushUndo(`${verb} ${b.id}`, () => Object.assign(b, prev))
+  refresh()
+  toast(`${verb} ${b.id} · ${ROOMS[room].n} ${hm(s)}–${hm(s + dur)}`, { undo: true })
+  return true
+}
+function nudge(b, k) {
+  if (!b || !movable(b)) return
+  const m = { 's-': [-0.5, 0, 0], 's+': [0.5, 0, 0], 'r-': [0, -1, 0], 'r+': [0, 1, 0], 'd-': [0, 0, -0.5], 'd+': [0, 0, 0.5] }[k]
+  const s = b.s + m[0], room = b.room + m[1], dur = b.dur + m[2]
+  if (room < 0 || room > 3) { toast('Không còn phòng ở hướng đó.', { bad: true }); return }
+  if (dur < 1) { toast('Một buổi thu tối thiểu 1 giờ.', { bad: true }); return }
+  commitMove(b, s, room, dur, m[2] ? 'Đổi thời lượng' : 'Đã dời')
+  const c = $(`#clips .clip[data-id="${b.id}"]`); if (c && document.activeElement?.closest('#clips')) c.focus({ preventScroll: true })
+}
+function act(a, b) {
+  if (a === 'close') { cal.sel = null; renderCal(); return }
+  if (!b) return
+  if (a === 'confirm') { b.st = 'xn'; pushUndo('xác nhận ' + b.id, () => { b.st = 'gc' }); refresh(); toast(`Đã nhận cọc, xác nhận ${b.id}.`, { undo: true }) }
+  if (a === 'edit') openForm({ b })
+  if (a === 'cancel') cancelBk([b])
+  if (a === 'invoice') toast(`Đã tạo hóa đơn ${b.id} · ${money(cost(b))}.`)
+}
+function cancelBk(list) {
+  const ok = list.filter((b) => movable(b))
+  if (!ok.length) { toast('Chỉ hủy được buổi chưa bắt đầu.', { bad: true }); return }
+  const prev = ok.map((b) => [b, b.st])
+  ok.forEach((b) => { b.st = 'huy' })
+  if (ok.some((b) => b.id === cal.sel)) cal.sel = null
+  pushUndo(`hủy ${ok.length} buổi`, () => prev.forEach(([b, s]) => { b.st = s }))
+  tblSel.clear()
+  refresh()
+  toast(ok.length === 1 ? `Đã hủy ${ok[0].id} · ${whoS(ok[0])}.` : `Đã hủy ${ok.length} buổi${list.length > ok.length ? `, bỏ qua ${list.length - ok.length} buổi đã thu` : ''}.`, { undo: true })
+}
+function goBooking(id) {
+  const b = byId(id); if (!b) return
+  cal.d = clamp(b.d, -14, 14); cal.sel = b.st === 'huy' ? null : id
+  if (cur !== 'lich-phong') location.hash = 'lich-phong'; else renderCal()
+  requestAnimationFrame(() => { const c = $(`#clips .clip[data-id="${id}"]`); if (c) { const arr = $('#arr'); arr.scrollLeft = clamp(c.offsetLeft - arr.clientWidth / 3, 0, arr.scrollWidth); c.focus({ preventScroll: true }) } })
+  setTimeout(() => { const c = $(`#clips .clip[data-id="${id}"]`); if (c && document.activeElement !== c) c.focus({ preventScroll: true }) }, 60)
+}
+/* pointer + keyboard on the arrangement */
+let drag = null, swallowClick = false
+function bindArr(arr) {
+  arr.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return
+    const clipEl = e.target.closest('.clip'), L = $('#clips').getBoundingClientRect()
+    if (clipEl) {
+      const b = byId(clipEl.dataset.id)
+      if (!movable(b)) return
+      if (e.pointerType !== 'mouse' && cal.sel !== b.id) return
+      drag = { mode: e.target.classList.contains('rz') ? 'rz' : 'mv', b, el: clipEl, x0: e.clientX, y0: e.clientY, s: b.s, room: b.room, dur: b.dur, on: false }
+    } else if (e.target.closest('.lt') || e.target.id === 'clips') {
+      const h = OPEN + (e.clientX - L.left) / cal.pph, room = clamp(Math.floor((e.clientY - L.top) / laneH()), 0, 3)
+      drag = { mode: 'new', x0: e.clientX, y0: e.clientY, h0: Math.floor(h * 2) / 2, h1: Math.floor(h * 2) / 2 + 0.5, room, on: false, touch: e.pointerType !== 'mouse' }
+    }
+  })
+  window.addEventListener('pointermove', (e) => {
+    if (!drag) return
+    const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0
+    if (!drag.on) { if (Math.hypot(dx, dy) < 5 || drag.touch) return; drag.on = true; if (drag.el) drag.el.classList.add('pt-drag') }
+    const pph = cal.pph, LH = laneH()
+    if (drag.mode === 'new') {
+      const L = $('#clips').getBoundingClientRect(), h = OPEN + (e.clientX - L.left) / pph
+      drag.h1 = clamp(snap(h), OPEN, CLOSE)
+      drawGhost()
+      return
+    }
+    const b = drag.b
+    if (drag.mode === 'mv') { drag.s = clamp(b.s + snap(dx / pph), OPEN, CLOSE - b.dur); drag.room = clamp(b.room + Math.round(dy / LH), 0, 3) }
+    else drag.dur = clamp(b.dur + snap(dx / pph), 1, CLOSE - b.s)
+    const el = drag.el, w = drag.dur * pph - 3
+    el.style.left = (drag.s - OPEN) * pph + 1.5 + 'px'; el.style.top = drag.room * LH + 7 + 'px'; el.style.width = w + 'px'
+    el.style.setProperty('--c', `var(${ROOMS[drag.room].c})`)
+    const err = validate(b, b.d, drag.room, drag.s, drag.dur)
+    el.classList.toggle('pt-clash', !!err && (drag.s !== b.s || drag.room !== b.room || drag.dur !== b.dur))
+    el.innerHTML = clipInner(b, w, drag.s, drag.dur)
+    el.title = err || `${hm(drag.s)}–${hm(drag.s + drag.dur)} · ${ROOMS[drag.room].n}`
+  })
+  const end = (e) => {
+    if (!drag) return
+    const d = drag; drag = null
+    if (d.mode === 'new') {
+      if (e.type === 'pointercancel') { $('.pt-ghost')?.remove(); return }
+      let s = Math.min(d.h0, d.h1), en = Math.max(d.h0, d.h1)
+      if (!d.on) { s = d.h0; en = d.h0 + 2 }
+      if (en - s < 1) en = s + 1
+      if (en > CLOSE) { en = CLOSE; s = Math.max(OPEN, en - Math.max(1, en - s)) }
+      const err = validate(null, cal.d, d.room, s, en - s)
+      $('.pt-ghost')?.remove()
+      if (err) { toast(err, { bad: true }); return }
+      swallowClick = true
+      openForm({ room: d.room, d: cal.d, s, dur: en - s })
+      return
+    }
+    if (!d.on) return
+    swallowClick = true
+    d.el.classList.remove('pt-drag')
+    if (e.type === 'pointercancel' || !commitMove(d.b, d.s, d.room, d.dur, d.mode === 'rz' ? 'Đổi thời lượng' : 'Đã dời')) renderArr()
+    selectClip(d.b.id, true)
+  }
+  window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end)
+  arr.addEventListener('click', (e) => {
+    if (swallowClick) { swallowClick = false; return }
+    const c = e.target.closest('.clip')
+    if (c) selectClip(cal.sel === c.dataset.id && innerWidth >= 1280 ? c.dataset.id : c.dataset.id, false)
+  })
+  arr.addEventListener('keydown', (e) => {
+    const c = e.target.closest('.clip'); if (!c) return
+    const b = byId(c.dataset.id)
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectClip(b.id, true); return }
+    const map = { ArrowLeft: e.shiftKey ? 'd-' : 's-', ArrowRight: e.shiftKey ? 'd+' : 's+', ArrowUp: 'r-', ArrowDown: 'r+' }
+    if (map[e.key]) {
+      e.preventDefault()
+      if (!movable(b)) { toast('Buổi này đã bắt đầu hoặc đã xong — không dời được.', { bad: true }); return }
+      cal.sel = b.id; nudge(b, map[e.key]); const n = $(`#clips .clip[data-id="${b.id}"]`); n && n.focus({ preventScroll: true })
+    }
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); cancelBk([b]) }
+  })
+}
+function drawGhost() {
+  const d = drag, s = Math.min(d.h0, d.h1), en = Math.max(d.h0, d.h1, s + 0.5)
+  let g = $('.pt-ghost'); if (!g) { g = document.createElement('div'); g.className = 'pt-ghost'; $('#clips').append(g) }
+  const err = validate(null, cal.d, d.room, s, en - s)
+  g.classList.toggle('bad', !!err)
+  g.style.cssText = `left:${(s - OPEN) * cal.pph + 1.5}px;top:${d.room * laneH() + 7}px;width:${(en - s) * cal.pph - 3}px;height:${laneH() - 14}px`
+  g.textContent = err ? 'Trùng lịch' : `Mới · ${hm(s)}–${hm(en)}`
+}
+
+/* ================= booking form ================= */
+let formCtx = null, formTried = false
+function fillSelects() {
+  $('#fProj').innerHTML = '<option value="-1">Khách lẻ (không thuộc dự án)</option>' + PROJ.map((p) => `<option value="${p.i}">${esc(p.sh)} — ${esc(p.t)}</option>`).join('')
+  $('#fRoom').innerHTML = ROOMS.map((r, i) => `<option value="${i}">${r.n} · ${trv(r.rate)}/giờ</option>`).join('')
+  let o = ''; for (let h = OPEN; h < CLOSE; h += 0.5) o += `<option value="${h}">${hm(h)}${h >= 24 ? ' (rạng sáng)' : ''}</option>`
+  $('#fStart').innerHTML = o
+  o = ''; for (let d = 1; d <= 8; d += 0.5) o += `<option value="${d}">${durTxt(d)}</option>`
+  $('#fDur').innerHTML = o
+  $('#fEng').innerHTML = ENG.map((e, i) => `<option value="${i}">${e.n}${e.fee ? ' · ' + trv(e.fee) + '/giờ' : ''}</option>`).join('')
+}
+function openForm(ctx) {
+  formCtx = ctx; formTried = false
+  const b = ctx.b
+  const v = b ? { who: who(b), ph: b.ph, proj: b.proj, room: b.room, d: b.d, s: b.s, dur: b.dur, eng: b.eng, mic: b.mic, nc: b.nc, hold: b.st === 'gc' }
+    : { who: '', ph: '', proj: -1, room: ctx.room ?? 1, d: ctx.d ?? 0, s: ctx.s ?? Math.min(CLOSE - 2, Math.max(OPEN, Math.ceil(NH * 2) / 2 + 0.5)), dur: ctx.dur ?? 2, eng: 1, mic: false, nc: false, hold: false }
+  if (!b && v.d === 0 && v.s < NH && ctx.s == null) v.d = 1
+  $('#bkmT').textContent = b ? `Sửa ${b.id}` : 'Đặt phòng thu'
+  $('#fSubmit').textContent = b ? 'Lưu thay đổi' : 'Đặt phòng'
+  $('#fWho').value = v.who; $('#fPhone').value = v.ph; $('#fProj').value = v.proj; $('#fRoom').value = v.room
+  $('#fDate').value = dmy(dayDate(v.d)); $('#fStart').value = v.s; $('#fDur').value = v.dur; $('#fEng').value = v.eng
+  $('#fMic').checked = v.mic; $('#fNc').checked = v.nc; $('#fHold').checked = v.hold
+  $$('#bkf .fld').forEach((f) => { f.classList.remove('err'); $('.em', f) && ($('.em', f).textContent = '') })
+  formSum()
+  openLayer('bkm')
+  setTimeout(() => $('#fWho').focus(), 30)
+}
+function parseDate(s) {
+  const m = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/.exec(s); if (!m) return null
+  const dt = new Date(+m[3], +m[2] - 1, +m[1]); if (dt.getDate() !== +m[1] || dt.getMonth() !== +m[2] - 1) return null
+  return Math.round((dt - new Date(base.getFullYear(), base.getMonth(), base.getDate())) / 864e5)
+}
+function readForm() {
+  return { who: $('#fWho').value.trim(), ph: $('#fPhone').value.replace(/\s+/g, ''), proj: +$('#fProj').value, room: +$('#fRoom').value, d: parseDate($('#fDate').value), s: +$('#fStart').value, dur: +$('#fDur').value, eng: +$('#fEng').value, mic: $('#fMic').checked, nc: $('#fNc').checked, hold: $('#fHold').checked }
+}
+function formErrors(v) {
+  const e = {}
+  if (v.who.length < 2) e.fWho = 'Nhập tên khách hoặc nghệ sĩ (ít nhất 2 ký tự).'
+  if (!/^0[35789]\d{8}$/.test(v.ph)) e.fPhone = 'Số điện thoại gồm 10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09.'
+  if (v.d == null) e.fDate = 'Ngày chưa đúng dạng dd/mm/yyyy.'
+  else if (v.d < 0) e.fDate = 'Ngày này đã qua.'
+  else if (v.d > 60) e.fDate = 'Chỉ nhận đặt trong 60 ngày tới.'
+  if (v.s + v.dur > CLOSE) e.fDur = 'Vượt giờ đóng cửa 02:00 — rút ngắn hoặc bắt đầu sớm hơn.'
+  if (!e.fDate && !e.fDur) {
+    const b = formCtx && formCtx.b
+    if (v.d * 24 + v.s < NH) e.fStart = 'Giờ bắt đầu đã qua.'
+    else { const c = clash(b || null, v.d, v.room, v.s, v.dur); if (c) e.fStart = `Trùng ${c.id} · ${whoS(c)} (${hm(c.s)}–${hm(c.s + c.dur)}) ở phòng ${ROOMS[v.room].n}.` }
+  }
+  return e
+}
+function showErrors(e) { ['fWho', 'fPhone', 'fDate', 'fStart', 'fDur'].forEach((k) => { const f = $('#' + k).closest('.fld'); f.classList.toggle('err', !!e[k]); $('.em', f).textContent = e[k] || ''; $('#' + k).setAttribute('aria-invalid', String(!!e[k])) }) }
+function formSum() {
+  const v = readForm(), c = costParts({ room: v.room, s: v.s, dur: v.dur, eng: v.eng, mic: v.mic, nc: v.nc })
+  $('#fSum').innerHTML = `<span>Phòng ${ROOMS[v.room].n} × ${String(v.dur).replace('.', ',')} giờ</span><b>${money(c.room)}</b><span>Kỹ sư</span><b>${money(c.eng)}</b><span>Phụ phí sau 22:00</span><b>${money(c.nightX)}</b><span>Thiết bị & nhạc công</span><b>${money(c.add)}</b><span class="tot">Tạm tính · ${hm(v.s)}–${hm(v.s + v.dur)}</span><b>${money(c.total)}</b>`
+  if (formTried) showErrors(formErrors(v))
+}
+$('#bkf').addEventListener('input', formSum)
+$('#bkf').addEventListener('change', formSum)
+$('#fProj').addEventListener('change', () => { const p = PROJ[+$('#fProj').value]; if (p) { if (!$('#fWho').value.trim()) $('#fWho').value = p.a; if (!$('#fPhone').value.trim()) $('#fPhone').value = p.ph; if (!p.rooms.includes(+$('#fRoom').value)) $('#fRoom').value = p.rooms[0]; formSum() } })
+$('#bkf').addEventListener('submit', (ev) => {
+  ev.preventDefault(); formTried = true
+  const v = readForm(), e = formErrors(v)
+  showErrors(e)
+  const first = Object.keys(e)[0]
+  if (first) { $('#' + first).focus(); return }
+  const ph = v.ph.replace(/^(\d{4})(\d{3})(\d{3})$/, '$1 $2 $3')
+  const walkIdx = WALK.findIndex((w) => w[0] === v.who)
+  if (formCtx && formCtx.b) {
+    const b = formCtx.b, prev = { ...b }
+    Object.assign(b, { d: v.d, room: v.room, s: v.s, dur: v.dur, eng: v.eng, mic: v.mic, nc: v.nc, ph, proj: v.proj, st: v.hold ? 'gc' : 'xn' })
+    if (v.proj < 0) { if (walkIdx >= 0) b.wi = walkIdx; else { WALK.push([v.who, v.who.split(' ').slice(-2).join(' ')]); b.wi = WALK.length - 1 } }
+    pushUndo('sửa ' + b.id, () => Object.assign(b, prev))
+    closeLayer('bkm'); cal.d = clamp(b.d, -14, 14); cal.sel = b.id; refresh()
+    toast(`Đã lưu ${b.id} · ${ROOMS[b.room].n} ${hm(b.s)}–${hm(b.s + b.dur)}.`, { undo: true })
+    return
+  }
+  let wi = walkIdx
+  if (v.proj < 0 && wi < 0) { WALK.push([v.who, v.who.split(' ').slice(-2).join(' ')]); wi = WALK.length - 1 }
+  const b = { id: 'PT-' + seq++, d: v.d, room: v.room, s: v.s, dur: v.dur, proj: v.proj, wi: Math.max(0, wi), eng: v.eng, mic: v.mic, nc: v.nc, st: v.hold ? 'gc' : 'xn', ph }
+  BK.push(b)
+  pushUndo('đặt ' + b.id, () => { BK.splice(BK.indexOf(b), 1); if (cal.sel === b.id) cal.sel = null })
+  closeLayer('bkm')
+  if (b.d <= 14) { cal.d = b.d; cal.sel = b.id }
+  refresh()
+  toast(`Đã đặt ${b.id} · ${ROOMS[b.room].n} ${dm(dayDate(b.d))} ${hm(b.s)}–${hm(b.s + b.dur)} · ${trv(cost(b))}.`, { undo: true })
+})
+
+/* ================= PROJECTS ================= */
+let projSel = 0
+function cover(p, k) {
+  const r = mulberry(p.i * 977 + 5), cx = 58 + r() * 10, cy = 50 + r() * 8
+  let s = `<svg class="cov" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#140A22"/>`
+  for (let i = 0; i < 7; i++) s += `<rect x="${-10 + i * 9}" y="0" width="4" height="100" fill="${p.hue2}" opacity="${(0.12 + r() * 0.3).toFixed(2)}" transform="skewX(-14)"/>`
+  s += `<circle cx="${cx}" cy="${cy}" r="34" fill="#0A0510"/>`
+  for (let i = 0; i < 5; i++) s += `<circle cx="${cx}" cy="${cy}" r="${30 - i * 4}" fill="none" stroke="#fff" stroke-opacity=".08"/>`
+  s += `<circle cx="${cx}" cy="${cy}" r="12" fill="${p.hue}"/><circle cx="${cx}" cy="${cy}" r="2.4" fill="#0A0510"/><rect x="0" y="0" width="${18 + r() * 14}" height="100" fill="${p.hue}" opacity=".88"/><text x="6" y="92" font-family="Unbounded" font-weight="800" font-size="12" fill="#0A0510">${esc(p.type === 'Album thiếu nhi' ? 'AL' : p.type.slice(0, 2).toUpperCase())}</text></svg>`
+  return s
+}
+function projCost(p) {
+  const out = { room: 0, eng: 0, nightX: 0, add: 0, spent: 0, sched: 0 }
+  BK.forEach((b) => { if (b.proj !== p.i || b.st === 'huy') return; const c = costParts(b); if (stOf(b) === 'xong') { out.room += c.room; out.eng += c.eng; out.nightX += c.nightX; out.add += c.add; out.spent += c.total } else out.sched += c.total })
+  return out
+}
+const projPct = (p) => Math.round(p.tracks.reduce((a, t) => a + t.stg, 0) / (p.tracks.length * 4 || 1) * 100)
+function renderProj() {
+  const v = $('#v-du-an'), p = PROJ[projSel]
+  const pc = projCost(p), dl = dayDate(p.dl), tot = p.tracks.reduce((a, t) => a + t.sec, 0)
+  const nextS = BK.filter((b) => b.proj === p.i && b.st !== 'huy' && absE(b) > NH).sort((a, b) => absS(a) - absS(b)).slice(0, 4)
+  const used = pc.spent / p.budget
+  v.innerHTML = `<div class="vh"><div><div class="crumb">Phòng Thu Tím / <b>Dự án</b></div><h1 id="h-duan">Dự án <em>& danh sách track</em></h1></div><div class="vtools"><button class="btn pri grow" type="button" data-pbook>${I.plus}Đặt buổi cho dự án</button></div></div>
+  <div class="prj"><div class="plist" role="group" aria-label="Danh sách dự án">${PROJ.map((q) => `<button type="button" class="pc" data-p="${q.i}" aria-pressed="${q.i === projSel}" style="--hue:${q.hue}">${cover(q)}<b>${esc(q.t)}</b><small>${esc(q.a)} · ${esc(q.type)}</small><span class="pb"><i style="width:${projPct(q)}%"></i></span></button>`).join('')}</div>
+  <div style="--hue:${p.hue};min-width:0"><section class="panel"><div class="phero">${cover(p)}<div style="min-width:0"><span class="tag">${esc(p.type)} · ${esc(p.g)}</span><h2>${esc(p.t)}</h2><div class="art">${esc(p.a)} · hạn giao ${WD[dl.getDay()]} ${dmy(dl)} (còn ${p.dl} ngày)</div>
+    <div class="pstats"><div class="pstat"><small>Master xong</small><b>${p.tracks.filter((t) => t.stg === 4).length}/${p.tracks.length} track</b><div class="bar"><i style="width:${projPct(p)}%"></i></div></div><div class="pstat"><small>Tổng thời lượng</small><b>${mmss(tot)}</b><div class="bar"><i style="width:100%;opacity:.35"></i></div></div><div class="pstat"><small>Đã chi / ngân sách</small><b>${trv(pc.spent)} / ${trv(p.budget)}</b><div class="bar"><i class="${used > 1 ? 'over' : ''}" style="width:${Math.min(100, used * 100).toFixed(1)}%"></i></div></div></div></div></div>
+    <div class="stgsum">${STAGES.map((s, i) => { const n = p.tracks.filter((t) => t.stg > i).length; return `<div>${s}<b>${n}/${p.tracks.length}</b><div class="bar"><i style="width:${n / (p.tracks.length || 1) * 100}%"></i></div></div>` }).join('')}</div>
+    <div class="nses" aria-label="Buổi thu sắp tới">${nextS.length ? nextS.map((b) => `<button type="button" data-go="${b.id}"><b>${dayName(b.d)} ${hm(b.s)}</b>${ROOMS[b.room].n} · ${durTxt(b.dur)}</button>`).join('') : '<span class="empty-s">Chưa có buổi thu nào sắp tới.</span>'}</div></section>
+  <section class="panel tl" aria-label="Danh sách track"><div class="tlh"><span></span><span>#</span><span>Track</span><span style="text-align:right">Dài</span><span>Tiến độ</span><span></span></div><div id="trks">${p.tracks.map((t, i) => trkRow(p, t, i)).join('')}</div>
+  ${p.tracks.length ? '' : '<div class="empty"><b>Dự án chưa có track</b>Thêm track đầu tiên ở biểu mẫu bên dưới.</div>'}
+  <div class="tlt"><span>${p.tracks.length} track · tổng <b>${mmss(tot)}</b></span><span>Kéo <kbd>⋮⋮</kbd> hoặc <kbd>Alt</kbd>+<kbd>↑</kbd><kbd>↓</kbd> để đổi thứ tự · bấm ô tiến độ để đánh dấu</span></div>
+  <form class="tlf" id="tf" novalidate><div class="fld"><label for="tName">Tên track mới</label><input type="text" id="tName" autocomplete="off" placeholder="${p.type === 'Podcast' ? 'Vd. Tập 07 · Mưa đầu mùa' : 'Vd. Phố Sau Mưa'}"><span class="em"></span></div>
+  <div class="fld"><label for="tBpm">BPM${p.type === 'Podcast' ? ' (bỏ trống)' : ''}</label><input type="text" id="tBpm" inputmode="numeric" autocomplete="off" placeholder="${p.type === 'Podcast' ? '—' : '96'}"><span class="em"></span></div>
+  <div class="fld"><label for="tKey">Giọng</label><select id="tKey"><option value="">Chưa rõ</option>${KEYS.map((k) => `<option>${k}</option>`).join('')}</select><span class="em"></span></div>
+  <div class="fld"><label for="tDur">Thời lượng (m:ss)</label><input type="text" id="tDur" inputmode="numeric" autocomplete="off" placeholder="3:45"><span class="em"></span></div>
+  <div class="fld"><span class="lb" aria-hidden="true">&nbsp;</span><button class="btn pri" type="submit">${I.plus}Thêm track</button></div></form></section></div></div>`
+  $$('.pc', v).forEach((b) => b.onclick = () => { projSel = +b.dataset.p; renderProj(); $(`.pc[data-p="${projSel}"]`)?.focus({ preventScroll: true }) })
+  $$('[data-go]', v).forEach((b) => b.onclick = () => goBooking(b.dataset.go))
+  $('[data-pbook]', v).onclick = () => { openForm({ room: p.rooms[0], d: 1, s: 10, dur: 3 }); $('#fProj').value = p.i; $('#fWho').value = p.a; $('#fPhone').value = p.ph; formSum() }
+  bindTracks(p)
+}
+function trkRow(p, t, i) {
+  return `<div class="trk" data-t="${t.id}"><button type="button" class="grip" aria-label="Kéo để đổi thứ tự: ${esc(t.n)}">${I.grip}</button><span class="no">${pad2(i + 1)}</span><div class="tn"><b>${esc(t.n)}</b><small>${t.bpm ? t.bpm + ' BPM' : 'Lời nói'}${t.key ? ' · ' + t.key : ''}<span class="m-du"> · ${mmss(t.sec)}</span></small></div><span class="du">${mmss(t.sec)}</span>
+  <div class="stgs" role="group" aria-label="Tiến độ ${esc(t.n)}">${STAGES.map((s, k) => `<button type="button" class="stg" data-k="${k}" aria-pressed="${t.stg > k}" aria-label="${s}: ${t.stg > k ? 'đã xong' : 'chưa xong'}">${s}</button>`).join('')}</div>
+  <button type="button" class="del" aria-label="Xóa track ${esc(t.n)}">${I.trash}</button></div>`
+}
+function bindTracks(p) {
+  const box = $('#trks')
+  const move = (from, to) => {
+    if (to < 0 || to >= p.tracks.length || to === from) return false
+    const [t] = p.tracks.splice(from, 1); p.tracks.splice(to, 0, t)
+    pushUndo('đổi thứ tự track', () => { const k = p.tracks.indexOf(t); p.tracks.splice(k, 1); p.tracks.splice(from, 0, t) })
+    renderProj()
+    toast(`Đã chuyển “${t.n}” lên vị trí ${to + 1}.`.replace('lên vị trí ' + (to + 1), (to < from ? 'lên' : 'xuống') + ' vị trí ' + (to + 1)), { undo: true })
+    return true
+  }
+  $$('.trk', box).forEach((row, i) => {
+    const t = p.tracks[i]
+    $$('.stg', row).forEach((b) => b.onclick = () => {
+      const k = +b.dataset.k, prev = t.stg
+      t.stg = t.stg === k + 1 ? k : k + 1
+      pushUndo('tiến độ ' + t.n, () => { t.stg = prev })
+      renderProj(); $(`.trk[data-t="${t.id}"] .stg[data-k="${k}"]`)?.focus({ preventScroll: true })
+      toast(`${t.n}: ${t.stg === 0 ? 'chưa thu' : STAGES[t.stg - 1] + ' xong'}.`, { undo: true })
+    })
+    $('.del', row).onclick = () => {
+      const k = p.tracks.indexOf(t); p.tracks.splice(k, 1)
+      pushUndo('xóa track', () => p.tracks.splice(k, 0, t))
+      renderProj(); toast(`Đã xóa track “${t.n}”.`, { undo: true })
+    }
+    const grip = $('.grip', row)
+    grip.addEventListener('keydown', (e) => {
+      if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && (e.altKey || true)) {
+        e.preventDefault()
+        if (move(i, i + (e.key === 'ArrowUp' ? -1 : 1))) $(`.trk[data-t="${t.id}"] .grip`)?.focus({ preventScroll: true })
+      }
+    })
+    grip.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return
+      e.preventDefault(); grip.setPointerCapture(e.pointerId)
+      const rows = $$('.trk', box), hgt = row.offsetHeight, y0 = e.clientY
+      let to = i, moved = false
+      row.classList.add('pt-lift')
+      const mv = (ev) => {
+        const dy = ev.clientY - y0; if (Math.abs(dy) > 3) moved = true
+        row.style.transform = `translateY(${dy}px)`
+        to = clamp(i + Math.round(dy / hgt), 0, rows.length - 1)
+        rows.forEach((r, k) => { if (r === row) return; const sh = k > i && k <= to ? -hgt : k < i && k >= to ? hgt : 0; r.style.transform = sh ? `translateY(${sh}px)` : '' })
+      }
+      const up = () => {
+        grip.removeEventListener('pointermove', mv); grip.removeEventListener('pointerup', up); grip.removeEventListener('pointercancel', up)
+        rows.forEach((r) => { r.style.transform = '' }); row.classList.remove('pt-lift')
+        if (moved && !move(i, to)) renderProj()
+      }
+      grip.addEventListener('pointermove', mv); grip.addEventListener('pointerup', up); grip.addEventListener('pointercancel', up)
+    })
+  })
+  $('#tf').addEventListener('submit', (e) => {
+    e.preventDefault()
+    const n = $('#tName').value.trim(), bpmS = $('#tBpm').value.trim(), durS = $('#tDur').value.trim(), er = {}
+    if (n.length < 2) er.tName = 'Nhập tên track (ít nhất 2 ký tự).'
+    else if (p.tracks.some((t) => fold(t.n) === fold(n))) er.tName = 'Dự án đã có track trùng tên.'
+    const bpm = +bpmS
+    if (p.type === 'Podcast' ? bpmS && !(bpm >= 40 && bpm <= 240) : !(Number.isInteger(bpm) && bpm >= 40 && bpm <= 240)) er.tBpm = 'BPM là số nguyên từ 40 đến 240.'
+    const m = /^(\d{1,3}):([0-5]\d)$/.exec(durS), sec = m ? +m[1] * 60 + +m[2] : 0
+    if (!m || sec < 20) er.tDur = 'Nhập dạng m:ss, ví dụ 3:45 (tối thiểu 0:20).'
+    ;['tName', 'tBpm', 'tDur'].forEach((k) => { const f = $('#' + k).closest('.fld'); f.classList.toggle('err', !!er[k]); $('.em', f).textContent = er[k] || ''; $('#' + k).setAttribute('aria-invalid', String(!!er[k])) })
+    if (Object.keys(er).length) { $('#' + Object.keys(er)[0]).focus(); return }
+    const t = { id: 't' + tseq++, n, bpm: bpmS ? bpm : 0, key: $('#tKey').value, sec, stg: 0 }
+    p.tracks.push(t)
+    pushUndo('thêm track', () => p.tracks.splice(p.tracks.indexOf(t), 1))
+    renderProj(); toast(`Đã thêm “${n}” vào ${p.t}.`, { undo: true })
+  })
+}
+
+/* ================= COST ================= */
+let costRange = 30, chartBuilt = null, chartState = null, hovI = -1
+function dayRev(d) { let v = 0, n = 0, h = 0; BK.forEach((b) => { if (b.d === d && stOf(b) === 'xong') { v += cost(b); n++; h += b.dur } }); return { v, n, h } }
+function series(range) {
+  const grp = range === 90 ? 3 : 1, nb = range === 90 ? 30 : range, out = []
+  for (let i = nb - 1; i >= 0; i--) {
+    const d1 = -i * grp, d0 = d1 - grp + 1
+    let v = 0, n = 0, h = 0
+    for (let d = d0; d <= d1; d++) { const r = dayRev(d); v += r.v; n += r.n; h += r.h }
+    out.push({ d0, d1, v, n, h })
+  }
+  return { grp, nb, bars: out, tgt: 35e6 * grp }
+}
+function niceMax(v) { const s = [5e6, 1e7, 1.5e7, 2e7, 2.5e7, 3e7, 4e7, 5e7, 6e7, 8e7, 1e8]; return s.find((x) => x >= v * 1.08) || Math.ceil(v / 1e7) * 1e7 }
+function renderCost() {
+  const v = $('#v-chi-phi')
+  if (!v.dataset.built) {
+    v.dataset.built = 1
+    v.innerHTML = `<div class="vh"><div><div class="crumb">Phòng Thu Tím / <b>Chi phí</b></div><h1 id="h-chiphi">Chi phí <em>& doanh thu</em></h1></div><div class="vtools"><div class="seg" role="group" aria-label="Khoảng thời gian">${[7, 30, 90].map((r) => `<button type="button" data-rg="${r}">${r} ngày</button>`).join('')}</div></div></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="cgrid"><section class="panel"><div class="ph2 chart-h"><h2 id="chT">Doanh thu theo ngày</h2><small>Buổi đã thu xong · rê chuột hoặc dùng <kbd>←</kbd><kbd>→</kbd></small></div><div class="chart" id="chart"></div></section>
+    <section class="panel"><div class="ph2"><h2>Tỷ lệ lấp đầy phòng</h2><small id="knT"></small></div><div class="knobs" id="knobs"></div></section></div>
+    <section class="panel"><div class="ph2" style="padding-bottom:10px"><h2>Chi phí theo dự án</h2><small>Đã chi + đã lên lịch so với ngân sách</small></div><div class="clg"><span><i style="background:var(--r0)"></i>Phòng</span><span><i style="background:var(--r1)"></i>Kỹ sư</span><span><i style="background:var(--r2)"></i>Phụ phí đêm</span><span><i style="background:var(--r3)"></i>Thiết bị & nhạc công</span><span><i style="border:1px dashed var(--mut)"></i>Đã lên lịch</span><span><i style="background:var(--ink);width:3px"></i>Ngân sách</span></div><div class="pcost" id="pcost"></div></section>`
+    $$('[data-rg]', v).forEach((b) => b.onclick = () => { costRange = +b.dataset.rg; renderCost() })
+  }
+  $$('[data-rg]', v).forEach((b) => b.setAttribute('aria-pressed', String(+b.dataset.rg === costRange)))
+  const S = series(costRange)
+  const tot = S.bars.reduce((a, b) => a + b.v, 0), hrs = S.bars.reduce((a, b) => a + b.h, 0), cnt = S.bars.reduce((a, b) => a + b.n, 0)
+  const prevTot = (() => { let v = 0; const n = costRange; for (let d = -2 * n + 1; d <= -n; d++) v += dayRev(d).v; return v })()
+  const dlt = prevTot ? Math.round((tot - prevTot) / prevTot * 100) : 0
+  const days = []; for (let d = -costRange + 1; d <= 0; d++) days.push(d)
+  const all = BK.filter((b) => days.includes(b.d)), huy = all.filter((b) => b.st === 'huy').length
+  const kp = [
+    ['Doanh thu ' + costRange + ' ngày', tot, (v) => trv(v), `<span class="kd ${dlt >= 0 ? 'up' : 'dn'}">${dlt >= 0 ? '▲' : '▼'} ${Math.abs(dlt)}% so với ${costRange} ngày trước</span>`],
+    ['Giờ phòng đã thu', hrs, (v) => Math.round(v) + ' giờ', `<span class="kd">${cnt} buổi đã xong</span>`],
+    ['Đơn giá TB / giờ', hrs ? tot / hrs : 0, (v) => trv(v), '<span class="kd">gồm kỹ sư, phụ phí, thiết bị</span>'],
+    ['Tỷ lệ hủy', all.length ? huy / all.length * 100 : 0, (v) => (Math.round(v * 10) / 10).toString().replace('.', ',') + '%', `<span class="kd">${huy}/${all.length} lượt đặt</span>`],
+  ]
+  const kb = $('#kpis')
+  if (!kb.children.length) kb.innerHTML = kp.map((k, i) => `<div class="panel kpi"><small>${k[0]}</small><span class="kv2" data-k="${i}"></span><span class="kx"></span></div>`).join('')
+  kp.forEach((k, i) => {
+    const el = $(`[data-k="${i}"]`, kb), card = el.parentElement
+    $('small', card).textContent = k[0]; $('.kx', card).innerHTML = k[3]
+    const from = +(el.dataset.v || 0)
+    el.dataset.v = k[1]
+    if (G && !STATIC && from !== k[1]) { const o = { v: from }; G.to(o, { v: k[1], duration: 0.6, ease: 'power2.out', onUpdate: () => { el.textContent = k[2](o.v) } }) } else el.textContent = k[2](k[1])
+  })
+  $('#chT').textContent = S.grp === 3 ? 'Doanh thu theo 3 ngày' : 'Doanh thu theo ngày'
+  drawChart(S)
+  drawKnobs(days)
+  drawPcost()
+
+}
+function drawChart(S) {
+  const box = $('#chart'), W = Math.max(300, box.clientWidth - 16), H = innerWidth < 520 ? 240 : 280
+  const pl = 46, pr = innerWidth < 520 ? 12 : 84, pt = 16, pb = 30, pw = W - pl - pr, ph = H - pt - pb
+  const mx = niceMax(Math.max(S.tgt, ...S.bars.map((b) => b.v)))
+  if (chartBuilt !== W + ':' + H) {
+    chartBuilt = W + ':' + H; chartState = null
+    let s = `<svg id="chSvg" viewBox="0 0 ${W} ${H}" style="height:${H}px" tabindex="0" role="img" aria-label="Biểu đồ doanh thu"><defs><pattern id="pt-led" width="6" height="5" patternUnits="userSpaceOnUse"><rect width="6" height="3.6" fill="#fff"/></pattern><mask id="pt-ledm"><rect width="${W}" height="${H}" fill="url(#pt-led)"/></mask><linearGradient id="pt-barg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--acc2)"/><stop offset="1" stop-color="var(--acc)"/></linearGradient></defs><g id="chGrid"></g><g class="cbars" id="chBars" mask="url(#pt-ledm)">`
+    for (let i = 0; i < 30; i++) s += `<rect class="cb" x="${pl + pw}" y="${pt + ph}" width="0" height="0" fill="url(#pt-barg)"/>`
+    s += `</g><line class="tgt" id="chTgt" x1="${pl}" x2="${pl + pw}" y1="${pt + ph}" y2="${pt + ph}"/><text class="tgtl" id="chTgtL" x="${pl + pw + 6}" y="0"></text><g id="chX"></g></svg>`
+    box.innerHTML = s
+    const svg = $('#chSvg')
+    svg.addEventListener('pointermove', (e) => { const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width; const st = svg._S; if (!st) return; const i = Math.floor((x - pl) / (pw / st.nb)); chartHover(i >= 0 && i < st.nb ? i : -1, e.clientX, e.clientY) })
+    svg.addEventListener('pointerleave', () => chartHover(-1))
+    svg.addEventListener('blur', () => chartHover(-1))
+    svg.addEventListener('keydown', (e) => { const st = svg._S; if (!st) return; if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); hovI = clamp((hovI < 0 ? st.nb : hovI) + (e.key === 'ArrowLeft' ? -1 : 1), 0, st.nb - 1); const b = $$('#chBars .cb')[hovI].getBoundingClientRect(); chartHover(hovI, b.left + b.width / 2, b.top) } })
+  }
+  const svg = $('#chSvg'); svg._S = S; svg._geo = { pl, pw, pt, ph, mx }
+  const grid = $('#chGrid'); let g = ''
+  for (let k = 0; k <= 4; k++) { const y = pt + ph - ph * k / 4; g += `<line class="axl" x1="${pl}" x2="${pl + pw}" y1="${y}" y2="${y}"/><text class="ax" x="${pl - 8}" y="${y + 3.5}" text-anchor="end">${k ? trv(mx * k / 4).replace(' tr', 'tr') : '0'}</text>` }
+  grid.innerHTML = g
+  const bw = pw / S.nb, gap = Math.max(1.5, bw * 0.22)
+  const rects = $$('#chBars .cb')
+  rects.forEach((r, i) => {
+    const b = S.bars[i]
+    const tgt = b ? { x: pl + i * bw + gap / 2, width: bw - gap, y: pt + ph - ph * b.v / mx, height: ph * b.v / mx } : { x: pl + pw, width: 0, y: pt + ph, height: 0 }
+    r.style.fill = b && b.d1 === 0 ? 'var(--cy)' : ''
+    if (G && !STATIC && chartState) G.to(r, { attr: tgt, duration: 0.6, ease: 'power3.inOut', delay: i * 0.008 })
+    else Object.entries(tgt).forEach(([k, v]) => r.setAttribute(k, v))
+  })
+  const ty = pt + ph - ph * S.tgt / mx
+  const tl = $('#chTgtL'); tl.textContent = innerWidth < 520 ? '' : (S.grp === 3 ? 'Mục tiêu 3 ngày' : 'Mục tiêu ngày')
+  const tl2 = innerWidth < 520 ? '' : trv(S.tgt)
+  if (G && !STATIC && chartState) { G.to('#chTgt', { attr: { y1: ty, y2: ty }, duration: 0.6, ease: 'power3.inOut' }); G.to(tl, { attr: { y: ty - 3 }, duration: 0.6, ease: 'power3.inOut' }) }
+  else { $('#chTgt').setAttribute('y1', ty); $('#chTgt').setAttribute('y2', ty); tl.setAttribute('y', ty - 3) }
+  tl.innerHTML = tl.textContent ? `<tspan x="${pl + pw + 6}">${tl.textContent}</tspan><tspan x="${pl + pw + 6}" dy="13">${tl2}</tspan>` : ''
+  const every = S.nb <= 7 ? 1 : innerWidth < 520 ? 10 : 5
+  let xl = ''
+  S.bars.forEach((b, i) => { if ((S.nb - 1 - i) % every) return; const dt = dayDate(b.d0); xl += `<text class="ax" x="${pl + i * bw + bw / 2}" y="${H - 9}" text-anchor="middle">${S.nb <= 7 ? (b.d1 === 0 ? 'Hôm nay' : WD[dt.getDay()] + ' ' + dm(dt)) : b.d1 === 0 && S.grp === 1 ? 'Hôm nay' : dm(dt)}</text>` })
+  $('#chX').innerHTML = xl
+  if (G && chartState && !STATIC) G.from('#chX text', { opacity: 0, duration: 0.4, delay: 0.25 })
+  chartState = S
+}
+function chartHover(i, x, y) {
+  const tip = $('#tip'), svg = $('#chSvg'); hovI = i
+  $('#chBars').classList.toggle('hov', i >= 0)
+  $$('#chBars .cb').forEach((r, k) => r.classList.toggle('on', k === i))
+  if (i < 0 || !svg || !svg._S) { tip.classList.remove('on'); return }
+  const b = svg._S.bars[i], d0 = dayDate(b.d0), d1 = dayDate(b.d1)
+  tip.innerHTML = `<b>${b.d0 === b.d1 ? (b.d1 === 0 ? 'Hôm nay ' : WDF[d0.getDay()] + ' ') + dmy(d0) : dm(d0) + ' – ' + dm(d1)}</b><br>${money(b.v)}<br>${b.n} buổi · ${String(b.h).replace('.', ',')} giờ phòng`
+  tip.classList.add('on')
+  const tw = tip.offsetWidth, th = tip.offsetHeight
+  tip.style.left = clamp(x - tw / 2, 8, innerWidth - tw - 8) + 'px'
+  tip.style.top = Math.max(8, y - th - 14) + 'px'
+}
+function drawKnobs(days) {
+  $('#knT').textContent = days.length + ' ngày gần nhất'
+  const box = $('#knobs')
+  if (!box.children.length) box.innerHTML = ROOMS.map((r, i) => `<div class="knob" style="--c:var(${r.c})"><svg viewBox="0 0 100 100" role="img" aria-label="Lấp đầy phòng ${r.n}"><path d="M22 78 A38 38 0 1 1 78 78" fill="none" stroke="var(--pn3)" stroke-width="9" stroke-linecap="round"/><path class="kv-arc" d="M22 78 A38 38 0 1 1 78 78" fill="none" stroke="var(${r.c})" stroke-width="9" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/><text class="kt" x="50" y="56" text-anchor="middle">0%</text></svg><b>${r.n}</b><small></small></div>`).join('')
+  ROOMS.forEach((r, i) => {
+    const h = BK.filter((b) => b.room === i && b.st !== 'huy' && days.includes(b.d)).reduce((a, b) => a + b.dur, 0)
+    const pct = Math.round(h / (SPAN * days.length) * 100), k = box.children[i]
+    $('small', k).textContent = Math.round(h) + ' / ' + SPAN * days.length + ' giờ'
+    k.querySelector('svg').setAttribute('aria-label', `Lấp đầy phòng ${r.n}: ${pct}%`)
+    const arc = $('.kv-arc', k), txt = $('.kt', k), from = +(arc.dataset.v || 0); arc.dataset.v = pct
+    const set = (v) => { arc.setAttribute('stroke-dasharray', `${(v * 0.75 / 0.75).toFixed(1)} 100`); txt.textContent = Math.round(v) + '%' }
+    if (G && !STATIC && from !== pct) { const o = { v: from }; G.to(o, { v: pct, duration: 0.7, ease: 'power2.out', onUpdate: () => set(o.v) }) } else set(pct)
+  })
+}
+function drawPcost() {
+  const box = $('#pcost')
+  const segs = [['room', 'var(--r0)', 'Phòng'], ['eng', 'var(--r1)', 'Kỹ sư'], ['nightX', 'var(--r2)', 'Phụ phí đêm'], ['add', 'var(--r3)', 'Thiết bị & nhạc công']]
+  box.innerHTML = PROJ.map((p) => {
+    const c = projCost(p), scale = Math.max(p.budget, c.spent + c.sched) * 1.08
+    let x = 0, bars = ''
+    segs.forEach(([k, col, lb]) => { const w = c[k] / scale * 100; if (w > 0) bars += `<span class="sg" data-tip="${lb}: ${money(c[k])}" style="left:${x}%;width:${w}%;background:${col}"></span>`; x += w })
+    const sw = c.sched / scale * 100
+    if (sw > 0) bars += `<span class="sg" data-tip="Đã lên lịch: ${money(c.sched)}" style="left:${x}%;width:${sw}%;border:1.5px dashed var(--mut);border-left:0;border-radius:0 6px 6px 0"></span>`
+    const over = c.spent + c.sched - p.budget
+    return `<div class="pcr"><div class="who">${cover(p)}<div style="min-width:0"><b>${esc(p.t)}</b><small>${esc(p.a)}</small></div></div><div class="sbar" role="img" aria-label="${esc(p.t)}: đã chi ${trv(c.spent)}, đã lên lịch ${trv(c.sched)}, ngân sách ${trv(p.budget)}">${bars}<span class="bud" data-tip="Ngân sách: ${money(p.budget)}" style="left:${p.budget / scale * 100}%"></span></div>
+      <div class="cap"><span>Đã chi <b>${trv(c.spent)}</b></span><span>Lên lịch <b>${trv(c.sched)}</b></span><span>Ngân sách <b>${trv(p.budget)}</b></span>${over > 0 ? `<span class="over">Dự kiến vượt ${trv(over)}</span>` : `<span>Còn dư <b>${trv(-over)}</b></span>`}</div></div>`
+  }).join('')
+  $$('[data-tip]', box).forEach((s) => {
+    s.addEventListener('pointerenter', (e) => showTip(s.dataset.tip, e.clientX, e.clientY))
+    s.addEventListener('pointermove', (e) => showTip(s.dataset.tip, e.clientX, e.clientY))
+    s.addEventListener('pointerleave', () => $('#tip').classList.remove('on'))
+  })
+}
+function showTip(t, x, y) { const tip = $('#tip'); tip.textContent = t; tip.classList.add('on'); tip.style.left = clamp(x - tip.offsetWidth / 2, 8, innerWidth - tip.offsetWidth - 8) + 'px'; tip.style.top = Math.max(8, y - tip.offsetHeight - 14) + 'px' }
+
+/* ================= BOOKINGS TABLE ================= */
+const tbl = { q: '', st: 'all', room: 'all', rg: 'all', sort: 'date', dir: -1, page: 0 }
+const tblSel = new Set()
+const PER = 12
+function tblRows(ignoreSt) {
+  const q = fold(tbl.q.trim())
+  const [a, z] = { all: [-14, 14], past: [-14, -1], today: [0, 0], next: [1, 14] }[tbl.rg]
+  return BK.filter((b) => b.d >= a && b.d <= z && (tbl.room === 'all' || b.room === +tbl.room) && (ignoreSt || tbl.st === 'all' || stOf(b) === tbl.st) &&
+    (!q || fold([b.id, who(b), b.proj >= 0 ? PROJ[b.proj].t : 'khách lẻ', ROOMS[b.room].n, ENG[b.eng].n, b.ph.replace(/\s/g, '')].join(' ')).includes(q.replace(/\s+(?=\d)/g, ''))))
+}
+function renderBook() {
+  const v = $('#v-dat-phong')
+  if (!v.dataset.built) {
+    v.dataset.built = 1
+    v.innerHTML = `<div class="vh"><div><div class="crumb">Phòng Thu Tím / <b>Sổ đặt phòng</b></div><h1 id="h-datphong">Sổ <em>đặt phòng</em></h1></div><div class="vtools"><button class="btn pri grow" type="button" data-new>${I.plus}Đặt phòng</button></div></div>
+    <section class="panel"><div class="tbar"><label class="sbox">${I.search}<span class="sr">Tìm trong sổ đặt phòng</span><input type="text" id="tq" placeholder="Tìm khách, dự án, mã PT-, SĐT… (gõ không dấu cũng được)" autocomplete="off"></label>
+    <select class="tsel" id="trg" aria-label="Khoảng ngày"><option value="all">14 ngày qua → 14 ngày tới</option><option value="past">14 ngày qua</option><option value="today">Hôm nay</option><option value="next">14 ngày tới</option></select>
+    <select class="tsel" id="troom" aria-label="Lọc theo phòng"><option value="all">Mọi phòng</option>${ROOMS.map((r, i) => `<option value="${i}">${r.n}</option>`).join('')}</select></div>
+    <div class="chips" id="tchips" role="group" aria-label="Lọc trạng thái"></div>
+    <div class="bulk" id="tbulk" role="region" aria-label="Thao tác hàng loạt"><span id="tbn"></span><button class="btn sm" type="button" data-bk="confirm">Xác nhận giữ chỗ</button><button class="btn sm bad" type="button" data-bk="cancel">Hủy buổi</button><button class="btn sm" type="button" data-bk="csv">Xuất CSV</button><button class="btn sm" type="button" data-bk="clear">Bỏ chọn</button></div>
+    <div class="twrap"><table><thead><tr><th class="ck"><label class="ckl"><input type="checkbox" id="tall" aria-label="Chọn tất cả trên trang"></label></th>${[['id', 'Mã'], ['who', 'Khách / dự án'], ['room', 'Phòng'], ['date', 'Ngày'], ['time', 'Giờ'], ['eng', 'Kỹ sư'], ['cost', 'Chi phí', 'num'], ['st', 'Trạng thái']].map(([k, l, c]) => `<th class="${c || ''}"><button type="button" data-sort="${k}">${l}<span class="ar"></span></button></th>`).join('')}</tr></thead><tbody id="tbody"></tbody></table></div>
+    <div id="tempty"></div><div class="tfoot"><span id="tinfo"></span><div class="pager" id="tpager"></div></div></section>`
+    $('#tq').addEventListener('input', (e) => { tbl.q = e.target.value; tbl.page = 0; renderBook() })
+    $('#trg').addEventListener('change', (e) => { tbl.rg = e.target.value; tbl.page = 0; renderBook() })
+    $('#troom').addEventListener('change', (e) => { tbl.room = e.target.value; tbl.page = 0; renderBook() })
+    $$('[data-sort]', v).forEach((b) => b.onclick = () => { const k = b.dataset.sort; if (tbl.sort === k) tbl.dir *= -1; else { tbl.sort = k; tbl.dir = k === 'cost' || k === 'date' ? -1 : 1 } renderBook() })
+    $('#tall').addEventListener('change', (e) => { $$('#tbody tr').forEach((tr) => e.target.checked ? tblSel.add(tr.dataset.id) : tblSel.delete(tr.dataset.id)); renderBook() })
+    $$('[data-bk]', v).forEach((b) => b.onclick = () => bulk(b.dataset.bk))
+  }
+  const counts = { all: 0, xn: 0, gc: 0, dang: 0, xong: 0, huy: 0 }
+  tblRows(true).forEach((b) => { counts.all++; counts[stOf(b)]++ })
+  $('#tchips').innerHTML = Object.entries(counts).map(([k, n]) => `<button type="button" class="chip" data-st="${k}" aria-pressed="${tbl.st === k}">${k === 'all' ? 'Tất cả' : ST[k]}<b>${n}</b></button>`).join('')
+  $$('#tchips .chip').forEach((c) => c.onclick = () => { tbl.st = c.dataset.st; tbl.page = 0; renderBook() })
+  const key = { id: (b) => +b.id.slice(3), who: (b) => fold(who(b)), room: (b) => b.room, date: absS, time: (b) => b.s, eng: (b) => ENG[b.eng].n, cost, st: (b) => Object.keys(ST).indexOf(stOf(b)) }[tbl.sort]
+  const rows = tblRows().sort((a, b) => { const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : absS(a) - absS(b)) * tbl.dir })
+  const pages = Math.max(1, Math.ceil(rows.length / PER)); tbl.page = clamp(tbl.page, 0, pages - 1)
+  const pg = rows.slice(tbl.page * PER, tbl.page * PER + PER)
+  $('#tbody').innerHTML = pg.map((b) => { const st = stOf(b), dt = dayDate(b.d); return `<tr data-id="${b.id}" class="${tblSel.has(b.id) ? 'on' : ''}"><td class="ck"><label class="ckl"><input type="checkbox" aria-label="Chọn ${b.id}" ${tblSel.has(b.id) ? 'checked' : ''}></label></td><td class="c-id nw">${b.id}</td>
+    <td class="c-who"><button type="button" class="who2" data-go="${b.id}" style="--c:var(${ROOMS[b.room].c})" aria-label="Xem ${b.id} trên lịch"><i></i><span><b>${esc(who(b))}</b><small>${b.proj >= 0 ? esc(PROJ[b.proj].t) : 'Khách lẻ'} · <span class="nw">${b.ph}</span></small></span></button></td>
+    <td class="c-room nw">${ROOMS[b.room].n}</td><td class="c-date nw">${WD[dt.getDay()]} ${dm(dt)}</td><td class="c-time nw">${hm(b.s)}–${hm(b.s + b.dur)}</td><td class="c-eng nw">${ENG[b.eng].n}</td><td class="c-cost num">${money(cost(b))}</td><td class="c-st"><span class="pill st-${st}">${ST[st]}</span></td></tr>` }).join('')
+  $$('#tbody input[type=checkbox]').forEach((c) => c.addEventListener('change', () => { const id = c.closest('tr').dataset.id; c.checked ? tblSel.add(id) : tblSel.delete(id); renderBook() }))
+  $$('#tbody [data-go]').forEach((b) => b.onclick = () => goBooking(b.dataset.go))
+  $('#tempty').innerHTML = rows.length ? '' : `<div class="empty">${I.disc.replace('class="i"', '')}<b>Không có buổi nào khớp</b>Thử bỏ dấu, đổi khoảng ngày hoặc chọn “Tất cả”.<br><br><button class="btn sm" type="button" id="treset">Xóa bộ lọc</button></div>`
+  if (!rows.length) $('#treset').onclick = () => { Object.assign(tbl, { q: '', st: 'all', room: 'all', rg: 'all', page: 0 }); $('#tq').value = ''; $('#trg').value = 'all'; $('#troom').value = 'all'; renderBook() }
+  const pgAll = pg.length && pg.every((b) => tblSel.has(b.id))
+  $('#tall').checked = pgAll; $('#tall').indeterminate = !pgAll && pg.some((b) => tblSel.has(b.id))
+  $('#tinfo').textContent = rows.length ? `${tbl.page * PER + 1}–${tbl.page * PER + pg.length} / ${rows.length} buổi · tổng ${money(rows.filter((b) => b.st !== 'huy').reduce((a, b) => a + cost(b), 0))}` : '0 buổi'
+  let pgs = `<button type="button" data-pg="${tbl.page - 1}" aria-label="Trang trước" ${tbl.page ? '' : 'disabled'}>‹</button>`
+  const list = [...new Set([0, tbl.page - 1, tbl.page, tbl.page + 1, pages - 1])].filter((x) => x >= 0 && x < pages).sort((a, b) => a - b)
+  list.forEach((p, k) => { if (k && p - list[k - 1] > 1) pgs += '<button type="button" disabled aria-label="Các trang ở giữa">…</button>'; pgs += `<button type="button" data-pg="${p}" aria-label="Trang ${p + 1}" ${p === tbl.page ? 'aria-current="true"' : ''}>${p + 1}</button>` })
+  pgs += `<button type="button" data-pg="${tbl.page + 1}" aria-label="Trang sau" ${tbl.page < pages - 1 ? '' : 'disabled'}>›</button>`
+  $('#tpager').innerHTML = pgs
+  $$('#tpager [data-pg]').forEach((b) => b.onclick = () => { tbl.page = +b.dataset.pg; renderBook() })
+  $$('[data-sort]', v).forEach((b) => { const on = b.dataset.sort === tbl.sort; on ? b.setAttribute('aria-sort', tbl.dir > 0 ? 'ascending' : 'descending') : b.removeAttribute('aria-sort'); $('.ar', b).textContent = on ? (tbl.dir > 0 ? '↑' : '↓') : '' })
+  const sel = [...tblSel].map(byId).filter(Boolean)
+  $('#tbulk').classList.toggle('on', sel.length > 0)
+  $('#tbn').textContent = `Đã chọn ${sel.length} buổi · ${trv(sel.reduce((a, b) => a + cost(b), 0))}`
+}
+function bulk(k) {
+  const sel = [...tblSel].map(byId).filter(Boolean)
+  if (k === 'clear') { tblSel.clear(); renderBook(); return }
+  if (!sel.length) return
+  if (k === 'cancel') { cancelBk(sel); return }
+  if (k === 'confirm') {
+    const ok = sel.filter((b) => b.st === 'gc' && movable(b))
+    if (!ok.length) { toast('Không có buổi giữ chỗ nào trong lựa chọn.', { bad: true }); return }
+    ok.forEach((b) => { b.st = 'xn' })
+    pushUndo(`xác nhận ${ok.length} buổi`, () => ok.forEach((b) => { b.st = 'gc' }))
+    tblSel.clear(); refresh(); toast(`Đã xác nhận ${ok.length} buổi giữ chỗ.`, { undo: true })
+  }
+  if (k === 'csv') toast(`Đã tạo tệp so-dat-phong.csv · ${sel.length} dòng.`)
+}
+
+/* ================= overlays, palette, keys ================= */
+const layers = []
+function openLayer(id) {
+  const el = $('#' + id); if (!el || el.classList.contains('on')) return
+  el._ret = document.activeElement
+  el.classList.add('on'); layers.push(id)
+  if (id === 'bkm' || id === 'pal' || id === 'drw') $('#back').classList.add('on')
+  if (id === 'bkm') document.body.classList.add('mo')
+  if (id === 'drw') { el.setAttribute('aria-hidden', 'false'); $('#burger').setAttribute('aria-expanded', 'true'); setTimeout(() => $('button', el)?.focus(), 40) }
+  if (id === 'ntfPop') $('#bellBtn').setAttribute('aria-expanded', 'true')
+}
+function closeLayer(id) {
+  const el = $('#' + id); if (!el) return
+  el.classList.remove('on'); const k = layers.indexOf(id); if (k >= 0) layers.splice(k, 1)
+  if (el.contains(document.activeElement)) { const r = el._ret; if (r && r !== document.body && document.contains(r)) r.focus({ preventScroll: true }); else document.activeElement.blur() }
+  if (!layers.some((l) => ['bkm', 'pal', 'drw'].includes(l))) $('#back').classList.remove('on')
+  if (id === 'bkm') { document.body.classList.remove('mo'); $('.pt-ghost')?.remove() }
+  if (id === 'drw') { el.setAttribute('aria-hidden', 'true'); $('#burger').setAttribute('aria-expanded', 'false'); $('#burger').focus() }
+  if (id === 'ntfPop') $('#bellBtn').setAttribute('aria-expanded', 'false')
+}
+function closeAll(keepSel) { [...layers].forEach(closeLayer); $('#tip').classList.remove('on'); if (!keepSel) cal.sel = null }
+$('#back').onclick = () => { [...layers].reverse().forEach((l) => ['bkm', 'pal', 'drw'].includes(l) && closeLayer(l)) }
+$$('[data-close]').forEach((b) => b.onclick = () => closeLayer(b.dataset.close))
+function placePop(pop, btn) { const r = btn.getBoundingClientRect(); pop.style.top = r.bottom + 8 + 'px'; pop.style.left = clamp(r.right - pop.offsetWidth, 12, innerWidth - pop.offsetWidth - 12) + 'px' }
+const NTF = [
+  [0.2, '--r1', 'Lam Thư xác nhận buổi thu giọng ngày mai', 'Đã chuyển cọc 1.500.000 ₫'],
+  [1.4, '--r0', 'Ngõ Hẹp xin dời buổi thu trống sang tối', 'Chờ bạn duyệt trong lịch phòng'],
+  [3.1, '--r2', 'Bản master “Bê Tông” đã gửi khách', 'Kha Vũ đang nghe thử'],
+  [26, '--r3', 'Micro U87 số 2 cần bảo dưỡng', 'Đã đánh dấu tạm ngưng cho thuê'],
+]
+function ago(h) { return h < 1 ? Math.round(h * 60) + ' phút trước' : h < 24 ? Math.round(h) + ' giờ trước' : Math.round(h / 24) + ' ngày trước' }
+$('#bellBtn').onclick = (e) => {
+  e.stopPropagation()
+  const p = $('#ntfPop'); if (p.classList.contains('on')) { closeLayer('ntfPop'); return }
+  closeLayer('avaPop')
+  p.innerHTML = `<h3>Thông báo</h3><div class="ntf">${NTF.map((n) => `<button type="button" style="--c:var(${n[1]})"><i></i><span>${n[2]}</span><small>${n[3]} · ${ago(n[0])}</small></button>`).join('')}</div>`
+  $$('.ntf button', p).forEach((b) => b.onclick = () => closeLayer('ntfPop'))
+  openLayer('ntfPop'); placePop(p, e.currentTarget)
+}
+$('#avaBtn').onclick = (e) => {
+  e.stopPropagation()
+  const p = $('#avaPop'); if (p.classList.contains('on')) { closeLayer('avaPop'); return }
+  closeLayer('ntfPop')
+  const h = NOW.getHours()
+  p.innerHTML = `<h3>${h < 4 ? 'Thức khuya cùng ca đêm' : h < 11 ? 'Chào buổi sáng' : h < 14 ? 'Chào buổi trưa' : h < 18 ? 'Chào buổi chiều' : 'Chào buổi tối'}, Ngọc Diệp</h3><div class="ntf"><button type="button" data-a="thm" style="--c:var(--acc)"><i></i><span>Đổi giao diện sáng/tối</span><small>Lưu cho lần sau</small></button><button type="button" data-a="pal" style="--c:var(--cy)"><i></i><span>Bảng lệnh</span><small>Ctrl K</small></button><button type="button" data-a="out" style="--c:var(--dim)"><i></i><span>Đăng xuất</span><small>Bản concept — không đăng xuất thật</small></button></div>`
+  $$('[data-a]', p).forEach((b) => b.onclick = () => { closeLayer('avaPop'); if (b.dataset.a === 'thm') $('#thmBtn').click(); if (b.dataset.a === 'pal') openPal(); if (b.dataset.a === 'out') toast('Bản concept: phiên làm việc vẫn giữ nguyên.') })
+  openLayer('avaPop'); placePop(p, e.currentTarget)
+}
+document.addEventListener('click', (e) => { ['ntfPop', 'avaPop'].forEach((id) => { if (layers.includes(id) && !e.target.closest('#' + id)) closeLayer(id) }) })
+$('#burger').onclick = () => {
+  const d = $('#drw')
+  d.innerHTML = `<div class="dh"><b style="font:700 14px var(--fd)">Phòng Thu Tím</b><button class="ib" type="button" data-dx aria-label="Đóng menu">${I.x}</button></div>
+    <button class="dbtn" type="button" data-dn>${I.plus}Đặt phòng mới</button><button class="dbtn" type="button" data-dp>${I.search}Bảng lệnh</button><button class="dbtn" type="button" data-dt>${root.dataset.theme === 'dark' ? I.sun : I.moon}Giao diện ${root.dataset.theme === 'dark' ? 'sáng' : 'tối'}</button>
+    <div class="ntf" style="padding:0">${NTF.slice(0, 3).map((n) => `<button type="button" style="--c:var(${n[1]})"><i></i><span>${n[2]}</span><small>${ago(n[0])}</small></button>`).join('')}</div>
+    <p>Quách Ngọc Diệp · Quản lý phòng thu<br>214 Võ Văn Tần, Quận 3<br>Thiết kế concept — thương hiệu giả định.</p>`
+  $('[data-dx]', d).onclick = () => closeLayer('drw')
+  $('[data-dn]', d).onclick = () => { closeLayer('drw'); openForm({}) }
+  $('[data-dp]', d).onclick = () => { closeLayer('drw'); openPal() }
+  $('[data-dt]', d).onclick = () => { closeLayer('drw'); $('#thmBtn').click() }
+  $$('.ntf button', d).forEach((b) => b.onclick = () => closeLayer('drw'))
+  openLayer('drw')
+}
+document.addEventListener('click', (e) => { if (e.target.closest('[data-new]')) openForm({}) })
+// focus trap for modal / drawer / palette
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return
+  const top = [...layers].reverse().find((l) => ['bkm', 'drw', 'pal'].includes(l)); if (!top) return
+  const f = $$('button:not([disabled]), input, select', $('#' + top)).filter((x) => x.offsetParent || top === 'bkm'); if (!f.length) return
+  if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus() } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus() }
+})
+/* palette */
+let palItems = [], palIdx = 0
+function palData(q) {
+  const f = fold(q.trim()), out = []
+  const cmd = [['Đến Lịch phòng', 'Màn hình', () => { location.hash = 'lich-phong' }], ['Đến Dự án & track', 'Màn hình', () => { location.hash = 'du-an' }], ['Đến Chi phí & doanh thu', 'Màn hình', () => { location.hash = 'chi-phi' }], ['Đến Sổ đặt phòng', 'Màn hình', () => { location.hash = 'dat-phong' }],
+    ['Đặt phòng mới', 'Lệnh · N', () => openForm({})], ['Xem lịch hôm nay', 'Lệnh', () => { cal.d = 0; cal.sel = null; location.hash === '#lich-phong' ? renderCal() : (location.hash = 'lich-phong') }], ['Xem lịch ngày mai', 'Lệnh', () => { cal.d = 1; cal.sel = null; location.hash === '#lich-phong' ? renderCal() : (location.hash = 'lich-phong') }],
+    ['Đổi giao diện sáng/tối', 'Lệnh', () => $('#thmBtn').click()], ['Hoàn tác thao tác gần nhất', 'Lệnh · Ctrl Z', () => doUndo()]]
+  cmd.forEach((c) => { if (!f || fold(c[0]).includes(f)) out.push({ g: 'Lệnh', t: c[0], s: c[1], fn: c[2] }) })
+  if (f) {
+    PROJ.forEach((p) => { if (fold(p.t + ' ' + p.a).includes(f)) out.push({ g: 'Dự án', t: p.t + ' — ' + p.a, s: p.type, fn: () => { projSel = p.i; location.hash === '#du-an' ? renderProj() : (location.hash = 'du-an') } }) })
+    PROJ.forEach((p) => p.tracks.forEach((t) => { if (fold(t.n).includes(f)) out.push({ g: 'Track', t: t.n, s: p.t, fn: () => { projSel = p.i; location.hash === '#du-an' ? renderProj() : (location.hash = 'du-an') } }) }))
+    BK.filter((b) => b.d >= -14 && b.d <= 14 && b.st !== 'huy' && fold(b.id + ' ' + who(b)).includes(f)).sort((a, b) => Math.abs(a.d) - Math.abs(b.d)).slice(0, 6).forEach((b) => out.push({ g: 'Buổi thu', t: `${b.id} · ${who(b)}`, s: `${dm(dayDate(b.d))} ${hm(b.s)} · ${ROOMS[b.room].n}`, fn: () => goBooking(b.id) }))
+  }
+  return out.slice(0, 14)
+}
+function renderPal() {
+  palItems = palData($('#palIn').value); palIdx = clamp(palIdx, 0, Math.max(0, palItems.length - 1))
+  let g = '', h = ''
+  palItems.forEach((it, i) => { if (it.g !== g) { g = it.g; h += `<li role="presentation"><div class="gk">${g.toUpperCase()}</div></li>` } h += `<li role="presentation"><button type="button" role="option" data-i="${i}" aria-selected="${i === palIdx}">${esc(it.t)}<small>${esc(it.s)}</small></button></li>` })
+  $('#palList').innerHTML = h || '<li class="empty-s" style="padding:16px">Không tìm thấy — thử gõ không dấu, vd. “ngo hep”.</li>'
+  $$('#palList [data-i]').forEach((b) => b.onclick = () => runPal(+b.dataset.i))
+}
+function runPal(i) { const it = palItems[i]; if (!it) return; closeLayer('pal'); it.fn() }
+function openPal() { $('#palIn').value = ''; palIdx = 0; renderPal(); openLayer('pal'); $('#palIn').focus() }
+$('#palBtn').onclick = openPal
+$('#palIn').addEventListener('input', () => { palIdx = 0; renderPal() })
+$('#palIn').addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); palIdx = clamp(palIdx + (e.key === 'ArrowDown' ? 1 : -1), 0, palItems.length - 1); renderPal(); $('#palList [aria-selected=true]')?.scrollIntoView({ block: 'nearest' }) }
+  if (e.key === 'Enter') { e.preventDefault(); runPal(palIdx) }
+})
+document.addEventListener('keydown', (e) => {
+  const typing = /INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName || '')
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); layers.includes('pal') ? closeLayer('pal') : openPal(); return }
+  if (e.key === 'Escape') {
+    if (layers.length) { closeLayer(layers[layers.length - 1]); return }
+    if ($('#tip').classList.contains('on')) { $('#tip').classList.remove('on'); return }
+    if (cur === 'lich-phong' && cal.sel) { const id = cal.sel; cal.sel = null; renderCal(); $(`#clips .clip[data-id="${id}"]`)?.focus({ preventScroll: true }) }
+    return
+  }
+  if (typing || layers.length) return
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); doUndo(); return }
+  if (e.ctrlKey || e.metaKey || e.altKey) return
+  const vk = { 1: 'lich-phong', 2: 'du-an', 3: 'chi-phi', 4: 'dat-phong' }[e.key]
+  if (vk && !e.target.closest('.clip')) { location.hash = vk; return }
+  if (e.key.toLowerCase() === 'n') { e.preventDefault(); openForm({}) }
+})
+
+/* ================= boot ================= */
+fillSelects()
+renderLcd()
+route()
+booted = true
+document.fonts && document.fonts.ready.then(() => { if (cur === 'lich-phong' && !drag) renderArr() })
+let rzT
+window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (drag) return; chartBuilt = null; if (cur === 'lich-phong') { renderArr(); renderInsp() } else if (cur === 'chi-phi') renderCost() }, 120) })
+if (!STATIC) {
+  setInterval(() => {
+    NOW = new Date(); NH = (NOW - base) / 36e5
+    renderLcd()
+    if (cur === 'lich-phong' && !drag && !layers.length && !document.activeElement?.closest('#v-lich-phong')) { renderArr(); renderInsp() }
+  }, 30000)
+  if (G) {
+    G.from('.tb > *', { y: -8, opacity: 0, duration: 0.35, stagger: 0.05, clearProps: 'all' })
+    G.from($$('.view.on .vh, .view.on .panel, .view.on .day'), { y: 12, opacity: 0, duration: 0.42, stagger: 0.025, delay: 0.08, clearProps: 'all' })
+  }
+}
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

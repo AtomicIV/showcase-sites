@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>eSign & Invoice Viet — Hóa Đơn Điện Tử Máy Tính Tiền & Chữ Ký Số Cloud HSM</title>
+<meta name="description" content="eSign & Invoice Viet là tổ chức truyền nhận hóa đơn điện tử đạt chuẩn Tổng cục Thuế theo Nghị định 123 & Thông tư 78, tích hợp Chữ ký số từ xa Cloud HSM tốc độ 3.000 hóa đơn/giây.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23061E19'/%3E%3Crect x='16' y='12' width='32' height='40' rx='4' fill='%23F8FAFC'/%3E%3Ccircle cx='38' cy='40' r='9' fill='%23DC2626'/%3E%3Cpath d='M34 40L37 43L43 37' fill='none' stroke='%23FFFFFF' stroke-width='2.5'/%3E%3Crect x='22' y='20' width='20' height='3' fill='%230D9488'/%3E%3Crect x='22' y='27' width='14' height='3' fill='%230D9488'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chivo+Mono:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#061E19; --forest2:#0B3128; --forest3:#03110E;
+  --teal:#0D9488; --tealL:#2DD4BF;
+  --stamp:#DC2626; --stampL:#FCA5A5;
+  --gold:#F59E0B; --goldL:#FCD34D;
+  --paper:#F8FAFC; --slate:#E2E8F0; --white:#FFFFFF;
+  --ink:#0F172A; --muted:#475569; --mutedL:#94A3B8;
+  --sans:"Lexend", sans-serif;
+  --mono:"Chivo Mono", ui-monospace, monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:clip}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.62}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--teal);color:#fff;padding:10px 18px;z-index:500;text-decoration:none;font-weight:700}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1280px,calc(100% - 48px));margin-inline:auto}
+h1,h2,h3,h4{font-family:var(--sans);font-weight:700;margin:0;line-height:1.12;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.4vw,60px)}
+h1 em,h2 em{font-style:normal;color:var(--teal)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);background:rgba(13,148,136,.1);padding:6px 14px;border-radius:99px}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--stamp)}
+.kick.light{color:var(--tealL);background:rgba(45,212,191,.15)}
+.kick.light::before{background:var(--gold)}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border-radius:8px;border:1.5px solid var(--teal);background:var(--teal);color:#fff;font-weight:600;font-size:14.5px;text-decoration:none;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .45s var(--ease),background .25s,border-color .25s}
+.btn:hover{background:#0f766e;border-color:#0f766e}
+.btn.stamp{background:var(--stamp);border-color:var(--stamp)}
+.btn.stamp:hover{background:#b91c1c;border-color:#b91c1c}
+.btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.28)}
+.btn.ghost:hover{border-color:var(--tealL);color:var(--tealL)}
+.btn.sm{min-height:40px;padding:0 16px;font-size:13px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,box-shadow .35s}
+.nav.solid{background:rgba(6,30,25,.95);backdrop-filter:blur(12px);box-shadow:0 1px 0 rgba(45,212,191,.2)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:74px}
+.logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-weight:700;font-size:21px}
+.logo svg{width:34px;height:34px;flex-shrink:0}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;text-decoration:none;font-size:14px;font-weight:500;color:rgba(248,250,252,.82);transition:color .25s}
+.nav ul a:hover{color:var(--tealL)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border-radius:8px;border:1px solid rgba(45,212,191,.35);background:transparent;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:#fff;transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:82px;z-index:99;background:var(--forest2);border:1px solid rgba(45,212,191,.35);border-radius:12px;padding:12px;display:grid;gap:4px;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease);box-shadow:0 24px 48px rgba(0,0,0,.5)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 14px;text-decoration:none;color:#fff;font-weight:600;font-size:18px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--tealL)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 70px;background:radial-gradient(ellipse 65% 55% at 80% 15%,rgba(13,148,136,.3),transparent 70%),radial-gradient(ellipse 50% 50% at 15% 85%,rgba(220,38,38,.18),transparent 70%),linear-gradient(165deg,var(--forest3) 0%,var(--forest) 55%,var(--forest2) 100%);color:#fff;display:flex;align-items:center;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:44px;align-items:center}
+.hero h1{font-size:clamp(38px,5.1vw,70px);line-height:1.1;margin:18px 0 20px}
+.hero h1 em{color:var(--tealL)}
+.hero-lead{font-size:17px;color:var(--mutedL);max-width:52ch;margin-bottom:28px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:34px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding-top:22px;border-top:1px solid rgba(255,255,255,.14)}
+.hero-stats b{display:block;font-family:var(--mono);font-size:clamp(24px,2.8vw,34px);color:var(--goldL);line-height:1.1}
+.hero-stats span{font-size:13px;color:var(--mutedL)}
+
+.token-card{background:rgba(11,49,40,.82);border:1px solid rgba(45,212,191,.32);border-radius:18px;padding:22px;box-shadow:0 35px 75px -20px rgba(0,0,0,.7)}
+.tc-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.token-card canvas{width:100%;height:auto;border-radius:10px;background:#041511}
+.tc-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.tc-btn{padding:8px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:#fff;font-family:var(--mono);font-size:11.5px;cursor:pointer;transition:all .2s}
+.tc-btn.active,.tc-btn:hover{border-color:var(--tealL);background:rgba(13,148,136,.28);color:var(--tealL)}
+
+/* Pinned Scrollytelling: Cloud HSM Signing & Tax Authority Code */
+.signing{position:relative;background:var(--forest3);color:#fff}
+.sg-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:48px;align-items:center;width:min(1280px,calc(100% - 48px));margin-inline:auto;padding-top:74px}
+.signing h2{margin:16px 0 22px;color:#fff}
+.signing h2 em{color:var(--tealL)}
+.psteps{position:relative;height:250px}
+.pstep{position:absolute;inset:0}
+.pstep .code-pill{display:inline-block;font-family:var(--mono);font-size:12px;color:var(--goldL);background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);padding:4px 12px;border-radius:6px;margin-bottom:10px}
+.pstep h3{font-size:clamp(24px,2.5vw,34px);margin-bottom:10px;color:#fff}
+.pstep p{color:var(--mutedL);font-size:16px;max-width:46ch;margin-bottom:14px}
+.pstep-tags{display:flex;flex-wrap:wrap;gap:8px}
+.pstep-tags span{font-family:var(--mono);font-size:11.5px;padding:4px 10px;border-radius:6px;background:rgba(13,148,136,.25);color:var(--tealL)}
+.sg-stage{background:linear-gradient(160deg,#0B3128,#041511);border:1px solid rgba(45,212,191,.32);border-radius:18px;padding:22px;box-shadow:0 35px 70px -25px rgba(0,0,0,.8)}
+.sg-stage canvas{width:100%;height:auto;border-radius:10px;background:#020C0A}
+.sg-foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--mutedL)}
+.sg-foot b{color:var(--tealL)}
+
+/* Signature Widget: Live E-Invoice Builder & Digital Signer */
+.builder{padding:110px 0;background:var(--paper)}
+.sec-head{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.inv-workspace{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:28px;align-items:start}
+.inv-form{background:var(--white);border:1.5px solid var(--slate);border-radius:16px;padding:26px;box-shadow:0 20px 50px -25px rgba(15,23,42,.08);display:grid;gap:16px}
+.inv-form label{display:block;font-size:13.5px;font-weight:600;margin-bottom:5px;color:var(--ink)}
+.inv-form input,.inv-form select{width:100%;height:46px;padding:0 12px;border-radius:8px;border:1.5px solid var(--slate);background:var(--paper);font-weight:500}
+.vat-pills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.vat-pill{padding:10px;border-radius:8px;border:1.5px solid var(--slate);background:var(--paper);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;text-align:center}
+.vat-pill[aria-pressed="true"]{background:var(--forest);color:var(--tealL);border-color:var(--forest)}
+
+.inv-preview{background:var(--white);border:2px solid var(--teal);border-radius:16px;padding:28px;box-shadow:0 25px 60px -20px rgba(6,30,25,.2);position:relative;overflow:hidden;min-width:0}
+.ip-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:16px;border-bottom:2px solid var(--ink);margin-bottom:16px}
+.ip-code{font-family:var(--mono);font-size:12px;color:var(--stamp);font-weight:700;word-break:break-all}
+.ip-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;table-layout:fixed}
+.ip-table th,.ip-table td{padding:10px 6px;border-bottom:1px solid var(--slate);text-align:left;word-wrap:break-word;overflow-wrap:anywhere}
+.ip-table th{font-family:var(--mono);font-size:11.5px;color:var(--muted);background:var(--paper)}
+.ip-seal-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-top:20px;padding-top:16px;border-top:1px dashed var(--slate)}
+.red-stamp{border:2.5px solid var(--stamp);background:rgba(220,38,38,.06);color:var(--stamp);padding:10px 16px;border-radius:6px;font-family:var(--mono);font-size:11.5px;line-height:1.4;font-weight:700;transform:rotate(-2deg)}
+.xml-box{display:none;background:#041511;color:var(--tealL);font-family:var(--mono);font-size:12px;padding:18px;border-radius:10px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;margin-top:14px}
+.xml-box.show{display:block}
+
+/* Compliance & Security Bento */
+.compliance{padding:110px 0;background:var(--slate)}
+.cmp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.ccard{background:var(--white);border-radius:16px;padding:28px;border:1px solid rgba(15,23,42,.08);display:flex;flex-direction:column;gap:12px}
+.ccard .num{font-family:var(--mono);font-size:12px;color:var(--teal);font-weight:700}
+.ccard h3{font-size:22px}
+.ccard p{color:var(--muted);font-size:15px}
+
+/* ERP Integrations */
+.erp{padding:110px 0;background:var(--paper)}
+.erp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.ecard{background:var(--white);border:1.5px solid var(--slate);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:8px}
+.ecard h3{font-size:20px}
+.ecard p{font-size:14.5px;color:var(--muted)}
+
+/* Pricing */
+.pricing{padding:110px 0;background:var(--forest);color:#fff}
+.pricing .sec-head p{color:var(--mutedL)}
+.pr-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.pr-card{background:var(--forest2);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:30px 26px;display:flex;flex-direction:column;gap:14px}
+.pr-card.best{border:2px solid var(--tealL);background:linear-gradient(180deg,#0E3F34,#061E19)}
+.pr-card h3{font-size:26px}
+.pr-val{font-family:var(--mono);font-size:34px;color:var(--goldL);font-weight:700}
+.pr-val small{font-size:13px;color:var(--mutedL)}
+.pr-card ul{list-style:none;margin:0;padding:0;display:grid;gap:9px;font-size:14.5px;color:rgba(248,250,252,.9)}
+.pr-card li::before{content:"✓ ";color:var(--tealL);font-weight:700}
+.pr-card .btn{margin-top:auto}
+
+/* CTA */
+.cta{padding:110px 0;background:var(--slate)}
+.cta-box{background:var(--white);border-radius:20px;padding:44px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center}
+.cta-form{display:grid;gap:14px}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cta-form label{display:block;font-size:13.5px;font-weight:600;margin-bottom:5px}
+.cta-form input,.cta-form select{width:100%;height:48px;padding:0 14px;border-radius:8px;border:1.5px solid var(--slate);background:var(--paper)}
+.f-msg{min-height:24px;font-family:var(--mono);font-size:13px;color:var(--teal);font-weight:700}
+
+footer{background:var(--forest3);color:var(--mutedL);padding:56px 0 36px}
+.ft-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;padding-bottom:28px;border-bottom:1px solid rgba(255,255,255,.1)}
+footer ul{display:flex;flex-wrap:wrap;gap:8px 18px;list-style:none;margin:0;padding:0}
+footer a{text-decoration:none;font-size:14px;color:var(--mutedL)}
+footer a:hover{color:var(--tealL)}
+.ft-fine{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding-top:22px;font-family:var(--mono);font-size:12px}
+
+.rm .sg-pin{height:auto;padding:100px 0}
+.rm .psteps{height:auto;display:grid;gap:24px}
+.rm .pstep{position:static;opacity:1!important;visibility:visible!important}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.sg-pin,.sec-head,.inv-workspace,.cta-box{grid-template-columns:1fr}
+  .sg-pin{height:auto;min-height:100svh;padding:96px 0 60px}
+  .cmp-grid,.erp-grid,.pr-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:680px){
+  .wrap,.sg-pin{width:calc(100% - 32px)}
+  .hero{padding:108px 0 56px}
+  .hero-stats,.tc-btns,.vat-pills,.cmp-grid,.erp-grid,.pr-grid,.f-row{grid-template-columns:1fr}
+  .psteps{height:290px}
+  .cta-box,.inv-form,.inv-preview,.token-card,.sg-stage{padding:16px 12px}
+  .ip-table{font-size:11.5px}
+  .ip-table th,.ip-table td{padding:6px 4px}
+  .kick{font-size:10px;padding:5px 10px}
+  .builder,.compliance,.erp,.pricing,.cta{padding:80px 0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="eSign & Invoice Viet - Trang chủ">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="#0D9488"/><rect x="10" y="7" width="20" height="26" rx="2.5" fill="#F8FAFC"/><circle cx="24" cy="25" r="5.5" fill="#DC2626"/><path d="M21.5 25L23.5 27L27 23" fill="none" stroke="#FFFFFF" stroke-width="1.8"/><rect x="13" y="12" width="13" height="2.2" fill="#061E19"/><rect x="13" y="16.5" width="9" height="2.2" fill="#061E19"/></svg>
+      <span>eSign & Invoice Viet</span>
+    </a>
+    <nav aria-label="Điều hướng chính">
+      <ul>
+        <li><a href="#signing">Cấp mã 0.3s</a></li>
+        <li><a href="#builder">Tạo & Ký thử hóa đơn</a></li>
+        <li><a href="#compliance">Chuẩn Thông tư 78</a></li>
+        <li><a href="#erp">Tích hợp API</a></li>
+        <li><a href="#pricing">Bảng giá</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm mag" href="#register">Nhận 500 Hóa đơn miễn phí</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#signing">Quy trình Ký số & Cấp mã CQT</a>
+  <a href="#builder">Trình tạo & Ký thử Hóa đơn mẫu</a>
+  <a href="#compliance">Bảo mật Cloud HSM & Thông tư 78</a>
+  <a href="#erp">Kết nối POS, Kế toán & ERP</a>
+  <a href="#pricing">Bảng giá Hóa đơn & Chữ ký số</a>
+  <a href="#register">Đăng ký phát hành trong 2 giờ</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick light hf">Tổ chức Truyền nhận Hóa đơn Điện tử TVAN · Chuẩn Thông tư 78/2021</p>
+        <h1 id="hero-h">
+          <span class="mask"><span>Ký số <em>Cloud HSM</em>,</span></span>
+          <span class="mask"><span>cấp mã Cơ quan Thuế</span></span>
+          <span class="mask"><span>chỉ trong 0,3 giây.</span></span>
+        </h1>
+        <p class="hero-lead hf">eSign & Invoice Viet cung cấp giải pháp Hóa đơn điện tử khởi tạo từ máy tính tiền, Hóa đơn GTGT có mã và Chữ ký số từ xa không cần cắm USB Token. Đạt chuẩn bảo mật FIPS 140-2 Level 3 và lưu trữ miễn phí 10 năm.</p>
+        <div class="hero-cta hf">
+          <a class="btn mag" href="#builder">Phát hành & Ký thử Hóa đơn mẫu</a>
+          <a class="btn ghost mag" href="#signing">Xem luồng truyền nhận TVAN</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><b>3.000+</b><span>Hóa đơn ký đồng thời / giây</span></div>
+          <div><b>0,3 giây</b><span>Thời gian cấp mã Tổng cục Thuế</span></div>
+          <div><b>120.000+</b><span>Doanh nghiệp & Hộ kinh doanh</span></div>
+        </div>
+      </div>
+
+      <div class="token-card hf">
+        <div class="tc-top">
+          <span class="mono" style="color:var(--tealL)">TRUNG TÂM MÃ HÓA SHA-256 & TVAN GATEWAY</span>
+          <span class="mono" id="hsmModeLabel" style="color:var(--goldL)">CLOUD HSM · KHÔNG CẦN USB</span>
+        </div>
+        <canvas id="hsmCanvas" width="520" height="330" role="img" aria-label="Mô phỏng luồng mã hóa chữ ký số Cloud HSM và con dấu xác thực Tổng cục Thuế"></canvas>
+        <div class="tc-btns" role="group" aria-label="Chọn phương thức ký số">
+          <button type="button" class="tc-btn active" data-hsm="0">Cloud HSM</button>
+          <button type="button" class="tc-btn" data-hsm="1">Máy tính tiền POS</button>
+          <button type="button" class="tc-btn" data-hsm="2">USB Token CA</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pinned Scrollytelling: Digital Signing & Tax Authority Code -->
+  <section class="signing" id="signing" aria-labelledby="sg-h">
+    <div class="sg-pin" id="sgPin">
+      <div>
+        <p class="kick light">Đường truyền TVAN trực tiếp</p>
+        <h2 id="sg-h">Từ dữ liệu bán hàng đến<br><em>Hóa đơn hợp pháp</em> tức thì</h2>
+        <div class="psteps">
+          <article class="pstep">
+            <span class="code-pill">BƯỚC 01 · KHỞI TẠO ĐỊNH DẠNG CHUẨN XML</span>
+            <h3>Đóng gói dữ liệu theo Quyết định 1450/QĐ-TCT</h3>
+            <p>Hệ thống tự động kiểm tra MST người mua trên cổng Tổng cục Thuế, tính toán chính xác tiền thuế GTGT 8% hoặc 10% và đóng gói cấu trúc thẻ XML không lỗi định dạng.</p>
+            <div class="pstep-tags"><span>Chuẩn XML 2.0</span><span>Tự động tra cứu MST</span><span>Chống xuất sai ngày</span></div>
+          </article>
+          <article class="pstep">
+            <span class="code-pill">BƯỚC 02 · KÝ SỐ CLOUD HSM / USB TOKEN</span>
+            <h3>Mã hóa khóa riêng RSA 2048-bit & Xác thực 2 lớp</h3>
+            <p>Doanh nghiệp ký hàng loạt hàng nghìn hóa đơn trên điện thoại hoặc tự động qua API máy chủ Cloud HSM mà không lo thất lạc hay hỏng USB Token vật lý.</p>
+            <div class="pstep-tags"><span>RSA 2048 / SHA-256</span><span>Ký lô 5.000 tờ/lần</span><span>Ký trên Mobile App</span></div>
+          </article>
+          <article class="pstep">
+            <span class="code-pill">BƯỚC 03 · TRUYỀN NHẬN TVAN & CẤP MÃ CQT</span>
+            <h3>Kết nối kênh thuê riêng tới Tổng cục Thuế trong 0,3 giây</h3>
+            <p>Gói tin XML đã ký được đẩy qua đường truyền ưu tiên TVAN, nhận ngay chuỗi 34 ký tự Mã của Cơ quan Thuế và đóng dấu xác thực đỏ hợp lệ.</p>
+            <div class="pstep-tags"><span>Mã CQT 34 ký tự</span><span>HĐĐT Máy tính tiền</span><span>Uptime 99.99%</span></div>
+          </article>
+          <article class="pstep">
+            <span class="code-pill">BƯỚC 04 · PHÁT HÀNH ĐA KÊNH & LƯU TRỮ 10 NĂM</span>
+            <h3>Gửi Email/Zalo/SMS tức thì & Đồng bộ phần mềm Kế toán</h3>
+            <p>Khách hàng nhận ngay bản thể hiện PDF cùng file gốc XML qua Email hoặc Zalo. Toàn bộ hóa đơn được sao lưu an toàn trên 3 trung tâm dữ liệu Tier III suốt 10 năm.</p>
+            <div class="pstep-tags"><span>Gửi Zalo & Email</span><span>Lưu trữ 10 năm miễn phí</span><span>Đồng bộ MISA / Fast</span></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="sg-stage" aria-hidden="true">
+        <canvas id="signFlowCanvas" width="640" height="430"></canvas>
+        <div class="sg-foot">
+          <span>Trạng thái gói tin: <b id="sgStepLabel">01 · Khởi tạo XML chuẩn QĐ 1450</b></span>
+          <span>Mã CQT: <b id="sgCodeStatus">ĐANG CẤP MÃ...</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Signature Interactive Widget: Live E-Invoice Builder & Signer -->
+  <section class="builder" id="builder" aria-labelledby="bd-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trải nghiệm thực tế</p>
+          <h2 id="bd-h" class="split" style="margin-top:16px">Tạo & <em>Ký số thử</em><br>Hóa đơn điện tử mẫu</h2>
+        </div>
+        <p class="rv">Thay đổi thông tin đơn vị mua, chọn mức thuế suất GTGT và nhấn "Ký số Cloud HSM & Cấp mã" để xem hóa đơn được đóng dấu đỏ và sinh mã XML trực tiếp.</p>
+      </div>
+
+      <div class="inv-workspace">
+        <div class="inv-form rv">
+          <div>
+            <label for="buyerMst">Chọn hoặc nhập Mẫu Doanh nghiệp mua hàng</label>
+            <select id="buyerMst">
+              <option value="0101245678|CÔNG TY CỔ PHẦN CÔNG NGHỆ SAO VIỆT">0101245678 — CTCP Công Nghệ Sao Việt</option>
+              <option value="0314589210|CÔNG TY TNHH THƯƠNG MẠI ĐẠI PHÁT">0314589210 — Công ty TNHH TM Đại Phát</option>
+              <option value="0401892345|CHUỖI NHÀ HÀNG ẨM THỰC BIỂN ĐÔNG">0401892345 — Chuỗi Nhà Hàng Biển Đông</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="itemName">Tên hàng hóa, dịch vụ</label>
+            <input id="itemName" type="text" value="Bản quyền Phần mềm Quản trị Doanh nghiệp Cloud (12 tháng)">
+          </div>
+
+          <div>
+            <label for="itemAmt">Thành tiền trước thuế (VNĐ)</label>
+            <input id="itemAmt" type="number" value="15000000" min="100000" step="500000">
+          </div>
+
+          <div>
+            <label>Thuế suất GTGT áp dụng</label>
+            <div class="vat-pills" role="group" aria-label="Chọn thuế suất GTGT">
+              <button type="button" class="vat-pill" data-vat="8" aria-pressed="true">VAT 8% (Giảm thuế)</button>
+              <button type="button" class="vat-pill" data-vat="10" aria-pressed="false">VAT 10% (Chuẩn)</button>
+              <button type="button" class="vat-pill" data-vat="0" aria-pressed="false">0% / KCT</button>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px">
+            <button type="button" class="btn stamp" id="signNowBtn">✍️ Ký số HSM & Cấp mã CQT</button>
+            <button type="button" class="btn sm" style="background:var(--forest);border-color:var(--forest)" id="toggleXmlBtn">Xem cấu trúc thẻ XML</button>
+          </div>
+        </div>
+
+        <div class="inv-preview rv" aria-live="polite">
+          <div class="ip-top">
+            <div>
+              <span class="mono" style="color:var(--teal)">MẪU SỐ: 1C26TAA · KÝ HIỆU: 0001284</span>
+              <h3 style="font-size:24px;margin-top:4px">HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h3>
+              <small style="color:var(--muted)">(Bản thể hiện của Hóa đơn điện tử có mã của Cơ quan Thuế)</small>
+            </div>
+            <div class="ip-code" id="prevCqtCode">Mã CQT: 0098A1B2C3D4E5F67890VN</div>
+          </div>
+
+          <div style="font-size:14px;display:grid;gap:4px">
+            <div><strong>Đơn vị bán:</strong> CÔNG TY CỔ PHẦN GIẢI PHÁP SỐ ESIGN & INVOICE VIỆT (MST: 0108889999)</div>
+            <div><strong>Đơn vị mua:</strong> <span id="prevBuyerName">CÔNG TY CỔ PHẦN CÔNG NGHỆ SAO VIỆT</span> — <strong>MST:</strong> <span id="prevBuyerMst">0101245678</span></div>
+          </div>
+
+          <table class="ip-table">
+            <thead>
+              <tr><th>Hàng hóa, dịch vụ</th><th>Trước thuế</th><th>Thuế GTGT</th><th>Tổng thanh toán</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="prevItem">Bản quyền Phần mềm Quản trị Doanh nghiệp Cloud</td>
+                <td id="prevSub" class="mono">15.000.000đ</td>
+                <td id="prevVat" class="mono">1.200.000đ (8%)</td>
+                <td id="prevTotal" class="mono" style="font-weight:700;color:var(--forest)">16.200.000đ</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="ip-seal-row">
+            <div style="font-size:13px;color:var(--muted)" id="signTimeNote">Trạng thái: Đã ký số hợp lệ & Cấp mã tự động</div>
+            <div class="red-stamp" id="redStampBox">
+              ✓ SIGNATURE VALID<br>
+              Ký bởi: ESIGN & INVOICE VIET<br>
+              <span id="stampTimestamp">Ngày ký: Hôm nay · Cloud HSM</span>
+            </div>
+          </div>
+
+          <pre class="xml-box" id="xmlOutput"></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compliance Features -->
+  <section class="compliance" id="compliance" aria-labelledby="cp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Tuân thủ pháp luật thuế 100%</p>
+          <h2 id="cp-h" class="split" style="margin-top:16px">Đầy đủ nghiệp vụ theo<br><em>Nghị định 123 & Thông tư 78</em></h2>
+        </div>
+        <p class="rv">Xử lý mượt mà mọi nghiệp vụ phức tạp như điều chỉnh, thay thế, hủy bỏ và lập thông báo hóa đơn sai sót Mẫu 04/SS-HĐĐT.</p>
+      </div>
+
+      <div class="cmp-grid">
+        <article class="ccard rv">
+          <span class="num">01 · HÓA ĐƠN MÁY TÍNH TIỀN</span>
+          <h3>Xuất hóa đơn 24/7 cho Bán lẻ, F&B, Siêu thị, Vàng bạc</h3>
+          <p>Khởi tạo hóa đơn có mã CQT ngay từ máy POS thu ngân không cần ký từng tờ, gửi dữ liệu tổng hợp cuối ngày đúng chuẩn Tổng cục Thuế.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="num">02 · KIỂM TRA HÓA ĐƠN ĐẦU VÀO</span>
+          <h3>Tự động quét & Cảnh báo Hóa đơn Đầu vào Rủi ro</h3>
+          <p>Tự động tải toàn bộ hóa đơn mua vào từ hệ thống thuế, kiểm tra chữ ký số người bán và cảnh báo ngay doanh nghiệp bỏ trốn/ngừng hoạt động.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="num">03 · CHỮNG TỪ KHẤU TRỪ THUẾ TNCN</span>
+          <h3>Chứng từ điện tử TNCN & Phiếu xuất kho kiêm vận chuyển</h3>
+          <p>Phát hành chứng từ khấu trừ thuế TNCN điện tử theo chuẩn mới nhất cho bộ phận Nhân sự - Kế toán chỉ với 1 cú nhấp chuột.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ERP Integrations -->
+  <section class="erp" id="erp" aria-labelledby="erp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Hệ sinh thái RESTful API</p>
+          <h2 id="erp-h" class="split" style="margin-top:16px">Tích hợp sẵn sàng với<br><em>Kế toán, POS & ERP</em></h2>
+        </div>
+        <p class="rv">Tài liệu API mở chuẩn OpenAPI giúp đội ngũ IT kết nối hoàn tất chỉ trong 2 giờ làm việc.</p>
+      </div>
+
+      <div class="erp-grid">
+        <article class="ecard rv">
+          <span class="mono" style="color:var(--teal)">ACCOUNTING</span>
+          <h3>Phần mềm Kế toán</h3>
+          <p>Đồng bộ hai chiều định khoản tự động với MISA, Fast, Bravo, Effect và Excel.</p>
+        </article>
+        <article class="ecard rv">
+          <span class="mono" style="color:var(--teal)">GLOBAL ERP</span>
+          <h3>Hệ thống ERP Tập đoàn</h3>
+          <p>Connector chính thức cho SAP S/4HANA, Oracle NetSuite, Microsoft Dynamics 365 & Odoo.</p>
+        </article>
+        <article class="ecard rv">
+          <span class="mono" style="color:var(--teal)">POS & RETAIL</span>
+          <h3>Phần mềm Bán hàng POS</h3>
+          <p>Phát hành hóa đơn máy tính tiền tức thì từ KiotFlow, Sapo, Haravan, PosApp, iPOS.</p>
+        </article>
+        <article class="ecard rv">
+          <span class="mono" style="color:var(--teal)">HIS & EDU</span>
+          <h3>Bệnh viện & Trường học</h3>
+          <p>Ký số viện phí và biên lai học phí tốc độ cao hàng chục nghìn giao dịch mỗi giờ.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="pricing" id="pricing" aria-labelledby="pr-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick light">Không thu phí duy trì hàng năm</p>
+          <h2 id="pr-h" class="split" style="margin-top:16px">Bảng giá <em>Hóa đơn điện tử</em><br>& Chữ ký số Cloud HSM</h2>
+        </div>
+        <p class="rv">Số lượng hóa đơn chưa dùng hết được bảo lưu chuyển sang các năm tiếp theo không giới hạn thời gian.</p>
+      </div>
+
+      <div class="pr-grid">
+        <article class="pr-card rv">
+          <span class="mono" style="color:var(--tealL)">GÓI DOANH NGHIỆP MỚI</span>
+          <h3>eInvoice 500</h3>
+          <div class="pr-val">450.000đ <small>/ 500 hóa đơn</small></div>
+          <ul>
+            <li>Miễn phí thiết kế mẫu hóa đơn theo logo riêng</li>
+            <li>Miễn phí thủ tục thông báo phát hành với CQT</li>
+            <li>Lưu trữ an toàn 10 năm trên Cloud Tier III</li>
+            <li>Không giới hạn thời gian sử dụng số hóa đơn</li>
+          </ul>
+          <a class="btn ghost" href="#register">Đăng ký Gói 500</a>
+        </article>
+
+        <article class="pr-card best rv">
+          <span class="mono" style="color:var(--goldL)">COMBO TIẾT KIỆM NHẤT</span>
+          <h3>eInvoice 2.000 + Cloud HSM</h3>
+          <div class="pr-val">1.490.000đ <small>/ trọn gói</small></div>
+          <ul>
+            <li>2.000 Hóa đơn điện tử chuẩn TT78 / Máy tính tiền</li>
+            <li>Tặng 1 năm Chữ ký số từ xa Cloud HSM tốc độ cao</li>
+            <li>Tặng 500 lần tra cứu & kiểm tra hóa đơn đầu vào</li>
+            <li>Miễn phí tích hợp phần mềm Kế toán & POS</li>
+          </ul>
+          <a class="btn" href="#register">Nhận ưu đãi Combo ngay</a>
+        </article>
+
+        <article class="pr-card rv">
+          <span class="mono" style="color:var(--tealL)">DOANH NGHIỆP LỚN & CHUỖI</span>
+          <h3>eInvoice 10.000+</h3>
+          <div class="pr-val">320đ <small>/ hóa đơn</small></div>
+          <ul>
+            <li>Hạ tầng ký số HSM chuyên biệt tốc độ 3.000 tờ/giây</li>
+            <li>Hỗ trợ mô hình Công ty mẹ - Chi nhánh phân quyền</li>
+            <li>Tích hợp chuyên sâu SAP / Oracle / Hệ thống nội bộ</li>
+            <li>Kỹ sư trực vận hành riêng 24/7/365</li>
+          </ul>
+          <a class="btn ghost" href="#register">Nhận báo giá Doanh nghiệp</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta" id="register" aria-labelledby="rg-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <div>
+          <p class="kick">Hỗ trợ tờ khai Mẫu 01/ĐKTĐ-HĐĐT</p>
+          <h2 id="rg-h" style="margin:16px 0">Kích hoạt phát hành<br><em>chỉ trong 2 giờ làm việc</em></h2>
+          <p style="color:var(--muted);margin-bottom:20px">Chỉ cần nhập Mã số thuế, chuyên viên pháp lý thuế của eSign & Invoice Viet sẽ soạn trọn bộ tờ khai đăng ký sử dụng Hóa đơn điện tử và nộp lên Cơ quan Thuế ngay trong ngày.</p>
+          <p class="mono" style="color:var(--forest)">● Miễn phí 100% phí khởi tạo & thiết kế mẫu hóa đơn<br>● Hotline hỗ trợ ký số 24/7: 1900 636 800</p>
+        </div>
+
+        <form class="cta-form" id="invRegForm" novalidate>
+          <div>
+            <label for="rMst">Mã số thuế hoặc Tên Doanh nghiệp</label>
+            <input id="rMst" type="text" placeholder="0101234567 — Công ty TNHH..." required>
+          </div>
+          <div class="f-row">
+            <div>
+              <label for="rPhone">Số điện thoại Kế toán / Giám đốc</label>
+              <input id="rPhone" type="tel" placeholder="0904 888 999" required>
+            </div>
+            <div>
+              <label for="rPkg">Dịch vụ cần đăng ký</label>
+              <select id="rPkg">
+                <option value="Combo HĐĐT + Cloud HSM">Combo Hóa đơn điện tử + Chữ ký số HSM</option>
+                <option value="HĐĐT Máy tính tiền">Hóa đơn điện tử Máy tính tiền (F&B/Bán lẻ)</option>
+                <option value="Gia hạn Chữ ký số">Gia hạn Chữ ký số khai thuế / BHXH</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label for="rEmail">Email nhận tài khoản & Hợp đồng điện tử</label>
+            <input id="rEmail" type="email" placeholder="ketoan@congty.vn" required>
+          </div>
+          <button type="submit" class="btn">Đăng ký & Nhận 500 Hóa đơn miễn phí</button>
+          <p class="f-msg" id="regMsg" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="ft-top">
+      <a class="logo" href="#top">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="#0D9488"/><rect x="10" y="7" width="20" height="26" rx="2.5" fill="#F8FAFC"/><circle cx="24" cy="25" r="5.5" fill="#DC2626"/><path d="M21.5 25L23.5 27L27 23" fill="none" stroke="#FFFFFF" stroke-width="1.8"/><rect x="13" y="12" width="13" height="2.2" fill="#061E19"/><rect x="13" y="16.5" width="9" height="2.2" fill="#061E19"/></svg>
+        <span>eSign & Invoice Viet</span>
+      </a>
+      <nav aria-label="Liên kết chân trang">
+        <ul>
+          <li><a href="#signing">Luồng cấp mã</a></li>
+          <li><a href="#builder">Ký thử hóa đơn</a></li>
+          <li><a href="#compliance">Thông tư 78</a></li>
+          <li><a href="#erp">Tích hợp API</a></li>
+          <li><a href="#pricing">Bảng giá</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="ft-fine">
+      <span>© <span id="yr"></span> Công ty Cổ phần Giải pháp Số eSign & Invoice Việt Nam.</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  $('#yr').textContent = new Date().getFullYear();
+
+  /* ================= Hero Cloud HSM Canvas ================= */
+  const hC = $('#hsmCanvas'), hX = hC.getContext('2d');
+  const HSM_MODES = [
+    { label: 'CLOUD HSM · KÝ TỰ ĐỘNG 3.000 TỜ/GIÂY', speed: '0.28s', hash: 'SHA256: 9F86D081884C7D659A2FEAA0C55AD015' },
+    { label: 'MÁY TÍNH TIỀN POS · XUẤT TỨC THÌ 24/7', speed: '0.15s', hash: 'MÃ CQT MTT: M1-26-A8921-0004829102' },
+    { label: 'USB TOKEN CA · KÝ SỐ ĐA NỀN TẢNG', speed: '0.45s', hash: 'CERT SERIAL: 5402B891C004E2A918472F' }
+  ];
+  let curHsm = 0;
+
+  function drawHsm() {
+    const w = hC.width, h = hC.height;
+    hX.clearRect(0, 0, w, h);
+    const m = HSM_MODES[curHsm];
+
+    // Data grid
+    hX.strokeStyle = 'rgba(45,212,191,0.08)';
+    hX.lineWidth = 1;
+    for (let x = 30; x < w; x += 45) { hX.beginPath(); hX.moveTo(x, 0); hX.lineTo(x, h); hX.stroke(); }
+    for (let y = 30; y < h; y += 45) { hX.beginPath(); hX.moveTo(0, y); hX.lineTo(w, y); hX.stroke(); }
+
+    // Left XML Document
+    hX.fillStyle = '#0B3128';
+    hX.strokeStyle = '#2DD4BF';
+    hX.lineWidth = 2;
+    hX.fillRect(36, 65, 130, 165);
+    hX.strokeRect(36, 65, 130, 165);
+    hX.fillStyle = '#2DD4BF';
+    hX.font = '700 13px "Chivo Mono", monospace';
+    hX.fillText('<HDon XML/>', 54, 100);
+    hX.fillStyle = '#94A3B8';
+    hX.font = '11px "Chivo Mono", monospace';
+    hX.fillText('MST: 0108889999', 50, 128);
+    hX.fillText('VAT: 8% / 10%', 50, 150);
+    hX.fillText('TT78 Compliant', 50, 172);
+
+    // Center Cloud HSM Shield
+    const cx = 265, cy = 148;
+    hX.strokeStyle = '#F59E0B';
+    hX.lineWidth = 2.5;
+    hX.beginPath(); hX.moveTo(166, cy); hX.lineTo(354, cy); hX.stroke();
+
+    hX.fillStyle = '#061E19';
+    hX.beginPath(); hX.arc(cx, cy, 48, 0, Math.PI * 2); hX.fill();
+    hX.strokeStyle = '#FCD34D';
+    hX.lineWidth = 3;
+    hX.beginPath(); hX.arc(cx, cy, 48, 0, Math.PI * 2); hX.stroke();
+    hX.fillStyle = '#FCD34D';
+    hX.font = '700 13px "Chivo Mono", monospace';
+    hX.textAlign = 'center';
+    hX.fillText('HSM RSA', cx, cy - 4);
+    hX.fillStyle = '#FFFFFF';
+    hX.fillText(m.speed, cx, cy + 16);
+
+    // Right Tax Authority Stamp
+    hX.textAlign = 'left';
+    hX.fillStyle = 'rgba(220,38,38,0.16)';
+    hX.strokeStyle = '#DC2626';
+    hX.lineWidth = 2.5;
+    hX.fillRect(354, 78, 135, 140);
+    hX.strokeRect(354, 78, 135, 140);
+    hX.fillStyle = '#FCA5A5';
+    hX.font = '700 12px "Chivo Mono", monospace';
+    hX.fillText('✓ ĐÃ CẤP MÃ CQT', 366, 115);
+    hX.fillStyle = '#FFFFFF';
+    hX.font = '11px "Chivo Mono", monospace';
+    hX.fillText('TỔNG CỤC THUẾ', 368, 142);
+    hX.fillStyle = '#2DD4BF';
+    hX.fillText('VALIDATED 100%', 368, 168);
+
+    // Hash bar at bottom
+    hX.fillStyle = 'rgba(13,148,136,0.22)';
+    hX.fillRect(24, h - 54, w - 48, 34);
+    hX.fillStyle = '#2DD4BF';
+    hX.font = '600 11.5px "Chivo Mono", monospace';
+    hX.fillText(m.hash, 36, h - 32);
+  }
+  drawHsm();
+
+  $$('.tc-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curHsm = +btn.dataset.hsm;
+      $$('.tc-btn').forEach((b) => b.classList.toggle('active', b === btn));
+      $('#hsmModeLabel').textContent = HSM_MODES[curHsm].label;
+      drawHsm();
+    });
+  });
+
+  /* ================= Pinned Signing Pipeline Canvas ================= */
+  const sC = $('#signFlowCanvas'), sX = sC.getContext('2d');
+  const SG_STEPS = [
+    '01 · Khởi tạo XML chuẩn QĐ 1450',
+    '02 · Ký số Cloud HSM SHA-256',
+    '03 · Truyền nhận TVAN & Cấp mã CQT',
+    '04 · Phát hành Đa kênh & Lưu trữ 10 năm'
+  ];
+
+  function drawSignFlow(p) {
+    const w = sC.width, h = sC.height;
+    sX.clearRect(0, 0, w, h);
+    const prog = clamp(p, 0.05, 1);
+    const sIdx = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3;
+
+    $('#sgStepLabel').textContent = SG_STEPS[sIdx];
+    $('#sgCodeStatus').textContent = prog > 0.52 ? '0098A1B2C3D4E5F67890VN (HỢP LỆ)' : 'ĐANG XÁC THỰC...';
+
+    const nodes = [
+      { x: 50, y: 80, t: '01. XML BUILDER', d: 'Chuẩn hóa dữ liệu & MST' },
+      { x: 345, y: 80, t: '02. CLOUD HSM', d: 'Chữ ký số RSA 2048-bit' },
+      { x: 50, y: 235, t: '03. TVAN GATEWAY', d: 'Cấp mã Tổng cục Thuế 0.3s' },
+      { x: 345, y: 235, t: '04. ARCHIVE 10Y', d: 'Gửi Email/Zalo & Đồng bộ' }
+    ];
+
+    nodes.forEach((nd, i) => {
+      const done = i <= sIdx;
+      sX.fillStyle = done ? 'rgba(13,148,136,0.25)' : 'rgba(255,255,255,0.04)';
+      sX.strokeStyle = i === sIdx ? '#FCD34D' : done ? '#2DD4BF' : 'rgba(255,255,255,0.14)';
+      sX.lineWidth = i === sIdx ? 2.5 : 1.5;
+      sX.fillRect(nd.x, nd.y, 245, 105);
+      sX.strokeRect(nd.x, nd.y, 245, 105);
+
+      sX.fillStyle = done ? '#FCD34D' : '#64748B';
+      sX.font = '700 12px "Chivo Mono", monospace';
+      sX.fillText(nd.t, nd.x + 18, nd.y + 34);
+
+      sX.fillStyle = '#FFFFFF';
+      sX.font = '500 14px "Lexend", sans-serif';
+      sX.fillText(nd.d, nd.x + 18, nd.y + 64);
+    });
+
+    // Progress bar
+    sX.fillStyle = 'rgba(255,255,255,0.1)';
+    sX.fillRect(50, 378, 540, 10);
+    sX.fillStyle = '#2DD4BF';
+    sX.fillRect(50, 378, 540 * prog, 10);
+  }
+
+  /* ================= Signature Widget: Live E-Invoice Builder ================= */
+  let vatRate = 8;
+  let serialCounter = 1284;
+
+  function updateInvoicePreview(signedNow = false) {
+    const [mst, name] = $('#buyerMst').value.split('|');
+    const item = $('#itemName').value.trim() || 'Dịch vụ Phần mềm Doanh nghiệp';
+    const amt = Math.max(0, parseInt($('#itemAmt').value || '15000000', 10));
+    const vatAmt = Math.round((amt * vatRate) / 100);
+    const total = amt + vatAmt;
+
+    $('#prevBuyerName').textContent = name;
+    $('#prevBuyerMst').textContent = mst;
+    $('#prevItem').textContent = item;
+    $('#prevSub').textContent = amt.toLocaleString('vi-VN') + 'đ';
+    $('#prevVat').textContent = vatAmt.toLocaleString('vi-VN') + `đ (${vatRate}%)`;
+    $('#prevTotal').textContent = total.toLocaleString('vi-VN') + 'đ';
+
+    if (signedNow) {
+      serialCounter += 1;
+      const randHex = Math.random().toString(16).slice(2, 12).toUpperCase();
+      $('#prevCqtCode').textContent = `Mã CQT: 0098${randHex}7890VN · Số HĐ: 000${serialCounter}`;
+      $('#signTimeNote').textContent = `✓ Đã ký số Cloud HSM & Cấp mã lúc ${new Date().toLocaleTimeString('vi-VN')}`;
+      $('#stampTimestamp').textContent = `Serial: 5402-${randHex.slice(0, 6)} · Hợp lệ`;
+    }
+
+    $('#xmlOutput').textContent = `<HDon>
+  <DLHDon Id="ID_000${serialCounter}">
+    <TTChung><MSHDon>1C26TAA</MSHDon><SHDon>000${serialCounter}</SHDon><THDon>Hóa đơn GTGT</THDon></TTChung>
+    <NMua><Ten>${name}</Ten><MST>${mst}</MST></NMua>
+    <HHDVu><THHDVu>${item}</THHDVu><ThTien>${amt}</ThTien><TSuat>${vatRate}%</TSuat><TgTTTBSo>${total}</TgTTTBSo></HHDVu>
+  </DLHDon>
+  <MCCQT>0098A1B2C3D4E5F67890VN</MCCQT>
+  <DSCKS><NBan><SignatureValue>RSA_SHA256_HSM_VERIFIED_OK</SignatureValue></NBan></DSCKS>
+</HDon>`;
+  }
+
+  $$('.vat-pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      vatRate = +btn.dataset.vat;
+      $$('.vat-pill').forEach((b) => b.setAttribute('aria-pressed', b === btn));
+      updateInvoicePreview(false);
+    });
+  });
+  ['#buyerMst', '#itemName', '#itemAmt'].forEach((id) => {
+    $(id).addEventListener('input', () => updateInvoicePreview(false));
+    $(id).addEventListener('change', () => updateInvoicePreview(false));
+  });
+  $('#signNowBtn').addEventListener('click', () => updateInvoicePreview(true));
+  $('#toggleXmlBtn').addEventListener('click', () => {
+    $('#xmlOutput').classList.toggle('show');
+  });
+  updateInvoicePreview(false);
+
+  /* ================= Nav, Menu, Form & Lenis ================= */
+  const nav = $('#nav');
+  const onScroll = () => nav.classList.toggle('solid', scrollY > 30);
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function toggleMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+    mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu');
+  }
+  mb.addEventListener('click', () => toggleMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) toggleMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { toggleMenu(false); mb.focus(); } });
+
+  $('#invRegForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const mst = $('#rMst').value.trim();
+    const email = $('#rEmail').value.trim();
+    if (!mst || !email) {
+      $('#regMsg').style.color = '#DC2626';
+      $('#regMsg').textContent = 'Vui lòng nhập Mã số thuế và Email để khởi tạo tờ khai Mẫu 01/ĐKTĐ-HĐĐT.';
+      return;
+    }
+    $('#regMsg').style.color = '#0D9488';
+    $('#regMsg').textContent = `Đã tạo hồ sơ phát hành cho ${mst}! Tài khoản & 500 hóa đơn miễn phí đã gửi về ${email}.`;
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      if (id.length < 2 || !$(id)) return;
+      e.preventDefault();
+      lenis ? lenis.scrollTo($(id), { offset: 0 }) : $(id).scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  if (!anim) { drawSignFlow(1); return; }
+
+  /* ================= GSAP Motion ================= */
+  G.set('.hero h1 .mask>span', { yPercent: 110 });
+  G.set('.hf', { autoAlpha: 0, y: 18 });
+  G.timeline({ delay: 0.1 })
+    .to('.hero h1 .mask>span', { yPercent: 0, duration: 1.0, stagger: 0.1, ease: 'expo.out' }, 0)
+    .to('.hf', { autoAlpha: 1, y: 0, duration: 0.75, stagger: 0.08, ease: 'power3.out' }, 0.25);
+
+  $$('.split').forEach((h) => {
+    h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('');
+    const lines = h.querySelectorAll('.mask>span');
+    G.set(lines, { yPercent: 110 });
+    ScrollTrigger.create({
+      trigger: h, start: 'top 88%', once: true,
+      onEnter: () => G.to(lines, { yPercent: 0, duration: 1.05, stagger: 0.1, ease: 'expo.out' })
+    });
+  });
+
+  G.set('.rv', { autoAlpha: 0, y: 26 });
+  ScrollTrigger.batch('.rv', {
+    start: 'top 90%', once: true,
+    onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: 0.85, stagger: 0.08, ease: 'power3.out', clearProps: 'transform' })
+  });
+
+  const psteps = $$('.pstep');
+  let curP = -1, pTw = [];
+  function setP(i) {
+    if (i === curP) return;
+    const prev = curP; curP = i;
+    pTw.forEach((t) => t.kill()); pTw = [];
+    psteps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }); });
+    if (prev >= 0) pTw.push(G.to(psteps[prev], { autoAlpha: 0, y: -14, duration: 0.28, ease: 'power2.in' }));
+    pTw.push(G.fromTo(psteps[i], { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.6, delay: prev >= 0 ? 0.15 : 0, ease: 'power3.out' }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  drawSignFlow(0.08);
+  setP(0);
+
+  ScrollTrigger.create({
+    trigger: '.signing', start: 'top top', end: '+=280%', pin: '#sgPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      drawSignFlow(p);
+      setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3);
+    }
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

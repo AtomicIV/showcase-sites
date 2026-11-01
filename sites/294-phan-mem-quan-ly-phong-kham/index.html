@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MediFlow HIS & EMR — Phần mềm Quản lý Phòng khám Đa khoa, Bệnh án Điện tử & PACS</title>
+<meta name="description" content="MediFlow HIS & EMR số hóa toàn diện phòng khám đa khoa và nha khoa: kết nối 2 chiều máy xét nghiệm LIS, siêu âm PACS, kê đơn thuốc quốc gia và giảm 65% thời gian chờ.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F2942'/%3E%3Cpath d='M26 14 H38 V26 H50 V38 H38 V50 H26 V38 H14 V26 H26 Z' fill='%230284C7'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23F2F8FC'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Lexend:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F8FC;
+  --bg2:#E1EEF7;
+  --card:#FFFFFF;
+  --dark:#0F2942;
+  --dark2:#163A5C;
+  --pri:#0284C7;
+  --teal:#0D9488;
+  --warn:#D97706;
+  --ink:#0F2942;
+  --muted:#47627B;
+  --line:rgba(2,132,199,.22);
+  --head:"Lexend", sans-serif;
+  --body:"Be Vietnam Pro", sans-serif;
+  --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--dark);color:#fff;padding:10px 16px;z-index:400;font-weight:600;border-radius:6px}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;margin:0;line-height:1.12;letter-spacing:-.015em}
+h2{font-size:clamp(32px,4.3vw,56px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--pri);background:rgba(2,132,199,.1);border:1px solid var(--line);padding:6px 12px;border-radius:99px}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px 2px rgba(13,148,136,.65)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:#fff;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;border-radius:8px;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .35s var(--ease),background .25s}
+.btn:hover{background:#0369A1;border-color:#0369A1}
+.btn.ghost{background:#fff;color:var(--dark);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--pri);color:var(--pri)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(242,248,252,.93);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--head);font-size:23px;font-weight:700;color:var(--dark)}
+.logo span{color:var(--pri)}
+.logo svg{width:34px;height:34px;flex-shrink:0}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 13px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--dark);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease);box-shadow:0 20px 45px -15px rgba(15,41,66,.2)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:19px;border-bottom:1px solid rgba(15,41,66,.08)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:122px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 80% 22%,rgba(2,132,199,.15),transparent 70%),radial-gradient(ellipse 50% 50% at 15% 85%,rgba(13,148,136,.12),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(36px,5vw,66px);line-height:1.1;margin-top:16px}
+.hero-lead{max-width:52ch;color:var(--muted);font-size:17.5px;margin-top:18px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-stage{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 28px 60px -24px rgba(15,41,66,.18)}
+.hero-stage canvas{width:100%;height:auto;border-radius:10px;background:#0F2942;cursor:crosshair}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+/* Pinned 2-Way LIS & PACS Medical Workflow (Dark Navy Contrast Section) */
+.process{position:relative;background:var(--dark);color:#F2F8FC;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.process .kick{color:#38BDF8;background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3)}
+.process h2 em{color:#38BDF8}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:245px;margin-top:22px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:#38BDF8}
+.pstep h3{font-size:clamp(24px,2.5vw,35px);margin:8px 0 12px;color:#fff}
+.pstep p{color:#CBD5E1;max-width:46ch}
+.pr-vis{background:#091B2C;border:1px solid rgba(56,189,248,.28);border-radius:16px;padding:18px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:#94A3B8}
+.pr-meter b{color:#38BDF8}
+
+/* Interactive Paperless Clinic Flow Simulator */
+.widget{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.w-shell{display:grid;grid-template-columns:1.16fr .84fr;gap:28px;align-items:start}
+.w-stage{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 20px 45px -22px rgba(15,41,66,.12)}
+.w-stage canvas{width:100%;height:auto;border-radius:10px;background:#0F2942}
+.w-controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.sl-row label b{color:var(--pri)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.w-panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:16px;box-shadow:0 20px 45px -22px rgba(15,41,66,.12)}
+.flow-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f-btn{padding:11px 12px;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+.f-btn .mono{font-size:10px;color:var(--pri);display:block}
+.f-btn b{font-family:var(--head);font-size:15.5px;display:block;margin-top:2px;color:var(--dark)}
+.f-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(2,132,199,.14)}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px}
+.kpi-card span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.kpi-card strong{font-family:var(--head);font-size:23px;color:var(--dark)}
+.emr-note{padding:14px;background:rgba(13,148,136,.1);border-left:3px solid var(--teal);border-radius:6px;font-size:14.5px;color:var(--dark)}
+
+/* Specialties & Modules */
+.modules{padding:116px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.mod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.mcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.mcard .mono{color:var(--pri);font-weight:600}
+.mcard h3{font-size:21px;color:var(--dark)}
+.mcard p{color:var(--muted);font-size:15px}
+
+/* Ministry of Health & Insurance Standards */
+.standards{padding:116px 0;background:#fff;border-top:1px solid var(--line)}
+.std-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.scard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.scard .mono{color:var(--teal);font-weight:600}
+.scard h3{font-size:23px;color:var(--dark)}
+.scard p{color:var(--muted);font-size:15px}
+
+/* CTA */
+.cta{padding:116px 0;background:var(--dark);color:#fff;border-top:1px solid var(--line)}
+.cta .kick{color:#38BDF8;background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.3)}
+.cta h2 em{color:#38BDF8}
+.cta-box{max-width:860px;margin:0 auto;background:var(--dark2);border:1px solid rgba(56,189,248,.28);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:#CBD5E1;margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:#0F2942;border:1px solid rgba(56,189,248,.3);border-radius:8px;color:#fff}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:#38BDF8}
+
+footer{background:#091B2C;color:#CBD5E1;border-top:1px solid rgba(56,189,248,.2);padding:52px 0 34px}
+footer .logo{color:#fff}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:#94A3B8}
+.f-nav a:hover{color:#38BDF8}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:#94A3B8}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.w-shell,.std-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .mod-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.w-controls,.flow-tabs,.kpi-grid,.mod-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 18px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="MediFlow HIS & EMR Trang chủ">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="8" fill="#0F2942"/><path d="M15 9 H21 V15 H27 V21 H21 V27 H15 V21 H9 V15 H15 Z" fill="#0284C7"/><circle cx="18" cy="18" r="2.8" fill="#F2F8FC"/></svg>
+      MediFlow<span>.EMR</span>
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Kết Nối LIS & PACS</a></li>
+        <li><a href="#simulator">Luồng Khám Không Giấy</a></li>
+        <li><a href="#modules">Phân Hệ Chuyên Khoa</a></li>
+        <li><a href="#standards">Chuẩn Bộ Y Tế</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#consult">Nhận Demo Phòng Khám</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Kết Nối Máy Xét Nghiệm LIS & PACS</a>
+  <a href="#simulator">Mô Phỏng Luồng Khám Không Giấy Tờ</a>
+  <a href="#modules">Bệnh Án Điện Tử Đa Khoa & Nha Khoa</a>
+  <a href="#standards">Liên Thông Đơn Thuốc Quốc Gia & BHYT</a>
+  <a href="#consult">Đăng Ký Tư Vấn Triển Khai</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Hệ sinh thái HIS · EMR · LIS · PACS · Nhà thuốc GPP</p>
+        <h1 id="hero-h"><span class="mask"><span>Phòng khám không giấy tờ,</span></span><span class="mask"><span>kết quả cận lâm sàng <em>tức thì.</em></span></span></h1>
+        <p class="hero-lead hf">MediFlow kết nối hai chiều trực tiếp với máy xét nghiệm huyết học – sinh hóa và hệ thống lưu trữ hình ảnh PACS (Siêu âm, X-Quang, CT), giúp bác sĩ xem chỉ số bất thường và kê đơn thuốc điện tử kiểm tra tương tác thuốc chỉ trong vài cú nhấp chuột.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#simulator">Mô Phỏng Luồng Khám Số</a>
+          <a class="btn ghost" href="#process">Xem Kết Nối Máy LIS/PACS</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>-65%</strong><span>Thời gian bệnh nhân chờ khám</span></div>
+          <div><strong>100%</strong><span>Liên thông Đơn thuốc Quốc gia</span></div>
+          <div><strong>450+</strong><span>Phòng khám Đa khoa & Nha khoa</span></div>
+        </div>
+      </div>
+      <div class="hero-stage hf">
+        <canvas id="heroC" width="600" height="420" role="img" aria-label="Màn hình bệnh án điện tử EMR kết nối trực tiếp hình ảnh PACS và xét nghiệm LIS"></canvas>
+        <div class="hero-meta">
+          <span>Di chuột để kiểm tra cảnh báo tương tác thuốc & ảnh DICOM</span>
+          <span style="color:var(--pri)">HL7 FHIR · DICOM 3.0 READY</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Tự động hóa cận lâm sàng 2 chiều</p>
+        <h2 id="pr-h">Khép kín hành trình bệnh nhân<br><em>không một tờ giấy in nháp</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Chặng 01 · Tiếp Đón Kiosk QR CCCD Gắn Chip & Gọi Số</p>
+            <h3>Check-in trong 5 giây và phân luồng tự động lên màn hình LCD</h3>
+            <p>Bệnh nhân quét CCCD gắn chip hoặc mã QR đặt lịch trên Zalo Mini App. Hệ thống tự động tra cứu thẻ BHYT và phân bổ vào bàn khám có hàng đợi ngắn nhất.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Chặng 02 · Kết Nối 2 Chiều Máy Xét Nghiệm LIS Barcode</p>
+            <h3>Đẩy lệnh chỉ định xuống máy & tự động nhận kết quả về EMR</h3>
+            <p>Ống nghiệm dán mã vạch định danh duy nhất. Ngay khi máy Roche, Abbott hay Mindray phân tích xong, chỉ số sẽ tự động đổ về màn hình bác sĩ kèm tô màu cảnh báo Cao/Thấp.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Chặng 03 · Hội Chẩn Hình Ảnh Siêu Âm & X-Quang PACS</p>
+            <h3>Xem ảnh DICOM sắc nét trên trình duyệt mà không cần in phim</h3>
+            <p>Hình ảnh từ máy siêu âm 4D, nội soi tai mũi họng và X-Quang kỹ thuật số được gắn trực tiếp vào hồ sơ bệnh án điện tử, cho phép bác sĩ so sánh tiến triển qua từng lần tái khám.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Chặng 04 · Kê Đơn Điện Tử AI & Xuất Kho Nhà Thuốc GPP</p>
+            <h3>Cảnh báo trùng hoạt chất, quá liều trẻ em và trừ tồn kho theo lô hạn</h3>
+            <p>Đơn thuốc được ký số, đẩy thẳng sang quầy Dược để chuẩn bị thuốc trước khi bệnh nhân bước ra khỏi phòng khám, đồng thời gửi lịch nhắc uống thuốc qua Zalo ZNS.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Trạm xử lý: <b id="pNode">01 · Tiếp đón QR & CCCD</b></span>
+          <span>Chuẩn giao tiếp: <b id="pProto">HL7 / BHYT Gate</b></span>
+          <span>Thời gian xử lý: <b id="pWait">05 giây</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="widget" id="simulator" aria-labelledby="w-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trình mô phỏng vận hành phòng khám</p>
+          <h2 id="w-h" style="margin-top:16px">Mô phỏng Luồng khám không giấy tờ &<br><em>Tính thời gian chờ giảm 65%</em></h2>
+        </div>
+        <p class="rv">Bấm chọn từng bước trong 4 trạm luồng khám (Tiếp đón QR → Khám Lâm sàng → Siêu âm PACS → Nhà thuốc GPP) và điều chỉnh số bàn khám (5–30 bàn) cùng lượng bệnh nhân/ngày để xem sơ đồ luồng trực quan trên canvas.</p>
+      </div>
+      <div class="w-shell">
+        <div class="w-stage">
+          <canvas id="flowC" width="680" height="410" role="img" aria-label="Sơ đồ mô phỏng luồng khám không giấy tờ từ Tiếp đón QR đến Nhà thuốc GPP"></canvas>
+          <div class="w-controls">
+            <div class="sl-row">
+              <label for="roomR"><span>Quy mô số bàn khám hoạt động</span><b id="vRoom">14 bàn khám</b></label>
+              <input id="roomR" type="range" min="5" max="30" step="1" value="14">
+            </div>
+            <div class="sl-row">
+              <label for="patR"><span>Lượng bệnh nhân tiếp nhận / ngày</span><b id="vPat">320 lượt/ngày</b></label>
+              <input id="patR" type="range" min="80" max="800" step="20" value="320">
+            </div>
+          </div>
+        </div>
+        <div class="w-panel">
+          <span class="mono" style="color:var(--pri)">Bấm chuyển 4 trạm luồng khám trên sơ đồ</span>
+          <div class="flow-tabs" id="flowTabs" role="group" aria-label="Chọn trạm trong luồng khám">
+            <button type="button" class="f-btn" data-f="0" aria-pressed="true">
+              <span class="mono">TRẠM 01 · KIOSK & ZALO</span>
+              <b>Tiếp đón QR / CCCD</b>
+            </button>
+            <button type="button" class="f-btn" data-f="1" aria-pressed="false">
+              <span class="mono">TRẠM 02 · BÁC SĨ CHUYÊN KHOA</span>
+              <b>Khám Lâm sàng EMR</b>
+            </button>
+            <button type="button" class="f-btn" data-f="2" aria-pressed="false">
+              <span class="mono">TRẠM 03 · CẬN LÂM SÀNG</span>
+              <b>Siêu âm PACS & LIS</b>
+            </button>
+            <button type="button" class="f-btn" data-f="3" aria-pressed="false">
+              <span class="mono">TRẠM 04 · DƯỢC LÂM SÀNG</span>
+              <b>Nhà thuốc GPP & ZNS</b>
+            </button>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span>Thời gian chờ trung bình</span>
+              <strong id="kWait" style="color:var(--pri)">14 phút (-65%)</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Công suất phục vụ tối ưu</span>
+              <strong id="kCap">490 ca/ngày</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Chi phí in ấn tiết kiệm</span>
+              <strong id="kSave">18.4 Tr/tháng</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Tỷ lệ sai sót nhập liệu</span>
+              <strong id="kErr" style="color:var(--teal)">0.0% (2 chiều)</strong>
+            </div>
+          </div>
+          <div class="emr-note" id="wDesc" role="status" aria-live="polite">
+            <strong>Trạm 01 — Tiếp đón QR:</strong> Bệnh nhân quét CCCD gắn chip hoặc mã hẹn khám Zalo, rút ngắn thời gian làm thủ tục quầy lễ tân từ 6 phút xuống còn <b>15 giây</b>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="modules" id="modules" aria-labelledby="mod-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Thiết kế may đo theo chuyên khoa</p>
+          <h2 id="mod-h" style="margin-top:16px">Bệnh án chuyên sâu cho <em>mọi mô hình</em></h2>
+        </div>
+        <p class="rv">Giao diện bác sĩ tối giản thao tác gõ phím nhờ hệ thống từ điển triệu chứng và phác đồ mẫu thông minh.</p>
+      </div>
+      <div class="mod-grid">
+        <article class="mcard rv">
+          <span class="mono">01 · Đa khoa & Nội Nhi</span>
+          <h3>Biểu đồ Tăng trưởng & Tiêm chủng</h3>
+          <p>Tự động tính liều thuốc theo cân nặng bệnh nhi, theo dõi lịch sử dị ứng và nhắc lịch tiêm vắc-xin định kỳ.</p>
+        </article>
+        <article class="mcard rv">
+          <span class="mono">02 · Nha khoa Kỹ thuật số</span>
+          <h3>Sơ đồ Răng Odontogram 3D</h3>
+          <p>Đánh dấu tình trạng từng bề mặt răng, quản lý lộ trình chỉnh nha Invisalign, cấy ghép Implant và công nợ điều trị theo đợt.</p>
+        </article>
+        <article class="mcard rv">
+          <span class="mono">03 · Sản Phụ Khoa & IVF</span>
+          <h3>Quản lý Thai kỳ & Siêu âm 4D</h3>
+          <p>Theo dõi tuổi thai, ngày dự sinh, biểu đồ cân nặng thai nhi và gửi video siêu âm 4D trực tiếp vào điện thoại sản phụ.</p>
+        </article>
+        <article class="mcard rv">
+          <span class="mono">04 · Khám Sức Khỏe Doanh Nghiệp</span>
+          <h3>Điều phối Đoàn Khám 2.000 Người</h3>
+          <p>In sổ khám hàng loạt bằng mã vạch, phân luồng 1 chiều chống ùn tắc và xuất báo cáo phân loại sức khỏe A/B/C/D cho HR.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="standards" id="standards" aria-labelledby="std-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Tuân thủ pháp lý & Bảo mật dữ liệu y tế</p>
+          <h2 id="std-h" style="margin-top:16px">Chuẩn hóa theo <em>Thông tư Bộ Y Tế</em></h2>
+        </div>
+        <p class="rv">Sẵn sàng kết nối các cổng dữ liệu y tế quốc gia và bảo vệ tuyệt đối quyền riêng tư hồ sơ bệnh nhân.</p>
+      </div>
+      <div class="std-grid">
+        <article class="scard rv">
+          <span class="mono">Thông tư 46/2018 & 54/2017</span>
+          <h3>Bệnh Án Điện Tử & Ký Số HSM</h3>
+          <p>Tích hợp chữ ký số tập trung cho bác sĩ và kỹ thuật viên xét nghiệm, đáp ứng đầy đủ tiêu chí phòng khám không bệnh án giấy.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">Cổng Dược Quốc Gia & BHYT</span>
+          <h3>Liên thông Đơn thuốc & Giám định XML</h3>
+          <p>Tự động đẩy mã đơn thuốc lên hệ thống donthuocquocgia.vn và xuất chuẩn dữ liệu XML 4210/130 thanh quyết toán Bảo hiểm Y tế.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">Thanh toán Động & Hóa đơn Điện tử</span>
+          <h3>VietQR Động Tại Bàn Khám</h3>
+          <p>Sinh mã QR thanh toán chính xác từng khoản viện phí ngay tại phòng khám hoặc quầy thu ngân, tự động xuất hóa đơn điện tử VNPT/Viettel.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="consult" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Đồng hành cùng hơn 450 cơ sở y tế trên toàn quốc</p>
+        <h2 id="cta-h" style="margin-top:14px">Đăng Ký Trải Nghiệm MediFlow &<br><em>Khảo Sát Kết Nối Máy Xét Nghiệm Miễn Phí</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="mName">Họ tên Bác sĩ / Giám đốc Phòng khám</label>
+            <input id="mName" type="text" placeholder="BS.CKII Lê Minh Tâm" required>
+          </div>
+          <div>
+            <label for="mPhone">Số điện thoại / Email nhận tài khoản</label>
+            <input id="mPhone" type="email" placeholder="bstam@phongkhamdakhoa.vn" required>
+          </div>
+          <div>
+            <label for="mType">Mô hình cơ sở y tế</label>
+            <select id="mType">
+              <option value="pkdk">Phòng khám Đa khoa (Từ 5 – 30 bàn khám)</option>
+              <option value="nhakhoa">Hệ thống Nha khoa / Chuyên khoa Sản - Nhi</option>
+              <option value="bv">Bệnh viện Tư nhân / Trung tâm Xét nghiệm</option>
+            </select>
+          </div>
+          <div>
+            <label for="mNeed">Nhu cầu tích hợp ưu tiên</label>
+            <select id="mNeed">
+              <option value="lis">Kết nối 2 chiều máy xét nghiệm LIS & siêu âm PACS</option>
+              <option value="bhyt">Quản lý tổng thể HIS/EMR, Nhà thuốc GPP & BHYT</option>
+              <option value="crm">Đặt lịch Zalo Mini App & Chăm sóc bệnh nhân tự động</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Nhận Tài Khoản Demo & Báo Giá Chi Tiết</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">MediFlow<span>.EMR</span></a>
+      <ul class="f-nav">
+        <li><a href="#process">Kết Nối LIS/PACS</a></li>
+        <li><a href="#simulator">Luồng Khám Không Giấy</a></li>
+        <li><a href="#modules">Chuyên Khoa</a></li>
+        <li><a href="#standards">Chuẩn Bộ Y Tế</a></li>
+        <li><a href="#consult">Nhận Demo</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> MediFlow Healthcare Systems Vietnam · Giải pháp Quản lý Phòng khám & Bệnh án Điện tử</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  // 1. Hero Canvas: Doctor's EMR Workstation with Live LIS & PACS
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  function drawHero(px = 300) {
+    const w = 600, h = 420;
+    heroX.fillStyle = '#0F2942';
+    heroX.fillRect(0, 0, w, h);
+
+    // Top Patient Banner
+    heroX.fillStyle = '#163A5C';
+    heroX.fillRect(20, 20, 560, 48);
+    heroX.fillStyle = '#38BDF8';
+    heroX.font = '600 12px "JetBrains Mono", monospace';
+    heroX.fillText('MÃ BN: #VN-2026-0892 · NGUYỄN THỊ MAI ANH (1988) · BHYT 80%', 34, 48);
+
+    // Left Panel: LIS Lab Results (Auto-pushed from analyzer)
+    heroX.fillStyle = '#091B2C';
+    heroX.strokeStyle = 'rgba(56,189,248,0.35)';
+    heroX.lineWidth = 1.5;
+    heroX.fillRect(20, 82, 272, 230);
+    heroX.strokeRect(20, 82, 272, 230);
+    heroX.fillStyle = '#38BDF8';
+    heroX.font = '600 11px "JetBrains Mono", monospace';
+    heroX.fillText('KẾT QUẢ MÁY XÉT NGHIỆM COBAS C311', 34, 108);
+
+    const labs = [
+      ['Glucose máu', '6.8 mmol/L', 'CAO (3.9-6.1)', '#F59E0B'],
+      ['HbA1c', '6.4 %', 'CẢNH BÁO', '#F59E0B'],
+      ['Creatinine', '74 µmol/L', 'BÌNH THƯỜNG', '#2DD4BF'],
+      ['AST (GOT)', '26 U/L', 'BÌNH THƯỜNG', '#2DD4BF'],
+      ['CRP định lượng', '1.8 mg/L', 'BÌNH THƯỜNG', '#2DD4BF']
+    ];
+    labs.forEach((l, i) => {
+      const y = 140 + i * 32;
+      heroX.fillStyle = '#E2E8F0';
+      heroX.font = '500 11.5px "Be Vietnam Pro", sans-serif';
+      heroX.fillText(l[0], 34, y);
+      heroX.fillStyle = l[3];
+      heroX.font = '600 11px "JetBrains Mono", monospace';
+      heroX.fillText(l[1], 130, y);
+      heroX.fillText(l[2], 208, y);
+    });
+
+    // Right Panel: PACS Ultrasound / DICOM Viewer
+    heroX.fillStyle = '#06111C';
+    heroX.fillRect(308, 82, 272, 230);
+    heroX.strokeRect(308, 82, 272, 230);
+    heroX.fillStyle = '#2DD4BF';
+    heroX.font = '600 11px "JetBrains Mono", monospace';
+    heroX.fillText('PACS DICOM · SIÊU ÂM DOPPLER TIM', 322, 108);
+
+    // Simulated Ultrasound Fan Cone
+    heroX.save();
+    heroX.beginPath();
+    heroX.moveTo(444, 130);
+    heroX.arc(444, 130, 145, Math.PI * 0.28, Math.PI * 0.72);
+    heroX.closePath();
+    heroX.fillStyle = 'rgba(2,132,199,0.22)';
+    heroX.fill();
+    heroX.strokeStyle = '#38BDF8';
+    heroX.stroke();
+    // Moving caliper crosshair inside ultrasound
+    const cx = 390 + ((px * 0.18) % 105);
+    heroX.strokeStyle = '#2DD4BF';
+    heroX.beginPath(); heroX.arc(cx, 215, 16, 0, Math.PI * 2); heroX.stroke();
+    heroX.fillStyle = '#2DD4BF';
+    heroX.fillText('EF: 64% · D=44mm', cx - 35, 250);
+    heroX.restore();
+
+    // Bottom e-Prescription & Drug Interaction Check
+    heroX.fillStyle = '#163A5C';
+    heroX.fillRect(20, 326, 560, 74);
+    heroX.fillStyle = '#2DD4BF';
+    heroX.font = '600 11.5px "JetBrains Mono", monospace';
+    heroX.fillText('ĐƠN THUỐC ĐIỆN TỬ QUỐC GIA · KIỂM TRA TƯƠNG TÁC THUỐC AI: AN TOÀN 100%', 34, 352);
+    heroX.fillStyle = '#E2E8F0';
+    heroX.font = '500 12.5px "Be Vietnam Pro", sans-serif';
+    heroX.fillText('1. Metformin 500mg (Sáng 1v, Tối 1v sau ăn)  ·  2. Rosuvastatin 10mg (Tối 1v)', 34, 380);
+  }
+  drawHero(300);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    drawHero(((e.clientX - r.left) / r.width) * 600);
+  });
+
+  // 2. Pinned 4-Stage LIS/PACS Workflow Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const P_STEPS = [
+    ['01 · Tiếp đón QR & CCCD', 'HL7 / Cổng BHYT', '05 giây'],
+    ['02 · Xét nghiệm LIS 2 chiều', 'ASTM / HL7 Analyzer', 'Tự động 100%'],
+    ['03 · Hội chẩn Hình ảnh PACS', 'DICOM 3.0 WebViewer', 'Không in phim'],
+    ['04 · Đơn thuốc Quốc gia & GPP', 'API Bộ Y Tế & Zalo ZNS', '0 phút chờ thuốc']
+  ];
+  function renderPin(p) {
+    const w = 660, h = 440;
+    const step = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3;
+    pinX.fillStyle = '#091B2C';
+    pinX.fillRect(0, 0, w, h);
+
+    for (let i = 0; i < 4; i++) {
+      const x = 48 + i * 145;
+      pinX.fillStyle = i <= step ? '#0284C7' : '#163A5C';
+      pinX.fillRect(x, 38, 125, 8);
+      pinX.fillStyle = i === step ? '#38BDF8' : '#94A3B8';
+      pinX.font = '600 11px "JetBrains Mono", monospace';
+      pinX.fillText(`CHẶNG 0${i + 1}`, x, 28);
+    }
+
+    if (step === 0) {
+      // QR & Chip ID Check-in
+      pinX.strokeStyle = '#38BDF8';
+      pinX.lineWidth = 2;
+      pinX.strokeRect(65, 90, 220, 250);
+      pinX.fillStyle = '#38BDF8';
+      pinX.font = '700 14px "JetBrains Mono", monospace';
+      pinX.fillText('KIOSK QUÉT CCCD CHIP', 90, 130);
+      // QR grid
+      for (let r = 0; r < 6; r++) {
+        for (let c = 0; c < 6; c++) {
+          if ((r + c) % 2 === 0) pinX.fillRect(115 + c * 20, 155 + r * 20, 14, 14);
+        }
+      }
+      pinX.fillStyle = '#163A5C';
+      pinX.fillRect(315, 90, 285, 250);
+      pinX.fillStyle = '#2DD4BF';
+      pinX.fillText('BẢNG GỌI SỐ PHÒNG KHÁM', 340, 130);
+      pinX.fillStyle = '#fff';
+      pinX.font = '600 15px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Phòng Nội 01: Mời số 1042', 340, 178);
+      pinX.fillText('• Phòng Nhi 02: Mời số 2018', 340, 218);
+      pinX.fillText('• Phòng Siêu âm: Mời số 3009', 340, 258);
+    } else if (step === 1) {
+      // Bi-directional LIS Barcode
+      pinX.fillStyle = '#163A5C';
+      pinX.fillRect(65, 95, 530, 240);
+      pinX.fillStyle = '#38BDF8';
+      pinX.font = '700 15px "JetBrains Mono", monospace';
+      pinX.fillText('LUỒNG KẾT NỐI 2 CHIỀU MÁY XÉT NGHIỆM (LIS <-> ANALYZER)', 92, 138);
+      // Barcode bars
+      for (let i = 0; i < 36; i++) {
+        pinX.fillStyle = '#fff';
+        pinX.fillRect(92 + i * 12, 165, i % 3 === 0 ? 7 : 3, 56);
+      }
+      pinX.fillStyle = '#2DD4BF';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('MÃ ỐNG NGHIỆM: #LIS-884920 -> ĐÃ TRẢ KẾT QUẢ VỀ BÀN KHÁM SỐ 03', 92, 265);
+      pinX.fillStyle = '#CBD5E1';
+      pinX.fillText('Loại bỏ 100% thao tác gõ tay kết quả xét nghiệm · Chống nhầm mẫu bệnh phẩm', 92, 300);
+    } else if (step === 2) {
+      // PACS Viewer
+      pinX.fillStyle = '#050F1A';
+      pinX.strokeStyle = '#38BDF8';
+      pinX.fillRect(65, 88, 530, 255);
+      pinX.strokeRect(65, 88, 530, 255);
+      pinX.strokeStyle = 'rgba(56,189,248,0.5)';
+      pinX.lineWidth = 2;
+      pinX.beginPath(); pinX.arc(210, 215, 78, 0, Math.PI * 2); pinX.stroke();
+      pinX.beginPath(); pinX.arc(210, 215, 42, 0, Math.PI * 2); pinX.stroke();
+      pinX.fillStyle = '#38BDF8';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('DICOM PACS CLOUD · ẢNH X-QUANG & SIÊU ÂM ĐỘ PHÂN GIẢI GỐC', 315, 155);
+      pinX.fillStyle = '#E2E8F0';
+      pinX.font = '500 13px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Bác sĩ đo đạc kích thước tổn thương ngay trên Web', 315, 195);
+      pinX.fillText('• Bệnh nhân quét QR trên phiếu khám để xem ảnh tại nhà', 315, 230);
+    } else {
+      // National e-Prescription & Pharmacy
+      pinX.fillStyle = '#163A5C';
+      pinX.strokeStyle = '#2DD4BF';
+      pinX.fillRect(65, 95, 530, 240);
+      pinX.strokeRect(65, 95, 530, 240);
+      pinX.fillStyle = '#2DD4BF';
+      pinX.font = '700 15px "JetBrains Mono", monospace';
+      pinX.fillText('LIÊN THÔNG ĐƠN THUỐC QUỐC GIA & NHÀ THUỐC GPP (FEFO)', 90, 140);
+      pinX.fillStyle = '#fff';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Tự động ưu tiên xuất lô thuốc sắp hết hạn trước (FEFO)', 90, 188);
+      pinX.fillText('• Gửi tin nhắn Zalo ZNS hướng dẫn liều uống & lịch tái khám định kỳ', 90, 224);
+      pinX.fillStyle = '#38BDF8';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('MÃ ĐƠN QUỐC GIA: #DTQG-77410928-VN · ĐÃ KÝ SỐ HSM', 90, 280);
+    }
+
+    $('#pNode').textContent = P_STEPS[step][0];
+    $('#pProto').textContent = P_STEPS[step][1];
+    $('#pWait').textContent = P_STEPS[step][2];
+  }
+  renderPin(0.2);
+
+  // 3. Signature Interactive Widget: Paperless Clinic Flow Simulator
+  const FLOW_NODES = [
+    {
+      code: '01 · TIẾP ĐÓN QR',
+      title: 'Trạm 01 — Tiếp đón QR & CCCD gắn chip',
+      desc: 'Bệnh nhân quét CCCD gắn chip hoặc mã hẹn khám Zalo, rút ngắn thời gian làm thủ tục quầy lễ tân từ 6 phút xuống còn <b>15 giây</b>.',
+      paperMin: 12,
+      digiMin: 2
+    },
+    {
+      code: '02 · KHÁM LÂM SÀNG',
+      title: 'Trạm 02 — Khám Lâm sàng & Bệnh án EMR',
+      desc: 'Bác sĩ gọi số tự động lên màn hình LCD cửa phòng, tra cứu tiền sử bệnh án điện tử trong 1 chạm và chỉ định cận lâm sàng không cần viết phiếu giấy.',
+      paperMin: 22,
+      digiMin: 6
+    },
+    {
+      code: '03 · SIÊU ÂM PACS',
+      title: 'Trạm 03 — Cận lâm sàng LIS & Siêu âm PACS',
+      desc: 'Kết quả máy xét nghiệm và ảnh siêu âm PACS tự động trả thẳng về màn hình bác sĩ ngay khi thực hiện xong; bệnh nhân không phải ngồi chờ in phim hay cầm giấy quay lại.',
+      paperMin: 35,
+      digiMin: 11
+    },
+    {
+      code: '04 · NHÀ THUỐC GPP',
+      title: 'Trạm 04 — Đơn thuốc Điện tử & Nhà thuốc GPP',
+      desc: 'Đơn thuốc được chuyển tới quầy Dược ngay lúc bác sĩ bấm lưu, thanh toán VietQR động tại chỗ và gửi hướng dẫn uống thuốc qua Zalo ZNS.',
+      paperMin: 16,
+      digiMin: 4
+    }
+  ];
+
+  const flowC = $('#flowC'), flowX = flowC.getContext('2d');
+  let curNode = 0, rooms = 14, dailyPats = 320;
+
+  function renderFlow() {
+    const w = 680, h = 410;
+    flowX.fillStyle = '#0F2942';
+    flowX.fillRect(0, 0, w, h);
+
+    $('#vRoom').textContent = `${rooms} bàn khám`;
+    $('#vPat').textContent = `${dailyPats} lượt/ngày`;
+
+    // Calculate wait time reduction
+    const loadFactor = Math.max(0.75, Math.min(1.6, dailyPats / (rooms * 24)));
+    const waitDigi = Math.round(11 * loadFactor);
+    const waitPaper = Math.round(waitDigi * 2.86);
+    const maxCap = rooms * 35;
+    const savedVnd = (dailyPats * 1900 * 30 / 1000000).toFixed(1);
+
+    $('#kWait').textContent = `${waitDigi} phút (-65%)`;
+    $('#kCap').textContent = `${maxCap} ca/ngày`;
+    $('#kSave').textContent = `${savedVnd} Tr/tháng`;
+
+    const fn = FLOW_NODES[curNode];
+    $('#wDesc').innerHTML = `<strong>${fn.title}:</strong> ${fn.desc}`;
+
+    // Header
+    flowX.fillStyle = '#F2F8FC';
+    flowX.font = '600 12px "JetBrains Mono", monospace';
+    flowX.fillText(`SƠ ĐỒ LUỒNG KHÁM SỐ HÓA (${rooms} BÀN KHÁM · ${dailyPats} BN/NGÀY)`, 32, 34);
+
+    // Draw 4 connected station boxes across canvas
+    FLOW_NODES.forEach((n, idx) => {
+      const x = 32 + idx * 158;
+      const y = 68;
+      const active = idx === curNode;
+
+      // Connector arrow
+      if (idx < 3) {
+        flowX.strokeStyle = idx < curNode ? '#2DD4BF' : '#38BDF8';
+        flowX.lineWidth = 3;
+        flowX.beginPath();
+        flowX.moveTo(x + 136, y + 52);
+        flowX.lineTo(x + 158, y + 52);
+        flowX.stroke();
+      }
+
+      flowX.fillStyle = active ? '#0284C7' : '#163A5C';
+      flowX.strokeStyle = active ? '#7DD3FC' : 'rgba(56,189,248,0.35)';
+      flowX.lineWidth = active ? 2.5 : 1.5;
+      flowX.fillRect(x, y, 136, 104);
+      flowX.strokeRect(x, y, 136, 104);
+
+      flowX.fillStyle = active ? '#fff' : '#38BDF8';
+      flowX.font = '600 10px "JetBrains Mono", monospace';
+      flowX.fillText(n.code, x + 10, y + 26);
+
+      flowX.fillStyle = '#fff';
+      flowX.font = '600 12px "Be Vietnam Pro", sans-serif';
+      flowX.fillText(`Chờ số hóa: ${Math.round(n.digiMin * loadFactor)}p`, x + 10, y + 56);
+      flowX.fillStyle = active ? '#E0F2FE' : '#94A3B8';
+      flowX.font = '500 11px "JetBrains Mono", monospace';
+      flowX.fillText(`Thủ công: ${Math.round(n.paperMin * loadFactor)}p`, x + 10, y + 82);
+    });
+
+    // Bottom Comparison Bar Chart: Paper Clinic vs MediFlow Paperless
+    flowX.fillStyle = '#94A3B8';
+    flowX.font = '600 11px "JetBrains Mono", monospace';
+    flowX.fillText('SO SÁNH TỔNG THỜI GIAN CHỜ TRUNG BÌNH CỦA 1 BỆNH NHÂN:', 32, 224);
+
+    // Traditional Paper bar
+    flowX.fillStyle = '#163A5C';
+    flowX.fillRect(32, 246, 540, 38);
+    flowX.fillStyle = '#F59E0B';
+    const paperW = Math.min(540, waitPaper * 8.5);
+    flowX.fillRect(32, 246, paperW, 38);
+    flowX.fillStyle = '#fff';
+    flowX.font = '600 12px "JetBrains Mono", monospace';
+    flowX.fillText(`QUY TRÌNH GIẤY TỜ TRUYỀN THỐNG: ${waitPaper} PHÚT CHỜ`, 46, 270);
+
+    // MediFlow Digital bar
+    flowX.fillStyle = '#163A5C';
+    flowX.fillRect(32, 304, 540, 38);
+    flowX.fillStyle = '#2DD4BF';
+    const digiW = Math.min(540, waitDigi * 8.5);
+    flowX.fillRect(32, 304, digiW, 38);
+    flowX.fillStyle = '#0F2942';
+    flowX.fillText(`LUỒNG SỐ MEDIFLOW: ${waitDigi} PHÚT`, 46, 328);
+
+    flowX.fillStyle = '#38BDF8';
+    flowX.fillText('BẤM TRỰC TIẾP VÀO TỪNG TRẠM Ở TRÊN ĐỂ XEM CHI TIẾT TỰ ĐỘNG HÓA', 32, 382);
+  }
+
+  function selectFlow(idx) {
+    curNode = idx;
+    $$('#flowTabs .f-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === idx));
+    renderFlow();
+  }
+  selectFlow(0);
+
+  $('#flowTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.f-btn');
+    if (b) selectFlow(+b.dataset.f);
+  });
+  flowC.addEventListener('click', (e) => {
+    const r = flowC.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * 680;
+    const idx = Math.max(0, Math.min(3, Math.floor((x - 32) / 158)));
+    selectFlow(idx);
+  });
+  $('#roomR').addEventListener('input', (e) => {
+    rooms = +e.target.value;
+    renderFlow();
+  });
+  $('#patR').addEventListener('input', (e) => {
+    dailyPats = +e.target.value;
+    renderFlow();
+  });
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#mName').value.trim();
+    $('#ctaOk').textContent = n
+      ? `Trân trọng cảm ơn ${n}! Chuyên viên giải pháp Y tế số MediFlow sẽ gửi tài khoản Demo và danh mục kết nối máy LIS/PACS trong 30 phút.`
+      : 'Vui lòng nhập họ tên bác sĩ/quản lý và thông tin liên hệ để nhận tài khoản Demo.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.32 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.42, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

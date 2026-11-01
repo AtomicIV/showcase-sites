@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SportMatch VN — Ứng Dụng Đặt Sân Cầu Lông, Pickleball &amp; Ghép Kèo Cùng Trình Độ</title>
+  <meta name="description" content="SportMatch VN: Tìm sân trống quanh bạn trong 30 giây, Chia tiền sân tự động qua QR & Hệ thống xếp hạng trình độ người chơi Cầu lông, Pickleball, Bóng đá phủi." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23080F18'/%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='%2310B981' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='8' fill='%233B82F6'/%3E%3Cpath d='M32 6 V16 M32 48 V58 M6 32 H16 M48 32 H58' stroke='%2310B981' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #080F18;
+      --bg-card: #101D2E;
+      --bg-elev: #172A42;
+      --emerald: #10B981;
+      --blue: #3B82F6;
+      --amber: #F59E0B;
+      --text: #F1F5F9;
+      --muted: #94A3B8;
+      --border: rgba(16, 185, 129, 0.25);
+      --font-head: 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      overflow-x: clip;
+      scroll-behavior: smooth;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    img, svg, canvas { max-width: 100%; display: block; }
+    .skip {
+      position: absolute;
+      left: -9999px;
+      top: 12px;
+      background: var(--emerald);
+      color: #080F18;
+      padding: 10px 18px;
+      font-weight: 700;
+      border-radius: 6px;
+      z-index: 9999;
+    }
+    .skip:focus { left: 12px; }
+    .container { width: min(1240px, 100% - 32px); margin-inline: auto; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8, 15, 24, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+    .brand-pin {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--emerald), var(--blue));
+      color: #080F18;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+    .nav-links { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .nav-links a { font-size: 0.92rem; color: var(--muted); font-weight: 600; }
+    .nav-links a:hover { color: var(--emerald); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary {
+      background: var(--emerald);
+      color: #05100B;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-outline {
+      background: rgba(59, 130, 246, 0.14);
+      border-color: var(--blue);
+      color: #60A5FA;
+    }
+    .btn-outline:hover { background: var(--blue); color: #fff; }
+
+    .hero {
+      padding: 64px 0 56px;
+      background:
+        radial-gradient(circle at 20% 22%, rgba(16, 185, 129, 0.18), transparent 42%),
+        radial-gradient(circle at 82% 70%, rgba(59, 130, 246, 0.16), transparent 45%);
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+      gap: 36px;
+      align-items: center;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--border);
+      color: var(--emerald);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 3.8vw, 3.25rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      margin-bottom: 18px;
+    }
+    .hero h1 span { color: var(--emerald); }
+    .hero-lead { color: var(--muted); font-size: 1.04rem; margin-bottom: 26px; max-width: 58ch; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 30px; }
+    .app-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .metric-card strong {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      color: var(--emerald);
+    }
+    .metric-card span { font-size: 0.82rem; color: var(--muted); }
+    .hero-ui-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 24px 55px rgba(0, 0, 0, 0.5);
+    }
+
+    section { padding: 68px 0; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+    .sec-head { max-width: 720px; margin-bottom: 34px; }
+    .sec-head h2 {
+      font-size: clamp(1.6rem, 2.8vw, 2.35rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .sec-head p { color: var(--muted); }
+
+    /* Interactive Court Radar & Bill Splitter */
+    .sim-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .sport-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .sport-tab {
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: var(--bg-elev);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .sport-tab.active {
+      background: var(--emerald);
+      color: #05100B;
+      border-color: var(--emerald);
+    }
+    #radarCanvas {
+      width: 100%;
+      height: auto;
+      background: #060C14;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .field-group { margin-bottom: 16px; }
+    .field-group label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    input[type="range"] { width: 100%; accent-color: var(--emerald); }
+    .input-ctrl {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--bg-elev);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: var(--text);
+    }
+    .split-box {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin: 16px 0;
+      font-family: var(--font-mono);
+      font-size: 0.83rem;
+    }
+    .split-row { display: flex; justify-content: space-between; padding: 4px 0; gap: 10px; }
+
+    /* Scrollytelling App Ecosystem */
+    .process-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .sticky-card {
+      position: sticky;
+      top: 92px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .step-item {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .step-item.active, .step-item:hover {
+      border-color: var(--emerald);
+      transform: translateX(4px);
+    }
+    .step-item h3 { font-size: 1.18rem; font-weight: 800; margin: 6px 0; }
+
+    /* Pricing */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 22px;
+    }
+    .price-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .price-card.featured {
+      border-color: var(--emerald);
+      box-shadow: 0 0 28px rgba(16, 185, 129, 0.2);
+    }
+    .price-val {
+      font-family: var(--font-mono);
+      font-size: 1.95rem;
+      font-weight: 700;
+      color: var(--emerald);
+      margin: 12px 0;
+    }
+    .price-val small { font-family: var(--font-body); font-size: 0.84rem; color: var(--muted); }
+    .feat-list {
+      list-style: none;
+      margin: 14px 0 22px;
+      display: grid;
+      gap: 9px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .feat-list li::before { content: "✓ "; color: var(--emerald); font-weight: 800; }
+
+    .dual-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 28px;
+    }
+    .review-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    .faq-btn {
+      width: 100%;
+      text-align: left;
+      padding: 16px 18px;
+      background: none;
+      border: none;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      cursor: pointer;
+    }
+    .faq-ans { padding: 0 18px 16px; color: var(--muted); font-size: 0.92rem; display: none; }
+    .faq-item.open .faq-ans { display: block; }
+
+    .booking-box {
+      background: linear-gradient(145deg, #101D2E, #162840);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 32px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .form-full { grid-column: 1 / -1; }
+    .status-toast {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 10px;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid var(--emerald);
+      color: var(--emerald);
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      display: none;
+    }
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .foot-flex { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+
+    @media (max-width: 960px) {
+      .hero-grid, .sim-grid, .process-grid, .pricing-grid, .dual-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .sticky-card { position: static; }
+    }
+    @media (max-width: 600px) {
+      .app-metrics, .form-grid { grid-template-columns: minmax(0, 1fr); }
+      .booking-box { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Chuyển đến nội dung chính</a>
+
+  <header class="site-header">
+    <div class="container nav-bar">
+      <a href="#main" class="brand" aria-label="Trang chủ SportMatch VN">
+        <span class="brand-pin">SM</span>
+        <span>SportMatch VN</span>
+      </a>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a href="#tim-san-chia-tien">Bản Đồ Sân Trống &amp; Chia Tiền</a>
+        <a href="#tinh-nang-elo">Ghép Kèo Điểm Trình Elo</a>
+        <a href="#bang-gia-nen-tang">Gói Người Chơi &amp; Chủ Sân</a>
+        <a href="#hoi-dap">Hỏi đáp</a>
+        <a href="#dat-keo" class="btn btn-primary">Tạo Kèo / Đặt Sân Ngay</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">● LIVE COURT RADAR // 1.850+ SÂN CẦU LÔNG, PICKLEBALL &amp; BÓNG ĐÁ</div>
+          <h1>Chấm Dứt Cảnh Gọi Điện Hỏi Từng Sân — <span>Đặt Sân &amp; Ghép Kèo Trong 30 Giây</span></h1>
+          <p class="hero-lead">
+            SportMatch VN hiển thị lịch sân trống theo thời gian thực quanh bán kính 5km, hỗ trợ tuyển vãng lai đúng điểm trình độ (DUPR / Elo) và tự động tạo mã VietQR chia đều tiền sân + tiền cầu/bóng cho từng thành viên sau trận.
+          </p>
+          <div class="hero-actions">
+            <a href="#tim-san-chia-tien" class="btn btn-primary">Thử Bản Đồ Sân &amp; Máy Chia Tiền Đội</a>
+            <a href="#dat-keo" class="btn btn-outline">Đăng Ký Đưa Sân Lên Ứng Dụng</a>
+          </div>
+          <div class="app-metrics">
+            <div class="metric-card">
+              <strong>1.850+</strong>
+              <span>Cụm sân kết nối POS toàn quốc</span>
+            </div>
+            <div class="metric-card">
+              <strong>30 Giây</strong>
+              <span>Giữ sân &amp; nhận mã QR mở đèn</span>
+            </div>
+            <div class="metric-card">
+              <strong>0đ Phí</strong>
+              <span>Chia tiền VietQR tự động cho Captain</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-ui-card" aria-label="Giao diện ứng dụng đặt sân và ghép kèo SportMatch VN">
+          <svg viewBox="0 0 520 350" role="img" aria-label="Bản đồ Radar các sân thể thao đang trống và thẻ ghép kèo theo điểm trình độ">
+            <rect width="520" height="350" rx="14" fill="#060C14"/>
+            <!-- Radar circles -->
+            <circle cx="170" cy="175" r="125" fill="none" stroke="rgba(16,185,129,0.18)" stroke-width="1.5"/>
+            <circle cx="170" cy="175" r="80" fill="none" stroke="rgba(16,185,129,0.28)" stroke-width="1.5"/>
+            <circle cx="170" cy="175" r="35" fill="rgba(16,185,129,0.12)" stroke="#10B981" stroke-width="1.5"/>
+            <!-- Pins -->
+            <circle cx="120" cy="115" r="8" fill="#10B981"/>
+            <text x="134" y="119" fill="#10B981" font-family="JetBrains Mono, monospace" font-size="10">CLB Cầu Lông Phú Thọ (Trống 2)</text>
+            <circle cx="205" cy="225" r="8" fill="#3B82F6"/>
+            <text x="219" y="229" fill="#60A5FA" font-family="JetBrains Mono, monospace" font-size="10">D-Joy Pickleball (Trống 3)</text>
+            <circle cx="95" cy="235" r="8" fill="#F59E0B"/>
+            <text x="109" y="239" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="10">Sân Bóng Chảo Lửa (Trống 19h)</text>
+
+            <!-- Matchmaking Card on Right -->
+            <rect x="295" y="34" width="205" height="282" rx="12" fill="#101D2E" stroke="#10B981" stroke-width="2"/>
+            <text x="312" y="64" fill="#10B981" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">KÈO GIAO LƯU TỐI NAY 19:30</text>
+            <text x="312" y="88" fill="#F1F5F9" font-family="Plus Jakarta Sans, sans-serif" font-size="14" font-weight="800">Pickleball Đôi Nam Nữ</text>
+            <text x="312" y="110" fill="#94A3B8" font-family="JetBrains Mono, monospace" font-size="11">Trình độ: DUPR 3.2 – 3.5</text>
+            <rect x="312" y="128" width="170" height="44" rx="8" fill="#172A42"/>
+            <text x="324" y="148" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="10">SLOT: 6 / 8 Người (Cần +2)</text>
+            <text x="324" y="164" fill="#10B981" font-family="JetBrains Mono, monospace" font-size="10">SHARE: 85.000đ / người</text>
+            <rect x="312" y="188" width="170" height="72" rx="8" fill="rgba(59,130,246,0.12)" stroke="#3B82F6"/>
+            <text x="397" y="216" text-anchor="middle" fill="#60A5FA" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">VIETQR AUTO-SPLIT</text>
+            <text x="397" y="238" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="10">Tự động gạch tên khi CK</text>
+            <rect x="312" y="274" width="170" height="28" rx="6" fill="#10B981"/>
+            <text x="397" y="292" text-anchor="middle" fill="#05100B" font-family="Plus Jakarta Sans, sans-serif" font-size="11" font-weight="800">XIN VÀO KÈO NGAY</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Court Finder & Team Bill Splitter -->
+    <section id="tim-san-chia-tien">
+      <div class="container">
+        <div class="sec-head">
+          <div class="eyebrow">TRẢI NGHIỆM TRỰC TIẾP TRÊN WEB</div>
+          <h2>Bản Đồ Tìm Sân Trống &amp; Máy Chia Tiền Đội Tự Động (Bill Splitter)</h2>
+          <p>Nhấp chọn cụm sân đang sáng đèn xanh trên bản đồ Canvas, sau đó nhập số lượng thành viên tham gia và phụ phí ống cầu / bóng / nước để tính chính xác số tiền mỗi người cần quét VietQR.</p>
+        </div>
+
+        <div class="sim-grid">
+          <div class="panel">
+            <div class="sport-tabs" role="tablist" aria-label="Lọc môn thể thao trên bản đồ">
+              <button type="button" class="sport-tab active" data-sport="all">Tất cả môn (6 cụm sân gần bạn)</button>
+              <button type="button" class="sport-tab" data-sport="badminton">Cầu Lông Thảm Yonex</button>
+              <button type="button" data-sport="pickleball" class="sport-tab">Pickleball Có Mái Che</button>
+              <button type="button" data-sport="football" class="sport-tab">Bóng Đá Phủi Sân 7</button>
+            </div>
+            <canvas id="radarCanvas" width="700" height="400" aria-label="Bản đồ tương tác chọn sân thể thao đang có giờ trống"></canvas>
+          </div>
+
+          <div class="panel">
+            <h3 style="font-size:1.25rem;font-weight:800;margin-bottom:14px;">Máy Chia Tiền Sân &amp; Phụ Phí (Captain Tool)</h3>
+
+            <div class="field-group">
+              <label for="hoursPlayRange"><span>Thời lượng thuê sân</span><strong id="hoursPlayVal">2.0 giờ</strong></label>
+              <input type="range" id="hoursPlayRange" min="1" max="4" step="0.5" value="2" />
+            </div>
+
+            <div class="field-group">
+              <label for="playersRange"><span>Số người tham gia chia tiền</span><strong id="playersVal">8 người</strong></label>
+              <input type="range" id="playersRange" min="2" max="16" value="8" />
+            </div>
+
+            <div class="field-group">
+              <label for="shuttleCost">Phụ phí Cầu lông / Bóng thi đấu / Nước uống</label>
+              <select id="shuttleCost" class="input-ctrl">
+                <option value="80000">Trà đá / Nước suối cả nhóm (+80.000đ)</option>
+                <option value="220000" selected>Nửa ống cầu lông Hải Yến / Bóng Franklin + Nước (+220.000đ)</option>
+                <option value="420000">1 ống cầu thi đấu cao cấp + Trọng tài / Áo tập (+420.000đ)</option>
+              </select>
+            </div>
+
+            <div class="split-box" aria-live="polite">
+              <div class="split-row">
+                <span>Sân đang chọn:</span>
+                <strong id="selectedCourtText" style="color:var(--emerald)">CLB Pickleball Thủ Đức Arena (160k/h)</strong>
+              </div>
+              <div class="split-row">
+                <span>Tiền thuê sân + Phụ phí:</span>
+                <strong id="totalBillText">540.000đ</strong>
+              </div>
+              <div class="split-row" style="border-top:1px dashed var(--border);margin-top:8px;padding-top:8px;">
+                <span>MỖI THÀNH VIÊN ĐÓNG (LÀM TRÒN):</span>
+                <strong id="perPersonText" style="color:var(--emerald);font-size:1.15rem;">68.000đ / người</strong>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="lockMatchBtn" style="width:100%;">Giữ Sân Này &amp; Tạo Link Tuyển Giao Lưu</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scrollytelling App Features -->
+    <section id="tinh-nang-elo">
+      <div class="container">
+        <div class="sec-head">
+          <div class="eyebrow">CÔNG NGHỆ GHÉP KÈO THÔNG MINH</div>
+          <h2>Giải Quyết Triệt Để Nỗi Lo "Lệch Trình Độ" &amp; "Bùng Kèo Phút Chót"</h2>
+          <p>SportMatch VN kết hợp hệ thống chấm điểm trình độ minh bạch cùng cơ chế đặt cọc giữ suất tự động.</p>
+        </div>
+
+        <div class="process-grid">
+          <div class="sticky-card">
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.8rem;color:var(--emerald);margin-bottom:10px;">
+              <span id="appCode">APP_CORE // 01_SKILL_ELO</span>
+              <span id="appTag">ĐỒNG BỘ ĐIỂM DUPR / ELO</span>
+            </div>
+            <svg viewBox="0 0 460 260" role="img" aria-label="Biểu đồ hiệu quả đặt sân và ghép kèo trên SportMatch VN">
+              <rect width="460" height="260" rx="10" fill="#060C14"/>
+              <text id="appTitle" x="26" y="46" fill="#10B981" font-family="Plus Jakarta Sans, sans-serif" font-size="18" font-weight="800">CHẤM ĐIỂM TRÌNH ĐỘ CHUẨN (TB-, TB+, KHÁ)</text>
+              <text id="appDesc" x="26" y="72" fill="#94A3B8" font-family="Plus Jakarta Sans, sans-serif" font-size="12">Ghép đúng đối thủ ngang cơ dựa trên lịch sử trận đấu được xác thực.</text>
+              <g font-family="JetBrains Mono, monospace" font-size="11" fill="#F1F5F9">
+                <text x="26" y="114">Tỷ lệ ghép kèo cân sức (Không lệch trình độ)</text>
+                <rect x="26" y="122" width="400" height="13" rx="4" fill="#172A42"/>
+                <rect id="aBar1" x="26" y="122" width="388" height="13" rx="4" fill="#10B981"/>
+
+                <text x="26" y="164">Tỷ lệ lấp đầy giờ trống cho Chủ sân thể thao</text>
+                <rect x="26" y="172" width="400" height="13" rx="4" fill="#172A42"/>
+                <rect id="aBar2" x="26" y="172" width="375" height="13" rx="4" fill="#3B82F6"/>
+
+                <text x="26" y="214">Tốc độ thu quỹ đội bóng / CLB không cần nhắc nợ</text>
+                <rect x="26" y="222" width="400" height="13" rx="4" fill="#172A42"/>
+                <rect id="aBar3" x="26" y="222" width="394" height="13" rx="4" fill="#F59E0B"/>
+              </g>
+            </svg>
+          </div>
+
+          <div>
+            <article class="step-item active" data-app="1" tabindex="0" role="button" aria-label="Tính năng 1: Xếp hạng trình độ người chơi">
+              <span style="font-family:var(--font-mono);color:var(--emerald);font-size:0.8rem;">TÍNH NĂNG 01 // SKILL RATING</span>
+              <h3>Hồ Sơ Điểm Trình Độ Cầu Lông (Yếu – TB – Khá) &amp; Pickleball DUPR</h3>
+              <p>Người chơi mới không sợ vào nhầm sới quá mạnh, các tay vợt cứng dễ dàng tìm được kèo đôi nam tốc độ cao ngang sức.</p>
+            </article>
+            <article class="step-item" data-app="2" tabindex="0" role="button" aria-label="Tính năng 2: Tuyển vãng lai lấp chỗ trống">
+              <span style="font-family:var(--font-mono);color:var(--emerald);font-size:0.8rem;">TÍNH NĂNG 02 // TUYỂN VÃNG LAI CẤP TỐC</span>
+              <h3>Thiếu 2 Người Trước Giờ Ra Sân? Bật Thông Báo Quanh Bán Kính 3km</h3>
+              <p>Hệ thống gửi thông báo đẩy tới các tay vợt đang rảnh quanh khu vực sân của bạn, lấp đầy slot trống chỉ trong 10 phút.</p>
+            </article>
+            <article class="step-item" data-app="3" tabindex="0" role="button" aria-label="Tính năng 3: Chống bùng kèo bằng cọc giữ slot">
+              <span style="font-family:var(--font-mono);color:var(--emerald);font-size:0.8rem;">TÍNH NĂNG 03 // UY TÍN FAIR-PLAY</span>
+              <h3>Cọc Giữ Slot Vãng Lai &amp; Chấm Điểm Uy Tín Đúng Giờ</h3>
+              <p>Loại bỏ hoàn toàn tình trạng hẹn miệng rồi hủy sát giờ khiến chủ kèo phải bù lỗ tiền sân.</p>
+            </article>
+            <article class="step-item" data-app="4" tabindex="0" role="button" aria-label="Tính năng 4: Phần mềm quản lý POS cho chủ sân">
+              <span style="font-family:var(--font-mono);color:var(--emerald);font-size:0.8rem;">TÍNH NĂNG 04 // DÀNH CHO CHỦ SÂN</span>
+              <h3>Tự Động Bật/Tắt Đèn Sân IoT &amp; Quản Lý Doanh Thu Nước Uống</h3>
+              <p>Chủ sân quản lý lịch đặt cố định theo tháng, bán giờ trống vãng lai và kiểm soát tủ nước giải khát ngay trên iPad/điện thoại.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Packages -->
+    <section id="bang-gia-nen-tang">
+      <div class="container">
+        <div class="sec-head">
+          <div class="eyebrow">BIỂU PHÍ NỀN TẢNG</div>
+          <h2>Gói Tài Khoản Người Chơi, Đội Trưởng CLB &amp; Chủ Cụm Sân</h2>
+          <p>Miễn phí hoàn toàn cho người chơi đặt sân và tham gia kèo giao lưu.</p>
+        </div>
+
+        <div class="pricing-grid">
+          <div class="price-card">
+            <div>
+              <h3 style="font-size:1.25rem;font-weight:800;">NGƯỜI CHƠI CÁ NHÂN (PLAYER)</h3>
+              <p style="color:var(--muted);font-size:0.9rem;">Tìm sân trống, xin vào nhóm vãng lai &amp; lưu điểm Elo.</p>
+              <div class="price-val">0đ <small>/ trọn đời</small></div>
+              <ul class="feat-list">
+                <li>Đặt sân trực tuyến giá gốc niêm yết tại sân</li>
+                <li>Tham gia không giới hạn các kèo tuyển vãng lai</li>
+                <li>Cập nhật điểm trình độ DUPR / Elo sau mỗi trận</li>
+                <li>Tích điểm thưởng đổi ống cầu lông &amp; quấn cán</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-outline pkg-btn" data-pkg="Tài Khoản Người Chơi Cá Nhân (Miễn phí 0đ)">Tạo Hồ Sơ Người Chơi</button>
+          </div>
+
+          <div class="price-card featured">
+            <div>
+              <h3 style="font-size:1.25rem;font-weight:800;color:var(--emerald);">CAPTAIN PRO (TRƯỞNG NHÓM / ĐỘI BÓNG)</h3>
+              <p style="color:var(--muted);font-size:0.9rem;">Tự động thu quỹ nhóm, điểm danh &amp; tạo giải đấu nội bộ.</p>
+              <div class="price-val">79.000đ <small>/ tháng / cả CLB</small></div>
+              <ul class="feat-list">
+                <li>Sổ quỹ CLB tự động gạch tên khi thành viên quét VietQR</li>
+                <li>Tạo bảng đấu vòng tròn / loại trực tiếp tự động chia cặp</li>
+                <li>Đẩy tin tuyển vãng lai lên đầu trang khu vực (Boost)</li>
+                <li>Nhắc lịch tự động qua Zalo cho toàn đội trước 3 tiếng</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-primary pkg-btn" data-pkg="Gói Captain Pro Quản Lý Quỹ CLB (79.000đ/tháng)">Dùng Thử Captain Pro</button>
+          </div>
+
+          <div class="price-card">
+            <div>
+              <h3 style="font-size:1.25rem;font-weight:800;">CHỦ SÂN THỂ THAO (VENUE PARTNER)</h3>
+              <p style="color:var(--muted);font-size:0.9rem;">Phần mềm quản lý cụm sân Cầu lông, Pickleball, Bóng đá.</p>
+              <div class="price-val">390.000đ <small>/ tháng / cụm sân</small></div>
+              <ul class="feat-list">
+                <li>Lịch đặt sân trực quan chống trùng giờ khách cố định</li>
+                <li>Bán khung giờ trống thấp điểm (09h–16h) cho người dùng App</li>
+                <li>Quản lý bán hàng nước uống, cho thuê vợt &amp; tồn kho</li>
+                <li>Tích hợp tủ điều khiển bật/tắt đèn sân tự động theo ca</li>
+              </ul>
+            </div>
+            <button type="button" class="btn btn-outline pkg-btn" data-pkg="Gói Chủ Sân Venue Partner POS (390.000đ/tháng)">Đăng Ký Đối Tác Chủ Sân</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reviews & FAQ -->
+    <section id="hoi-dap">
+      <div class="container dual-grid">
+        <div>
+          <div class="eyebrow">CỘNG ĐỒNG PHONG TRÀO</div>
+          <h2 style="font-size:1.75rem;font-weight:800;margin:10px 0 18px;">Hơn 65.000 Trận Giao Lưu Đã Ghép Thành Công</h2>
+          <div class="review-card">
+            <p>“Mình làm nhóm trưởng hội cầu lông 20 người, trước đây tối nào đánh xong cũng phải cộng sổ tính tiền cầu từng người rất mệt. Giờ bấm trên SportMatch VN ra ngay mã QR chia tiền lẻ tới từng nghìn.”</p>
+            <div style="margin-top:10px;color:var(--emerald);font-size:0.84rem;font-weight:700;">Anh Minh Khoa — Nhóm trưởng CLB Cầu lông Tân Bình</div>
+          </div>
+          <div class="review-card">
+            <p>“Đi công tác Hà Nội mang theo cây vợt Pickleball, mở App tìm được ngay kèo trình 3.25 cách khách sạn 800m. Anh em trên sân rất nhiệt tình và đúng trình độ ghi trên App.”</p>
+            <div style="margin-top:10px;color:var(--emerald);font-size:0.84rem;font-weight:700;">Anh Quốc Đạt — Người chơi Pickleball DUPR 3.4</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="eyebrow">CÂU HỎI THƯỜNG GẶP</div>
+          <h2 style="font-size:1.75rem;font-weight:800;margin:10px 0 18px;">Giải Đáp Nhanh</h2>
+          <div class="faq-item open">
+            <button type="button" class="faq-btn" aria-expanded="true">
+              <span>Giá đặt sân trên SportMatch VN có cao hơn gọi trực tiếp chủ sân không?</span>
+              <span>+</span>
+            </button>
+            <div class="faq-ans">
+              Cam kết 100% bằng hoặc rẻ hơn giá niêm yết tại sân! Ngoài ra các khung giờ vàng hoặc giờ trưa thường có mã giảm thêm 15%–25% từ chủ sân đối tác.
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-btn" aria-expanded="false">
+              <span>Làm sao để biết điểm trình độ (Elo / DUPR) ban đầu của mình?</span>
+              <span>+</span>
+            </button>
+            <div class="faq-ans">
+              Khi tạo tài khoản, bạn trả lời 5 câu hỏi kỹ thuật (thời gian chơi, kỹ năng phông cầu/đập cầu hoặc dink/drop Pickleball) để nhận mức điểm khởi đầu, sau đó điểm sẽ tự cân chỉnh qua đánh giá của bạn chơi sau mỗi trận.
+            </div>
+          </div>
+          <div class="faq-item">
+            <button type="button" class="faq-btn" aria-expanded="false">
+              <span>Chủ sân muốn đưa cụm sân lên ứng dụng mất bao lâu?</span>
+              <span>+</span>
+            </button>
+            <div class="faq-ans">
+              Đội ngũ SportMatch VN hỗ trợ số hóa sơ đồ sân, bảng giá theo khung giờ và hướng dẫn thu ngân sử dụng chỉ trong 60 phút hoàn toàn miễn phí.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Booking / Match Creation Form -->
+    <section id="dat-keo">
+      <div class="container">
+        <div class="booking-box">
+          <div class="sec-head" style="margin-bottom:22px;">
+            <div class="eyebrow">INSTANT COURT &amp; MATCH DISPATCH</div>
+            <h2>Đặt Giữ Sân Nhanh Hoặc Mở Kèo Tuyển Giao Lưu</h2>
+            <p>Nhận mã QR check-in tại sân và đường link chia sẻ kèo lên nhóm Zalo ngay tức thì.</p>
+          </div>
+
+          <form id="matchForm" class="form-grid">
+            <div>
+              <label for="uName" style="display:block;font-size:0.86rem;margin-bottom:6px;">Họ tên Đội trưởng / Người đặt *</label>
+              <input type="text" id="uName" class="input-ctrl" placeholder="VD: Lê Hoàng Nam" required />
+            </div>
+            <div>
+              <label for="uPhone" style="display:block;font-size:0.86rem;margin-bottom:6px;">Số điện thoại Zalo nhận QR *</label>
+              <input type="tel" id="uPhone" class="input-ctrl" placeholder="VD: 0909 555 888" required />
+            </div>
+            <div>
+              <label for="uCourt" style="display:block;font-size:0.86rem;margin-bottom:6px;">Sân / Gói dịch vụ đã chọn</label>
+              <input type="text" id="uCourt" class="input-ctrl" value="CLB Pickleball Thủ Đức Arena — Chia 68.000đ/người" />
+            </div>
+            <div>
+              <label for="uSkill" style="display:block;font-size:0.86rem;margin-bottom:6px;">Trình độ kèo giao lưu</label>
+              <select id="uSkill" class="input-ctrl">
+                <option value="Vui vẻ / Newbie (Mới chơi 3-6 tháng)">Vui vẻ / Newbie (Mới chơi 3–6 tháng)</option>
+                <option value="Trung Bình Khá (Đánh đôi ổn định / DUPR 3.0+)" selected>Trung Bình Khá (Đánh đôi ổn định / DUPR 3.0+)</option>
+                <option value="Nâng Cao / Bán Chuyên (Cạnh tranh cao)">Nâng Cao / Bán Chuyên (Tốc độ cao)</option>
+              </select>
+            </div>
+            <div class="form-full">
+              <button type="submit" class="btn btn-primary" style="width:100%;padding:14px;">Xác Nhận Giữ Sân &amp; Xuất Mã VietQR Chia Tiền</button>
+              <div id="matchToast" class="status-toast" role="status" aria-live="polite"></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container foot-flex">
+      <div>
+        <strong style="color:var(--text);">SPORTMATCH VN — NỀN TẢNG ĐẶT SÂN &amp; KẾT NỐI CỘNG ĐỒNG THỂ THAO</strong>
+        <p>Hỗ trợ kỹ thuật 24/7 tại TP.HCM, Hà Nội, Đà Nẵng, Cần Thơ, Hải Phòng</p>
+      </div>
+      <div>
+        <p>© 2026 SportMatch VN. Thiết kế concept — thương hiệu giả định.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById('radarCanvas');
+      const ctx = canvas.getContext('2d');
+      const hoursPlayRange = document.getElementById('hoursPlayRange');
+      const playersRange = document.getElementById('playersRange');
+      const shuttleCost = document.getElementById('shuttleCost');
+      const hoursPlayVal = document.getElementById('hoursPlayVal');
+      const playersVal = document.getElementById('playersVal');
+      const selectedCourtText = document.getElementById('selectedCourtText');
+      const totalBillText = document.getElementById('totalBillText');
+      const perPersonText = document.getElementById('perPersonText');
+      const uCourt = document.getElementById('uCourt');
+
+      const venues = [
+        { id: 1, sport: 'pickleball', name: 'CLB Pickleball Thủ Đức Arena', rate: 160000, freeSlots: 'Trống 3 sân (18h–22h)', x: 210, y: 145 },
+        { id: 2, sport: 'badminton', name: 'Sân Cầu Lông Viettel Quận 10', rate: 120000, freeSlots: 'Trống 2 sân (19h–21h)', x: 465, y: 120 },
+        { id: 3, sport: 'football', name: 'Cụm Sân Bóng Đá Chảo Lửa Sân 7', rate: 550000, freeSlots: 'Trống 1 sân (20h30)', x: 165, y: 285 },
+        { id: 4, sport: 'pickleball', name: 'D-Joy Pickleball Phú Mỹ Hưng', rate: 190000, freeSlots: 'Trống 4 sân (17h–21h)', x: 510, y: 270 },
+        { id: 5, sport: 'badminton', name: 'Sân Cầu Lông Cầu Giấy Indoor', rate: 110000, freeSlots: 'Trống 3 sân (18h–20h)', x: 350, y: 210 },
+        { id: 6, sport: 'football', name: 'Sân Bóng Thành Phát Bộ Công An', rate: 600000, freeSlots: 'Trống 2 sân (19h00)', x: 335, y: 95 }
+      ];
+
+      let activeSportFilter = 'all';
+      let selectedVenue = venues[0];
+
+      function drawRadar() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#060C14';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Map street grid lines
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.12)';
+        ctx.lineWidth = 1;
+        for (let x = 60; x < 700; x += 80) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 400); ctx.stroke();
+        }
+        for (let y = 50; y < 400; y += 70) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(700, y); ctx.stroke();
+        }
+
+        // Radar concentric rings around user center
+        [65, 135, 210].forEach((r) => {
+          ctx.strokeStyle = 'rgba(16, 185, 129, 0.2)';
+          ctx.beginPath();
+          ctx.arc(350, 200, r, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+
+        venues.forEach((v) => {
+          const visible = activeSportFilter === 'all' || activeSportFilter === v.sport;
+          ctx.save();
+          if (!visible) ctx.globalAlpha = 0.22;
+
+          const isSel = selectedVenue.id === v.id;
+          ctx.fillStyle = isSel ? '#10B981' : '#3B82F6';
+          ctx.beginPath();
+          ctx.arc(v.x, v.y, isSel ? 13 : 9, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (isSel) {
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+          }
+
+          // Label pill
+          ctx.fillStyle = isSel ? 'rgba(16, 185, 129, 0.92)' : 'rgba(16, 29, 46, 0.9)';
+          ctx.fillRect(v.x + 15, v.y - 18, 178, 34);
+          ctx.fillStyle = isSel ? '#05100B' : '#F1F5F9';
+          ctx.font = '700 10px Plus Jakarta Sans, sans-serif';
+          ctx.fillText(v.name.slice(0, 26), v.x + 21, v.y - 4);
+          ctx.font = '600 10px JetBrains Mono, monospace';
+          ctx.fillText((v.rate / 1000) + 'k/h • ' + v.freeSlots.slice(0, 14), v.x + 21, v.y + 10);
+          ctx.restore();
+        });
+
+        ctx.fillStyle = '#10B981';
+        ctx.font = '700 12px JetBrains Mono, monospace';
+        ctx.fillText('NHẤP VÀO CHẤM SÂN TRÊN BẢN ĐỒ ĐỂ CHỌN & TÍNH CHIA TIỀN ĐỘI', 22, 28);
+      }
+
+      function updateBillSplitter() {
+        const hrs = Number(hoursPlayRange.value);
+        const players = Number(playersRange.value);
+        const extra = Number(shuttleCost.value);
+
+        hoursPlayVal.textContent = hrs.toFixed(1) + ' giờ';
+        playersVal.textContent = players + ' người';
+
+        selectedCourtText.textContent = selectedVenue.name + ' (' + (selectedVenue.rate / 1000) + 'k/h)';
+        const total = selectedVenue.rate * hrs + extra;
+        totalBillText.textContent = total.toLocaleString('vi-VN') + 'đ';
+
+        const perPerson = Math.ceil(total / players / 1000) * 1000;
+        perPersonText.textContent = perPerson.toLocaleString('vi-VN') + 'đ / người';
+        drawRadar();
+      }
+
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+
+        venues.forEach((v) => {
+          const dist = Math.hypot(mx - v.x, my - v.y);
+          if (dist <= 28 || (mx >= v.x + 15 && mx <= v.x + 193 && my >= v.y - 18 && my <= v.y + 16)) {
+            selectedVenue = v;
+            if (v.sport === 'football' && Number(playersRange.value) < 10) {
+              playersRange.value = '14';
+            }
+          }
+        });
+        updateBillSplitter();
+      });
+
+      document.querySelectorAll('.sport-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sport-tab').forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeSportFilter = btn.dataset.sport;
+          const match = venues.find((v) => activeSportFilter === 'all' || v.sport === activeSportFilter);
+          if (match) selectedVenue = match;
+          updateBillSplitter();
+        });
+      });
+
+      [hoursPlayRange, playersRange, shuttleCost].forEach((el) => {
+        el.addEventListener('input', updateBillSplitter);
+        el.addEventListener('change', updateBillSplitter);
+      });
+
+      document.getElementById('lockMatchBtn').addEventListener('click', () => {
+        uCourt.value = selectedVenue.name + ' (' + hoursPlayRange.value + 'h) — Chia ' + perPersonText.textContent;
+        document.getElementById('dat-keo').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      const appSteps = {
+        1: { code: 'APP_CORE // 01_SKILL_ELO', tag: 'ĐỒNG BỘ ĐIỂM DUPR / ELO', title: 'CHẤM ĐIỂM TRÌNH ĐỘ CHUẨN (TB-, TB+, KHÁ)', desc: 'Ghép đúng đối thủ ngang cơ dựa trên lịch sử trận đấu được xác thực.', b1: 388, b2: 350, b3: 365 },
+        2: { code: 'APP_CORE // 02_RADIUS_PUSH', tag: 'BÁN KÍNH 3KM QUANH SÂN', title: 'TUYỂN VÃNG LAI CẤP TỐC LẤP ĐẦY SLOT TRỐNG', desc: 'Thông báo đẩy tức thì tới những người chơi đang rảnh cùng khu vực.', b1: 375, b2: 392, b3: 370 },
+        3: { code: 'APP_CORE // 03_DEPOSIT_LOCK', tag: 'CHỐNG BÙNG KÈO 100%', title: 'CỌC GIỮ SUẤT VÃNG LAI & ĐIỂM UY TÍN ĐÚNG GIỜ', desc: 'Đảm bảo đủ quân số ra sân, bảo vệ quyền lợi trưởng nhóm.', b1: 394, b2: 380, b3: 390 },
+        4: { code: 'APP_CORE // 04_SMART_POS', tag: 'TỰ ĐỘNG HÓA CHO CHỦ SÂN', title: 'ĐIỀU KHIỂN ĐÈN SÂN IOT & SỔ QUỸ VIETQR', desc: 'Tự động gạch tên thành viên đã đóng tiền sân chỉ sau 2 giây quét mã.', b1: 385, b2: 395, b3: 398 }
+      };
+
+      document.querySelectorAll('.step-item').forEach((item) => {
+        item.addEventListener('click', () => {
+          document.querySelectorAll('.step-item').forEach((i) => i.classList.remove('active'));
+          item.classList.add('active');
+          const d = appSteps[item.dataset.app];
+          if (d) {
+            document.getElementById('appCode').textContent = d.code;
+            document.getElementById('appTag').textContent = d.tag;
+            document.getElementById('appTitle').textContent = d.title;
+            document.getElementById('appDesc').textContent = d.desc;
+            document.getElementById('aBar1').setAttribute('width', d.b1);
+            document.getElementById('aBar2').setAttribute('width', d.b2);
+            document.getElementById('aBar3').setAttribute('width', d.b3);
+          }
+        });
+      });
+
+      document.querySelectorAll('.pkg-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          uCourt.value = btn.dataset.pkg;
+          document.getElementById('dat-keo').scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+
+      document.querySelectorAll('.faq-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const item = btn.parentElement;
+          const open = item.classList.toggle('open');
+          btn.setAttribute('aria-expanded', String(open));
+        });
+      });
+
+      document.getElementById('matchForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('uName').value.trim() || 'Captain';
+        const skill = document.getElementById('uSkill').value;
+        const toast = document.getElementById('matchToast');
+        toast.style.display = 'block';
+        toast.textContent = '✓ Đã tạo kèo thành công cho ' + name + ' (' + skill + ')! Link mời thành viên & QR chia tiền: sportmatch.vn/keo-' + Math.floor(1000 + Math.random() * 9000);
+      });
+
+      updateBillSplitter();
+    })();
+  </script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

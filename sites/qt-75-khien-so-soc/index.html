@@ -1,0 +1,1880 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tường giám sát · Khiên Số SOC</title>
+<meta name="description" content="Thiết kế concept — thương hiệu giả định. Trung tâm giám sát an ninh mạng Khiên Số (giả lập): dòng cảnh báo theo mức độ, bản đồ sự kiện, playbook phản ứng từng bước.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080606'/%3E%3Cpath d='M16 4l10 4v7c0 7-4.5 11-10 13C10.5 26 6 22 6 15V8z' fill='none' stroke='%23ff3344' stroke-width='3'/%3E%3Cpath d='M16 11v9' stroke='%23f4ede6' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pathway+Extreme:wdth,wght@75..100,400..900&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080606;--pane:#0f0c0c;--pane2:#161111;--pane3:#1e1717;--line:#2a2020;--line2:#47302f;
+  --ink:#f4ede6;--dim:#b8a8a0;--mute:#93837b;--inv:#080606;
+  --red:#ff3344;--red2:#c81e2c;--redbg:rgba(255,51,68,.13);
+  --crit:#ff3344;--high:#ff8a3d;--med:#f2c94c;--low:#8aa4bd;--ok:#4fd18b;
+  --shadow:0 18px 50px rgba(0,0,0,.55);
+  --sans:'Pathway Extreme',system-ui,sans-serif;--mono:'Chivo Mono',ui-monospace,monospace;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#f2ede6;--pane:#fffcf8;--pane2:#f8f2eb;--pane3:#efe6dc;--line:#e0d5ca;--line2:#c9b6a6;
+  --ink:#1a1212;--dim:#594a43;--mute:#76665e;--inv:#fffcf8;
+  --red:#cf1429;--red2:#a50f20;--redbg:rgba(207,20,41,.09);
+  --crit:#cf1429;--high:#c4560f;--med:#946c00;--low:#4b6987;--ok:#1b8350;
+  --shadow:0 18px 50px rgba(60,30,20,.18);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:400 14px/1.45 var(--sans);-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+h1,h2,h3{margin:0;line-height:1.12;font-weight:800}
+.mono{font-family:var(--mono)}
+kbd{font:500 12px/1 var(--mono);white-space:nowrap;border:1px solid var(--line2);border-bottom-width:2px;padding:3px 5px;border-radius:3px;color:var(--dim)}
+.ico{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.s-crit{--sc:var(--crit)}.s-high{--sc:var(--high)}.s-med{--sc:var(--med)}.s-low{--sc:var(--low)}
+.sevtag{display:inline-flex;align-items:center;gap:6px;font:700 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--sc);white-space:nowrap}
+.sevtag::before{content:"";width:8px;height:8px;background:var(--sc)}
+.s-crit .sevtag::before,.sevtag.s-crit::before{box-shadow:0 0 0 3px color-mix(in srgb,var(--crit) 25%,transparent)}
+.lbl{font:700 12px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-stretch:85%}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 14px;border:1px solid var(--line2);background:var(--pane2);font-weight:600;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.pri{background:var(--red);border-color:var(--red);color:#fff}
+.btn.pri:hover{background:var(--red2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{min-height:34px;padding:0 10px;font-size:13px}
+.ibtn{display:inline-grid;place-items:center;width:40px;height:40px;border:1px solid transparent;color:var(--dim);position:relative}
+.ibtn:hover{color:var(--ink);border-color:var(--line2)}
+.ibtn .dot{position:absolute;top:5px;right:4px;min-width:18px;height:18px;padding:0 4px;background:var(--red);color:#fff;font:700 12px/18px var(--mono);text-align:center}
+.seg{display:inline-flex;border:1px solid var(--line2)}
+.seg button{min-height:32px;padding:0 10px;font:600 12px/1 var(--mono);color:var(--dim);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--inv)}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>span{font-size:13px;font-weight:600;color:var(--dim)}
+.inp{min-height:40px;border:1px solid var(--line2);background:var(--pane);padding:8px 10px;width:100%;border-radius:0}
+.inp:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px var(--redbg)}
+.inp.bad{border-color:var(--crit)}
+.err{color:var(--crit);font-size:13px;min-height:0}
+.err:empty{display:none}
+select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:28px}
+
+/* ── shell ── */
+.app{display:grid;grid-template-columns:minmax(0,1fr) 92px;grid-template-rows:68px minmax(0,1fr) 30px;height:100vh;height:100dvh}
+.band{grid-column:1;grid-row:1;display:flex;align-items:center;gap:18px;padding:0 18px 0 20px;border-bottom:1px solid var(--line);background:var(--bg);min-width:0;position:relative}
+.band::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:var(--thr,40%);background:linear-gradient(90deg,var(--red),transparent)}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
+.brand svg.logo{width:30px;height:30px}
+.brand b{font:850 22px/1.1 var(--sans);font-stretch:75%;letter-spacing:.05em}
+.brand small{display:block;font:500 12px/1.2 var(--mono);color:var(--dim);white-space:nowrap}
+.threat{display:flex;align-items:center;gap:10px;padding-left:18px;border-left:1px solid var(--line);flex:none}
+.threat .segs{display:flex;gap:3px}
+.threat .segs i{width:12px;height:22px;background:var(--line2)}
+.threat .segs i.on{background:var(--red)}
+.threat .segs i.on.l2{background:var(--med)}.threat .segs i.on.l3{background:var(--high)}
+.threat strong{font:850 22px/1.1 var(--sans);font-stretch:75%;color:var(--red);white-space:nowrap}
+.crumb{min-width:0;flex:1;padding-left:18px;border-left:1px solid var(--line)}
+.crumb .lbl{display:block}
+.crumb h1{font-size:20px;font-stretch:85%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bandr{display:flex;align-items:center;gap:6px;flex:none}
+.kbtn{display:inline-flex;align-items:center;gap:10px;min-height:40px;padding:0 10px 0 12px;border:1px solid var(--line2);color:var(--dim);white-space:nowrap}
+.kbtn:hover{color:var(--ink);border-color:var(--ink)}
+.live{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border:1px solid var(--line2);font:700 12px/1 var(--mono);letter-spacing:.06em;white-space:nowrap}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1.2s steps(2) infinite}
+.live[aria-pressed="false"] i{background:var(--mute);animation:none}
+@keyframes blink{50%{opacity:.25}}
+.clock{text-align:right;padding-left:14px;border-left:1px solid var(--line);margin-left:6px}
+.clock b{display:block;font:700 24px/1.05 var(--mono);letter-spacing:-.02em}
+.clock small{font:500 12px/1.2 var(--mono);color:var(--dim);white-space:nowrap}
+.menubtn,.wmexit{display:none}
+main{grid-column:1;grid-row:2;overflow:auto;min-width:0;position:relative}
+.rail{grid-column:2;grid-row:1/4;border-left:1px solid var(--line);background:var(--pane);display:flex;flex-direction:column;align-items:stretch;padding:10px 0}
+.rail .nv{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 4px;color:var(--dim);font:600 12px/1.15 var(--sans);text-align:center}
+.rail .nv .ico{width:22px;height:22px}
+.rail .nv:hover{color:var(--ink)}
+.rail .nv[aria-current="page"]{color:var(--ink);background:var(--pane3)}
+.rail .nv[aria-current="page"]::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;background:var(--red)}
+.rail .nv .n{position:absolute;top:8px;right:14px;min-width:18px;height:18px;padding:0 4px;background:var(--red);color:#fff;font:700 12px/18px var(--mono)}
+.rail .num{font:500 12px/1 var(--mono);color:var(--mute)}
+.rail .sp{flex:1}
+.rail .tools{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:10px;border-top:1px solid var(--line);margin:0 12px}
+.avatar{width:40px;height:40px;display:grid;place-items:center;background:var(--red);color:#fff;font:800 14px/1 var(--sans);font-stretch:80%}
+.status{grid-column:1;grid-row:3;display:flex;align-items:center;gap:20px;padding:0 20px;border-top:1px solid var(--line);font:500 12px/1 var(--mono);color:var(--dim);white-space:nowrap;overflow:hidden;min-width:0}
+.status .ok{color:var(--ok)}
+.status .cc{margin-left:auto;font-family:var(--sans)}
+.view{display:none;min-height:100%}
+.view.on{display:block}
+
+/* ── tường giám sát ── */
+#v-tuong.on{display:grid;grid-template-columns:340px minmax(0,1fr) 360px;grid-template-rows:auto minmax(0,1fr);gap:1px;background:var(--line);height:100%;min-height:600px}
+.pane{background:var(--bg);min-width:0;min-height:0;display:flex;flex-direction:column}
+.ph{display:flex;align-items:center;gap:10px;padding:14px 16px 10px}
+.ph h2{font-size:15px;letter-spacing:.1em;text-transform:uppercase;font-stretch:80%;display:flex;align-items:center;gap:9px}
+.ph h2::before{content:"";width:9px;height:9px;background:var(--red)}
+.ph .r{margin-left:auto;display:flex;gap:6px;align-items:center}
+.kpis{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line)}
+.kpi{background:var(--bg);padding:12px 18px 14px;min-width:0}
+.kpi .v{display:block;font:850 42px/1.08 var(--sans);font-stretch:75%;letter-spacing:-.01em;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:18px;font-weight:700;color:var(--dim);margin-left:4px}
+.kpi.hot .v{color:var(--red)}
+.kpi .sub{font-size:13px;color:var(--dim)}
+.kpi .bar{display:flex;height:4px;margin-top:8px;gap:2px}
+.kpi .bar i{background:var(--sc)}
+.chips{display:flex;gap:4px;flex-wrap:wrap;padding:0 16px 10px}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 9px;border:1px solid var(--line2);font:600 12px/1 var(--mono);color:var(--dim);white-space:nowrap}
+.chip::before{content:"";width:8px;height:8px;background:var(--sc,var(--dim))}
+.chip[aria-pressed="false"]{opacity:.5;text-decoration:line-through}
+.chip[aria-pressed="false"]::before{background:transparent;border:1px solid var(--sc)}
+.stream{list-style:none;margin:0;padding:0 0 10px;overflow:auto;flex:1;min-height:0}
+.al{position:relative;display:grid;grid-template-columns:auto 1fr;gap:3px 10px;padding:10px 16px 10px 22px;border-top:1px solid var(--line);cursor:pointer}
+.al::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--bw,3px);background:var(--sc)}
+.al.s-crit{--bw:7px;background:linear-gradient(90deg,var(--redbg),transparent 70%)}
+.al.s-high{--bw:5px}.al.s-low{--bw:2px}
+.al:hover,.al.sel{background:var(--pane3)}
+.al time{font:500 12px/1.3 var(--mono);color:var(--dim)}
+.al .top{display:flex;gap:10px;align-items:center}
+.al .top .n{margin-left:auto}
+.al .src .aid{white-space:nowrap}
+.al b{grid-column:1/-1;font-weight:650;font-size:14px;line-height:1.3}
+.al .src{grid-column:1/-1;font:500 12px/1.3 var(--mono);color:var(--dim);overflow-wrap:anywhere}
+.al .src em{font-style:normal;color:var(--ink)}
+.al .n{font:700 12px/1 var(--mono);color:var(--dim)}
+.al.new{animation:flash 1.6s ease-out}
+@keyframes flash{0%{background:var(--redbg)}}
+.more{display:none}
+.mapwrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 10px;position:relative}
+#map{width:100%;height:100%;max-height:640px;display:block;overflow:visible}
+#map .ring{fill:none;stroke:var(--line2);stroke-width:1}
+#map .ring.r0{stroke-dasharray:2 5}
+#map .ringfill{fill:var(--redbg);opacity:.5}
+#map .rl rect{fill:var(--bg)}
+#map .rl text{fill:var(--dim);font-family:var(--sans);font-weight:700;letter-spacing:.14em}
+#map .lk{fill:none;stroke:var(--sc);stroke-width:1.4;opacity:.38}
+#map .lk.hi{opacity:1;stroke-width:2.6}
+#map .fx{fill:none;stroke:var(--sc);stroke-width:2.6;stroke-linecap:round}
+#map .nd{cursor:pointer}
+#map .nd .c{fill:var(--pane);stroke:var(--ink);stroke-width:1.6}
+#map .nd.ext .c{stroke:var(--dim)}
+#map .nd.core .c{fill:var(--pane3);stroke-width:2.4}
+#map .nd.hot .c{stroke:var(--sc);fill:color-mix(in srgb,var(--sc) 30%,var(--pane))}
+#map .nd .halo{fill:none;stroke:var(--sc);stroke-width:2;opacity:0;transform-box:fill-box;transform-origin:center}
+#map .nd .hit{fill:transparent;stroke:none}
+#map .nd.hot .halo{animation:halo 2.2s ease-out infinite}
+@keyframes halo{0%{opacity:.8;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
+#map .nd.sel .c{stroke:var(--red);stroke-width:3.2}
+#map .nd:focus-visible{outline:none}
+#map .nd:focus-visible .c{stroke:var(--red);stroke-width:3.2}
+#map .lb{font-family:var(--mono);fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:5px;stroke-linejoin:round;pointer-events:none}
+#map .lb.ext{fill:var(--dim)}
+#map .lb.sel{fill:var(--red)}
+.mapinfo{display:flex;align-items:center;gap:14px;padding:10px 16px 14px;border-top:1px solid var(--line);min-height:62px;flex-wrap:wrap}
+.mapinfo .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--dim)}
+.mapinfo .legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.mapinfo .legend i{width:14px;height:2px;background:var(--sc)}
+.mapinfo .who{display:flex;flex-direction:column;min-width:0}
+.mapinfo .who b{font:700 15px/1.25 var(--mono)}
+.mapinfo .who span{font-size:13px;color:var(--dim)}
+.mapinfo .btn{margin-left:auto}
+.chartbox{padding:0 16px 12px;position:relative}
+.chart{display:block;width:100%;height:190px;overflow:visible;touch-action:pan-y}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.chart .ax{fill:var(--dim);font:500 12px var(--mono)}
+.chart .cur{fill:none;stroke:var(--ink);stroke-width:1;stroke-dasharray:3 3;opacity:0;pointer-events:none}
+.chart:focus-visible{outline:2px solid var(--red)}
+.inclist{list-style:none;margin:0;padding:0;overflow:auto;flex:1;min-height:0;border-top:1px solid var(--line)}
+.inc{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:11px 16px;border-bottom:1px solid var(--line);cursor:pointer;width:100%;text-align:left}
+.inc:hover{background:var(--pane3)}
+.inc .id{font:700 12px/1.3 var(--mono);color:var(--dim)}
+.inc b{grid-column:1/-1;font-weight:650;line-height:1.3}
+.inc .sla{font:700 12px/1.3 var(--mono)}
+.inc .sla.over{color:var(--crit)}
+.inc .prog{grid-column:1/-1;height:3px;background:var(--line);margin-top:6px}
+.inc .prog i{display:block;height:100%;background:var(--sc)}
+
+/* ── hàng đợi ── */
+.vpad{padding:22px 24px 40px;max-width:1500px}
+.vhead{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:18px}
+.vhead h2{font-size:34px;font-stretch:75%;font-weight:850;letter-spacing:.01em}
+.vhead p{margin:4px 0 0;color:var(--dim)}
+.stbar{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);margin-left:auto;flex-wrap:wrap}
+.stbar button{background:var(--bg);padding:8px 16px 10px;text-align:left;min-width:110px}
+.stbar button b{display:block;font:850 28px/1.1 var(--sans);font-stretch:75%}
+.stbar button span{font-size:12px;color:var(--dim);font-weight:600}
+.stbar button[aria-pressed="true"]{background:var(--ink);color:var(--inv)}
+.stbar button[aria-pressed="true"] span{color:var(--inv)}
+.qtools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;min-height:44px}
+.search{position:relative;flex:1 1 260px;max-width:380px}
+.search .ico{position:absolute;left:11px;top:11px;color:var(--dim)}
+.search .inp{padding-left:36px}
+.qtools .inp{width:auto}
+.qtools .search .inp{width:100%}
+.fchip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 6px 0 10px;background:var(--redbg);border:1px solid var(--red);font:600 12px/1 var(--mono);white-space:nowrap}
+.fchip button{width:26px;height:26px;display:grid;place-items:center}
+.bulk{display:none;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;background:var(--ink);color:var(--inv);margin-bottom:12px}
+.bulk.on{display:flex}
+.bulk b{font-weight:700;margin-right:6px}
+.bulk .btn{background:transparent;color:var(--inv);border-color:color-mix(in srgb,var(--inv) 40%,transparent)}
+.bulk .btn:hover{border-color:var(--inv)}
+.bulk select.inp{width:auto;min-height:34px;background-color:var(--ink);color:var(--inv);border-color:color-mix(in srgb,var(--inv) 40%,transparent)}
+.newbar{display:none;margin-bottom:10px}
+.newbar.on{display:block}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{position:sticky;top:0;background:var(--bg);z-index:1;text-align:left;font:700 12px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line2);padding:0;white-space:nowrap}
+.tbl th button,.tbl th>span{display:flex;align-items:center;gap:4px;padding:10px 10px;width:100%;text-align:left;letter-spacing:inherit;text-transform:inherit;font:inherit;min-height:40px}
+.tbl th button[aria-sort]::after{content:"↕";opacity:.4}
+.tbl th button[data-dir="1"]::after{content:"↑";opacity:1;color:var(--red)}
+.tbl th button[data-dir="-1"]::after{content:"↓";opacity:1;color:var(--red)}
+.tbl td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr.row{cursor:pointer}
+.tbl tr.row:hover td{background:var(--pane2)}
+.tbl tr.row.sel td{background:var(--redbg)}
+.tbl .ck{width:40px;text-align:center}
+.tbl input[type=checkbox]{width:18px;height:18px;accent-color:var(--red);margin:2px 0 0;cursor:pointer}
+.tbl .id{font:600 13px/1.3 var(--mono);color:var(--dim);white-space:nowrap}
+.tbl .ti b{display:block;font-weight:650;line-height:1.3}
+.tbl .ti small{font:500 12px/1.4 var(--mono);color:var(--dim)}
+.tbl .num{font:600 13px/1.3 var(--mono);text-align:right;white-space:nowrap}
+.tbl .tm{font:500 13px/1.3 var(--mono);white-space:nowrap}
+.tbl .tm small{display:block;color:var(--dim);font-size:12px}
+.tbl .as{font:600 13px/1.3 var(--mono);white-space:nowrap}
+.st{display:inline-block;padding:3px 7px;font:700 12px/1.2 var(--sans);white-space:nowrap;border:1px solid var(--line2)}
+.st.moi{background:var(--red);border-color:var(--red);color:#fff}
+.st.xu-ly{border-color:var(--high);color:var(--high)}
+.st.dong{color:var(--ok);border-color:transparent}
+.st.dong::before{content:"✓ "}
+.st.nhieu{color:var(--mute);border-style:dashed}
+.whon{font-size:13px;white-space:nowrap}
+.whon.none{color:var(--mute)}
+.pager{display:flex;align-items:center;gap:8px;justify-content:flex-end;padding:14px 0;flex-wrap:wrap}
+.pager span{font:500 13px/1 var(--mono);color:var(--dim);margin-right:auto}
+.pager button{min-width:40px;height:40px;border:1px solid var(--line2);font:600 13px/1 var(--mono)}
+.pager button[aria-current="page"]{background:var(--ink);color:var(--inv);border-color:var(--ink)}
+.pager button:disabled{opacity:.35;cursor:default}
+.empty{padding:56px 20px;text-align:center;border-bottom:1px solid var(--line)}
+.empty svg{width:64px;height:64px;color:var(--line2);stroke-width:1.2}
+.empty b{display:block;font-size:20px;margin:10px 0 4px}
+.empty p{color:var(--dim);margin:0 0 16px}
+.msort{display:none}
+
+/* ── sự cố & playbook ── */
+.incstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:20px}
+.ist{background:var(--bg);padding:12px 14px 12px;text-align:left;position:relative;display:flex;flex-direction:column;gap:4px;min-height:110px}
+.ist::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--sc)}
+.ist[aria-pressed="true"]{background:var(--pane3)}
+.ist[aria-pressed="true"]::after{content:"";position:absolute;left:50%;bottom:-1px;width:14px;height:8px;background:var(--red);clip-path:polygon(0 100%,50% 0,100% 100%);translate:-50% 0}
+.ist .id{font:700 12px/1.2 var(--mono);color:var(--dim);display:flex;justify-content:space-between;gap:6px}
+.ist b{font-weight:650;line-height:1.3;font-size:14px}
+.ist .meta{margin-top:auto;font:500 12px/1.3 var(--mono);color:var(--dim);display:flex;justify-content:space-between;gap:6px}
+.ist.closed b{color:var(--dim)}
+.ist .done{color:var(--ok)}
+.pb{display:grid;grid-template-columns:290px minmax(0,1fr) 320px;gap:0;border:1px solid var(--line)}
+.steps{list-style:none;margin:0;padding:16px 0;border-right:1px solid var(--line);position:relative}
+.steps li{position:relative;padding:0 16px 0 58px;min-height:62px}
+.steps li::before{content:"";position:absolute;left:29px;top:30px;bottom:-4px;width:2px;background:var(--line2)}
+.steps li.done::before{background:var(--red)}
+.steps li:last-child::before{display:none}
+.steps button{display:block;text-align:left;width:100%;padding:4px 0 10px}
+.steps .k{position:absolute;left:14px;top:2px;width:32px;height:32px;display:grid;place-items:center;border:2px solid var(--line2);background:var(--bg);font:700 13px/1 var(--mono);color:var(--dim)}
+.steps li.done .k{background:var(--red);border-color:var(--red);color:#fff}
+.steps li.skip .k{border-style:dashed;color:var(--mute)}
+.steps li.cur .k{border-color:var(--red);color:var(--red);box-shadow:0 0 0 4px var(--redbg)}
+.steps b{display:block;font-weight:650;line-height:1.3}
+.steps small{font:500 12px/1.3 var(--mono);color:var(--dim)}
+.steps li.vw button b{color:var(--red)}
+.steps li.vw{background:var(--pane2)}
+.stepd{padding:22px 26px 24px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.stepd .no{font:850 15px/1.1 var(--sans);font-stretch:80%;letter-spacing:.14em;color:var(--red);text-transform:uppercase}
+.stepd h3{font-size:30px;font-stretch:80%;font-weight:850}
+.stepd p{margin:0;color:var(--dim);max-width:62ch}
+.who2{display:inline-flex;gap:6px;align-items:center;font:600 12px/1 var(--mono);padding:5px 8px;border:1px solid var(--line2);width:max-content}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.checks label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;cursor:pointer;min-height:40px}
+.checks input{width:18px;height:18px;accent-color:var(--red);margin:1px 0 0;flex:none}
+.console{background:#0b0808;color:#e9dfd8;border:1px solid var(--line2);font:500 13px/1.6 var(--mono);padding:12px 14px;min-height:120px;max-height:210px;overflow:auto}
+:root[data-theme="light"] .console{background:#1d1515;color:#f4ede6}
+.console div{white-space:pre-wrap;overflow-wrap:anywhere}
+.console .ok{color:#6fe0a0}
+.console .dm{color:#a8968d}
+.pbact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pbact .sp{flex:1}
+.skipbox{display:none;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.skipbox.on{display:flex}
+.skipbox .field{flex:1 1 260px}
+.ctx{border-left:1px solid var(--line);padding:18px 18px 22px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.slabig{display:flex;align-items:center;gap:14px}
+.slabig svg{width:76px;height:76px;flex:none}
+.slabig b{display:block;font:850 25px/1.1 var(--sans);font-stretch:75%}
+.slabig b.over{color:var(--crit)}
+.slabig span{font-size:13px;color:var(--dim)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;margin:0}
+.kv dt{color:var(--dim)}
+.kv dd{margin:0;font-family:var(--mono);overflow-wrap:anywhere}
+.tl{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--line2);display:flex;flex-direction:column;gap:10px}
+.tl li{position:relative;font-size:13px;line-height:1.35}
+.tl li::before{content:"";position:absolute;left:-19px;top:5px;width:8px;height:8px;background:var(--line2)}
+.tl li.r::before{background:var(--red)}
+.tl time{display:block;font:500 12px/1.3 var(--mono);color:var(--dim)}
+
+/* ── quy tắc ── */
+.rules{display:grid;grid-template-columns:400px minmax(0,1fr);border:1px solid var(--line);align-items:start}
+.rlist{list-style:none;margin:0;padding:0;border-right:1px solid var(--line)}
+.rl-i{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center}
+.rl-i:hover{background:var(--pane2)}
+.rl-i.sel{background:var(--pane3);box-shadow:inset 3px 0 var(--red)}
+.rl-i b{display:block;font-weight:650;line-height:1.3}
+.rl-i small{font:500 12px/1.3 var(--mono);color:var(--dim)}
+.rl-i.off b{color:var(--mute)}
+.tog{position:relative;width:44px;height:26px;border:1px solid var(--line2);background:var(--pane3);flex:none}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--mute);transition:left .18s}
+.tog[aria-checked="true"]{background:var(--red);border-color:var(--red)}
+.tog[aria-checked="true"]::after{left:21px;background:#fff}
+.rform{padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.rform .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+.rform .full{grid-column:1/-1}
+.cond{display:grid;grid-template-columns:minmax(0,1fr) 80px 130px;gap:8px}
+.sevpick{display:flex;gap:0;border:1px solid var(--line2);width:max-content;max-width:100%;flex-wrap:wrap}
+.sevpick label{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 12px;cursor:pointer;font-weight:600;font-size:13px}
+.sevpick input{position:absolute;opacity:0;pointer-events:none}
+.sevpick label::before{content:"";width:10px;height:10px;background:var(--sc)}
+.sevpick label:has(input:checked){background:var(--ink);color:var(--inv)}
+.sevpick label:has(input:focus-visible){outline:2px solid var(--red)}
+.preview{border:1px solid var(--line);padding:12px 14px}
+.preview .ph2{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.preview b{font:850 22px/1.1 var(--sans);font-stretch:80%}
+.preview svg{display:block;width:100%;height:90px}
+.rfoot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line)}
+.rfoot .sp{flex:1}
+textarea.inp{min-height:70px;resize:vertical}
+
+/* ── lớp phủ ── */
+#scrim{position:fixed;inset:0;background:rgba(5,2,2,.6);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+#scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--pane);border-left:1px solid var(--line2);z-index:50;display:flex;flex-direction:column;box-shadow:var(--shadow);translate:105% 0;transition:translate .25s cubic-bezier(.2,.8,.2,1);visibility:hidden}
+.drawer.on{translate:0 0;visibility:visible}
+.dhead{display:flex;align-items:flex-start;gap:10px;padding:16px 16px 14px 20px;border-bottom:1px solid var(--line)}
+.dhead h2{font-size:22px;font-stretch:85%;line-height:1.2}
+.dhead .ibtn{margin-left:auto;flex:none}
+.dbody{flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:18px}
+.dbody h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:8px}
+.ioc{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line)}
+.ioc div{background:var(--pane);display:flex;justify-content:space-between;gap:10px;padding:8px 10px;font:500 13px/1.3 var(--mono)}
+.ioc div span:last-child{color:var(--dim);font-family:var(--sans)}
+.dfoot{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.pal{position:fixed;left:50%;top:12vh;translate:-50% 0;width:min(620px,calc(100% - 24px));background:var(--pane);border:1px solid var(--line2);box-shadow:var(--shadow);z-index:60;display:none;flex-direction:column;max-height:70vh}
+.pal.on{display:flex}
+.pal .search{max-width:none;flex:none;border-bottom:1px solid var(--line)}
+.pal .search .inp{border:0;min-height:52px;font-size:16px;background:transparent;box-shadow:none}
+.pal .search .ico{top:17px}
+.pal ul{list-style:none;margin:0;padding:6px 0;overflow:auto}
+.pal li.g{padding:10px 16px 4px;font:700 11px/1 var(--mono);letter-spacing:.12em;color:var(--mute);text-transform:uppercase}
+.pal li button{display:flex;gap:12px;align-items:center;width:100%;padding:9px 16px;text-align:left;min-height:42px}
+.pal li button[aria-selected="true"]{background:var(--redbg);box-shadow:inset 3px 0 var(--red)}
+.pal li button small{margin-left:auto;font:500 12px/1 var(--mono);color:var(--dim);white-space:nowrap}
+.pal .none{padding:24px 16px;color:var(--dim);text-align:center}
+.pop{position:fixed;z-index:55;background:var(--pane);border:1px solid var(--line2);box-shadow:var(--shadow);width:min(360px,calc(100% - 24px));display:none}
+.pop.on{display:block}
+.pop .ph{border-bottom:1px solid var(--line)}
+.pop ul{list-style:none;margin:0;padding:0;max-height:360px;overflow:auto}
+.pop li button{display:block;width:100%;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+.pop li button:hover{background:var(--pane3)}
+.pop li b{display:block;font-weight:600;line-height:1.3;margin-top:4px}
+.pop .acc{padding:14px;display:flex;flex-direction:column;gap:10px}
+.mnav{position:fixed;top:0;right:0;bottom:0;width:min(320px,88%);background:var(--pane);z-index:50;border-left:1px solid var(--line2);display:flex;flex-direction:column;translate:105% 0;transition:translate .25s;visibility:hidden;padding:12px}
+.mnav.on{translate:0 0;visibility:visible}
+.mnav .nv{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;font-weight:650;font-size:16px;border-bottom:1px solid var(--line)}
+.mnav .nv[aria-current="page"]{color:var(--red);box-shadow:inset 3px 0 var(--red)}
+.mnav .nv .n{margin-left:auto;background:var(--red);color:#fff;font:700 12px/20px var(--mono);padding:0 6px}
+.mnav .row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+#toasts{position:fixed;left:16px;bottom:44px;z-index:70;display:flex;flex-direction:column;gap:8px;width:min(380px,calc(100% - 32px));pointer-events:none}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;background:var(--ink);color:var(--inv);padding:10px 10px 10px 14px;box-shadow:var(--shadow);border-left:4px solid var(--red);font-weight:600;font-size:14px;line-height:1.35}
+.toast span{flex:1}
+.toast button{color:var(--inv);font-weight:700;padding:0 10px;min-height:34px;border:1px solid color-mix(in srgb,var(--inv) 40%,transparent);white-space:nowrap}
+#tip{position:fixed;z-index:80;pointer-events:none;background:var(--ink);color:var(--inv);padding:8px 10px;font:500 12px/1.45 var(--mono);opacity:0;transition:opacity .12s;max-width:260px;box-shadow:var(--shadow)}
+#tip.on{opacity:1}
+#tip b{font-family:var(--sans);font-size:13px}
+#tip .r{display:flex;justify-content:space-between;gap:16px}
+#tip .r i{display:inline-block;width:8px;height:8px;background:var(--sc);margin-right:6px}
+
+/* chế độ tường (toàn màn hình) */
+.wm .app{grid-template-columns:minmax(0,1fr);grid-template-rows:56px minmax(0,1fr)}
+.wm .rail,.wm .status,.wm .kbtn,.wm .crumb{display:none}
+.wm .wmexit{display:inline-flex}
+.wm .band{height:56px}
+
+/* chuyển động */
+.is-static *,.rm *{animation:none!important}
+.rm *{transition:none!important}
+
+/* ── responsive ── */
+@media (max-width:1439px){
+  #v-tuong.on{grid-template-columns:300px minmax(0,1fr) 330px}
+  .kpi .v{font-size:38px}
+  .pb{grid-template-columns:250px minmax(0,1fr) 290px}
+}
+@media (max-width:1279px){
+  #v-tuong.on{grid-template-columns:300px minmax(0,1fr);grid-template-rows:auto 560px auto;height:auto}
+  #v-tuong .side{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+  #v-tuong .side>div{background:var(--bg);display:flex;flex-direction:column;min-width:0}
+  .threat .lbl{display:none}
+  .pb{grid-template-columns:240px minmax(0,1fr)}
+  .incstrip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin;mask-image:linear-gradient(90deg,#000 calc(100% - 48px),transparent);padding-right:40px;background:transparent}
+  .ist{border-right:1px solid var(--line)}
+  .ist{flex:0 0 250px;scroll-snap-align:start}
+  .ctx{grid-column:1/-1;border-left:0;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .rules{grid-template-columns:340px minmax(0,1fr)}
+  .crumb .lbl{display:none}
+  .status .opt{display:none}
+}
+@media (min-width:1280px){#v-tuong .side{display:flex;flex-direction:column;min-height:0}#v-tuong .side>div{display:flex;flex-direction:column;min-height:0}#v-tuong .side>div:last-child{flex:1}}
+@media (max-width:1100px){
+  .brand small{display:none}
+  .kbtn kbd{display:none}
+  .crumb{display:none}
+}
+@media (max-width:900px){
+  body{overflow:auto}
+  .app{display:block;height:auto}
+  .band{position:sticky;top:0;z-index:30;height:60px;gap:10px;padding:0 10px 0 14px}
+  .rail{display:none}
+  .menubtn{display:inline-grid}
+  .threat{padding-left:12px}
+  main{overflow:visible}
+  .status .opt{display:inline}
+  .status{flex-wrap:wrap;white-space:normal;padding:12px 16px 18px;gap:8px 16px;line-height:1.5}
+  .status .cc{margin-left:0;width:100%}
+  #v-tuong.on{display:flex;flex-direction:column;height:auto;min-height:0;gap:1px}
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .kpis .kpi{grid-column:span 2}
+  .kpis .kpi:nth-child(4),.kpis .kpi:nth-child(5){grid-column:span 3}
+  #v-tuong .mappane{order:1}
+  .mapwrap{height:min(92vw,560px);flex:none}
+  #v-tuong .streampane{order:2}
+  #v-tuong .side{order:3}
+  .stream{max-height:none;overflow:visible}
+  .stream .al:nth-child(n+9){display:none}
+  .more{display:flex;padding:10px 16px 16px}
+  .inclist{max-height:none;overflow:visible}
+  .vpad{padding:18px 16px 32px}
+  .pb{grid-template-columns:1fr}
+  .steps{display:flex;gap:0;overflow-x:auto;padding:12px 12px 8px;border-right:0;border-bottom:1px solid var(--line);scrollbar-width:thin}
+  .steps li{padding:0;min-height:0;flex:none}
+  .steps li::before{display:none}
+  .steps .k{position:static;width:40px;height:40px;margin:0 3px}
+  .steps button{padding:0}
+  .steps b,.steps small{display:none}
+  .stepd{padding:18px 16px 0}
+  .pbact{position:sticky;bottom:0;background:var(--bg);padding:12px 0 14px;border-top:1px solid var(--line);z-index:5}
+  .ctx{grid-template-columns:1fr 1fr}
+  .rules{grid-template-columns:1fr}
+  .rlist{border-right:0;border-bottom:1px solid var(--line)}
+  #toasts{left:50%;translate:-50% 0;top:8px;bottom:auto}
+  .wm .app{display:block}
+  .drawer{top:128px;width:100%;border-left:0;border-top:1px solid var(--line2);translate:0 105%}
+  .drawer.on{translate:0 0}
+}
+@media (max-width:900px){
+  .msort{display:flex}
+  .tbl thead{display:none}
+  .tbl,.tbl tbody{display:block}
+  .tbl tr.row{display:grid;grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:"ck sev tm" "ck ti ti" "ck as as" "ck st who";gap:4px 8px;padding:12px 4px;border-bottom:1px solid var(--line)}
+  .tbl tr.row td{display:block;padding:0;border:0;background:none!important}
+  .tbl tr.row.sel{background:var(--redbg)}
+  .tbl tr.row td.id,.tbl tr.row td.num{display:none}
+  .tbl td.ck{grid-area:ck;width:auto}.tbl td.sv{grid-area:sev}.tbl td.ti{grid-area:ti}
+  .tbl td.as{grid-area:as;white-space:normal}.tbl td.stc{grid-area:st}.tbl td.wh{grid-area:who;text-align:right}.tbl td.num{display:none}.tbl td.tm{grid-area:tm;text-align:right}
+  .tbl td.tm small{display:none}
+  .tbl tr.emp{display:block}.tbl tr.emp td{display:block}
+}
+@media (min-width:761px) and (max-width:900px){
+  .tbl tbody{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+  .tbl tr.emp{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .threat .segs{display:none}
+  .clock{display:none}
+  .kbtn{width:40px;padding:0;justify-content:center;border-color:transparent}
+  .kbtn span{display:none}
+  .live{display:none}
+  .stbar{margin-left:0;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stbar button{min-width:0;padding:8px 10px}
+  .search{max-width:none;flex-basis:100%}
+  .qtools .inp{flex:1 1 140px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpis .kpi,.kpis .kpi:nth-child(4),.kpis .kpi:nth-child(5){grid-column:span 1}
+  .kpis .kpi:first-child{grid-column:1/-1}
+  .kpi .v{font-size:36px}
+  #v-tuong .side{grid-template-columns:1fr}
+  .vhead h2{font-size:30px}
+  .ctx{grid-template-columns:1fr}
+  .rform{padding:18px 16px}
+  .rform .grid{grid-template-columns:1fr}
+  .cond{grid-template-columns:1fr 80px;}
+  .cond .inp:first-child{grid-column:1/-1}
+  .incstrip{display:flex;overflow-x:auto;scroll-snap-type:x mandatory}
+  .ist{flex:0 0 76%;scroll-snap-align:start}
+  .mapinfo .btn{margin-left:0}
+}
+@media (max-width:420px){
+  .brand b{font-size:20px}
+  .threat strong{font-size:18px}
+  .bandr{gap:0}
+}
+/* touch: controls reach 40px; switches and row checkboxes keep their look, hit area widened */
+@media (pointer:coarse){
+  .chip,.seg button,.btn.sm,.bulk select.inp{min-height:40px}
+  .chip,.btn.sm{min-width:40px}
+  #incOwner{min-height:40px!important}
+  .tog::before{content:"";position:absolute;inset:-8px -4px}
+  .tbl .ck input{position:relative}
+  .tbl .ck input::before{content:"";position:absolute;inset:-12px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></symbol>
+  <symbol id="i-wall" viewBox="0 0 24 24"><path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/></symbol>
+  <symbol id="i-queue" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+  <symbol id="i-siren" viewBox="0 0 24 24"><path d="M7 18v-6a5 5 0 0110 0v6M5 18h14v3H5zM12 3v2M4.5 6.5l1.4 1.4M19.5 6.5l-1.4 1.4"/></symbol>
+  <symbol id="i-rule" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M15 5v4M4 17h3M11 17h9M9 15v4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM20 20l-4-4"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0112 0v5l2 2H4zM10 21h4"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></symbol>
+  <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-skip" viewBox="0 0 24 24"><path d="M5 5l9 7-9 7zM18 5v14"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <header class="band" id="band">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l11 4.4v7.8c0 7.4-4.8 11.8-11 13.8C9.8 27 5 22.6 5 15.2V7.4z" fill="none" stroke="var(--red)" stroke-width="2.6"/><path d="M16 10v10M11 15h10" stroke="var(--ink)" stroke-width="2.6"/></svg>
+      <div><b>KHIÊN SỐ</b><small id="shiftLine">SOC · Ca trực</small></div>
+    </div>
+    <div class="threat" id="threat" title="Mức đe dọa tính từ cảnh báo nghiêm trọng và cao đang mở">
+      <span class="lbl">Mức<br>đe dọa</span>
+      <span class="segs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      <strong id="thrWord">CAO</strong>
+    </div>
+    <div class="crumb"><span class="lbl">SOC / Khiên Số</span><h1 id="vtitle">Tường giám sát</h1></div>
+    <div class="bandr">
+      <button class="kbtn" id="palBtn" aria-label="Mở bảng lệnh (Ctrl K)"><svg class="ico"><use href="#i-search"/></svg><span>Tìm, lệnh…</span><kbd>Ctrl K</kbd></button>
+      <button class="live" id="liveBtn" aria-pressed="true" aria-label="Tạm dừng hoặc tiếp tục dòng cảnh báo trực tiếp"><i></i><span id="liveTxt">TRỰC TIẾP</span></button>
+      <button class="ibtn" id="bellBtn" aria-label="Thông báo" aria-expanded="false" aria-controls="notif"><svg class="ico"><use href="#i-bell"/></svg><span class="dot" id="bellN">0</span></button>
+      <button class="btn sm wmexit" id="wmExit">Thoát chế độ tường</button>
+      <div class="clock"><b id="clk">--:--:--</b><small id="clkd">--</small></div>
+      <button class="ibtn menubtn" id="menuBtn" aria-label="Mở menu điều hướng" aria-expanded="false" aria-controls="mnav"><svg class="ico"><use href="#i-menu"/></svg></button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- 1. Tường giám sát -->
+    <section class="view" id="v-tuong" aria-label="Tường giám sát">
+      <div class="kpis" id="kpis"></div>
+      <div class="pane streampane">
+        <div class="ph"><h2>Dòng cảnh báo</h2><div class="r"><span class="lbl" id="streamN">40 gần nhất</span></div></div>
+        <div class="chips" id="sevChips" role="group" aria-label="Lọc dòng cảnh báo theo mức độ"></div>
+        <ul class="stream" id="stream" aria-live="polite"></ul>
+        <div class="more"><button class="btn" data-go="canh-bao" style="width:100%">Xem toàn bộ hàng đợi <svg class="ico"><use href="#i-arrow"/></svg></button></div>
+      </div>
+      <div class="pane mappane">
+        <div class="ph"><h2>Bản đồ sự kiện</h2><div class="r"><span class="lbl">Từ ngoài vào lõi</span></div></div>
+        <div class="mapwrap"><svg id="map" role="group" aria-label="Bản đồ sự kiện theo vùng mạng: Internet, Biên, Nội bộ, Lõi dữ liệu"></svg></div>
+        <div class="mapinfo" id="mapinfo"></div>
+      </div>
+      <div class="side">
+        <div class="pane">
+          <div class="ph"><h2>Lưu lượng</h2><div class="r"><div class="seg" id="rangeSeg" role="group" aria-label="Khoảng thời gian biểu đồ"><button data-r="24h" aria-pressed="true">24 giờ</button><button data-r="7d" aria-pressed="false">7 ngày</button><button data-r="30d" aria-pressed="false">30 ngày</button></div></div></div>
+          <div class="chartbox"><svg class="chart" id="chart" tabindex="0" role="img" aria-label="Biểu đồ số sự kiện theo mức độ; dùng phím mũi tên để xem từng cột"></svg></div>
+        </div>
+        <div class="pane">
+          <div class="ph"><h2>Sự cố đang mở</h2><div class="r"><button class="btn sm" data-go="su-co">Playbook</button></div></div>
+          <ul class="inclist" id="incMini"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Hàng đợi cảnh báo -->
+    <section class="view" id="v-canh-bao" aria-label="Hàng đợi cảnh báo">
+      <div class="vpad">
+        <div class="vhead">
+          <div><h2>Hàng đợi cảnh báo</h2><p id="qSub">Cảnh báo sau khi gộp sự kiện trong 24 giờ</p></div>
+          <div class="stbar" id="stBar" role="group" aria-label="Lọc theo trạng thái"></div>
+        </div>
+        <div class="newbar" id="newBar"><button class="btn sm pri" id="newBtn">Có cảnh báo mới · Hiện</button></div>
+        <div class="qtools" id="qTools">
+          <label class="search"><span class="sr">Tìm cảnh báo</span><svg class="ico"><use href="#i-search"/></svg><input class="inp" id="qSearch" type="search" placeholder="Tìm mã, tên, IP, tài sản…" autocomplete="off"></label>
+          <label class="sr" for="qSev">Mức độ</label>
+          <select class="inp" id="qSev"><option value="all">Mọi mức độ</option><option value="crit">Nghiêm trọng</option><option value="high">Cao</option><option value="med">Trung bình</option><option value="low">Thấp</option></select>
+          <label class="sr" for="qWho">Phụ trách</label>
+          <select class="inp" id="qWho"></select>
+          <label class="sr" for="qSort">Sắp xếp</label>
+          <select class="inp msort" id="qSort"><option value="t:-1">Mới nhất</option><option value="t:1">Cũ nhất</option><option value="sev:1">Mức độ cao trước</option><option value="n:-1">Nhiều sự kiện nhất</option></select>
+          <span id="fAsset"></span>
+          <button class="btn sm" id="qClear">Xóa lọc</button>
+        </div>
+        <div class="bulk" id="bulk" role="region" aria-label="Thao tác hàng loạt">
+          <b id="bulkN">0 đã chọn</b>
+          <button class="btn sm" data-bulk="take">Nhận xử lý</button>
+          <label class="sr" for="bulkWho">Giao cho</label>
+          <select class="inp" id="bulkWho"></select>
+          <button class="btn sm" data-bulk="noise">Đánh dấu nhiễu</button>
+          <button class="btn sm" data-bulk="close">Đóng</button>
+          <button class="btn sm" data-bulk="clear">Bỏ chọn</button>
+        </div>
+        <table class="tbl" id="qTable">
+          <thead><tr>
+            <th class="ck"><span><input type="checkbox" id="ckAll" aria-label="Chọn tất cả trên trang"></span></th>
+            <th><button data-k="sev" aria-sort="none">Mức độ</button></th>
+            <th><button data-k="id" aria-sort="none">Mã</button></th>
+            <th><button data-k="title" aria-sort="none">Cảnh báo</button></th>
+            <th><button data-k="asset" aria-sort="none">Tài sản</button></th>
+            <th><button data-k="st" aria-sort="none">Trạng thái</button></th>
+            <th><span>Phụ trách</span></th>
+            <th><button data-k="n" aria-sort="none">Sự kiện</button></th>
+            <th><button data-k="t" aria-sort="descending" data-dir="-1">Thời điểm</button></th>
+          </tr></thead>
+          <tbody id="qBody"></tbody>
+        </table>
+        <div class="pager" id="pager"></div>
+      </div>
+    </section>
+
+    <!-- 3. Sự cố & playbook -->
+    <section class="view" id="v-su-co" aria-label="Sự cố và playbook">
+      <div class="vpad">
+        <div class="vhead"><div><h2>Sự cố &amp; playbook</h2><p>Làm từng bước theo quy trình; bước tự động chạy giả lập trên dữ liệu mẫu.</p></div></div>
+        <div class="incstrip" id="incStrip" role="group" aria-label="Chọn sự cố"></div>
+        <div class="pb" id="pb">
+          <ol class="steps" id="steps" aria-label="Các bước playbook"></ol>
+          <div class="stepd" id="stepd"></div>
+          <aside class="ctx" id="ctx" aria-label="Bối cảnh sự cố"></aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Quy tắc phát hiện -->
+    <section class="view" id="v-quy-tac" aria-label="Quy tắc phát hiện">
+      <div class="vpad">
+        <div class="vhead"><div><h2>Quy tắc phát hiện</h2><p>Bật, tắt và chỉnh ngưỡng; xem trước số lần kích hoạt trên dữ liệu 7 ngày.</p></div><button class="btn pri" id="ruleNew" style="margin-left:auto"><svg class="ico"><use href="#i-plus"/></svg>Quy tắc mới</button></div>
+        <div class="rules">
+          <ul class="rlist" id="rlist" aria-label="Danh sách quy tắc"></ul>
+          <form class="rform" id="rform" novalidate>
+            <div class="ph" style="padding:0"><h2 id="rfTitle">Sửa quy tắc</h2><div class="r"><span class="lbl mono" id="rfId"></span></div></div>
+            <div class="grid">
+              <label class="field full"><span>Tên quy tắc</span><input class="inp" id="fName" maxlength="70" autocomplete="off"><em class="err" id="eName"></em></label>
+              <label class="field"><span>Nguồn nhật ký</span><select class="inp" id="fSrc"></select></label>
+              <label class="field"><span>Gửi cảnh báo tới (email)</span><input class="inp" id="fMail" type="email" autocomplete="off" placeholder="soc@khienso.example"><em class="err" id="eMail"></em></label>
+              <div class="field full"><span id="lCond">Điều kiện kích hoạt</span>
+                <div class="cond" role="group" aria-labelledby="lCond">
+                  <select class="inp" id="fMet" aria-label="Chỉ số theo dõi"></select>
+                  <select class="inp" id="fOp" aria-label="Phép so sánh"><option>≥</option><option>&gt;</option><option>=</option></select>
+                  <input class="inp mono" id="fThr" inputmode="numeric" aria-label="Ngưỡng" autocomplete="off">
+                </div><em class="err" id="eThr"></em></div>
+              <label class="field"><span>Cửa sổ thời gian (phút)</span><input class="inp mono" id="fWin" inputmode="numeric" autocomplete="off"><em class="err" id="eWin"></em></label>
+              <label class="field"><span>Hiệu lực từ (dd/mm/yyyy)</span><input class="inp mono" id="fFrom" placeholder="dd/mm/yyyy" autocomplete="off"><em class="err" id="eFrom"></em></label>
+              <div class="field full"><span id="lSev">Mức độ cảnh báo</span><div class="sevpick" role="radiogroup" aria-labelledby="lSev" id="fSev"></div></div>
+              <label class="field full"><span>Ghi chú cho ca trực (không bắt buộc)</span><textarea class="inp" id="fNote" maxlength="240"></textarea><em class="err" id="eNote"></em></label>
+            </div>
+            <div class="preview"><div class="ph2"><span class="lbl">Xem trước trên 7 ngày</span><span><b id="pvN">0</b> <span class="lbl" style="letter-spacing:.04em">lần kích hoạt ước tính</span></span></div><svg id="pv" aria-label="Ước tính số lần kích hoạt theo ngày" role="img"></svg></div>
+            <div class="rfoot"><button type="button" class="btn" id="rDel">Xóa quy tắc</button><span class="sp"></span><button type="button" class="btn" id="rCancel">Hoàn nguyên</button><button type="submit" class="btn pri" id="rSave">Lưu quy tắc</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="rail" id="rail" aria-label="Điều hướng chính">
+    <button class="nv" data-go="tuong"><span class="num">01</span><svg class="ico"><use href="#i-wall"/></svg>Tường</button>
+    <button class="nv" data-go="canh-bao"><span class="num">02</span><svg class="ico"><use href="#i-queue"/></svg>Cảnh báo<span class="n" data-cnt="q"></span></button>
+    <button class="nv" data-go="su-co"><span class="num">03</span><svg class="ico"><use href="#i-siren"/></svg>Sự cố<span class="n" data-cnt="i"></span></button>
+    <button class="nv" data-go="quy-tac"><span class="num">04</span><svg class="ico"><use href="#i-rule"/></svg>Quy tắc</button>
+    <span class="sp"></span>
+    <div class="tools">
+      <button class="ibtn" data-act="theme" aria-label="Đổi giao diện sáng/tối"><svg class="ico"><use href="#i-sun"/></svg></button>
+      <button class="ibtn" data-act="wall" aria-label="Bật chế độ tường toàn màn hình"><svg class="ico"><use href="#i-expand"/></svg></button>
+      <button class="avatar" id="accBtn" aria-label="Tài khoản" aria-expanded="false" aria-controls="acct">KT</button>
+    </div>
+  </nav>
+
+  <footer class="status" id="status"></footer>
+</div>
+
+<div id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle"></aside>
+<div class="pal" id="pal" role="dialog" aria-modal="true" aria-label="Bảng lệnh">
+  <label class="search"><span class="sr">Tìm lệnh, cảnh báo, sự cố</span><svg class="ico"><use href="#i-search"/></svg><input class="inp" id="palIn" placeholder="Gõ tên màn hình, mã cảnh báo, IP, sự cố…" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="palList"></label>
+  <ul id="palList" role="listbox" aria-label="Kết quả"></ul>
+</div>
+<div class="pop" id="notif" role="dialog" aria-label="Thông báo"></div>
+<div class="pop" id="acct" role="dialog" aria-label="Tài khoản"></div>
+<nav class="mnav" id="mnav" aria-label="Menu điều hướng"></nav>
+<div id="toasts" aria-live="polite"></div>
+<div id="tip" role="tooltip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+(() => {
+'use strict'
+const G = window.gsap
+// ?static: đóng băng đồng hồ, dòng cảnh báo, đếm ngược SLA để QA so sánh bố cục ổn định.
+const STATIC = /\bstatic\b/.test(location.search)
+const root = document.documentElement
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+if (RM) root.classList.add('rm')
+if (STATIC) root.classList.add('is-static')
+const anim = () => G && !RM
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const store = { get(k) { try { return localStorage.getItem(k) } catch { return null } }, set(k, v) { try { localStorage.setItem(k, v) } catch { /* chế độ riêng tư */ } } }
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+const rnd = mulberry32(75)
+const pick = (a, r = rnd) => a[Math.floor(r() * a.length)]
+const ri = (a, b, r = rnd) => a + Math.floor(r() * (b - a + 1))
+const NF = new Intl.NumberFormat('vi-VN')
+const fmt = (v) => NF.format(Math.round(v))
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+const unacc = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+const pad = (n) => String(n).padStart(2, '0')
+const hm = (d) => pad(d.getHours()) + ':' + pad(d.getMinutes())
+const hms = (d) => hm(d) + ':' + pad(d.getSeconds())
+const dmy = (d) => pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear()
+const DOW = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy']
+const now = () => Date.now()
+function rel(t) {
+  const m = Math.floor((now() - t) / 60000)
+  if (m < 1) return 'vừa xong'
+  if (m < 60) return m + ' phút trước'
+  const h = Math.floor(m / 60)
+  return h < 24 ? h + ' giờ ' + (m % 60 ? pad(m % 60) + ' phút ' : '') + 'trước' : Math.floor(h / 24) + ' ngày trước'
+}
+const dur = (m) => (m < 60 ? m + ' phút' : Math.floor(m / 60) + ' giờ ' + pad(m % 60) + ' phút')
+const T0 = now()
+
+/* ── danh mục ── */
+const SEV = ['crit', 'high', 'med', 'low']
+const SEVN = { crit: 'Nghiêm trọng', high: 'Cao', med: 'Trung bình', low: 'Thấp' }
+const ST = { moi: 'Mới', 'xu-ly': 'Đang xử lý', dong: 'Đã đóng', nhieu: 'Nhiễu' }
+const TEAM = ['Trần Khải', 'Lê Minh Thư', 'Phạm Quốc Bảo', 'Nguyễn Hà My', 'Đỗ Gia Huy', 'Vũ Thanh Tâm']
+const initials = (n) => { const p = n.split(' '); return (p[0][0] + p[p.length - 1][0]).toUpperCase() }
+function shiftOf(d) {
+  const h = d.getHours()
+  if (h >= 6 && h < 14) return { n: 'Ca sáng', r: '06:00–14:00', lead: 1, mate: 2, end: 14 }
+  if (h >= 14 && h < 22) return { n: 'Ca chiều', r: '14:00–22:00', lead: 3, mate: 5, end: 22 }
+  return { n: 'Ca đêm', r: '22:00–06:00', lead: 0, mate: 4, end: 6 }
+}
+const SHIFT = shiftOf(new Date())
+const ME = TEAM[SHIFT.lead]
+const USERS = ['lan.nguyen', 'hoang.vu', 'minh.tran', 'an.pham', 'quyen.do', 'tuan.le']
+
+// Bản đồ: 4 vòng từ ngoài vào lõi. Địa chỉ ngoài đều thuộc dải tài liệu (RFC 5737) và example.*.
+const RINGS = [{ n: 'INTERNET', r: 258 }, { n: 'BIÊN', r: 192 }, { n: 'NỘI BỘ', r: 126 }, { n: 'LÕI DỮ LIỆU', r: 58 }]
+const NODES = [
+  ['198.51.100.77', 0], ['203.0.113.24', 0], ['example.net', 0], ['cdn.example.org', 0], ['192.0.2.145', 0], ['203.0.113.190', 0], ['198.51.100.12', 0], ['192.0.2.33', 0],
+  ['KS-WAF', 1, 'WAF', 'Tường lửa ứng dụng web'], ['KS-VPN-01', 1, 'VPN-01', 'Cổng VPN nhân viên'], ['KS-MAILGW', 1, 'MAILGW', 'Cổng email'], ['KS-WEB-02', 1, 'WEB-02', 'Cổng thông tin khách hàng'], ['KS-DNS', 1, 'DNS', 'Máy chủ phân giải tên miền'],
+  ['KS-AD-01', 2, 'AD-01', 'Máy chủ định danh'], ['KS-WS-014', 2, 'WS-014', 'Máy trạm phòng Kế toán'], ['KS-FILE', 2, 'FILE', 'Máy chủ tệp dùng chung'], ['KS-WS-087', 2, 'WS-087', 'Máy trạm phòng Kinh doanh'], ['KS-HRM', 2, 'HRM', 'Ứng dụng nhân sự'], ['KS-WS-122', 2, 'WS-122', 'Máy trạm phòng Kỹ thuật'],
+  ['KS-DB-KH', 3, 'DB-KH', 'CSDL khách hàng'], ['KS-BACKUP', 3, 'BACKUP', 'Máy chủ sao lưu'],
+].map(([id, ring, s, d]) => ({ id, ring, s: s || id, d: d || 'Nguồn bên ngoài' }))
+const NODE = Object.fromEntries(NODES.map((n) => [n.id, n]))
+const RING_START = [-67.5, -54, -60, 0]
+{
+  const per = [0, 0, 0, 0]
+  NODES.forEach((n) => { n.k = per[n.ring]++ })
+  NODES.forEach((n) => {
+    const cnt = per[n.ring], a = (RING_START[n.ring] + n.k * 360 / cnt) * Math.PI / 180
+    n.a = a; n.x = 300 + RINGS[n.ring].r * Math.cos(a); n.y = 300 + RINGS[n.ring].r * Math.sin(a)
+  })
+}
+const EXT = NODES.filter((n) => n.ring === 0).map((n) => n.id)
+const isExt = (id) => NODE[id] && NODE[id].ring === 0
+
+const TYPES = [
+  { k: 'bf', t: 'Đăng nhập thất bại liên tiếp', rule: 'R-101', pb: 'login', sev: ['high', 'med', 'med', 'crit'], src: 'ext', dst: ['KS-VPN-01', 'KS-AD-01'], w: 10 },
+  { k: 'geo', t: 'Đăng nhập thành công từ vị trí bất thường', rule: 'R-102', pb: 'login', sev: ['crit', 'high'], src: 'ext', dst: ['KS-VPN-01'], w: 3 },
+  { k: 'scan', t: 'Quét cổng từ địa chỉ bên ngoài', rule: 'R-103', pb: 'scan', sev: ['low', 'low', 'med'], src: 'ext', dst: ['KS-WAF', 'KS-WEB-02', 'KS-DNS'], w: 14 },
+  { k: 'waf', t: 'Yêu cầu web bất thường bị WAF chặn', rule: 'R-104', pb: 'scan', sev: ['low', 'med'], src: 'ext', dst: ['KS-WEB-02', 'KS-WAF'], w: 13 },
+  { k: 'phish', t: 'Email lừa đảo bị cách ly', rule: 'R-105', pb: 'phish', sev: ['med', 'low'], src: 'ext', dst: ['KS-MAILGW'], w: 9 },
+  { k: 'click', t: 'Người dùng mở liên kết trong email bị gắn cờ', rule: 'R-106', pb: 'phish', sev: ['high', 'med'], src: ['KS-MAILGW'], dst: ['KS-WS-087', 'KS-WS-014'], w: 4 },
+  { k: 'edr', t: 'Tệp đáng ngờ bị EDR chặn khi tải về', rule: 'R-107', pb: 'malware', sev: ['high', 'med'], src: 'ext', dst: ['KS-WS-014', 'KS-WS-122', 'KS-WS-087'], w: 6 },
+  { k: 'beacon', t: 'Tiến trình lạ kết nối ra ngoài theo chu kỳ', rule: 'R-108', pb: 'malware', sev: ['crit', 'high'], src: ['KS-WS-014', 'KS-WS-122'], dst: 'ext', w: 3 },
+  { k: 'dns', t: 'Truy vấn DNS tới tên miền mới đăng ký', rule: 'R-109', pb: 'malware', sev: ['med', 'low'], src: ['KS-DNS'], dst: 'ext', w: 7 },
+  { k: 'share', t: 'Truy cập hàng loạt tệp dùng chung', rule: 'R-110', pb: 'malware', sev: ['high', 'med'], src: ['KS-WS-122', 'KS-WS-087'], dst: ['KS-FILE'], w: 3 },
+  { k: 'db', t: 'Truy vấn khối lượng lớn vào CSDL khách hàng', rule: 'R-111', pb: 'login', sev: ['crit', 'high'], src: ['KS-HRM', 'KS-AD-01'], dst: ['KS-DB-KH'], w: 2 },
+  { k: 'bk', t: 'Tác vụ sao lưu bị trễ quá ngưỡng', rule: 'R-112', pb: null, sev: ['low'], src: ['KS-FILE'], dst: ['KS-BACKUP'], w: 3 },
+]
+const TYPE = Object.fromEntries(TYPES.map((t) => [t.k, t]))
+const WSUM = TYPES.reduce((s, t) => s + t.w, 0)
+function pickType(r) { let x = r() * WSUM; for (const t of TYPES) { x -= t.w; if (x < 0) return t } return TYPES[0] }
+const NRANGE = { crit: [1, 4], high: [1, 9], med: [2, 18], low: [4, 36] }
+let seq = 24800
+function makeAlert(type, offMin, r = rnd, sev) {
+  const s = sev || pick(type.sev, r)
+  const src = type.src === 'ext' ? pick(EXT, r) : pick(type.src, r)
+  const dst = type.dst === 'ext' ? pick(EXT, r) : pick(type.dst, r)
+  const asset = isExt(dst) ? src : dst
+  return { id: 'KS-' + (++seq), type: type.k, title: type.t, rule: type.rule, sev: s, src, dst, asset, user: pick(USERS, r), n: ri(NRANGE[s][0], NRANGE[s][1], r), t: T0 - offMin * 60000 - Math.floor(r() * 50000), st: 'moi', who: null, inc: null }
+}
+
+/* ── dữ liệu seed ── */
+const ALERTS = []
+for (let i = 0; i < 116; i++) {
+  const off = Math.round(Math.pow(i / 116, 1.25) * 1400) + ri(0, 18)
+  const a = makeAlert(pickType(rnd), off)
+  if (off > 30) {
+    const x = rnd()
+    a.st = x < 0.28 ? 'moi' : x < 0.5 ? 'xu-ly' : x < 0.84 ? 'dong' : 'nhieu'
+    if (a.st === 'xu-ly' || a.st === 'dong') a.who = pick(TEAM)
+  }
+  ALERTS.push(a)
+}
+const INC_SEED = [
+  { k: 'geo', off: 96, sev: 'crit', step: 2, title: (a) => `Tài khoản ${a.user} đăng nhập VPN từ vị trí lạ` },
+  { k: 'beacon', off: 52, sev: 'crit', step: 1, title: (a) => `${a.src} kết nối ra ngoài theo chu kỳ` },
+  { k: 'click', off: 184, sev: 'high', step: 4, title: (a) => `Mở liên kết lừa đảo trên ${a.dst}` },
+  { k: 'scan', off: 31, sev: 'med', step: 0, title: (a) => `Dò quét diện rộng từ ${a.src}` },
+  { k: 'db', off: 140, sev: 'high', step: 3, title: () => 'Truy vấn bất thường vào CSDL khách hàng' },
+]
+const PB = {}
+const INCS = []
+let incSeq = 411
+function addIncident(a, title, step, openedOff) {
+  const t = TYPE[a.type]
+  const inc = { id: 'SC-0' + (++incSeq), title, sev: a.sev, pb: t.pb || 'scan', alert: a.id, asset: a.asset, ip: isExt(a.src) ? a.src : isExt(a.dst) ? a.dst : '203.0.113.24', user: a.user, opened: a.t + openedOff * 60000, owner: a.who || ME, step, done: {}, log: [], open: true }
+  inc.sla = inc.sev === 'crit' ? 60 : inc.sev === 'high' ? 240 : 480
+  a.inc = inc.id; a.st = 'xu-ly'; a.who = inc.owner
+  const span = Math.max(1, (now() - inc.opened) / 60000)
+  for (let s = 0; s < step; s++) inc.done[s] = { at: inc.opened + (s + 1) * span / (step + 1) * 60000, by: inc.owner, skip: false }
+  INCS.push(inc)
+  return inc
+}
+INC_SEED.forEach((s, i) => {
+  const a = makeAlert(TYPE[s.k], s.off, rnd, s.sev)
+  a.who = TEAM[[SHIFT.lead, SHIFT.mate, SHIFT.lead, SHIFT.mate, SHIFT.lead][i]]
+  ALERTS.push(a)
+  addIncident(a, s.title(a), s.step, ri(2, 6))
+})
+ALERTS.sort((a, b) => b.t - a.t)
+
+// Chuỗi theo giờ suy ra từ chính hàng đợi: tổng cột = tổng số sự kiện gộp trong cảnh báo.
+const HOURLY = Array.from({ length: 24 }, () => [0, 0, 0, 0])
+const hourIdx = (t) => 23 - Math.floor((T0 - t) / 3600000)
+function bucket(a, sign = 1) { const h = hourIdx(a.t); if (h >= 0 && h < 24) HOURLY[h][SEV.indexOf(a.sev)] += a.n * sign }
+ALERTS.forEach((a) => bucket(a))
+const DAILY = []
+{
+  const tot = HOURLY.map((r) => r.reduce((s, v) => s + v, 0)).reduce((s, v) => s + v, 0)
+  const share = SEV.map((_, k) => HOURLY.reduce((s, r) => s + r[k], 0) / tot)
+  const r2 = mulberry32(7501)
+  for (let d = 0; d < 29; d++) {
+    const wk = new Date(T0 - (29 - d) * 864e5).getDay()
+    const base = tot * (0.72 + r2() * 0.5) * (wk === 0 || wk === 6 ? 0.72 : 1)
+    DAILY.push(share.map((s, k) => Math.max(0, Math.round(base * s * (0.75 + r2() * 0.5) + (k === 0 ? ri(0, 2, r2) : 0)))))
+  }
+  DAILY.push(null) // 24 giờ gần nhất, luôn lấy từ HOURLY
+}
+const dailyAt = (i) => DAILY[i] || SEV.map((_, k) => HOURLY.reduce((s, r) => s + r[k], 0))
+
+const METRICS = ['Số lần đăng nhập thất bại', 'Số cổng khác nhau được dò', 'Số yêu cầu bị chặn', 'Số email bị gắn cờ', 'Số lượt mở liên kết bị gắn cờ', 'Số tệp bị chặn', 'Số kết nối ra ngoài lặp lại', 'Số truy vấn tới tên miền mới', 'Số tệp truy cập mỗi phút', 'Số bản ghi được đọc', 'Độ trễ sao lưu (phút)']
+const SOURCES = ['Cổng VPN', 'Máy chủ định danh', 'Tường lửa', 'WAF', 'Cổng email', 'EDR máy trạm', 'DNS', 'Máy chủ tệp', 'CSDL', 'Hệ thống sao lưu']
+const RULES = [
+  ['R-101', 'Đăng nhập thất bại liên tiếp', 0, 0, '≥', 10, 5],
+  ['R-102', 'Đăng nhập thành công từ vị trí bất thường', 1, 0, '≥', 1, 60],
+  ['R-103', 'Quét cổng từ địa chỉ bên ngoài', 2, 1, '≥', 25, 2],
+  ['R-104', 'Yêu cầu web bất thường bị WAF chặn', 3, 2, '≥', 40, 10],
+  ['R-105', 'Email lừa đảo bị cách ly', 4, 3, '≥', 1, 15],
+  ['R-106', 'Người dùng mở liên kết trong email bị gắn cờ', 4, 4, '≥', 1, 30],
+  ['R-107', 'Tệp đáng ngờ bị EDR chặn khi tải về', 5, 5, '≥', 1, 5],
+  ['R-108', 'Tiến trình lạ kết nối ra ngoài theo chu kỳ', 6, 6, '≥', 12, 60],
+  ['R-109', 'Truy vấn DNS tới tên miền mới đăng ký', 6, 7, '≥', 5, 30],
+  ['R-110', 'Truy cập hàng loạt tệp dùng chung', 7, 8, '>', 200, 1],
+  ['R-111', 'Truy vấn khối lượng lớn vào CSDL khách hàng', 8, 9, '>', 50000, 10],
+  ['R-112', 'Tác vụ sao lưu bị trễ quá ngưỡng', 9, 10, '>', 45, 60],
+].map(([id, name, src, met, op, thr, win], i) => {
+  const t = TYPES.find((x) => x.rule === id)
+  const r3 = mulberry32(900 + i)
+  return { id, name, src, met, op, thr, win, sev: t.sev[0], on: i !== 11, mail: 'soc@khienso.example', from: dmy(new Date(T0 - (40 + i * 9) * 864e5)), note: '', base: Array.from({ length: 7 }, () => 0.6 + r3() * 0.8), ref: thr }
+})
+const ruleHits = (id) => ALERTS.filter((a) => a.rule === id).reduce((s, a) => s + a.n, 0)
+
+/* ── trạng thái ── */
+const S = {
+  view: 'tuong', theme: 'dark', live: !STATIC, range: '24h', sevOn: new Set(SEV), node: null, selAlert: null,
+  q: { text: '', sev: 'all', st: 'open', who: 'all', asset: null, sort: { k: 't', dir: -1 }, page: 1, per: 12, sel: new Set() },
+  inc: INCS[0].id, viewStep: null, rule: 'R-101', pending: 0, seen: T0 - 2 * 3600000,
+}
+const openAlerts = () => ALERTS.filter((a) => a.st === 'moi' || a.st === 'xu-ly')
+
+/* ── theme ── */
+let READY = false
+function setTheme(t, save) {
+  S.theme = t; root.dataset.theme = t
+  $$('[data-act="theme"] use').forEach((u) => u.setAttribute('href', t === 'dark' ? '#i-sun' : '#i-moon'))
+  if (save) store.set('qt75-theme', t)
+  if (READY && S.view === 'tuong') { drawChart(false); drawMap() }
+}
+setTheme(store.get('qt75-theme') === 'light' ? 'light' : 'dark')
+
+/* ── toast & tooltip ── */
+function toast(msg, undo) {
+  const box = $('#toasts')
+  while (box.children.length >= 2) box.firstElementChild.remove()
+  const el = document.createElement('div')
+  el.className = 'toast'
+  el.innerHTML = `<span>${esc(msg)}</span>` + (undo ? '<button type="button">Hoàn tác</button>' : '')
+  box.appendChild(el)
+  let tm = setTimeout(() => el.remove(), undo ? 6500 : 3800)
+  if (undo) el.querySelector('button').onclick = () => { clearTimeout(tm); el.remove(); undo() }
+  if (anim()) G.from(el, { y: 12, opacity: 0, duration: 0.25, clearProps: 'all' })
+}
+const tip = $('#tip')
+function showTip(html, x, y) {
+  tip.innerHTML = html; tip.classList.add('on')
+  const r = tip.getBoundingClientRect()
+  let L = x + 14, Tp = y + 14
+  if (L + r.width > innerWidth - 8) L = x - r.width - 14
+  if (Tp + r.height > innerHeight - 8) Tp = y - r.height - 14
+  tip.style.left = Math.max(8, L) + 'px'; tip.style.top = Math.max(8, Tp) + 'px'
+}
+const hideTip = () => tip.classList.remove('on')
+
+/* ── lớp phủ: Esc đóng lớp trên cùng ── */
+const LAYERS = []
+function pushLayer(name, close, el, back) {
+  popLayer(name, true)
+  LAYERS.push({ name, close, el, back: back || document.activeElement })
+  syncScrim()
+}
+function popLayer(name, silent) {
+  const i = LAYERS.findIndex((l) => l.name === name)
+  if (i < 0) return
+  const [l] = LAYERS.splice(i, 1)
+  if (!silent) { l.close(); if (l.back && l.back.focus && document.contains(l.back)) l.back.focus({ preventScroll: true }) }
+  syncScrim()
+}
+function syncScrim() { $('#scrim').classList.toggle('on', LAYERS.some((l) => ['drawer', 'pal', 'mnav'].includes(l.name))) }
+$('#scrim').addEventListener('click', () => { const l = [...LAYERS].reverse().find((x) => ['drawer', 'pal', 'mnav'].includes(x.name)); if (l) popLayer(l.name) })
+function trapTab(e) {
+  const top = LAYERS[LAYERS.length - 1]
+  if (!top || !top.el) return
+  const f = $$('button:not([disabled]),input,select,textarea,[tabindex="0"]', top.el).filter((x) => x.offsetParent !== null)
+  if (!f.length) return
+  if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus() }
+  else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus() }
+  else if (!top.el.contains(document.activeElement)) { e.preventDefault(); f[0].focus() }
+}
+
+/* ── router ── */
+const VIEWS = { tuong: 'Tường giám sát', 'canh-bao': 'Hàng đợi cảnh báo', 'su-co': 'Sự cố & playbook', 'quy-tac': 'Quy tắc phát hiện' }
+function route() {
+  const h = decodeURIComponent(location.hash.slice(1))
+  const v = VIEWS[h] ? h : 'tuong'
+  const changed = v !== S.view || !$('.view.on')
+  S.view = v
+  $$('.view').forEach((el) => el.classList.toggle('on', el.id === 'v-' + v))
+  $$('[data-go]').forEach((b) => { if (b.classList.contains('nv')) b.toggleAttribute('aria-current', b.dataset.go === v); if (b.dataset.go === v && b.classList.contains('nv')) b.setAttribute('aria-current', 'page') })
+  $('#vtitle').textContent = VIEWS[v]
+  document.title = VIEWS[v] + ' · Khiên Số SOC'
+  popLayer('mnav')
+  hideTip()
+  if (v === 'tuong') renderWall()
+  else if (v === 'canh-bao') { S.pending = 0; $('#newBar').classList.remove('on'); renderQueue() }
+  else if (v === 'su-co') renderPB()
+  else renderRules()
+  if (changed) { $('#main').scrollTop = 0; if (innerWidth <= 900) scrollTo(0, 0); if (anim()) G.from(`#v-${v} .vpad, #v-${v} > *`, { opacity: 0, y: 8, duration: 0.3, stagger: 0.03, clearProps: 'opacity,transform' }) }
+}
+const go = (v) => { if (location.hash.slice(1) === v) route(); else location.hash = v }
+addEventListener('hashchange', route)
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { e.preventDefault(); go(b.dataset.go) } })
+
+/* ── band, đồng hồ, mức đe dọa ── */
+function threat() {
+  const op = openAlerts()
+  const c = op.filter((a) => a.sev === 'crit').length, h = op.filter((a) => a.sev === 'high').length
+  const lv = Math.max(1, Math.min(5, c >= 12 ? 5 : c >= 5 ? 4 : c >= 2 ? 3 : h >= 4 ? 2 : 1))
+  const W = ['THẤP', 'VỪA', 'ĐÁNG CHÚ Ý', 'CAO', 'KHẨN CẤP']
+  $$('#threat .segs i').forEach((el, i) => { el.className = i < lv ? 'on ' + (lv <= 2 ? 'l2' : lv === 3 ? 'l3' : '') : '' })
+  $('#thrWord').textContent = W[lv - 1]
+  $('#threat').setAttribute('aria-label', `Mức đe dọa ${lv}/5: ${W[lv - 1]}`)
+  $('#band').style.setProperty('--thr', lv * 20 + '%')
+}
+function clock() {
+  const d = new Date()
+  $('#clk').textContent = hms(d)
+  $('#clkd').textContent = DOW[d.getDay()] + ' ' + dmy(d)
+  $('#shiftLine').textContent = `SOC · ${SHIFT.n} ${SHIFT.r}`
+}
+function counts() {
+  const q = openAlerts().filter((a) => a.st === 'moi').length
+  const i = INCS.filter((x) => x.open).length
+  $$('[data-cnt="q"]').forEach((el) => { el.textContent = q; el.hidden = !q })
+  $$('[data-cnt="i"]').forEach((el) => { el.textContent = i; el.hidden = !i })
+  const nb = ALERTS.filter((a) => a.t > S.seen && (a.sev === 'crit' || a.sev === 'high') && a.st === 'moi').length
+  $('#bellN').textContent = nb; $('#bellN').hidden = !nb
+  threat()
+}
+function status() {
+  const eps = STATIC ? 2418 : 2380 + Math.floor(Math.random() * 90)
+  $('#status').innerHTML = `<span class="ok">● 14/14 nguồn nhật ký</span><span>EPS ${fmt(eps)}</span><span class="opt">Độ trễ thu thập 1,2 giây</span><span class="opt">Trực: ${esc(TEAM[SHIFT.lead])}, ${esc(TEAM[SHIFT.mate])}</span><span class="cc">Thiết kế concept — thương hiệu giả định. Dữ liệu giả lập.</span>`
+}
+
+/* ── 1. Tường giám sát ── */
+function renderWall() { renderKPIs(); renderChips(); renderStream(); drawMap(); renderMapInfo(); drawChart(false); renderIncMini() }
+function kpiData() {
+  const ev = HOURLY.reduce((s, r) => s + r.reduce((x, y) => x + y, 0), 0)
+  const op = openAlerts()
+  const bySev = SEV.map((s) => HOURLY.reduce((x, r) => x + r[SEV.indexOf(s)], 0))
+  return { ev, bySev, open: op.length, crit: op.filter((a) => a.sev === 'crit').length, inc: INCS.filter((x) => x.open).length, total: ALERTS.length }
+}
+function renderKPIs() {
+  const k = kpiData()
+  const bar = k.bySev.map((v, i) => `<i class="s-${SEV[i]}" style="flex:${v}" title="${SEVN[SEV[i]]}: ${fmt(v)}"></i>`).join('')
+  $('#kpis').innerHTML = `
+    <div class="kpi"><span class="lbl">Sự kiện 24 giờ</span><b class="v" data-v="${k.ev}">${fmt(k.ev)}</b><div class="bar">${bar}</div></div>
+    <div class="kpi"><span class="lbl">Cảnh báo cần xử lý</span><b class="v" data-v="${k.open}">${fmt(k.open)}</b><span class="sub">trên ${fmt(k.total)} cảnh báo sau gộp</span></div>
+    <div class="kpi hot"><span class="lbl">Nghiêm trọng đang mở</span><b class="v" data-v="${k.crit}">${fmt(k.crit)}</b><span class="sub">ưu tiên xử lý trước</span></div>
+    <div class="kpi"><span class="lbl">Sự cố đang mở</span><b class="v" data-v="${k.inc}">${fmt(k.inc)}</b><span class="sub">${INCS.filter((x) => x.open && x.sev === 'crit').length} ở mức nghiêm trọng</span></div>
+    <div class="kpi"><span class="lbl">Thời gian phản ứng</span><b class="v">38<small>phút</small></b><span class="sub">trung vị 7 ngày · phát hiện 4 phút</span></div>`
+}
+function renderChips() {
+  const c = SEV.map((s) => ALERTS.filter((a) => a.sev === s).length)
+  $('#sevChips').innerHTML = SEV.map((s, i) => `<button class="chip s-${s}" data-sev="${s}" aria-pressed="${S.sevOn.has(s)}">${SEVN[s]} ${c[i]}</button>`).join('')
+}
+$('#sevChips').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-sev]'); if (!b) return
+  const s = b.dataset.sev
+  if (S.sevOn.has(s) && S.sevOn.size > 1) S.sevOn.delete(s); else S.sevOn.add(s)
+  renderChips(); renderStream()
+})
+function alertLi(a, cls = '') {
+  return `<li class="al s-${a.sev} ${cls} ${S.selAlert === a.id ? 'sel' : ''}" data-id="${a.id}" tabindex="0" role="button" aria-label="${esc(SEVN[a.sev] + ': ' + a.title + ', ' + hms(new Date(a.t)))}">
+    <span class="top" style="grid-column:1/-1"><time>${hms(new Date(a.t))}</time><span class="sevtag s-${a.sev}">${SEVN[a.sev]}</span><span class="n">×${a.n}</span></span>
+    <b>${esc(a.title)}</b><span class="src">${esc(a.src)} → <em>${esc(a.dst)}</em> · <span class="aid">${a.id}</span></span></li>`
+}
+function renderStream() {
+  const list = ALERTS.slice(0, 40).filter((a) => S.sevOn.has(a.sev))
+  $('#stream').innerHTML = list.map((a) => alertLi(a)).join('') || '<li class="al" style="cursor:default"><b>Không có cảnh báo ở mức đã chọn</b></li>'
+  $('#streamN').textContent = list.length + ' gần nhất'
+}
+function onAlertPick(e) {
+  const li = e.target.closest('[data-id]'); if (!li) return
+  if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return
+  e.preventDefault()
+  const a = ALERTS.find((x) => x.id === li.dataset.id); if (!a) return
+  S.selAlert = a.id; S.node = a.asset
+  $$('#stream .al').forEach((x) => x.classList.toggle('sel', x.dataset.id === a.id))
+  drawMap(); renderMapInfo(); openDrawer(a.id)
+}
+$('#stream').addEventListener('click', onAlertPick)
+$('#stream').addEventListener('keydown', onAlertPick)
+
+// Bản đồ sự kiện
+const SVGNS = 'http://www.w3.org/2000/svg'
+function hotNodes() {
+  const m = {}
+  openAlerts().forEach((a) => { if (a.sev === 'crit' || a.sev === 'high') { const r = SEV.indexOf(a.sev); if (m[a.asset] === undefined || r < m[a.asset]) m[a.asset] = r } })
+  return m
+}
+function arcPath(a, b) {
+  const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2
+  const cx = mx + (300 - mx) * 0.38, cy = my + (300 - my) * 0.38
+  return `M${a.x.toFixed(1)} ${a.y.toFixed(1)}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`
+}
+const VB = { x: -84, y: 16, w: 768, h: 572 }
+function drawMap() {
+  const svg = $('#map'); if (!svg) return
+  svg.setAttribute('viewBox', `${VB.x} ${VB.y} ${VB.w} ${VB.h}`)
+  const box = svg.getBoundingClientRect()
+  const scale = box.width ? Math.min(box.width / VB.w, box.height / VB.h || 9) : 0.8
+  const fs = Math.max(11, Math.min(26, 12.5 / scale))
+  // touch: an invisible hit circle (40px on screen) per node (closest nodes are ~33px apart at 390, slight overlap is fine)
+  const hitR = matchMedia("(pointer:coarse)").matches ? 20 / (scale || 0.8) : 0
+  const hot = hotNodes()
+  const recent = ALERTS.slice(0, 18)
+  let h = ''
+  h += `<circle class="ringfill" cx="300" cy="300" r="${RINGS[3].r + 18}"/>`
+  RINGS.forEach((r, i) => { h += `<circle class="ring r${i}" cx="300" cy="300" r="${r.r}"/>` })
+  h += '<g id="lks">'
+  recent.slice().reverse().forEach((a) => {
+    const s = NODE[a.src], d = NODE[a.dst]; if (!s || !d) return
+    h += `<path class="lk s-${a.sev}${a.id === S.selAlert ? ' hi' : ''}${S.node && (a.src === S.node || a.dst === S.node) ? ' hi' : ''}" d="${arcPath(s, d)}"/>`
+  })
+  h += '</g><g id="fx"></g><g>'
+  NODES.forEach((n) => {
+    const r = n.ring === 3 ? 12 : n.ring === 0 ? 7 : 9
+    const hs = hot[n.id]
+    const cls = `nd ${n.ring === 0 ? 'ext' : ''} ${n.ring === 3 ? 'core' : ''} ${hs !== undefined ? 'hot s-' + SEV[hs] : ''} ${S.node === n.id ? 'sel' : ''}`
+    const shape = n.ring === 0 ? `<rect class="c" x="${n.x - r}" y="${n.y - r}" width="${r * 2}" height="${r * 2}" transform="rotate(45 ${n.x} ${n.y})"/>` : `<circle class="c" cx="${n.x}" cy="${n.y}" r="${r}"/>`
+    h += `<g class="${cls}" data-node="${esc(n.id)}" tabindex="0" role="button" aria-label="${esc(n.id + ' — ' + n.d)}"><title>${esc(n.id + ' · ' + n.d)}</title><circle class="halo" cx="${n.x}" cy="${n.y}" r="${r + 2}"/>${hitR > r ? `<circle class="hit" cx="${n.x}" cy="${n.y}" r="${hitR.toFixed(1)}"/>` : ""}${shape}</g>`
+  })
+  h += '</g><g id="lbs"></g>'
+  svg.innerHTML = h
+  placeLabels(fs, hot)
+}
+// Đặt nhãn tham lam: ưu tiên nút nóng/đang chọn; không vừa thì thử tên ngắn, cuối cùng chỉ giữ màu + title.
+function placeLabels(fs, hot) {
+  const g = $('#lbs'), boxes = [], cw = fs * 0.6, lh = fs * 1.25
+  const hit = (b, id) => b.x < VB.x + 2 || b.y < VB.y + 2 || b.x + b.w > VB.x + VB.w - 2 || b.y + b.h > VB.y + VB.h - 2 || boxes.some((o) => o.id !== id && b.x < o.x + o.w && b.x + b.w > o.x && b.y < o.y + o.h && b.y + b.h > o.y)
+  let out = ''
+  RINGS.forEach((r) => {
+    const w = r.n.length * fs * 0.62 + 14, b = { x: 300 - w / 2, y: 300 - r.r - lh / 2, w, h: lh }
+    boxes.push(b)
+    out += `<g class="rl"><rect x="${b.x}" y="${b.y}" width="${w}" height="${lh}"/><text x="300" y="${300 - r.r + fs * 0.36}" text-anchor="middle" font-size="${fs * 0.92}">${r.n}</text></g>`
+  })
+  NODES.forEach((n) => { const r = n.ring === 3 ? 14 : 10; boxes.push({ x: n.x - r, y: n.y - r, w: r * 2, h: r * 2, id: n.id }) })
+  const order = NODES.slice().sort((a, b) => (b.id === S.node) - (a.id === S.node) || (hot[b.id] !== undefined) - (hot[a.id] !== undefined) || b.ring - a.ring)
+  for (const n of order) {
+    const c = Math.cos(n.a), s = Math.sin(n.a), rr = n.ring === 3 ? 16 : 13
+    for (const txt of n.s !== n.id ? [n.id, n.s] : [n.id]) {
+      const w = txt.length * cw
+      let x, y, anchor
+      if (n.ring === 3) { x = n.x; y = n.y + rr + fs * 0.85; anchor = 'middle' }
+      else {
+        const px = n.x + c * rr, py = n.y + s * rr
+        anchor = c > 0.35 ? 'start' : c < -0.35 ? 'end' : 'middle'
+        x = px; y = s > 0.35 ? py + fs * 0.85 : s < -0.35 ? py - fs * 0.25 : py + fs * 0.35
+      }
+      const bx = anchor === 'start' ? x : anchor === 'end' ? x - w : x - w / 2
+      const b = { x: bx - 2, y: y - fs * 0.9, w: w + 4, h: lh }
+      if (hit(b, n.id)) continue
+      boxes.push(b)
+      out += `<text class="lb ${n.ring === 0 ? 'ext' : ''} ${S.node === n.id ? 'sel' : ''}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anchor}" font-size="${fs}">${esc(txt)}</text>`
+      break
+    }
+  }
+  g.innerHTML = out
+}
+function nodeStats(id) {
+  const all = ALERTS.filter((a) => a.src === id || a.dst === id)
+  return { all: all.length, open: all.filter((a) => a.st === 'moi' || a.st === 'xu-ly').length, ev: all.reduce((s, a) => s + a.n, 0), last: all[0] }
+}
+function renderMapInfo() {
+  const el = $('#mapinfo')
+  if (!S.node) {
+    el.innerHTML = `<div class="legend"><span class="s-crit"><i></i>Nghiêm trọng</span><span class="s-high"><i></i>Cao</span><span class="s-med"><i></i>Trung bình</span><span class="s-low"><i></i>Thấp</span><span>◆ nguồn bên ngoài</span><span>Bấm một nút để xem chi tiết</span></div>`
+    return
+  }
+  const n = NODE[S.node], st = nodeStats(n.id)
+  el.innerHTML = `<div class="who"><b>${esc(n.id)}</b><span>${esc(n.d)} · vòng ${RINGS[n.ring].n.toLowerCase()} · ${st.all} cảnh báo, ${st.open} đang mở, ${fmt(st.ev)} sự kiện</span></div>
+    <button class="btn sm" id="mapFilter">Lọc hàng đợi theo nút này</button><button class="ibtn" id="mapClear" aria-label="Bỏ chọn nút"><svg class="ico"><use href="#i-x"/></svg></button>`
+  $('#mapFilter').onclick = () => { S.q.asset = n.id; S.q.st = 'all'; S.q.page = 1; go('canh-bao') }
+  $('#mapClear').onclick = () => { S.node = null; S.selAlert = null; drawMap(); renderMapInfo(); renderStream() }
+}
+function onNode(e) {
+  const g = e.target.closest('[data-node]'); if (!g) return
+  if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return
+  e.preventDefault()
+  S.node = S.node === g.dataset.node ? null : g.dataset.node
+  S.selAlert = null
+  drawMap(); renderMapInfo()
+  if (S.node) { const el = $(`#map [data-node="${CSS.escape(S.node)}"]`); if (el && e.type === 'keydown') el.focus() }
+}
+$('#map').addEventListener('click', onNode)
+$('#map').addEventListener('keydown', onNode)
+$('#map').addEventListener('pointermove', (e) => {
+  const g = e.target.closest('[data-node]'); if (!g) return hideTip()
+  const n = NODE[g.dataset.node], st = nodeStats(n.id)
+  showTip(`<b>${esc(n.id)}</b><br>${esc(n.d)}<br>${st.all} cảnh báo · ${st.open} đang mở`, e.clientX, e.clientY)
+})
+$('#map').addEventListener('pointerleave', hideTip)
+function flyArc(a) {
+  const s = NODE[a.src], d = NODE[a.dst], fx = $('#fx')
+  if (!s || !d || !fx || S.view !== 'tuong' || !anim()) return
+  const p = document.createElementNS(SVGNS, 'path')
+  p.setAttribute('class', 'fx s-' + a.sev); p.setAttribute('d', arcPath(s, d))
+  fx.appendChild(p)
+  const L = p.getTotalLength()
+  G.fromTo(p, { strokeDasharray: L, strokeDashoffset: L }, { strokeDashoffset: 0, duration: 0.9, ease: 'power2.out' })
+  G.to(p, { opacity: 0, duration: 0.8, delay: 1.4, onComplete: () => p.remove() })
+  const ring = document.createElementNS(SVGNS, 'circle')
+  const tgt = isExt(a.dst) ? s : d
+  ring.setAttribute('cx', tgt.x); ring.setAttribute('cy', tgt.y); ring.setAttribute('r', 10)
+  ring.setAttribute('class', 'fx s-' + a.sev)
+  fx.appendChild(ring)
+  G.fromTo(ring, { attr: { r: 10 }, opacity: 1 }, { attr: { r: 34 }, opacity: 0, duration: 1.1, delay: 0.75, ease: 'power1.out', onComplete: () => ring.remove() })
+}
+
+// Biểu đồ lưu lượng: 30 khe cố định, đổi khoảng thì khe co/giãn (biến hình), không vẽ lại.
+const SLOTS = 30
+const CH = { el: $('#chart'), W: 320, H: 190, padL: 40, padB: 24, padT: 8, idx: -1 }
+function chartSeries(r) {
+  if (r === '24h') return HOURLY.map((v, i) => ({ v, lb: pad(new Date(T0 - (23 - i) * 3600000).getHours()) + 'h', tt: `${pad(new Date(T0 - (23 - i) * 3600000).getHours())}:00–${pad((new Date(T0 - (23 - i) * 3600000).getHours() + 1) % 24)}:00` }))
+  const n = r === '7d' ? 7 : 30
+  return Array.from({ length: n }, (_, j) => {
+    const i = 30 - n + j, d = new Date(T0 - (29 - i) * 864e5)
+    return { v: dailyAt(i), lb: pad(d.getDate()) + '/' + pad(d.getMonth() + 1), tt: i === 29 ? '24 giờ gần nhất' : DOW[d.getDay()] + ' ' + dmy(d) }
+  })
+}
+function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(Math.max(v, 1)))); for (const m of [1, 2, 4, 6, 8, 10]) if (m * p >= v) return m * p; return 10 * p }
+function buildChart() {
+  const svg = CH.el
+  CH.W = Math.max(260, Math.round(svg.getBoundingClientRect().width || 320))
+  svg.setAttribute('viewBox', `0 0 ${CH.W} ${CH.H}`)
+  let h = '<g id="cg"></g><g id="cx"></g><g id="cb">'
+  for (let i = 0; i < SLOTS; i++) { h += `<g data-i="${i}">`; for (let k = 3; k >= 0; k--) h += `<rect class="s-${SEV[k]}" fill="var(--sc)" x="${CH.W}" y="${CH.H - CH.padB}" width="0" height="0"/>`; h += '</g>' }
+  h += `</g><rect class="cur" id="ccur" x="0" y="${CH.padT}" width="0" height="${CH.H - CH.padB - CH.padT}"/><rect id="chit" x="${CH.padL}" y="0" width="${CH.W - CH.padL}" height="${CH.H}" fill="transparent"/>`
+  svg.innerHTML = h
+  CH.built = CH.W
+}
+function drawChart(morph) {
+  if (!CH.el.getBoundingClientRect().width) return
+  if (!CH.built || Math.abs(CH.built - CH.el.getBoundingClientRect().width) > 2) { buildChart(); morph = false }
+  const ser = chartSeries(S.range), n = ser.length
+  const max = niceMax(Math.max(...ser.map((s) => s.v.reduce((a, b) => a + b, 0))))
+  const pw = CH.W - CH.padL, ph = CH.H - CH.padB - CH.padT, sw = pw / n, gap = Math.max(1, Math.min(4, sw * 0.18))
+  CH.ser = ser; CH.sw = sw
+  let gl = ''
+  for (let i = 0; i <= 4; i++) { const y = CH.padT + ph - ph * i / 4; gl += `<line class="gl" x1="${CH.padL}" x2="${CH.W}" y1="${y}" y2="${y}"/><text class="ax" x="${CH.padL - 6}" y="${y + 4}" text-anchor="end">${fmt(max * i / 4)}</text>` }
+  $('#cg').innerHTML = gl
+  const every = S.range === '24h' ? 6 : S.range === '7d' ? 1 : 6
+  const minGap = 46
+  let xl = '', lastX = -99
+  ser.forEach((s, i) => {
+    if ((n - 1 - i) % every) return
+    const x = CH.padL + sw * i + sw / 2
+    if (x - lastX < minGap || x > CH.W - 18) return
+    lastX = x
+    xl += `<text class="ax" x="${x}" y="${CH.H - 6}" text-anchor="middle">${s.lb}</text>`
+  })
+  $('#cx').innerHTML = xl
+  $$('#cb > g').forEach((g, i) => {
+    const rects = [...g.children]
+    let y = CH.padT + ph
+    rects.forEach((rc, j) => {
+      const k = 3 - j
+      const v = i < n ? ser[i].v[k] : 0
+      const hh = v / max * ph
+      y -= hh
+      const at = i < n ? { x: CH.padL + sw * i + gap / 2, width: Math.max(0.5, sw - gap), y, height: hh } : { x: CH.W, width: 0, y: CH.padT + ph, height: 0 }
+      if (morph && anim()) G.to(rc, { attr: at, duration: 0.6, ease: 'power3.inOut', overwrite: true })
+      else { if (G) G.killTweensOf(rc); for (const a in at) rc.setAttribute(a, at[a]) }
+    })
+  })
+  CH.el.setAttribute('aria-label', `Biểu đồ ${S.range === '24h' ? '24 giờ' : S.range === '7d' ? '7 ngày' : '30 ngày'}: tổng ${fmt(ser.reduce((s, x) => s + x.v.reduce((a, b) => a + b, 0), 0))} sự kiện; dùng phím mũi tên để xem từng cột`)
+}
+function chartTip(i, cx, cy) {
+  const s = CH.ser && CH.ser[i]; if (!s) return
+  CH.idx = i
+  const cur = $('#ccur')
+  cur.setAttribute('x', CH.padL + CH.sw * i); cur.setAttribute('width', CH.sw); cur.style.opacity = 1
+  const tot = s.v.reduce((a, b) => a + b, 0)
+  showTip(`<b>${esc(s.tt)}</b>` + SEV.map((k, j) => `<div class="r s-${k}"><span><i></i>${SEVN[k]}</span><span>${fmt(s.v[j])}</span></div>`).join('') + `<div class="r"><span>Tổng</span><b>${fmt(tot)}</b></div>`, cx, cy)
+}
+CH.el.addEventListener('pointermove', (e) => {
+  if (!CH.ser) return
+  const r = CH.el.getBoundingClientRect(), x = (e.clientX - r.left) * CH.W / r.width - CH.padL
+  const i = Math.floor(x / CH.sw)
+  if (i < 0 || i >= CH.ser.length) return chartOut()
+  chartTip(i, e.clientX, e.clientY)
+})
+function chartOut() { hideTip(); const c = $('#ccur'); if (c) c.style.opacity = 0 }
+CH.el.addEventListener('pointerleave', chartOut)
+CH.el.addEventListener('blur', chartOut)
+CH.el.addEventListener('keydown', (e) => {
+  if (!CH.ser || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return
+  e.preventDefault()
+  let i = CH.idx < 0 ? CH.ser.length - 1 : CH.idx
+  i = e.key === 'Home' ? 0 : e.key === 'End' ? CH.ser.length - 1 : Math.max(0, Math.min(CH.ser.length - 1, i + (e.key === 'ArrowLeft' ? -1 : 1)))
+  const r = CH.el.getBoundingClientRect()
+  chartTip(i, r.left + (CH.padL + CH.sw * (i + 0.5)) * r.width / CH.W, r.top + 20)
+})
+$('#rangeSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-r]'); if (!b || b.dataset.r === S.range) return
+  S.range = b.dataset.r
+  $$('#rangeSeg button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  CH.idx = -1; chartOut(); drawChart(true)
+})
+function slaLeft(inc) { return Math.round(inc.sla - (now() - inc.opened) / 60000) }
+function slaTxt(m) { return m >= 0 ? 'còn ' + dur(m) : 'quá hạn ' + dur(-m) }
+function renderIncMini() {
+  const list = INCS.filter((x) => x.open).sort((a, b) => SEV.indexOf(a.sev) - SEV.indexOf(b.sev) || slaLeft(a) - slaLeft(b))
+  $('#incMini').innerHTML = list.map((x) => {
+    const n = PBOOKS[x.pb].steps.length, d = Object.keys(x.done).length, m = slaLeft(x)
+    return `<li><button class="inc s-${x.sev}" data-inc="${x.id}"><span class="id">${x.id} · <span class="sevtag s-${x.sev}">${SEVN[x.sev]}</span></span><span class="sla ${m < 0 ? 'over' : ''}" data-sla="${x.id}">${slaTxt(m)}</span><b>${esc(x.title)}</b><span class="prog" aria-hidden="true"><i style="width:${d / n * 100}%"></i></span><span class="sr">Đã xong ${d}/${n} bước</span></button></li>`
+  }).join('') || '<li class="inc">Không có sự cố đang mở.</li>'
+}
+$('#incMini').addEventListener('click', (e) => { const b = e.target.closest('[data-inc]'); if (b) { S.inc = b.dataset.inc; S.viewStep = null; go('su-co') } })
+
+/* ── luồng trực tiếp ── */
+const LR = mulberry32(Date.now() % 100000)
+function liveAlert() {
+  const a = makeAlert(pickType(LR), 0, LR)
+  a.t = now()
+  ALERTS.unshift(a)
+  HOURLY[23][SEV.indexOf(a.sev)] += a.n
+  counts()
+  if (S.view === 'tuong') {
+    if (S.sevOn.has(a.sev)) {
+      $('#stream').insertAdjacentHTML('afterbegin', alertLi(a, 'new'))
+      const items = $$('#stream .al'); if (items.length > 40) items[items.length - 1].remove()
+      if (anim()) G.from($('#stream .al'), { height: 0, paddingTop: 0, paddingBottom: 0, opacity: 0, duration: 0.45, ease: 'power2.out', clearProps: 'height,paddingTop,paddingBottom,opacity' })
+    }
+    renderKPIs(); renderChips()
+    if (a.sev === 'crit' || a.sev === 'high') { drawMap(); renderMapInfo() }
+    else { const lk = $('#lks'); if (lk) lk.insertAdjacentHTML('beforeend', `<path class="lk s-${a.sev}" d="${arcPath(NODE[a.src], NODE[a.dst])}"/>`) }
+    flyArc(a)
+    if (S.range === '24h') drawChart(true)
+  } else if (S.view === 'canh-bao') { S.pending++; $('#newBar').classList.add('on'); $('#newBtn').textContent = `Có ${S.pending} cảnh báo mới · Hiện` }
+}
+function setLive(on) {
+  S.live = on && !STATIC
+  $('#liveBtn').setAttribute('aria-pressed', S.live)
+  $('#liveTxt').textContent = S.live ? 'TRỰC TIẾP' : 'TẠM DỪNG'
+}
+$('#liveBtn').addEventListener('click', () => { if (STATIC) return toast('Chế độ tĩnh: dòng cảnh báo đã đóng băng'); setLive(!S.live); toast(S.live ? 'Tiếp tục nhận cảnh báo trực tiếp' : 'Đã tạm dừng dòng cảnh báo') })
+
+/* ── 2. Hàng đợi ── */
+function qFiltered() {
+  const q = S.q, t = unacc(q.text.trim())
+  let L = ALERTS.filter((a) =>
+    (q.sev === 'all' || a.sev === q.sev) &&
+    (q.st === 'all' || (q.st === 'open' ? a.st === 'moi' || a.st === 'xu-ly' : a.st === q.st)) &&
+    (q.who === 'all' || (q.who === 'none' ? !a.who : a.who === q.who)) &&
+    (!q.asset || a.src === q.asset || a.dst === q.asset) &&
+    (!t || unacc([a.id, a.title, a.src, a.dst, a.asset, a.rule, a.who || ''].join(' ')).includes(t)))
+  const { k, dir } = q.sort
+  const val = (a) => (k === 'sev' ? -SEV.indexOf(a.sev) : k === 'st' ? Object.keys(ST).indexOf(a.st) : k === 'id' ? +a.id.slice(3) : a[k])
+  L = L.slice().sort((a, b) => { const x = val(a), y = val(b); return (x > y ? 1 : x < y ? -1 : 0) * dir || b.t - a.t })
+  return L
+}
+function renderStBar() {
+  const c = (f) => ALERTS.filter(f).length
+  const items = [['open', 'Cần xử lý', c((a) => a.st === 'moi' || a.st === 'xu-ly')], ['moi', 'Mới', c((a) => a.st === 'moi')], ['xu-ly', 'Đang xử lý', c((a) => a.st === 'xu-ly')], ['dong', 'Đã đóng', c((a) => a.st === 'dong')], ['nhieu', 'Nhiễu', c((a) => a.st === 'nhieu')], ['all', 'Tất cả', ALERTS.length]]
+  $('#stBar').innerHTML = items.map(([k, l, n]) => `<button data-st="${k}" aria-pressed="${S.q.st === k}"><b>${fmt(n)}</b><span>${l}</span></button>`).join('')
+}
+function whoOpts(sel, withAll) {
+  return (withAll ? `<option value="all">Mọi người phụ trách</option><option value="none">Chưa giao</option>` : '<option value="">Giao cho…</option>') + TEAM.map((n) => `<option value="${esc(n)}" ${sel === n ? 'selected' : ''}>${esc(n)}</option>`).join('')
+}
+$('#qWho').innerHTML = whoOpts(null, true)
+$('#bulkWho').innerHTML = whoOpts(null, false)
+function renderQueue() {
+  const q = S.q
+  renderStBar()
+  $('#qSearch').value = q.text; $('#qSev').value = q.sev; $('#qWho').value = q.who; $('#qSort').value = q.sort.k + ':' + q.sort.dir
+  $('#fAsset').innerHTML = q.asset ? `<span class="fchip">Nút: ${esc(q.asset)}<button aria-label="Bỏ lọc theo nút ${esc(q.asset)}" id="fAssetX"><svg class="ico"><use href="#i-x"/></svg></button></span>` : ''
+  if (q.asset) $('#fAssetX').onclick = () => { q.asset = null; q.page = 1; renderQueue() }
+  $$('#qTable th button').forEach((b) => {
+    const on = b.dataset.k === q.sort.k
+    b.setAttribute('aria-sort', on ? (q.sort.dir > 0 ? 'ascending' : 'descending') : 'none')
+    if (on) b.dataset.dir = q.sort.dir; else delete b.dataset.dir
+  })
+  const L = qFiltered(), pages = Math.max(1, Math.ceil(L.length / q.per))
+  q.page = Math.min(q.page, pages)
+  const rows = L.slice((q.page - 1) * q.per, q.page * q.per)
+  $('#qSub').textContent = `${fmt(L.length)} cảnh báo khớp bộ lọc · ${fmt(ALERTS.reduce((s, a) => s + a.n, 0))} sự kiện đã gộp trong 24 giờ`
+  $('#qBody').innerHTML = rows.length ? rows.map((a) => `<tr class="row ${q.sel.has(a.id) ? 'sel' : ''}" data-id="${a.id}">
+      <td class="ck"><input type="checkbox" data-ck="${a.id}" ${q.sel.has(a.id) ? 'checked' : ''} aria-label="Chọn ${a.id}"></td>
+      <td class="sv"><span class="sevtag s-${a.sev}">${SEVN[a.sev]}</span></td>
+      <td class="id">${a.id}</td>
+      <td class="ti"><b>${esc(a.title)}</b><small>${esc(a.src)} → ${esc(a.dst)} · ${a.rule}</small></td>
+      <td class="as">${esc(a.asset)}</td>
+      <td class="stc"><span class="st ${a.st}">${ST[a.st]}</span>${a.inc ? ` <span class="id mono" title="Thuộc sự cố">${a.inc}</span>` : ''}</td>
+      <td class="wh"><span class="whon ${a.who ? '' : 'none'}">${a.who ? esc(a.who) : 'Chưa giao'}</span></td>
+      <td class="num">${fmt(a.n)}</td>
+      <td class="tm">${hm(new Date(a.t))}<small>${rel(a.t)}</small></td></tr>`).join('')
+    : `<tr class="emp"><td colspan="9"><div class="empty"><svg class="ico" viewBox="0 0 24 24"><use href="#i-shield"/></svg><b>Không có cảnh báo nào khớp</b><p>Thử bỏ bớt bộ lọc hoặc đổi từ khóa — tìm kiếm không cần gõ dấu.</p><button class="btn" id="emptyClear">Xóa bộ lọc</button></div></td></tr>`
+  if (!rows.length) $('#emptyClear').onclick = clearFilters
+  $('#ckAll').checked = rows.length > 0 && rows.every((a) => q.sel.has(a.id))
+  $('#ckAll').indeterminate = !$('#ckAll').checked && rows.some((a) => q.sel.has(a.id))
+  let pg = `<span>${L.length ? `${(q.page - 1) * q.per + 1}–${Math.min(L.length, q.page * q.per)} trên ${fmt(L.length)}` : '0 kết quả'}</span><button data-pg="${q.page - 1}" ${q.page <= 1 ? 'disabled' : ''} aria-label="Trang trước">‹</button>`
+  const span = innerWidth < 560 ? 1 : 2
+  for (let p = 1; p <= pages; p++) {
+    if (p === 1 || p === pages || Math.abs(p - q.page) <= span) pg += `<button data-pg="${p}" ${p === q.page ? 'aria-current="page"' : ''} aria-label="Trang ${p}">${p}</button>`
+    else if (Math.abs(p - q.page) === span + 1) pg += '<span style="margin:0;min-width:16px;text-align:center">…</span>'
+  }
+  pg += `<button data-pg="${q.page + 1}" ${q.page >= pages ? 'disabled' : ''} aria-label="Trang sau">›</button>`
+  $('#pager').innerHTML = pg
+  renderBulk()
+}
+function renderBulk() { const n = S.q.sel.size; $('#bulk').classList.toggle('on', n > 0); $('#bulkN').textContent = n + ' đã chọn' }
+function clearFilters() { Object.assign(S.q, { text: '', sev: 'all', st: 'all', who: 'all', asset: null, page: 1 }); renderQueue() }
+$('#qClear').addEventListener('click', clearFilters)
+$('#qSearch').addEventListener('input', (e) => { S.q.text = e.target.value; S.q.page = 1; renderQueue(); $('#qSearch').focus() })
+$('#qSev').addEventListener('change', (e) => { S.q.sev = e.target.value; S.q.page = 1; renderQueue() })
+$('#qWho').addEventListener('change', (e) => { S.q.who = e.target.value; S.q.page = 1; renderQueue() })
+$('#qSort').addEventListener('change', (e) => { const [k, d] = e.target.value.split(':'); S.q.sort = { k, dir: +d }; renderQueue() })
+$('#stBar').addEventListener('click', (e) => { const b = e.target.closest('[data-st]'); if (b) { S.q.st = b.dataset.st; S.q.page = 1; renderQueue() } })
+$('#qTable thead').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-k]'); if (!b) return
+  const k = b.dataset.k
+  S.q.sort = { k, dir: S.q.sort.k === k ? -S.q.sort.dir : (k === 'title' || k === 'asset' || k === 'id' ? 1 : -1) }
+  renderQueue()
+})
+$('#ckAll').addEventListener('change', (e) => {
+  const L = qFiltered().slice((S.q.page - 1) * S.q.per, S.q.page * S.q.per)
+  L.forEach((a) => (e.target.checked ? S.q.sel.add(a.id) : S.q.sel.delete(a.id)))
+  renderQueue()
+})
+$('#qBody').addEventListener('click', (e) => {
+  const ck = e.target.closest('[data-ck]')
+  if (ck) { ck.checked ? S.q.sel.add(ck.dataset.ck) : S.q.sel.delete(ck.dataset.ck); ck.closest('tr').classList.toggle('sel', ck.checked); renderBulk(); $('#ckAll').checked = false; return }
+  const tr = e.target.closest('tr.row'); if (tr && !e.target.closest('button')) openDrawer(tr.dataset.id)
+})
+$('#pager').addEventListener('click', (e) => { const b = e.target.closest('[data-pg]'); if (b && !b.disabled) { S.q.page = +b.dataset.pg; renderQueue(); $('#qTable').scrollIntoView({ block: 'nearest' }) } })
+$('#newBtn').addEventListener('click', () => { S.pending = 0; $('#newBar').classList.remove('on'); S.q.sort = { k: 't', dir: -1 }; S.q.page = 1; renderQueue() })
+function applyAlerts(ids, patch, msg) {
+  const prev = ids.map((id) => { const a = ALERTS.find((x) => x.id === id); return a && { a, st: a.st, who: a.who } }).filter(Boolean)
+  prev.forEach(({ a }) => Object.assign(a, typeof patch === 'function' ? patch(a) : patch))
+  refreshAll()
+  toast(msg, () => { prev.forEach(({ a, st, who }) => Object.assign(a, { st, who })); refreshAll(); toast('Đã hoàn tác') })
+}
+$('#bulk').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-bulk]'); if (!b) return
+  const ids = [...S.q.sel], n = ids.length
+  if (b.dataset.bulk === 'clear') { S.q.sel.clear(); return renderQueue() }
+  if (!n) return
+  if (b.dataset.bulk === 'take') applyAlerts(ids, { st: 'xu-ly', who: ME }, `${ME} nhận xử lý ${n} cảnh báo`)
+  if (b.dataset.bulk === 'noise') applyAlerts(ids, (a) => ({ st: 'nhieu', who: a.who || ME }), `Đã đánh dấu ${n} cảnh báo là nhiễu`)
+  if (b.dataset.bulk === 'close') applyAlerts(ids, (a) => ({ st: 'dong', who: a.who || ME }), `Đã đóng ${n} cảnh báo`)
+  S.q.sel.clear(); renderQueue()
+})
+$('#bulkWho').addEventListener('change', (e) => {
+  const who = e.target.value; if (!who || !S.q.sel.size) return
+  const ids = [...S.q.sel]
+  applyAlerts(ids, (a) => ({ who, st: a.st === 'moi' ? 'xu-ly' : a.st }), `Đã giao ${ids.length} cảnh báo cho ${who}`)
+  S.q.sel.clear(); e.target.value = ''; renderQueue()
+})
+function refreshAll() {
+  counts()
+  if (S.view === 'canh-bao') renderQueue()
+  if (S.view === 'tuong') renderWall()
+  if (S.view === 'su-co') renderPB()
+  if (S.view === 'quy-tac') renderRules()
+  if (LAYERS.some((l) => l.name === 'drawer') && S.drawer) openDrawer(S.drawer, true)
+}
+
+/* ── ngăn chi tiết cảnh báo ── */
+function openDrawer(id, keep) {
+  const a = ALERTS.find((x) => x.id === id); if (!a) return
+  S.drawer = id
+  const d = $('#drawer'), t = new Date(a.t)
+  const first = new Date(a.t - Math.min(a.n, 30) * 47000)
+  const iocs = [[a.src, isExt(a.src) ? 'Địa chỉ nguồn' : 'Tài sản nguồn'], [a.dst, isExt(a.dst) ? 'Đích bên ngoài' : 'Tài sản đích']]
+  if (a.type === 'bf' || a.type === 'geo' || a.type === 'db') iocs.push([a.user, 'Tài khoản liên quan'])
+  if (a.type === 'phish' || a.type === 'click') iocs.push(['thong-bao@example.com', 'Người gửi'])
+  d.innerHTML = `<div class="dhead"><div><span class="sevtag s-${a.sev}">${SEVN[a.sev]}</span><h2 id="dTitle">${esc(a.title)}</h2><span class="mono" style="font-size:13px;color:var(--dim)">${a.id} · ${a.rule}</span></div><button class="ibtn" id="dClose" aria-label="Đóng chi tiết"><svg class="ico"><use href="#i-x"/></svg></button></div>
+    <div class="dbody">
+      <dl class="kv"><dt>Trạng thái</dt><dd><span class="st ${a.st}">${ST[a.st]}</span></dd><dt>Phụ trách</dt><dd>${a.who ? esc(a.who) : 'Chưa giao'}</dd><dt>Thời điểm</dt><dd>${dmy(t)} ${hms(t)} · ${rel(a.t)}</dd><dt>Tài sản</dt><dd>${esc(a.asset)} — ${esc(NODE[a.asset] ? NODE[a.asset].d : '')}</dd><dt>Sự kiện gộp</dt><dd>${fmt(a.n)}</dd>${a.inc ? `<dt>Sự cố</dt><dd>${a.inc}</dd>` : ''}</dl>
+      <section><h3>Chỉ báo</h3><div class="ioc">${iocs.map(([v, l]) => `<div><span>${esc(v)}</span><span>${l}</span></div>`).join('')}</div></section>
+      <section><h3>Diễn biến</h3><ol class="tl"><li><time>${hms(first)}</time>Sự kiện đầu tiên khớp quy tắc ${a.rule}</li><li class="r"><time>${hms(t)}</time>Vượt ngưỡng, tạo cảnh báo sau khi gộp ${fmt(a.n)} sự kiện</li>${a.who ? `<li><time>${hms(new Date(Math.min(now(), a.t + 4 * 60000)))}</time>${esc(a.who)} nhận xử lý</li>` : ''}</ol></section>
+    </div>
+    <div class="dfoot"><button class="btn pri" id="dPb">${a.inc ? 'Mở sự cố ' + a.inc : 'Tạo sự cố & playbook'}</button><button class="btn" id="dTake" ${a.st === 'xu-ly' && a.who === ME ? 'disabled' : ''}>Nhận xử lý</button><button class="btn" id="dNoise" ${a.st === 'nhieu' ? 'disabled' : ''}>Nhiễu</button></div>`
+  d.classList.add('on')
+  if (!keep) { pushLayer('drawer', () => { d.classList.remove('on'); S.drawer = null }, d); $('#dClose').focus() }
+  $('#dClose').onclick = () => popLayer('drawer')
+  $('#dTake').onclick = () => applyAlerts([a.id], { st: 'xu-ly', who: ME }, `${ME} nhận xử lý ${a.id}`)
+  $('#dNoise').onclick = () => applyAlerts([a.id], (x) => ({ st: 'nhieu', who: x.who || ME }), `${a.id} được đánh dấu nhiễu`)
+  $('#dPb').onclick = () => {
+    let inc = INCS.find((x) => x.id === a.inc), made = false
+    if (!inc) {
+      const prev = { st: a.st, who: a.who }
+      a.who = a.who || ME
+      inc = addIncident(a, a.title + ' trên ' + a.asset, 0, 0); inc.opened = now(); made = true
+      toast(`Đã tạo sự cố ${inc.id}`, () => { INCS.splice(INCS.indexOf(inc), 1); Object.assign(a, prev, { inc: null }); S.inc = INCS[0].id; refreshAll(); toast('Đã hủy tạo sự cố') })
+    }
+    S.inc = inc.id; S.viewStep = null
+    popLayer('drawer'); counts(); go('su-co')
+    if (!made) renderPB()
+  }
+}
+
+/* ── 3. Playbook ── */
+const FINAL = { t: 'Ghi nhận và đóng sự cố', w: 'pt', d: 'Tóm tắt nguyên nhân, việc đã làm và bài học; gắn nhãn để báo cáo tuần.', c: ['Viết tóm tắt nguyên nhân', 'Đề xuất điều chỉnh quy tắc nếu cần'], l: ['Lưu báo cáo sự cố {id}', 'Gửi tóm tắt cho trưởng ca'] }
+const PBOOKS = {
+  login: { n: 'Tài khoản có dấu hiệu bị chiếm quyền', steps: [
+    { t: 'Xác minh cảnh báo', w: 'pt', d: 'Đối chiếu nhật ký đăng nhập với lịch làm việc và vị trí thường dùng của tài khoản.', c: ['Xem nhật ký đăng nhập 24 giờ', 'Gọi xác nhận với chủ tài khoản qua số đã đăng ký'], l: ['Truy vấn nhật ký đăng nhập 24 giờ của {user}', 'Có 3 phiên từ {ip}, ngoài vị trí thường dùng', 'Chủ tài khoản xác nhận không thực hiện'] },
+    { t: 'Thu hồi mọi phiên đăng nhập', w: 'auto', d: 'Buộc đăng xuất các phiên đang hoạt động của tài khoản trên VPN và ứng dụng nội bộ.', c: ['Thu hồi phiên VPN', 'Thu hồi phiên ứng dụng nội bộ'], l: ['Gửi yêu cầu thu hồi phiên tới máy chủ định danh', 'Đã đóng 3 phiên đang hoạt động', 'Không còn phiên nào của {user}'] },
+    { t: 'Khóa tạm và đặt lại mật khẩu', w: 'auto', d: 'Khóa tài khoản 30 phút, gửi đường dẫn đặt lại mật khẩu qua kênh đã xác minh.', c: ['Khóa tạm tài khoản', 'Gửi hướng dẫn đặt lại mật khẩu'], l: ['Khóa tạm {user} trong 30 phút', 'Gửi thư đặt lại mật khẩu tới hộp thư đã xác minh'] },
+    { t: 'Bắt buộc xác thực hai lớp', w: 'pt', d: 'Kiểm tra thiết bị xác thực đã đăng ký; gỡ thiết bị lạ và yêu cầu đăng ký lại.', c: ['Rà danh sách thiết bị xác thực', 'Gỡ thiết bị không rõ nguồn gốc'], l: ['Tìm thấy 1 thiết bị đăng ký lúc nửa đêm — đã gỡ', 'Đặt cờ yêu cầu đăng ký lại xác thực hai lớp'] },
+    { t: 'Chặn địa chỉ nguồn', w: 'auto', d: 'Thêm địa chỉ nguồn vào danh sách chặn tạm thời 72 giờ trên tường lửa biên.', c: ['Thêm vào danh sách chặn 72 giờ'], l: ['Thêm {ip} vào danh sách chặn 72 giờ', 'Tường lửa xác nhận quy tắc có hiệu lực'] },
+    { t: 'Rà soát hoạt động sau đăng nhập', w: 'pt', d: 'Kiểm tra tệp, email và dữ liệu mà tài khoản đã truy cập trong thời gian bất thường.', c: ['Rà truy cập tệp và email', 'Xác định dữ liệu có thể bị ảnh hưởng'], l: ['Đối chiếu nhật ký truy cập trên {asset}', 'Không phát hiện tải dữ liệu ra ngoài'] },
+    FINAL] },
+  malware: { n: 'Mã độc trên máy trạm', steps: [
+    { t: 'Xác minh cảnh báo EDR', w: 'pt', d: 'Kiểm tra tiến trình, tệp và kết nối mà EDR ghi nhận; loại trừ phần mềm hợp lệ.', c: ['Xem cây tiến trình', 'Tra danh sách phần mềm được phép'], l: ['Lấy cây tiến trình từ EDR cho {asset}', 'Tiến trình không có chữ ký số, không thuộc danh sách cho phép'] },
+    { t: 'Cô lập máy khỏi mạng', w: 'auto', d: 'Ngắt máy khỏi mạng nội bộ, chỉ giữ kết nối tới máy chủ quản lý EDR.', c: ['Bật cô lập mạng qua EDR'], l: ['Gửi lệnh cô lập tới tác tử EDR trên {asset}', 'Máy chỉ còn kết nối tới máy chủ quản lý'] },
+    { t: 'Thu thập bằng chứng', w: 'auto', d: 'Lưu danh sách tiến trình, kết nối mạng và nhật ký hệ thống trước khi xử lý.', c: ['Lưu danh sách tiến trình', 'Lưu nhật ký hệ thống'], l: ['Thu thập gói bằng chứng (412 MB)', 'Tính mã băm gói bằng chứng và lưu kho'] },
+    { t: 'Chặn tên miền và mã băm liên quan', w: 'auto', d: 'Đưa chỉ báo vào danh sách chặn của DNS, proxy và EDR.', c: ['Chặn tên miền trên DNS', 'Chặn mã băm trên EDR'], l: ['Thêm {ip} vào danh sách chặn DNS và proxy', 'Đồng bộ mã băm tới 412 tác tử EDR'] },
+    { t: 'Quét các máy cùng nhóm', w: 'auto', d: 'Tìm cùng chỉ báo trên các máy chung phòng ban trong 7 ngày.', c: ['Quét chỉ báo trên nhóm máy'], l: ['Tìm chỉ báo trên 38 máy cùng nhóm', 'Không có máy nào khác khớp'] },
+    { t: 'Khôi phục máy từ bản chuẩn', w: 'pt', d: 'Cài lại máy từ ảnh chuẩn, khôi phục dữ liệu người dùng đã quét sạch.', c: ['Cài lại từ ảnh chuẩn', 'Bỏ cô lập sau khi kiểm tra'], l: ['Lên lịch cài lại {asset} từ ảnh chuẩn', 'Đã bỏ cô lập, máy hoạt động bình thường'] },
+    FINAL] },
+  phish: { n: 'Email lừa đảo', steps: [
+    { t: 'Xác minh email', w: 'pt', d: 'Kiểm tra tiêu đề, người gửi và đường dẫn trong email bị gắn cờ.', c: ['Kiểm tra người gửi', 'Xem đường dẫn trong môi trường an toàn'], l: ['Phân tích tiêu đề email từ thong-bao@example.com', 'Tên miền gửi đăng ký 2 ngày trước — đáng ngờ'] },
+    { t: 'Thu hồi email khỏi mọi hộp thư', w: 'auto', d: 'Tìm và gỡ cùng email khỏi hộp thư toàn công ty.', c: ['Tìm email cùng nội dung', 'Gỡ khỏi hộp thư'], l: ['Tìm thấy 23 hộp thư nhận cùng email', 'Đã gỡ khỏi 23 hộp thư'] },
+    { t: 'Chặn người gửi và tên miền', w: 'auto', d: 'Thêm người gửi và tên miền vào danh sách chặn của cổng email.', c: ['Chặn người gửi', 'Chặn tên miền'], l: ['Chặn example.com tại {asset}', 'Cổng email xác nhận'] },
+    { t: 'Xác định ai đã mở liên kết', w: 'pt', d: 'Đối chiếu nhật ký proxy để tìm người đã bấm vào đường dẫn.', c: ['Tra nhật ký proxy'], l: ['2 người đã mở liên kết: {user} và 1 người khác'] },
+    { t: 'Đặt lại mật khẩu người bị ảnh hưởng', w: 'auto', d: 'Buộc đặt lại mật khẩu và thu hồi phiên cho người đã mở liên kết.', c: ['Đặt lại mật khẩu', 'Thu hồi phiên'], l: ['Đã đặt lại mật khẩu cho 2 tài khoản', 'Đã thu hồi 4 phiên'] },
+    { t: 'Nhắc nhở toàn công ty', w: 'pt', d: 'Gửi thông báo ngắn kèm dấu hiệu nhận biết email giả mạo.', c: ['Soạn thông báo', 'Gửi qua kênh nội bộ'], l: ['Đã gửi thông báo tới kênh nội bộ'] },
+    FINAL] },
+  scan: { n: 'Dò quét từ bên ngoài', steps: [
+    { t: 'Xác minh nguồn quét', w: 'pt', d: 'Xem tần suất, cổng bị dò và lịch sử của địa chỉ nguồn.', c: ['Xem lịch sử địa chỉ nguồn', 'Ghi nhận các cổng bị dò'], l: ['{ip} dò 1.200 cổng trong 4 phút', 'Chưa có kết nối nào thành công'] },
+    { t: 'Đối chiếu danh sách quét được phép', w: 'pt', d: 'Loại trừ đối tác kiểm thử đã đăng ký lịch quét.', c: ['Tra lịch kiểm thử đã duyệt'], l: ['Không có lịch kiểm thử nào trùng thời điểm'] },
+    { t: 'Siết luật WAF tạm thời', w: 'auto', d: 'Bật giới hạn tần suất chặt hơn cho cổng thông tin trong 24 giờ.', c: ['Bật giới hạn tần suất'], l: ['Bật giới hạn 60 yêu cầu/phút cho {asset}', 'WAF xác nhận cấu hình mới'] },
+    { t: 'Chặn dải địa chỉ nguồn', w: 'auto', d: 'Chặn địa chỉ nguồn trên tường lửa biên trong 72 giờ.', c: ['Thêm vào danh sách chặn'], l: ['Chặn {ip} trong 72 giờ'] },
+    { t: 'Theo dõi 24 giờ', w: 'pt', d: 'Đặt nhắc kiểm tra lại lưu lượng sau 24 giờ.', c: ['Đặt nhắc theo dõi'], l: ['Đã đặt nhắc kiểm tra lúc cùng giờ ngày mai'] },
+    FINAL] },
+}
+const curInc = () => INCS.find((x) => x.id === S.inc) || INCS[0]
+const nextStep = (inc) => { const n = PBOOKS[inc.pb].steps.length; for (let i = 0; i < n; i++) if (!inc.done[i]) return i; return n }
+const fill = (s, inc) => s.replace(/\{user\}/g, inc.user).replace(/\{ip\}/g, inc.ip).replace(/\{asset\}/g, inc.asset).replace(/\{id\}/g, inc.id)
+let RUN = null
+function renderPB() {
+  const inc = curInc(); if (!inc) return
+  S.inc = inc.id
+  $('#incStrip').innerHTML = INCS.map((x) => {
+    const n = PBOOKS[x.pb].steps.length, d = Object.keys(x.done).length, m = slaLeft(x)
+    return `<button class="ist s-${x.sev} ${x.open ? '' : 'closed'}" data-inc="${x.id}" aria-pressed="${x.id === inc.id}"><span class="id"><span>${x.id}</span><span class="sevtag s-${x.sev}">${SEVN[x.sev]}</span></span><b>${esc(x.title)}</b><span class="meta"><span>${d}/${n} bước</span>${x.open ? `<span class="${m < 0 ? 'over' : ''}" data-sla="${x.id}" style="${m < 0 ? 'color:var(--crit)' : ''}">${slaTxt(m)}</span>` : '<span class="done">✓ đã đóng</span>'}</span></button>`
+  }).join('')
+  const pb = PBOOKS[inc.pb], nx = nextStep(inc)
+  const vs = S.viewStep === null ? Math.min(nx, pb.steps.length - 1) : S.viewStep
+  $('#steps').innerHTML = pb.steps.map((s, i) => {
+    const dn = inc.done[i]
+    return `<li class="${dn ? (dn.skip ? 'done skip' : 'done') : i === nx && inc.open ? 'cur' : ''} ${i === vs ? 'vw' : ''}"><button data-step="${i}" aria-current="${i === vs ? 'step' : 'false'}" aria-label="Bước ${i + 1}: ${esc(s.t)}${dn ? (dn.skip ? ' (đã bỏ qua)' : ' (đã xong)') : ''}"><span class="k">${dn && !dn.skip ? '✓' : i + 1}</span><b>${esc(s.t)}</b><small>${dn ? (dn.skip ? 'bỏ qua · ' : 'xong · ') + hm(new Date(dn.at)) : s.w === 'auto' ? 'tự động' : 'phân tích viên'}</small></button></li>`
+  }).join('')
+  renderStep(inc, vs)
+  renderCtx(inc)
+}
+function renderStep(inc, i) {
+  const pb = PBOOKS[inc.pb], s = pb.steps[i], dn = inc.done[i], nx = nextStep(inc), isCur = i === nx && inc.open
+  const allDone = nx >= pb.steps.length
+  const logs = inc.log.filter((l) => l.s === i)
+  $('#stepd').innerHTML = `<span class="no">Bước ${pad(i + 1)} / ${pad(pb.steps.length)} · ${esc(pb.n)}</span>
+    <h3>${esc(s.t)}</h3><span class="who2">${s.w === 'auto' ? '⚙ Tự động' : '◉ Phân tích viên'}${dn ? ` · ${dn.skip ? 'đã bỏ qua' : 'đã xong'} lúc ${hm(new Date(dn.at))} bởi ${esc(dn.by)}` : ''}</span>
+    <p>${esc(fill(s.d, inc))}</p>
+    <ul class="checks">${s.c.map((c, k) => `<li><label><input type="checkbox" data-chk="${k}" ${dn && !dn.skip ? 'checked disabled' : !isCur ? 'disabled' : ''}>${esc(fill(c, inc))}</label></li>`).join('')}</ul>
+    <div class="console" id="cons" aria-live="polite" aria-label="Nhật ký thực thi">${logs.length ? logs.map((l) => `<div class="${l.c || ''}">${esc(l.t)}</div>`).join('') : `<div class="dm">${dn ? (dn.skip ? '— Bước đã bỏ qua: ' + esc(dn.why || '') : '— Bước đã hoàn tất trước khi mở phiên này.') : isCur ? '$ sẵn sàng · nhấn “Thực hiện bước” hoặc phím R' : '— Chưa tới bước này.'}</div>`}</div>
+    <div class="skipbox" id="skipBox"><label class="field"><span>Lý do bỏ qua (bắt buộc)</span><input class="inp" id="skipWhy" autocomplete="off" maxlength="160"><em class="err" id="eSkip"></em></label><button class="btn" id="skipOk" style="margin-top:26px">Xác nhận bỏ qua</button></div>
+    <div class="pbact">${inc.open ? (allDone ? `<button class="btn pri" id="incClose">Đóng sự cố ${inc.id}</button>` : isCur ? `<button class="btn pri" id="runStep"><svg class="ico"><use href="#i-play"/></svg>Thực hiện bước <kbd style="color:inherit;border-color:currentColor">R</kbd></button><button class="btn" id="skipStep"><svg class="ico"><use href="#i-skip"/></svg>Bỏ qua…</button>` : `<button class="btn" id="toCur">Tới bước hiện tại (${nx + 1})</button>`) : `<span class="st dong">Sự cố đã đóng</span><button class="btn" id="incReopen">Mở lại</button>`}<span class="sp"></span><button class="btn" id="undoStep" ${Object.keys(inc.done).length && inc.open ? '' : 'disabled'}><svg class="ico"><use href="#i-undo"/></svg>Hoàn tác bước <kbd style="color:inherit;border-color:currentColor">Z</kbd></button></div>`
+  const on = (id, f) => { const el = $('#' + id); if (el) el.onclick = f }
+  on('runStep', () => runStep(inc))
+  on('skipStep', () => { $('#skipBox').classList.toggle('on'); if ($('#skipBox').classList.contains('on')) $('#skipWhy').focus() })
+  on('skipOk', () => {
+    const v = $('#skipWhy').value.trim()
+    const e = v.length < 10 ? 'Ghi lý do ít nhất 10 ký tự để trưởng ca duyệt lại.' : ''
+    $('#eSkip').textContent = e; $('#skipWhy').classList.toggle('bad', !!e)
+    if (e) return $('#skipWhy').focus()
+    inc.done[i] = { at: now(), by: ME, skip: true, why: v }
+    S.viewStep = null; renderPB(); counts()
+    toast(`Đã bỏ qua bước ${i + 1}`, () => { delete inc.done[i]; renderPB() })
+  })
+  on('undoStep', () => undoStep(inc))
+  on('toCur', () => { S.viewStep = null; renderPB() })
+  on('incClose', () => { inc.open = false; renderPB(); counts(); toast(`Đã đóng sự cố ${inc.id}`, () => { inc.open = true; renderPB(); counts() }) })
+  on('incReopen', () => { inc.open = true; renderPB(); counts(); toast(`Đã mở lại ${inc.id}`) })
+}
+function runStep(inc) {
+  if (RUN || !inc.open) return
+  const i = nextStep(inc), s = PBOOKS[inc.pb].steps[i]; if (!s) return
+  RUN = { inc: inc.id }
+  const btn = $('#runStep'); if (btn) { btn.disabled = true; btn.lastChild.textContent = '' }
+  $$('#stepd [data-chk]').forEach((c) => { c.checked = true })
+  const cons = $('#cons'); cons.innerHTML = ''
+  const lines = [{ t: `$ ${s.w === 'auto' ? 'tự động' : 'ghi nhận'} · bước ${i + 1} · ${inc.id}`, c: 'dm' }, ...s.l.map((l) => ({ t: '› ' + fill(l, inc) })), { t: '✓ Hoàn tất bước ' + (i + 1), c: 'ok' }]
+  let k = 0
+  const tick = () => {
+    if (S.view !== 'su-co' || S.inc !== inc.id) { lines.slice(k).forEach((l) => inc.log.push({ s: i, ...l })); return finish() }
+    const l = lines[k++]; inc.log.push({ s: i, ...l })
+    const c2 = $('#cons'); if (c2) { c2.insertAdjacentHTML('beforeend', `<div class="${l.c || ''}">${esc(l.t)}</div>`); c2.scrollTop = c2.scrollHeight }
+    if (k < lines.length) setTimeout(tick, RM ? 0 : 320); else setTimeout(finish, RM ? 0 : 260)
+  }
+  const finish = () => { if (!RUN) return; RUN = null; inc.done[i] = { at: now(), by: ME, skip: false }; S.viewStep = null; renderPB(); counts(); if (S.view === 'su-co') { const b = $('#runStep') || $('#incClose'); if (b) b.focus({ preventScroll: true }) } }
+  tick()
+}
+function undoStep(inc) {
+  if (RUN) return
+  const ks = Object.keys(inc.done).map(Number); if (!ks.length) return
+  const last = Math.max(...ks), keep = inc.done[last], logs = inc.log.filter((l) => l.s === last)
+  delete inc.done[last]; inc.log = inc.log.filter((l) => l.s !== last)
+  S.viewStep = null; renderPB(); counts()
+  toast(`Đã hoàn tác bước ${last + 1}`, () => { inc.done[last] = keep; inc.log.push(...logs); renderPB() })
+}
+function renderCtx(inc) {
+  const m = slaLeft(inc), frac = Math.max(0, Math.min(1, 1 - m / inc.sla)), R = 32, C = 2 * Math.PI * R
+  const a = ALERTS.find((x) => x.id === inc.alert)
+  const ev = [{ t: a ? a.t : inc.opened, x: 'Cảnh báo ' + inc.alert + ' được tạo', r: 1 }, { t: inc.opened, x: 'Mở sự cố, giao cho ' + inc.owner }]
+  Object.entries(inc.done).forEach(([k, d]) => ev.push({ t: d.at, x: `${d.skip ? 'Bỏ qua' : 'Xong'} bước ${+k + 1}: ${PBOOKS[inc.pb].steps[k].t}` }))
+  ev.sort((p, q) => p.t - q.t)
+  $('#ctx').innerHTML = `<div><span class="lbl">Thời hạn xử lý (SLA)</span><div class="slabig" style="margin-top:8px"><svg viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="${R}" fill="none" stroke="var(--line2)" stroke-width="6"/><circle cx="38" cy="38" r="${R}" fill="none" stroke="${m < 0 ? 'var(--crit)' : 'var(--ink)'}" stroke-width="6" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - frac)}" transform="rotate(-90 38 38)"/></svg><div><b class="${m < 0 ? 'over' : ''}" data-sla="${inc.id}">${inc.open ? slaTxt(m) : 'đã đóng'}</b><span>mục tiêu ${dur(inc.sla)} · mở lúc ${hm(new Date(inc.opened))}</span></div></div></div>
+    <div><span class="lbl">Thông tin</span><dl class="kv" style="margin-top:8px"><dt>Tài sản</dt><dd>${esc(inc.asset)}</dd><dt>Địa chỉ</dt><dd>${esc(inc.ip)}</dd><dt>Tài khoản</dt><dd>${esc(inc.user)}</dd><dt>Phụ trách</dt><dd><label class="sr" for="incOwner">Người phụ trách</label><select class="inp" id="incOwner" style="min-height:34px;padding:4px 28px 4px 8px">${TEAM.map((n) => `<option ${n === inc.owner ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></dd></dl></div>
+    <div><span class="lbl">Dòng thời gian</span><ol class="tl" style="margin-top:10px">${ev.map((e) => `<li class="${e.r ? 'r' : ''}"><time>${hm(new Date(e.t))} · ${rel(e.t)}</time>${esc(e.x)}</li>`).join('')}</ol></div>`
+  $('#incOwner').onchange = (e) => { const prev = inc.owner; inc.owner = e.target.value; renderCtx(inc); toast(`Đã giao ${inc.id} cho ${inc.owner}`, () => { inc.owner = prev; renderCtx(inc) }) }
+}
+$('#incStrip').addEventListener('click', (e) => { const b = e.target.closest('[data-inc]'); if (b && !RUN) { S.inc = b.dataset.inc; S.viewStep = null; renderPB() } })
+$('#steps').addEventListener('click', (e) => { const b = e.target.closest('[data-step]'); if (b && !RUN) { S.viewStep = +b.dataset.step; renderPB() } })
+
+/* ── 4. Quy tắc ── */
+const curRule = () => RULES.find((r) => r.id === S.rule)
+let DRAFT = null
+function renderRules() {
+  $('#rlist').innerHTML = RULES.map((r) => `<li class="rl-i ${r.id === S.rule ? 'sel' : ''} ${r.on ? '' : 'off'}" data-rule="${r.id}"><div><b>${esc(r.name)}</b><small>${r.id} · ${SOURCES[r.src]} · ${fmt(ruleHits(r.id))} lần/24 giờ</small></div><button type="button" class="tog" role="switch" aria-checked="${r.on}" data-tog="${r.id}" aria-label="${r.on ? 'Tắt' : 'Bật'} quy tắc ${esc(r.name)}"></button></li>`).join('')
+  if (!DRAFT || DRAFT.id !== S.rule) loadForm(curRule())
+}
+$('#fSrc').innerHTML = SOURCES.map((s, i) => `<option value="${i}">${s}</option>`).join('')
+$('#fMet').innerHTML = METRICS.map((s, i) => `<option value="${i}">${s}</option>`).join('')
+$('#fSev').innerHTML = SEV.map((s) => `<label class="s-${s}"><input type="radio" name="fsev" value="${s}">${SEVN[s]}</label>`).join('')
+function loadForm(r) {
+  const isNew = !r
+  r = r || { id: 'R-' + (101 + RULES.length + (RULES.some((x) => x.id === 'R-' + (101 + RULES.length)) ? 50 : 0)), name: '', src: 0, met: 0, op: '≥', thr: '', win: 10, sev: 'med', on: true, mail: '', from: dmy(new Date()), note: '', base: [1, 0.8, 1.1, 0.9, 1.2, 0.7, 1], ref: 10 }
+  DRAFT = { ...r, isNew }
+  $('#rfTitle').textContent = isNew ? 'Quy tắc mới' : 'Sửa quy tắc'
+  $('#rfId').textContent = r.id
+  $('#fName').value = r.name; $('#fSrc').value = r.src; $('#fMet').value = r.met; $('#fOp').value = r.op
+  $('#fThr').value = r.thr === '' ? '' : fmt(r.thr); $('#fWin').value = r.win; $('#fFrom').value = r.from; $('#fMail').value = r.mail; $('#fNote').value = r.note
+  $$('#fSev input').forEach((x) => { x.checked = x.value === r.sev })
+  $$('#rform .err').forEach((e) => { e.textContent = '' }); $$('#rform .inp').forEach((e) => e.classList.remove('bad'))
+  $('#rDel').disabled = isNew
+  drawPreview(false)
+}
+const parseInt2 = (s) => { const t = String(s).trim().replace(/[.\s]/g, ''); return /^\d+$/.test(t) ? +t : NaN }
+function parseDate(s) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(s).trim()); if (!m) return null
+  const d = new Date(+m[3], +m[2] - 1, +m[1])
+  return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? d : null
+}
+function validate() {
+  const E = {}
+  const name = $('#fName').value.trim()
+  if (!name) E.Name = 'Nhập tên quy tắc.'; else if (name.length < 6) E.Name = 'Tên quá ngắn — tối thiểu 6 ký tự.'
+  else if (RULES.some((r) => r.id !== DRAFT.id && unacc(r.name) === unacc(name))) E.Name = 'Đã có quy tắc trùng tên.'
+  const thr = parseInt2($('#fThr').value)
+  if ($('#fThr').value.trim() === '') E.Thr = 'Nhập ngưỡng kích hoạt.'; else if (!(thr >= 1 && thr <= 1000000)) E.Thr = 'Ngưỡng là số nguyên từ 1 đến 1.000.000.'
+  const win = parseInt2($('#fWin').value)
+  if (!(win >= 1 && win <= 1440)) E.Win = 'Cửa sổ từ 1 đến 1.440 phút (24 giờ).'
+  const mail = $('#fMail').value.trim()
+  if (!mail) E.Mail = 'Nhập email nhận cảnh báo.'; else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) E.Mail = 'Email chưa đúng định dạng, ví dụ soc@khienso.example.'
+  const d = parseDate($('#fFrom').value)
+  if (!d) E.From = 'Ngày theo dạng dd/mm/yyyy, ví dụ ' + dmy(new Date()) + '.'
+  if ($('#fNote').value.length > 200) E.Note = 'Ghi chú tối đa 200 ký tự.'
+  ;['Name', 'Thr', 'Win', 'Mail', 'From', 'Note'].forEach((k) => { $('#e' + k).textContent = E[k] || ''; const inp = $('#f' + k); if (inp) { inp.classList.toggle('bad', !!E[k]); inp.setAttribute('aria-invalid', !!E[k]) } })
+  return { ok: !Object.keys(E).length, first: Object.keys(E)[0], v: { name, thr, win, mail, from: d && dmy(d), src: +$('#fSrc').value, met: +$('#fMet').value, op: $('#fOp').value, sev: ($('#fSev input:checked') || {}).value || 'med', note: $('#fNote').value.trim() } }
+}
+// Các control của form có thể bị gọi trước khi view quy tắc từng mở (Ctrl K, smoke), nên luôn có bản nháp.
+const ensureDraft = () => { if (!DRAFT) loadForm(curRule()) }
+function estHits() {
+  ensureDraft()
+  const thr = parseInt2($('#fThr').value), win = parseInt2($('#fWin').value) || DRAFT.win || 10
+  const base = DRAFT.ref ? (DRAFT.isNew ? 20 : Math.max(2, ruleHits(DRAFT.id) / 3)) : 10
+  const f = thr >= 1 ? Math.pow((DRAFT.ref || 10) / thr, 1.1) * Math.pow(win / (DRAFT.win || 10), 0.35) : 1
+  return DRAFT.base.map((b) => Math.max(0, Math.round(base * b * f)))
+}
+function drawPreview(morph) {
+  const svg = $('#pv'), W = Math.max(240, Math.round(svg.getBoundingClientRect().width || 400)), H = 90
+  const v = estHits(), max = Math.max(4, ...v), bw = W / 7
+  $('#pvN').textContent = fmt(v.reduce((a, b) => a + b, 0))
+  if (!svg.children.length || svg.dataset.w != W) {
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.dataset.w = W
+    svg.innerHTML = v.map((_, i) => { const d = new Date(T0 - (6 - i) * 864e5); return `<rect x="${i * bw + 4}" y="${H - 20}" width="${bw - 8}" height="0" fill="var(--red)"/><text class="ax" x="${i * bw + bw / 2}" y="${H - 4}" text-anchor="middle" fill="var(--dim)" font-family="var(--mono)" font-size="12">${pad(d.getDate())}/${pad(d.getMonth() + 1)}</text>` }).join('')
+    morph = false
+  }
+  $$('rect', svg).forEach((r, i) => {
+    const h = v[i] / max * (H - 30), at = { y: H - 20 - h, height: h }
+    if (morph && anim()) G.to(r, { attr: at, duration: 0.45, ease: 'power2.out', overwrite: true }); else { r.setAttribute('y', at.y); r.setAttribute('height', at.height) }
+    r.setAttribute('aria-label', v[i] + ' lần')
+  })
+}
+;['fThr', 'fWin'].forEach((id) => $('#' + id).addEventListener('input', () => drawPreview(true)))
+$('#rlist').addEventListener('click', (e) => {
+  const t = e.target.closest('[data-tog]')
+  if (t) {
+    const r = RULES.find((x) => x.id === t.dataset.tog); r.on = !r.on; renderRules()
+    toast(`${r.on ? 'Đã bật' : 'Đã tắt'} ${r.id}`, () => { r.on = !r.on; renderRules() }); return
+  }
+  const li = e.target.closest('[data-rule]'); if (!li) return
+  S.rule = li.dataset.rule; DRAFT = null; renderRules()
+  if (innerWidth <= 900) $('#rform').scrollIntoView({ block: 'start', behavior: RM ? 'auto' : 'smooth' })
+})
+$('#rform').addEventListener('submit', (e) => {
+  e.preventDefault()
+  ensureDraft()
+  const r = validate()
+  if (!r.ok) { $('#f' + r.first).focus(); return }
+  const isNew = DRAFT.isNew
+  const old = isNew ? null : { ...curRule() }
+  if (isNew) { const nr = { ...DRAFT, ...r.v, on: true, ref: r.v.thr }; delete nr.isNew; RULES.unshift(nr); S.rule = nr.id }
+  else Object.assign(curRule(), r.v)
+  DRAFT = null; renderRules()
+  toast(isNew ? `Đã tạo quy tắc ${S.rule}` : `Đã lưu ${S.rule}`, () => {
+    if (isNew) { RULES.shift(); S.rule = RULES[0].id } else Object.assign(RULES.find((x) => x.id === old.id), old)
+    DRAFT = null; renderRules()
+  })
+})
+$('#rCancel').addEventListener('click', () => { ensureDraft(); loadForm(DRAFT.isNew ? null : curRule()); toast('Đã hoàn nguyên các thay đổi chưa lưu') })
+$('#rDel').addEventListener('click', () => {
+  const i = RULES.findIndex((x) => x.id === S.rule); if (i < 0) return
+  const [r] = RULES.splice(i, 1)
+  S.rule = (RULES[i] || RULES[i - 1] || {}).id; DRAFT = null; renderRules()
+  toast(`Đã xóa ${r.id} — ${r.name}`, () => { RULES.splice(i, 0, r); S.rule = r.id; DRAFT = null; renderRules() })
+})
+$('#ruleNew').addEventListener('click', () => { S.rule = null; $$('#rlist .rl-i').forEach((x) => x.classList.remove('sel')); loadForm(null); $('#fName').focus() })
+
+/* ── bảng lệnh Ctrl K ── */
+let PAL = []
+let palI = 0
+function palItems(q) {
+  const t = unacc(q.trim())
+  const cmds = [
+    ...Object.entries(VIEWS).map(([k, v], i) => ({ g: 'Đi tới', l: v, k: '0' + (i + 1), f: () => go(k) })),
+    { g: 'Lệnh', l: S.theme === 'dark' ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối', f: () => setTheme(S.theme === 'dark' ? 'light' : 'dark', true) },
+    { g: 'Lệnh', l: 'Bật chế độ tường toàn màn hình', f: wallMode },
+    { g: 'Lệnh', l: S.live ? 'Tạm dừng dòng cảnh báo' : 'Tiếp tục dòng cảnh báo', f: () => $('#liveBtn').click() },
+    { g: 'Lệnh', l: 'Lọc cảnh báo nghiêm trọng đang mở', f: () => { Object.assign(S.q, { sev: 'crit', st: 'open', page: 1, text: '', asset: null }); go('canh-bao') } },
+    { g: 'Lệnh', l: 'Tạo quy tắc phát hiện mới', f: () => { go('quy-tac'); $('#ruleNew').click() } },
+  ]
+  let out = t ? cmds.filter((c) => unacc(c.l).includes(t)) : cmds
+  if (t) {
+    out = out.concat(
+      INCS.filter((x) => unacc(x.id + ' ' + x.title).includes(t)).slice(0, 4).map((x) => ({ g: 'Sự cố', l: x.title, k: x.id, f: () => { S.inc = x.id; S.viewStep = null; go('su-co'); renderPB() } })),
+      ALERTS.filter((a) => unacc([a.id, a.title, a.src, a.dst].join(' ')).includes(t)).slice(0, 6).map((a) => ({ g: 'Cảnh báo', l: a.title + ' · ' + a.asset, k: a.id, f: () => openDrawer(a.id) })),
+      NODES.filter((n) => unacc(n.id + ' ' + n.d).includes(t)).slice(0, 3).map((n) => ({ g: 'Bản đồ', l: n.id + ' — ' + n.d, f: () => { S.node = n.id; go('tuong') } })),
+      RULES.filter((r) => unacc(r.id + ' ' + r.name).includes(t)).slice(0, 3).map((r) => ({ g: 'Quy tắc', l: r.name, k: r.id, f: () => { S.rule = r.id; DRAFT = null; go('quy-tac') } })))
+  }
+  return out.slice(0, 14)
+}
+function renderPal() {
+  PAL = palItems($('#palIn').value)
+  palI = Math.min(palI, Math.max(0, PAL.length - 1))
+  let g = '', h = ''
+  PAL.forEach((it, i) => {
+    if (it.g !== g) { g = it.g; h += `<li class="g" role="presentation">${esc(g)}</li>` }
+    h += `<li role="presentation"><button role="option" data-pi="${i}" aria-selected="${i === palI}" id="po${i}">${esc(it.l)}${it.k ? `<small>${esc(it.k)}</small>` : ''}</button></li>`
+  })
+  $('#palList').innerHTML = h || '<li class="none">Không tìm thấy — thử mã cảnh báo, IP hoặc tên tài sản.</li>'
+  $('#palIn').setAttribute('aria-activedescendant', PAL.length ? 'po' + palI : '')
+}
+function openPal() {
+  if (LAYERS.some((l) => l.name === 'pal')) return
+  closePops()
+  $('#pal').classList.add('on'); $('#palIn').value = ''; palI = 0; renderPal()
+  pushLayer('pal', () => $('#pal').classList.remove('on'), $('#pal'))
+  $('#palIn').focus()
+}
+function runPal(i) { const it = PAL[i]; if (!it) return; popLayer('pal', true); $('#pal').classList.remove('on'); syncScrim(); it.f() }
+$('#palIn').addEventListener('input', () => { palI = 0; renderPal() })
+$('#palIn').addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); palI = (palI + (e.key === 'ArrowDown' ? 1 : -1) + PAL.length) % Math.max(1, PAL.length); renderPal(); const b = $('#po' + palI); if (b) b.scrollIntoView({ block: 'nearest' }) }
+  if (e.key === 'Enter') { e.preventDefault(); runPal(palI) }
+})
+$('#palList').addEventListener('click', (e) => { const b = e.target.closest('[data-pi]'); if (b) runPal(+b.dataset.pi) })
+$('#palBtn').addEventListener('click', openPal)
+
+/* ── popover thông báo / tài khoản, menu mobile, chế độ tường ── */
+function placePop(pop, btn) {
+  const r = btn.getBoundingClientRect(), w = Math.min(360, innerWidth - 24)
+  pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + 'px'
+  pop.style.top = (r.bottom + 8 + (r.bottom + 400 > innerHeight && r.top > 420 ? -(r.height + 16 + 380) : 0)) + 'px'
+  if (r.left > innerWidth - 120) { pop.style.left = (r.left - w - 10) + 'px'; pop.style.top = Math.max(12, r.bottom - 300) + 'px' }
+}
+function closePops() { popLayer('notif'); popLayer('acct') }
+function openNotif() {
+  const pop = $('#notif'), btn = $('#bellBtn')
+  if (pop.classList.contains('on')) return popLayer('notif')
+  closePops()
+  const list = ALERTS.filter((a) => (a.sev === 'crit' || a.sev === 'high') && a.st === 'moi').slice(0, 7)
+  pop.innerHTML = `<div class="ph"><h2>Cần chú ý</h2><div class="r"><button class="btn sm" id="nRead">Đánh dấu đã xem</button></div></div><ul>${list.map((a) => `<li><button data-nid="${a.id}"><span class="sevtag s-${a.sev}">${SEVN[a.sev]}</span> <span class="mono" style="font-size:12px;color:var(--dim)">${hm(new Date(a.t))} · ${a.id}</span><b>${esc(a.title)}</b></button></li>`).join('') || '<li style="padding:16px">Không có cảnh báo mới cần chú ý.</li>'}</ul>`
+  pop.classList.add('on'); placePop(pop, btn); btn.setAttribute('aria-expanded', 'true')
+  pushLayer('notif', () => { pop.classList.remove('on'); btn.setAttribute('aria-expanded', 'false') }, pop, btn)
+  $('#nRead').onclick = () => { S.seen = now(); counts(); popLayer('notif'); toast('Đã đánh dấu tất cả là đã xem') }
+  pop.querySelector('ul').onclick = (e) => { const b = e.target.closest('[data-nid]'); if (b) { popLayer('notif', true); pop.classList.remove('on'); btn.setAttribute('aria-expanded', 'false'); openDrawer(b.dataset.nid) } }
+  const f = pop.querySelector('button'); if (f) f.focus()
+}
+$('#bellBtn').addEventListener('click', openNotif)
+function openAcct(btn) {
+  const pop = $('#acct')
+  if (pop.classList.contains('on')) return popLayer('acct')
+  closePops()
+  pop.innerHTML = `<div class="acc"><div style="display:flex;gap:12px;align-items:center"><span class="avatar" aria-hidden="true">${initials(ME)}</span><div><b>${esc(ME)}</b><div class="mono" style="font-size:12px;color:var(--dim)">Trưởng ${SHIFT.n.toLowerCase()} · ${SHIFT.r}</div></div></div><button class="btn" id="aTheme">${S.theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}</button><button class="btn" id="aHand">Bàn giao ca cho ${esc(TEAM[(SHIFT.lead + 1) % 6 === SHIFT.mate ? (SHIFT.lead + 3) % 6 : (SHIFT.lead + 1) % 6])}</button></div>`
+  pop.classList.add('on'); placePop(pop, btn); btn.setAttribute('aria-expanded', 'true')
+  pushLayer('acct', () => { pop.classList.remove('on'); btn.setAttribute('aria-expanded', 'false') }, pop, btn)
+  $('#aTheme').onclick = () => { setTheme(S.theme === 'dark' ? 'light' : 'dark', true); popLayer('acct') }
+  $('#aHand').onclick = () => { popLayer('acct'); toast(`Đã gửi biên bản bàn giao: ${INCS.filter((x) => x.open).length} sự cố mở, ${openAlerts().length} cảnh báo cần xử lý`) }
+  $('#aTheme').focus()
+}
+$('#accBtn').addEventListener('click', (e) => openAcct(e.currentTarget))
+function renderMnav() {
+  $('#mnav').innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 10px 12px"><b style="font:850 20px/1.1 var(--sans);font-stretch:75%;letter-spacing:.05em">KHIÊN SỐ</b><button class="ibtn" id="mClose" aria-label="Đóng menu"><svg class="ico"><use href="#i-x"/></svg></button></div>
+    ${Object.entries(VIEWS).map(([k, v]) => `<button class="nv" data-go="${k}" ${S.view === k ? 'aria-current="page"' : ''}>${v}${k === 'canh-bao' ? '<span class="n" data-cnt="q"></span>' : k === 'su-co' ? '<span class="n" data-cnt="i"></span>' : ''}</button>`).join('')}
+    <div class="mono" style="padding:16px 12px 0;color:var(--dim);font-size:13px">${esc(SHIFT.n)} · ${esc(ME)}<br><span id="mClk">${hms(new Date())}</span></div>
+    <div class="row"><button class="btn" data-act="theme">Đổi giao diện</button><button class="btn" data-act="wall">Chế độ tường</button><button class="btn" id="mAcc" aria-expanded="false" aria-controls="acct">Tài khoản</button></div>`
+  $('#mClose').onclick = () => popLayer('mnav')
+  $('#mAcc').onclick = (e) => openAcct(e.currentTarget)
+  counts()
+}
+$('#menuBtn').addEventListener('click', () => {
+  const m = $('#mnav'), b = $('#menuBtn')
+  if (m.classList.contains('on')) return popLayer('mnav')
+  renderMnav(); m.classList.add('on'); b.setAttribute('aria-expanded', 'true')
+  pushLayer('mnav', () => { m.classList.remove('on'); b.setAttribute('aria-expanded', 'false') }, m, b)
+  $('#mnav .nv').focus()
+})
+function wallMode() {
+  if (root.classList.contains('wm')) return popLayer('wall')
+  root.classList.add('wm')
+  if (S.view !== 'tuong') go('tuong')
+  try { const p = root.requestFullscreen && root.requestFullscreen(); if (p && p.catch) p.catch(() => {}) } catch { /* trình duyệt chặn */ }
+  pushLayer('wall', () => { root.classList.remove('wm'); try { if (document.fullscreenElement) document.exitFullscreen() } catch { /* bỏ qua */ } ; setTimeout(() => { if (S.view === 'tuong') { drawMap(); drawChart(false) } }, 60) }, null)
+  setTimeout(() => { drawMap(); drawChart(false) }, 60)
+  toast('Chế độ tường: Esc để thoát')
+}
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && root.classList.contains('wm')) popLayer('wall') })
+$('#wmExit').addEventListener('click', () => popLayer('wall'))
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]'); if (!a) return
+  if (a.dataset.act === 'theme') setTheme(S.theme === 'dark' ? 'light' : 'dark', true)
+  if (a.dataset.act === 'wall') { popLayer('mnav'); wallMode() }
+})
+document.addEventListener('pointerdown', (e) => {
+  for (const id of ['notif', 'acct']) { const p = $('#' + id); if (p.classList.contains('on') && !p.contains(e.target) && !e.target.closest('#bellBtn,#accBtn,#mAcc')) popLayer(id) }
+})
+
+/* ── phím tắt ── */
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); return LAYERS.some((l) => l.name === 'pal') ? popLayer('pal') : openPal() }
+  if (e.key === 'Escape') { if (LAYERS.length) { e.preventDefault(); popLayer(LAYERS[LAYERS.length - 1].name) } return }
+  if (e.key === 'Tab' && LAYERS.length && LAYERS[LAYERS.length - 1].el) return trapTab(e)
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)
+  if (typing || LAYERS.some((l) => l.name !== 'wall') || e.ctrlKey || e.metaKey || e.altKey) return
+  if (S.view === 'su-co') {
+    if (e.key === 'r' || e.key === 'R') { const b = $('#runStep'); if (b && !b.disabled) { e.preventDefault(); b.click() } }
+    if (e.key === 'z' || e.key === 'Z') { const b = $('#undoStep'); if (b && !b.disabled) { e.preventDefault(); b.click() } }
+  }
+  if (S.view === 'tuong' && e.key === ' ' && !e.target.closest('button,[role=button]')) { e.preventDefault(); $('#liveBtn').click() }
+  if (/^[1-4]$/.test(e.key) && !e.target.closest('#chart')) go(Object.keys(VIEWS)[+e.key - 1])
+})
+
+/* ── nhịp ── */
+function slaTick() { $$('[data-sla]').forEach((el) => { const inc = INCS.find((x) => x.id === el.dataset.sla); if (!inc || !inc.open) return; const m = slaLeft(inc); el.textContent = slaTxt(m); el.classList.toggle('over', m < 0) }) }
+let rz
+addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (S.view === 'tuong') { drawMap(); drawChart(false) } if (S.view === 'quy-tac') drawPreview(false); if (S.view === 'canh-bao') renderQueue() }, 120) })
+
+clock(); status(); counts(); READY = true; route()
+if (!STATIC) {
+  setInterval(() => { clock(); const mc = $('#mClk'); if (mc) mc.textContent = hms(new Date()) }, 1000)
+  setInterval(slaTick, 15000)
+  setInterval(() => { if (S.live && !document.hidden) liveAlert() }, 5200)
+  setInterval(status, 9000)
+}
+// Mở màn ≤ 1,2 giây: lưới khung hiện dần, vòng bản đồ vẽ ra, số KPI đếm lên.
+if (anim() && S.view === 'tuong') {
+  const tl = G.timeline({ defaults: { ease: 'power2.out' } })
+  tl.from('#band > *', { opacity: 0, y: -8, duration: 0.35, stagger: 0.04, clearProps: 'opacity,transform' })
+    .from('#v-tuong > *', { opacity: 0, duration: 0.4, stagger: 0.06, clearProps: 'opacity' }, 0.1)
+    .from('#map .ring', { attr: { r: 0 }, duration: 0.7, stagger: 0.08, ease: 'power3.out' }, 0.15)
+    .from('#map .nd, #lbs text', { opacity: 0, duration: 0.35, stagger: 0.01, clearProps: 'opacity' }, 0.45)
+  $$('#kpis .v[data-v]').forEach((el) => { const v = +el.dataset.v, o = { v: 0 }; tl.to(o, { v, duration: 0.8, onUpdate: () => { el.textContent = fmt(o.v) } }, 0.2) })
+}
+window.__qt75 = { ALERTS, HOURLY, DAILY, INCS, RULES, PBOOKS, S, kpiData, openAlerts, dailyAt, curInc, nextStep }
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HyperVerse VR Arena — Tổ Hợp Giải Trí Thực Tế Ảo Free-Roam & Đua Xe F1 Simulator</title>
+<meta name="description" content="HyperVerse VR Arena mang đến đấu trường thực tế ảo tự do di chuyển 400m² không dây cáp, buồng lái đua xe F1 6 trục thủy lực và phòng thoát hiểm nhập vai.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070814'/%3E%3Crect x='10' y='20' width='44' height='24' rx='8' fill='none' stroke='%2300F0FF' stroke-width='3'/%3E%3Ccircle cx='24' cy='32' r='5' fill='%23D946EF'/%3E%3Ccircle cx='40' cy='32' r='5' fill='%2300F0FF'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Tektur:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070814; --bg2:#111328; --paper:#F1F5F9; --ink:#090B1A;
+  --cyan:#00F0FF; --mag:#D946EF; --lime:#22C55E; --cream:#F8FAFC; --muted:#94A3B8; --mutedD:#475569;
+  --line:rgba(0,240,255,.26);
+  --head:"Tektur", sans-serif; --body:"Plus Jakarta Sans", sans-serif; --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--cream);font-family:var(--body);font-size:17px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--cyan);color:var(--bg);padding:10px 16px;z-index:400;font-weight:700}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:600;margin:0;line-height:1.12;letter-spacing:-.01em}
+h2{font-size:clamp(34px,4.6vw,64px)}
+h1 em,h2 em{font-style:normal;color:var(--cyan)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+.kick::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--mag);box-shadow:0 0 12px 2px rgba(217,70,239,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border:1px solid var(--cyan);background:var(--cyan);color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:6px;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .4s var(--ease),background .3s}
+.btn:hover{background:#52F6FF;border-color:#52F6FF}
+.btn.ghost{background:transparent;color:var(--cream);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(7,8,20,.94);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:24px;font-weight:700;color:var(--cyan)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--cyan)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:6px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--cream);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:50px;padding:0 12px;font-family:var(--head);font-size:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--cyan)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 65% 55% at 75% 25%,rgba(217,70,239,.24),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(0,240,255,.16),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(40px,5.6vw,78px);line-height:1.09;margin-top:16px}
+.hero-lead{max-width:48ch;color:var(--muted);font-size:18px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--cyan)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 35px 75px -30px rgba(0,0,0,.9)}
+.hero-stage canvas{width:100%;height:auto;border-radius:10px;cursor:crosshair}
+.hero-stage-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Pinned Optical Motion Tracking */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:48px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:240px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--cyan)}
+.pstep h3{font-size:clamp(25px,2.5vw,36px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:44ch}
+.pr-vis{background:#04050D;border:1px solid var(--line);border-radius:16px;padding:20px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--cyan)}
+
+/* Interactive VR Arena & Squad Builder */
+.arena{padding:130px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:48px}
+.sec-head p{color:var(--muted)}
+.ar-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.ar-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.ar-stage canvas{width:100%;height:auto;border-radius:10px;background:#050611;cursor:pointer}
+.ar-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--cyan);cursor:pointer}
+.ar-info{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:18px}
+.game-tabs{display:grid;grid-template-columns:1fr;gap:10px}
+.g-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.g-btn .mono{font-size:10px;color:var(--mag);display:block}
+.g-btn b{font-family:var(--head);font-size:18px}
+.g-btn[aria-pressed="true"]{border-color:var(--cyan);background:rgba(0,240,255,.14)}
+.squad-box{padding:16px;background:rgba(217,70,239,.14);border-left:3px solid var(--cyan);border-radius:6px;font-size:15px;display:grid;gap:6px}
+
+/* Game Catalog */
+.catalog{padding:120px 0;background:var(--paper);color:var(--ink)}
+.catalog .kick{color:#9333EA}
+.catalog h2 em{color:#9333EA}
+.catalog .sec-head p{color:var(--mutedD)}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.ccard{background:#fff;border:1px solid rgba(9,11,26,.12);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.ccard .mono{color:#9333EA}
+.ccard h3{font-size:22px}
+.ccard p{color:var(--mutedD);font-size:15px}
+
+/* Hardware Specs */
+.hardware{padding:120px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.hw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.hcard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.hcard .mono{color:var(--cyan)}
+.hcard h3{font-size:23px}
+.hcard p{color:var(--muted);font-size:15px}
+
+/* Squad Booking CTA */
+.cta{padding:120px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(217,70,239,.25),transparent 70%),var(--bg);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:46px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--cream)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--cyan)}
+
+footer{background:#04050C;border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.ar-shell,.hw-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .cat-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.ar-controls,.cat-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="HyperVerse VR Arena Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="8" width="26" height="16" rx="5" fill="none" stroke="#00F0FF" stroke-width="2"/><circle cx="11" cy="16" r="3" fill="#D946EF"/><circle cx="21" cy="16" r="3" fill="#00F0FF"/></svg>
+      HyperVerse VR
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Cảm Biến Quang Học</a></li>
+        <li><a href="#arena">Đấu Trường & Ghép Đội</a></li>
+        <li><a href="#catalog">Thế Giới Nhập Vai</a></li>
+        <li><a href="#hardware">Phần Cứng 6-DOF</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm mag" href="#book">Đặt Đấu Trường</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Hệ Thống Cảm Biến Quang Học 400m²</a>
+  <a href="#arena">Bộ Chọn Đấu Trường VR & Ghép Đội</a>
+  <a href="#catalog">Kho Game VR Free-Roam & F1</a>
+  <a href="#hardware">Phần Cứng Phản Hồi Xúc Giác</a>
+  <a href="#book">Đặt Vé Tổ Đội</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Đấu trường VR Free-Roam 400m² · F1 Motion Simulator</p>
+        <h1 id="hero-h"><span class="mask"><span>Bước vào</span></span><span class="mask"><span>đa vũ trụ <em>không dây cáp.</em></span></span></h1>
+        <p class="hero-lead hf">Hệ thống 64 camera quang học tần số 240Hz theo dõi toàn thân giúp 8–12 người chơi tự do chạy nhảy, ẩn nấp và phối hợp tác chiến trong đấu trường thực tế ảo 400m² với độ trễ dưới 2 mili-giây.</p>
+        <div class="hero-cta hf">
+          <a class="btn mag" href="#arena">Lập Đội & Tính Giá Vé Nhóm</a>
+          <a class="btn ghost mag" href="#process">Khám Phá Công Nghệ Free-Roam</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>400 m²</strong><span>Sàn đấu tự do không dây</span></div>
+          <div><strong>5K / 120Hz</strong><span>Kính VR góc nhìn siêu rộng</span></div>
+          <div><strong>&lt; 1.8 ms</strong><span>Độ trễ đồng bộ Wi-Fi 6E</span></div>
+        </div>
+      </div>
+      <div class="hero-stage hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Lưới không gian thực tế ảo 3D với các chiến binh được theo dõi chuyển động"></canvas>
+        <div class="hero-stage-meta">
+          <span>Di chuột để điều khiển radar quét vị trí đồng đội trong sàn VR</span>
+          <span style="color:var(--cyan)">OptiTrack 240Hz Active</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Công nghệ theo dõi toàn thân</p>
+        <h2 id="pr-h">Tự do bước đi trong<br><em>sàn đấu ảo 400m²</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Hệ thống 01 · 64 Camera Hồng Ngoại OptiTrack</p>
+            <h3>Theo Dõi Khung Xương Chính Xác Đến 0.5mm</h3>
+            <p>Các cảm biến gắn trên cổ tay, cổ chân và báng súng giúp tái hiện 1:1 mọi cử chỉ nghiêng người, ngồi nấp sau chướng ngại vật của bạn và đồng đội.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Hệ thống 02 · Áo Giáp Xúc Giác bHaptics 40 Điểm</p>
+            <h3>Cảm Nhận Xung Lực & Nhiệt Độ Môi Trường</h3>
+            <p>Áo giáp phản hồi rung 40 vùng độc lập kết hợp tháp quạt gió nóng – lạnh mang lại cảm giác sức nóng dung nham hay luồng đạn sượt qua vai cực kỳ chân thật.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Hệ thống 03 · Buồng Lái Đua Xe F1 Thủy Lực 6-DOF</p>
+            <h3>Lực Gia Tốc G-Force & Phản Hồi Vô Lăng Direct Drive</h3>
+            <p>6 xi-lanh điện tốc độ cao nghiêng buồng lái theo từng khúc cua gắt tại trường đua Monaco và Suzuka với lực vặn vô lăng 20Nm chuẩn tay đua chuyên nghiệp.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Hệ thống 04 · Thuật Toán Chống Va Chạm Redirected Walking</p>
+            <h3>An Toàn Tuyệt Đối Cho Nhóm 12 Người Chơi</h3>
+            <p>Lưới bảo vệ ảo tự động hiển thị vị trí tường thực và đồng đội ở khoảng cách 1.2m, giúp cả đội di chuyển tốc độ cao mà không bao giờ va chạm.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Trạng thái cảm biến: <b id="pSys">OptiTrack 64 Cam</b></span>
+          <span>Số điểm theo dõi: <b id="pNodes">128 Nodes / Squad</b></span>
+          <span>Độ phủ đấu trường: <b id="pPct">25%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="arena" id="arena" aria-labelledby="ar-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Bộ cấu hình tổ đội & báo giá</p>
+          <h2 id="ar-h" class="split" style="margin-top:16px">Chọn đấu trường VR &<br><em>ghép đội hình tác chiến</em></h2>
+        </div>
+        <p class="rv">Chọn chế độ chơi yêu thích, kéo số lượng thành viên từ 2 đến 12 người và thời lượng trận đấu để xem sơ đồ phân bổ vị trí trên lưới đấu trường 400m² kèm ưu đãi vé nhóm.</p>
+      </div>
+      <div class="ar-shell">
+        <div class="ar-stage">
+          <canvas id="arenaC" width="680" height="420" role="img" aria-label="Sơ đồ lưới đấu trường thực tế ảo Free-Roam và vị trí người chơi"></canvas>
+          <div class="ar-controls">
+            <div class="sl-row">
+              <label for="squadR"><span>Số lượng người chơi trong đội</span><b id="vSquad">6 Chiến binh</b></label>
+              <input id="squadR" type="range" min="2" max="12" value="6">
+            </div>
+            <div class="sl-row">
+              <label for="timeR"><span>Thời lượng gói trải nghiệm</span><b id="vTime">60 Phút</b></label>
+              <input id="timeR" type="range" min="30" max="120" step="30" value="60">
+            </div>
+          </div>
+        </div>
+        <div class="ar-info">
+          <span class="mono" style="color:var(--cyan)">Chọn chế độ đấu trường</span>
+          <div class="game-tabs" id="gameTabs" role="group" aria-label="Chọn tựa game">
+            <button type="button" class="g-btn" data-g="0" aria-pressed="true">
+              <div>
+                <span class="mono">Free-Roam Co-op · 400m² · Áo giáp Haptic</span>
+                <b>Chiến Dịch Giải Cứu Trạm Không Gian Orion</b>
+              </div>
+              <span class="mono">350k/người</span>
+            </button>
+            <button type="button" class="g-btn" data-g="1" aria-pressed="false">
+              <div>
+                <span class="mono">6-DOF Motion Rig · Đua nối mạng 8 xe</span>
+                <b>Giải Đua F1 Grand Prix Buồng Lái 6 Trục</b>
+              </div>
+              <span class="mono">290k/người</span>
+            </button>
+            <button type="button" class="g-btn" data-g="2" aria-pressed="false">
+              <div>
+                <span class="mono">VR Escape Room · Giải đố & Hiệu ứng gió nóng</span>
+                <b>Mật Thất Kim Tự Tháp Ai Cập Cổ Đại</b>
+              </div>
+              <span class="mono">320k/người</span>
+            </button>
+          </div>
+
+          <div class="squad-box" id="arSummary" role="status" aria-live="polite">
+            <div style="display:flex;justify-content:space-between"><span class="mono">Cấu hình sàn đấu:</span><b id="sumZone" style="color:var(--cyan)">Sàn Free-Roam A+B (6 Người)</b></div>
+            <div style="display:flex;justify-content:space-between"><span class="mono">Chiết khấu tổ đội:</span><span id="sumDisc">Giảm 15% cho nhóm từ 6 người trở lên</span></div>
+            <div style="display:flex;justify-content:space-between;border-top:1px solid var(--line);padding-top:8px;margin-top:4px"><span class="mono">Tổng chi phí cả đội:</span><strong id="sumPrice" style="font-size:22px;color:var(--cyan)">1.785.000 ₫</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="catalog" id="catalog" aria-labelledby="cat-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Thư viện thế giới ảo độc quyền</p>
+          <h2 id="cat-h" class="split" style="margin-top:16px">Bốn phân khu giải trí công nghệ</h2>
+        </div>
+        <p class="rv">Tất cả tựa game được Việt hóa phụ đề và lồng tiếng hướng dẫn chiến thuật trực tiếp trong tai nghe vòm 3D.</p>
+      </div>
+      <div class="cat-grid">
+        <article class="ccard rv">
+          <span class="mono">Zone 01 · Sci-Fi Shooter</span>
+          <h3>Cyberpunk Outbreak 2099</h3>
+          <p>Phối hợp 8 người bảo vệ lõi năng lượng trước làn sóng robot đột biến với súng trường phản hồi lực giật cơ học.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Zone 02 · Sim Racing</span>
+          <h3>F1 & Drift Telemetry Club</h3>
+          <p>Hệ thống 8 buồng lái thủy lực kết nối mạng LAN cùng bảng xếp hạng thời gian vòng đua chuẩn phần nghìn giây.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Zone 03 · Puzzle Adventure</span>
+          <h3>Lăng Mộ Đế Chế Atlantis</h3>
+          <p>Dành cho gia đình và nhóm bạn yêu thích suy luận, bắn cung tên ánh sáng và vượt cầu treo lơ lửng giữa đại dương.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Zone 04 · Esports PvP</span>
+          <h3>HyperLaser Tactical Arena</h3>
+          <p>Chế độ đối kháng 6v6 thể thao điện tử thực tế ảo với trọng tài điện tử và màn hình LED tường thuật trực tiếp ngoài sảnh.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="hardware" id="hardware" aria-labelledby="hw-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trang bị chuẩn Esports VR</p>
+          <h2 id="hw-h" class="split" style="margin-top:16px">Không chóng mặt · Không dây cáp</h2>
+        </div>
+        <p class="rv">Khử hoàn toàn hiện tượng say chuyển động (Motion Sickness) nhờ tốc độ khung hình 120Hz ổn định.</p>
+      </div>
+      <div class="hw-grid">
+        <article class="hcard rv">
+          <span class="mono">01 · HTC VIVE Focus Vision 5K</span>
+          <h3>Thấu Kính Kép Tự Động Chỉnh IPD</h3>
+          <p>Tự động đo khoảng cách đồng tử từng người chơi và hỗ trợ người cận thị đeo kính gọng thoải mái bên trong.</p>
+        </article>
+        <article class="hcard rv">
+          <span class="mono">02 · Force-Feedback Rifle</span>
+          <h3>Báng Súng Từ Trường Giật Thật</h3>
+          <p>Mô phỏng trọng lượng và độ giật của từng loại vũ khí plasma, súng ngắm hay khiên năng lượng khi nạp đạn.</p>
+        </article>
+        <article class="hcard rv">
+          <span class="mono">03 · UV-C Medical Sanitizer</span>
+          <h3>Khử Khuẩn Tia Cực Tím 100%</h3>
+          <p>Mỗi bộ kính và áo giáp đều được khử trùng bằng tủ tia UV-C y tế và thay đệm mặt kháng khuẩn mới sau mỗi lượt chơi.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="book" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Sẵn sàng xuất kích</p>
+        <h2 id="cta-h" style="margin-top:14px">Đặt Khung Giờ Đấu Trường HyperVerse &<br><em>Nhận Video Highlight Cả Đội</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="pLeader">Họ tên Đội trưởng (Squad Leader)</label>
+            <input id="pLeader" type="text" placeholder="Trần Bảo Khánh" required>
+          </div>
+          <div>
+            <label for="pPhone">Số điện thoại nhận vé QR</label>
+            <input id="pPhone" type="tel" placeholder="0918 555 777" required>
+          </div>
+          <div>
+            <label for="pMode">Gói trải nghiệm đăng ký</label>
+            <select id="pMode">
+              <option value="orion">Đấu trường Free-Roam: Giải cứu Trạm Không Gian</option>
+              <option value="f1">Giải đua F1 Buồng lái 6 trục thủy lực</option>
+              <option value="pyramid">VR Escape Room: Mật thất Kim Tự Tháp</option>
+            </select>
+          </div>
+          <div>
+            <label for="pSlot">Khung giờ thi đấu hôm nay / cuối tuần</label>
+            <select id="pSlot">
+              <option value="afternoon">Ca Chiều (14:00 – 17:30 · Tặng nước tăng lực)</option>
+              <option value="evening">Ca Tối (18:00 – 22:30 · Giờ vàng Esports)</option>
+              <option value="teambuilding">Thuê nguyên sàn Team Building Công ty</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn mag" type="submit">Khoá Khung Giờ Sàn Đấu Ngay</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">HyperVerse VR Arena</a>
+      <ul class="f-nav">
+        <li><a href="#process">Cảm Biến Quang Học</a></li>
+        <li><a href="#arena">Đấu Trường & Ghép Đội</a></li>
+        <li><a href="#catalog">Kho Game VR</a></li>
+        <li><a href="#hardware">Phần Cứng 6-DOF</a></li>
+        <li><a href="#book">Đặt Vé</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> HyperVerse VR Entertainment · Tầng B1 Khu đô thị Thủ Thiêm, TP. Hồ Chí Minh</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  // Hero Cyber Grid & Tracking Radar Canvas
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  function drawHeroVR(mx = 290, my = 210) {
+    const w = 580, h = 420;
+    heroX.fillStyle = '#050611';
+    heroX.fillRect(0, 0, w, h);
+
+    // Perspective holographic floor grid
+    heroX.strokeStyle = 'rgba(0,240,255,.22)';
+    heroX.lineWidth = 1;
+    for (let i = -6; i <= 6; i++) {
+      heroX.beginPath();
+      heroX.moveTo(290 + i * 24, 130);
+      heroX.lineTo(290 + i * 75, 420);
+      heroX.stroke();
+    }
+    for (let y = 150; y <= 400; y += 36) {
+      heroX.beginPath();
+      heroX.moveTo(30, y);
+      heroX.lineTo(550, y);
+      heroX.stroke();
+    }
+
+    // Scanning pulse around cursor
+    const rg = heroX.createRadialGradient(mx, my, 8, mx, my, 150);
+    rg.addColorStop(0, 'rgba(0,240,255,.38)');
+    rg.addColorStop(0.5, 'rgba(217,70,239,.18)');
+    rg.addColorStop(1, 'rgba(5,6,17,0)');
+    heroX.fillStyle = rg;
+    heroX.fillRect(0, 0, w, h);
+
+    // Tracked player avatars on grid
+    const players = [
+      [170, 260, 'P1 · VANGUARD', '#00F0FF'],
+      [390, 240, 'P2 · SNIPER', '#D946EF'],
+      [285, 320, 'P3 · MEDIC', '#00F0FF'],
+      [440, 345, 'P4 · RECON', '#D946EF']
+    ];
+    players.forEach(([px, py, tag, col]) => {
+      heroX.strokeStyle = col;
+      heroX.lineWidth = 2;
+      heroX.beginPath();
+      heroX.arc(px, py, 18, 0, Math.PI * 2);
+      heroX.stroke();
+      heroX.fillStyle = col;
+      heroX.beginPath();
+      heroX.arc(px, py - 24, 6, 0, Math.PI * 2);
+      heroX.fill();
+      heroX.font = '600 10px "JetBrains Mono", monospace';
+      heroX.fillText(tag, px - 36, py + 32);
+    });
+  }
+  drawHeroVR();
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    drawHeroVR(((e.clientX - r.left) / r.width) * 580, ((e.clientY - r.top) / r.height) * 420);
+  });
+
+  // Pinned Optical Motion Tracking Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const SYS = [
+    ['OptiTrack 64 Cam', '128 Nodes / Squad'],
+    ['bHaptics 40-Point Vest', 'Xung lực 360°'],
+    ['6-DOF F1 Motion Rig', 'Gia tốc 2.2G'],
+    ['Redirected Walking AI', '0 Va chạm vật lý']
+  ];
+  function renderPin(p) {
+    const w = 660, h = 440;
+    const step = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3;
+    pinX.fillStyle = '#04050D';
+    pinX.fillRect(0, 0, w, h);
+
+    // Arena boundary & laser beams from 4 corners
+    pinX.strokeStyle = 'rgba(0,240,255,.35)';
+    pinX.strokeRect(45, 45, w - 90, h - 90);
+    const cx = w / 2 + Math.sin(p * 6) * 80;
+    const cy = h / 2 + Math.cos(p * 4) * 45;
+
+    [[45, 45], [w - 45, 45], [45, h - 45], [w - 45, h - 45]].forEach(([ox, oy]) => {
+      pinX.strokeStyle = 'rgba(217,70,239,.45)';
+      pinX.lineWidth = 1.5;
+      pinX.beginPath();
+      pinX.moveTo(ox, oy);
+      pinX.lineTo(cx, cy);
+      pinX.stroke();
+    });
+
+    // Wireframe tracked skeleton node at center
+    pinX.strokeStyle = '#00F0FF';
+    pinX.lineWidth = 2.5;
+    pinX.beginPath();
+    pinX.arc(cx, cy, 42, 0, Math.PI * 2);
+    pinX.stroke();
+    pinX.fillStyle = '#00F0FF';
+    pinX.font = '600 12px "JetBrains Mono", monospace';
+    pinX.textAlign = 'center';
+    pinX.fillText(`TRACKING LOCK · ${Math.round(240)}Hz`, cx, cy + 4);
+
+    $('#pSys').textContent = SYS[step][0];
+    $('#pNodes').textContent = SYS[step][1];
+    $('#pPct').textContent = `${Math.round(p * 100)}%`;
+  }
+  renderPin(0.3);
+
+  // Interactive VR Arena & Squad Builder
+  const GAMES = [
+    { name: 'Giải Cứu Trạm Không Gian Orion', price: 350000, mode: 'FREE-ROAM 400M²' },
+    { name: 'Giải Đua F1 Buồng Lái 6 Trục', price: 290000, mode: 'F1 TELEMETRY SIM' },
+    { name: 'Mật Thất Kim Tự Tháp Ai Cập', price: 320000, mode: 'VR ESCAPE PUZZLE' }
+  ];
+  const arenaC = $('#arenaC'), arenaX = arenaC.getContext('2d');
+  let curGame = 0, curSquad = 6, curTime = 60;
+
+  function renderArena() {
+    const w = 680, h = 420;
+    arenaX.fillStyle = '#050611';
+    arenaX.fillRect(0, 0, w, h);
+
+    // Draw 400m2 grid zones
+    const cols = 6, rows = 4, cw = 96, ch = 80, ox = 52, oy = 56;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        arenaX.strokeStyle = 'rgba(0,240,255,.22)';
+        arenaX.lineWidth = 1.2;
+        arenaX.strokeRect(ox + c * cw, oy + r * ch, cw - 4, ch - 4);
+      }
+    }
+
+    // Place squad members across the arena grid
+    for (let i = 0; i < curSquad; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols) + (curSquad <= 6 ? 1 : 0);
+      const px = ox + col * cw + cw / 2 - 2;
+      const py = oy + row * ch + ch / 2 - 2;
+
+      // Safety guardian circle
+      arenaX.fillStyle = i % 2 === 0 ? 'rgba(0,240,255,.16)' : 'rgba(217,70,239,.16)';
+      arenaX.beginPath();
+      arenaX.arc(px, py, 28, 0, Math.PI * 2);
+      arenaX.fill();
+
+      arenaX.strokeStyle = i % 2 === 0 ? '#00F0FF' : '#D946EF';
+      arenaX.lineWidth = 2;
+      arenaX.stroke();
+
+      arenaX.fillStyle = '#F8FAFC';
+      arenaX.font = '600 11px "JetBrains Mono", monospace';
+      arenaX.textAlign = 'center';
+      arenaX.fillText(`P${i + 1}`, px, py + 4);
+    }
+
+    arenaX.fillStyle = '#00F0FF';
+    arenaX.font = '600 12px "JetBrains Mono", monospace';
+    arenaX.textAlign = 'left';
+    arenaX.fillText(`${GAMES[curGame].mode} · ${curSquad} NGƯỜI CHƠI · ${curTime} PHÚT`, 52, 36);
+
+    $('#vSquad').textContent = `${curSquad} Chiến binh`;
+    $('#vTime').textContent = `${curTime} Phút`;
+    $('#sumZone').textContent = `${curSquad > 6 ? 'Toàn sàn 400m² (A+B+C)' : 'Sàn đôi 240m² (A+B)'} · ${curSquad} Người`;
+    const disc = curSquad >= 8 ? 0.2 : curSquad >= 5 ? 0.15 : 0;
+    $('#sumDisc').textContent = disc > 0 ? `Đã áp dụng ưu đãi giảm ${disc * 100}% cho nhóm ${curSquad} người` : 'Thêm thành viên (từ 5 người) để nhận ưu đãi 15%';
+    const timeMult = curTime / 60;
+    const total = Math.round(GAMES[curGame].price * curSquad * timeMult * (1 - disc));
+    $('#sumPrice').textContent = `${total.toLocaleString('vi-VN')} ₫`;
+  }
+  renderArena();
+
+  $('#gameTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.g-btn');
+    if (!b) return;
+    curGame = +b.dataset.g;
+    $$('#gameTabs .g-btn').forEach((el, i) => el.setAttribute('aria-pressed', i === curGame));
+    renderArena();
+  });
+  $('#squadR').addEventListener('input', (e) => {
+    curSquad = +e.target.value;
+    renderArena();
+  });
+  $('#timeR').addEventListener('input', (e) => {
+    curTime = +e.target.value;
+    renderArena();
+  });
+  arenaC.addEventListener('click', () => {
+    curSquad = curSquad >= 12 ? 2 : curSquad + 1;
+    $('#squadR').value = curSquad;
+    renderArena();
+  });
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#pLeader').value.trim();
+    $('#ctaOk').textContent = n ? `Đã khóa sàn đấu cho Đội trưởng ${n} (${curSquad} chiến binh)! Mã check-in QR đã gửi qua SMS.` : 'Vui lòng nhập tên Đội trưởng và số điện thoại liên hệ.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.1, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 28, duration: 0.9, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

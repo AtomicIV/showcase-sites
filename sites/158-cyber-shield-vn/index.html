@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>An Ninh Mạng Sao Khuê (V-SecOps) — Kiểm Thử Xâm Nhập Pentest & Trung Tâm SOC 24/7</title>
+<meta name="description" content="An Ninh Mạng Sao Khuê cung cấp dịch vụ Kiểm thử xâm nhập Red Team Pentest, Giám sát an toàn thông tin SOC 24/7 và đánh giá tuân thủ Nghị định 13/2023/NĐ-CP.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23050A08'/%3E%3Cpath d='M32 10l18 8v14c0 12-8 20-18 24-10-4-18-12-18-24V18l18-8z' fill='none' stroke='%2300FF88' stroke-width='4'/%3E%3Ccircle cx='32' cy='30' r='5' fill='%2300B4D8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Tektur:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050A08;
+  --bg2:#09130F;
+  --panel:#0E1E17;
+  --neon:#00FF88;
+  --cyan:#00B4D8;
+  --red:#F43F5E;
+  --amber:#F59E0B;
+  --light:#ECFDF5;
+  --muted:#86A899;
+  --paper:#F0F7F4;
+  --ink:#071710;
+  --line:rgba(0,255,136,.22);
+  --head:"Tektur",sans-serif;
+  --body:"Be Vietnam Pro",sans-serif;
+  --mono:"JetBrains Mono",monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;background:var(--bg);color:var(--light);font-family:var(--body);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%;height:auto}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit;max-width:100%}
+:focus-visible{outline:2px solid var(--neon);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--neon);color:var(--bg);padding:10px 16px;z-index:500;font-weight:700}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1240px,calc(100% - 48px));margin-inline:auto}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.12;letter-spacing:-.01em}
+h1{font-size:clamp(34px,4.8vw,68px)}
+h2{font-size:clamp(28px,3.8vw,50px)}
+h3{font-size:clamp(19px,2.1vw,26px)}
+p{margin:0}
+.mask{display:block;overflow:hidden;padding:0.18em 0.04em 0.18em;margin:-0.18em -0.04em -0.18em}
+.mask>span{display:block}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--neon);padding:6px 14px;border:1px solid var(--line);border-radius:99px;background:rgba(0,255,136,.07)}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--neon);box-shadow:0 0 12px var(--neon)}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border-radius:8px;border:1px solid var(--neon);background:var(--neon);color:var(--bg);font-family:var(--mono);font-weight:700;font-size:14px;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .4s var(--ease),filter .25s}
+.btn:hover{filter:brightness(1.12)}
+.btn.ghost{background:rgba(14,30,23,.8);color:var(--light);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--neon);color:var(--neon)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:13px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(5,10,8,.94);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--head);font-size:21px;font-weight:800}
+.logo svg{width:32px;height:32px;flex-shrink:0}
+.logo em{font-style:normal;color:var(--neon)}
+.nav ul{display:flex;gap:8px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:13px;color:var(--muted);transition:color .25s}
+.nav ul a:hover{color:var(--neon)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:18px;height:2px;background:var(--neon);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:4px;opacity:0;visibility:hidden;transform:translateY(-10px);transition:all .3s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 14px;border-radius:8px;font-family:var(--mono);font-size:14px}
+
+/* Hero */
+.hero{position:relative;min-height:100svh;padding:124px 0 70px;display:flex;align-items:center;background:radial-gradient(circle at 80% 25%,rgba(0,255,136,.15),transparent 55%),radial-gradient(circle at 15% 80%,rgba(0,180,216,.12),transparent 55%),var(--bg);border-bottom:1px solid var(--line)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,.94fr);gap:44px;align-items:center}
+.hero h1 em{font-style:normal;color:var(--neon)}
+.hero-lead{margin-top:20px;font-size:17.5px;color:var(--muted);max-width:52ch}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats b{display:block;font-family:var(--head);font-size:28px;color:var(--neon)}
+.hero-stats span{font-size:13px;color:var(--muted)}
+.radar-card{background:linear-gradient(155deg,var(--panel),#030806);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,255,136,.18)}
+.radar-card canvas{width:100%;height:auto;border-radius:10px;background:#030705}
+.r-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.r-foot strong{color:var(--neon)}
+
+/* Pinned Ransomware Anatomy */
+.soc-sec{position:relative;background:var(--bg2)}
+.soc-pin{height:100svh;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:44px;align-items:center;width:min(1240px,calc(100% - 48px));margin-inline:auto;padding-top:70px}
+.ssteps{position:relative;min-height:230px;margin-top:24px}
+.sstep{position:absolute;inset:0}
+.sstep .lv{font-family:var(--mono);font-size:13px;color:var(--neon);letter-spacing:.12em;text-transform:uppercase}
+.sstep h3{margin:8px 0 12px}
+.sstep p{color:var(--muted);max-width:45ch}
+.sstep .code-pill{display:inline-block;margin-top:14px;font-family:var(--mono);font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--line);color:var(--cyan);background:rgba(0,180,216,.1)}
+.soc-box{background:#030705;border:1px solid var(--line);border-radius:16px;padding:18px}
+.soc-box canvas{width:100%;height:auto;border-radius:10px}
+.soc-hud{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.soc-hud b{color:var(--neon)}
+
+/* Interactive Attack Surface & Defense Simulator */
+.sim-sec{padding:120px 0;background:var(--bg);border-top:1px solid var(--line)}
+.sec-head{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.sim-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px;align-items:start}
+.scard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px}
+.infra-sel{display:grid;gap:8px;margin-bottom:18px}
+.infra-sel label{font-size:14px;color:var(--muted)}
+.infra-sel select{width:100%;min-height:46px;padding:0 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--light);font-family:var(--mono);font-size:14px}
+.def-list{display:grid;gap:10px}
+.def-btn{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px 16px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--light);text-align:left;cursor:pointer;transition:all .2s}
+.def-btn[aria-pressed="true"]{border-color:var(--neon);background:rgba(0,255,136,.12)}
+.def-btn span{font-size:14.5px;font-weight:500}
+.def-btn i{font-style:normal;font-family:var(--mono);font-size:11.5px;padding:4px 9px;border-radius:6px;background:rgba(244,63,94,.2);color:var(--red)}
+.def-btn[aria-pressed="true"] i{background:var(--neon);color:var(--bg);font-weight:700}
+.sec-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.sk{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px}
+.sk small{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.sk b{display:block;font-family:var(--head);font-size:26px;color:var(--neon);margin-top:4px}
+.soc-log{margin-top:12px;padding:12px;border-radius:8px;background:#030705;border:1px solid var(--line);font-family:var(--mono);font-size:12.5px;color:var(--neon)}
+
+/* Services Grid (Light Technical Paper) */
+.services{padding:120px 0;background:var(--paper);color:var(--ink)}
+.services .kick{color:#047857;border-color:rgba(4,120,87,.3);background:rgba(16,185,129,.1)}
+.services .sec-head p{color:#334155}
+.srv-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.srv-card{background:#fff;border:1px solid #CBD5E1;border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:12px}
+.srv-card .std{font-family:var(--mono);font-size:12px;color:#047857;font-weight:700}
+.srv-card ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:15px;color:#1E293B}
+.srv-card li::before{content:"[OK] ";font-family:var(--mono);font-size:12px;color:#059669;font-weight:700}
+
+/* Compliance & Certs */
+.comp{padding:110px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.comp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.c-box{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:22px;display:grid;gap:10px}
+.c-box .code{font-family:var(--mono);font-size:12px;color:var(--cyan)}
+.c-box p{font-size:14.5px;color:var(--muted)}
+
+/* CTA */
+.cta{padding:110px 0;background:var(--bg);border-top:1px solid var(--line);text-align:center}
+.cta h2{max-width:18ch;margin:16px auto 12px}
+.cta p{color:var(--muted);max-width:50ch;margin:0 auto}
+.cta form{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:28px}
+.cta input{min-height:50px;width:min(340px,100%);padding:0 16px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--light);font-family:var(--mono)}
+.cta-msg{min-height:24px;margin-top:12px;font-family:var(--mono);font-size:13px;color:var(--neon)}
+
+footer{background:#020504;border-top:1px solid var(--line);padding:48px 0 32px;font-size:14px;color:var(--muted)}
+.foot-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.foot-links{display:flex;flex-wrap:wrap;gap:18px;list-style:none;margin:0;padding:0}
+.foot-links a:hover{color:var(--neon)}
+.foot-fine{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding-top:20px;font-family:var(--mono);font-size:12px}
+
+.rm .soc-pin{height:auto;padding:90px 0}
+.rm .ssteps{height:auto;display:grid;gap:20px}
+.rm .sstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.soc-pin,.sec-head,.sim-grid,.srv-grid,.comp-grid{grid-template-columns:1fr}
+  .soc-pin{height:auto;padding:90px 0}
+  .soc-box{order:-1}
+}
+@media (max-width:640px){
+  .wrap,.soc-pin{width:calc(100% - 32px)}
+  .hero{padding:106px 0 56px}
+  .hero-stats,.sec-kpis{grid-template-columns:1fr}
+  .ssteps{min-height:250px}
+  .sim-sec,.services,.comp,.cta{padding:80px 0}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="An Ninh Mạng Sao Khuê Trang chủ">
+      <svg viewBox="0 0 36 36" fill="none" aria-hidden="true"><rect width="36" height="36" rx="8" fill="#0E1E17"/><path d="M18 6l10 4.5v8c0 6.8-4.5 11.4-10 13.5-5.5-2.1-10-6.7-10-13.5v-8L18 6z" stroke="#00FF88" stroke-width="2.2"/><circle cx="18" cy="17" r="3" fill="#00B4D8"/></svg>
+      <span>SAO KHUÊ <em>SECOPS</em></span>
+    </a>
+    <nav aria-label="Điều hướng chính">
+      <ul>
+        <li><a href="#la-chan">Lá Chắn 4 Lớp</a></li>
+        <li><a href="#mo-phong">Mô Phỏng SOC</a></li>
+        <li><a href="#dich-vu">Pentest & Red Team</a></li>
+        <li><a href="#tuan-thu">Tuân Thủ Tiêu Chuẩn</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm mag" href="#lien-he">Yêu Cầu Pentest</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#la-chan">Giải phẫu chặn đứng Ransomware</a>
+  <a href="#mo-phong">Bảng điều khiển mô phỏng SOC</a>
+  <a href="#dich-vu">Dịch vụ Pentest & Giám sát 24/7</a>
+  <a href="#tuan-thu">Chứng nhận CREST, OSCP & ISO</a>
+  <a href="#lien-he">Đặt lịch Rà quét Lỗ hổng</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Trung Tâm Giám Sát SOC 24/7 · Red Team Pentest</p>
+        <h1 id="hero-h" style="margin-top:18px">
+          <span class="mask"><span>Tìm ra lỗ hổng</span></span>
+          <span class="mask"><span><em>trước khi tin tặc</em></span></span>
+          <span class="mask"><span>kịp khai thác.</span></span>
+        </h1>
+        <p class="hero-lead hf">An Ninh Mạng Sao Khuê bảo vệ các Ngân hàng, Fintech, Sàn thương mại điện tử và Tập đoàn sản xuất tại Việt Nam trước các cuộc tấn công mã hóa dữ liệu Ransomware và đánh cắp dữ liệu APT.</p>
+        <div class="hero-cta hf">
+          <a class="btn mag" href="#mo-phong">Thử nghiệm Bảng điều khiển SOC</a>
+          <a class="btn ghost mag" href="#la-chan">Xem giải phẫu chặn Ransomware</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><b>0,8 giây</b><span>Thời gian tự động cô lập Endpoint nhiễm mã độc</span></div>
+          <div><b>1.250+</b><span>Lỗ hổng Critical/High được phát hiện & vá kịp thời</span></div>
+          <div><b>24/7/365</b><span>Kỹ sư Blue Team trực chiến tại Hà Nội & TP.HCM</span></div>
+        </div>
+      </div>
+      <div class="radar-card hf">
+        <canvas id="heroC" width="580" height="430" role="img" aria-label="Radar trung tâm điều hành an ninh mạng SOC quét và đánh chặn các mũi tấn công thời gian thực"></canvas>
+        <div class="r-foot">
+          <span>Trạng thái hệ thống: <strong>ZERO BREACH · 100% ĐÃ CHẶN</strong></span>
+          <span>SIEM Events: <b>48.200 EPS</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="soc-sec" id="la-chan" aria-labelledby="soc-h">
+    <div class="soc-pin" id="socPin">
+      <div>
+        <p class="kick">Giải phẫu Phòng thủ Chiều sâu</p>
+        <h2 id="soc-h" style="margin-top:16px">Bốn lớp lá chắn vô hiệu hóa<br>cuộc tấn công mã hóa tống tiền</h2>
+        <div class="ssteps">
+          <article class="sstep">
+            <span class="lv">Lớp 01 · Tường lửa Ứng dụng WAF & Anti-DDoS</span>
+            <h3>Chặn đứng truy vấn SQL Injection & RCE ngay tại biên mạng</h3>
+            <p>Phân tích gói tin sâu (Deep Packet Inspection) kết hợp danh sách Threat Intelligence nội địa Việt Nam để lọc sạch botnet và payload khai thác lỗ hổng Zero-day.</p>
+            <span class="code-pill">RULE_ID: OWASP_CRS_942100 · ACTION: DROP</span>
+          </article>
+          <article class="sstep">
+            <span class="lv">Lớp 02 · Giám sát Hành vi Điểm cuối EDR / XDR</span>
+            <h3>Phát hiện tiến trình lạ đòi quyền leo thang đặc quyền</h3>
+            <p>Ngay khi một file đính kèm giả mạo hóa đơn điện tử cố gắng thực thi PowerShell ẩn, cảm biến EDR lập tức khóa tiến trình trước khi mã độc kịp шифровать (mã hóa) file.</p>
+            <span class="code-pill">MITRE ATT&CK: T1059.001 · BLOCKED</span>
+          </article>
+          <article class="sstep">
+            <span class="lv">Lớp 03 · Vi phân đoạn Zero-Trust Network</span>
+            <h3>Cắt đứt con đường di chuyển ngang (Lateral Movement)</h3>
+            <p>Mỗi máy chủ cơ sở dữ liệu được cô lập bằng xác thực đa nhân tố và chứng chỉ số ngắn hạn; kẻ tấn công không thể nhảy từ máy trạm nhân viên vào vùng Core DB.</p>
+            <span class="code-pill">MICRO-SEGMENTATION · ISOLATED IN 800ms</span>
+          </article>
+          <article class="sstep">
+            <span class="lv">Lớp 04 · Điều tra Số Forensic & Sao lưu Bất biến</span>
+            <h3>Khôi phục tức thì từ bản Backup Immutable không thể xóa</h3>
+            <p>Đội ngũ chuyên gia SOC 24/7 truy vết nguồn gốc tấn công, vá triệt để lỗ hổng gốc và đảm bảo hoạt động kinh doanh liên tục với RPO = 0.</p>
+            <span class="code-pill">IMMUTABLE SNAPSHOT · RECOVERY VERIFIED</span>
+          </article>
+        </div>
+      </div>
+      <div class="soc-box" aria-hidden="true">
+        <canvas id="pinC" width="640" height="450"></canvas>
+        <div class="soc-hud">
+          <span>Lớp kích hoạt: <b id="pLayer">Lớp 01 · WAF Perimeter</b></span>
+          <span>Mối đe dọa bị khóa: <b id="pBlocked">100%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sim-sec" id="mo-phong" aria-labelledby="sim-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trình Mô Phỏng Tấn Công & Phòng Thủ</p>
+          <h2 id="sim-h" class="split" style="margin-top:16px">Kiểm tra bề mặt phòng thủ &<br>Phóng thử cuộc tấn công</h2>
+        </div>
+        <p class="rv">Bật hoặc tắt các lớp bảo vệ bên dưới để xem điểm an toàn Security Score thay đổi và cách hệ thống đánh chặn các vector tấn công.</p>
+      </div>
+
+      <div class="sim-grid">
+        <div class="scard rv">
+          <div class="infra-sel">
+            <label for="infraType">Chọn mô hình hạ tầng doanh nghiệp</label>
+            <select id="infraType" aria-label="Chọn mô hình hạ tầng doanh nghiệp">
+              <option value="cloud">Hạ tầng Cloud Native (AWS / Viettel Cloud / Kubernetes)</option>
+              <option value="hybrid">Hạ tầng Lai Hybrid (Data Center + Cloud Banking)</option>
+              <option value="onprem">Hệ thống Máy chủ Vật lý On-Premise & Nhà máy IoT</option>
+            </select>
+          </div>
+          <div class="def-list" id="defList">
+            <button type="button" class="def-btn" data-pts="25" aria-pressed="true">
+              <span>1. Tường lửa ứng dụng Web (Cloud WAF & Anti-DDoS)</span>
+              <i>ĐANG BẬT</i>
+            </button>
+            <button type="button" class="def-btn" data-pts="25" aria-pressed="true">
+              <span>2. Cảm biến EDR/XDR trên toàn bộ Máy trạm & Server</span>
+              <i>ĐANG BẬT</i>
+            </button>
+            <button type="button" class="def-btn" data-pts="25" aria-pressed="true">
+              <span>3. Kiến trúc Zero-Trust & Xác thực phần cứng MFA</span>
+              <i>ĐANG BẬT</i>
+            </button>
+            <button type="button" class="def-btn" data-pts="25" aria-pressed="false">
+              <span>4. Kiểm thử xâm nhập Pentest định kỳ mỗi quý</span>
+              <i>ĐANG TẮT</i>
+            </button>
+          </div>
+          <button type="button" class="btn" id="fireBtn" style="width:100%;margin-top:14px">⚡ Phóng thử đợt tấn công OWASP & Ransomware</button>
+        </div>
+
+        <div class="scard rv">
+          <div class="sec-kpis">
+            <div class="sk">
+              <small>Điểm An Toàn Hệ Thống</small>
+              <b id="secScore">75 / 100</b>
+            </div>
+            <div class="sk">
+              <small>Thời gian Phản ứng MTTR</small>
+              <b id="mttrVal" style="color:var(--cyan)">1,8 phút</b>
+            </div>
+          </div>
+          <canvas id="simC" width="540" height="230" role="img" aria-label="Mô phỏng các luồng đạn tấn công mạng bị khiên bảo mật chặn lại"></canvas>
+          <div class="soc-log" id="socLog" role="status" aria-live="polite">
+            [SOC-LIVE] Đang bật 3/4 lớp phòng thủ. Khuyến nghị bật thêm Kiểm thử Pentest định kỳ để đạt 100 điểm.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="services" id="dich-vu" aria-labelledby="srv-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Danh mục Dịch vụ Chuyên sâu</p>
+          <h2 id="srv-h" class="split" style="margin-top:16px">Tấn công giả lập như hacker thật,<br>bảo vệ nghiêm ngặt 24/7</h2>
+        </div>
+        <p class="rv">Báo cáo kỹ thuật song ngữ Việt – Anh đi kèm PoC khai thác thực tế và hướng dẫn vá lỗi từng dòng code cho đội ngũ lập trình viên.</p>
+      </div>
+      <div class="srv-grid">
+        <article class="srv-card rv">
+          <span class="std">CHUẨN OWASP ASVS & PTES</span>
+          <h3>Kiểm Thử Xâm Nhập (Pentest)</h3>
+          <ul>
+            <li>Pentest Ứng dụng Web, Mobile App iOS/Android & API</li>
+            <li>Đánh giá cấu hình bảo mật Cloud AWS, Azure, GCP</li>
+            <li>Diễn tập Red Team xâm nhập thực chiến không báo trước</li>
+            <li>Cấp chứng nhận Đạt chuẩn An toàn sau khi tái kiểm tra</li>
+          </ul>
+          <a class="btn sm" href="#lien-he" style="margin-top:auto">Nhận báo giá Pentest</a>
+        </article>
+        <article class="srv-card rv">
+          <span class="std">MANAGED SOC · SLA 15 PHÚT</span>
+          <h3>Giám Sát An Toàn SOC 24/7</h3>
+          <ul>
+            <li>Thu thập và phân tích tương quan log SIEM/SOAR</li>
+            <li>Săn tìm mối đe dọa chủ động (Threat Hunting)</li>
+            <li>Cô lập máy trạm nhiễm mã độc từ xa trong 0.8 giây</li>
+            <li>Báo cáo tuân thủ định kỳ cho Ngân hàng Nhà nước</li>
+          </ul>
+          <a class="btn sm" href="#lien-he" style="margin-top:auto">Tư vấn kết nối SOC</a>
+        </article>
+        <article class="srv-card rv">
+          <span class="std">NGHỊ ĐỊNH 13/2023 & ISO 27001</span>
+          <h3>Tư Vấn Tuân Thủ & Bảo Vệ Dữ Liệu</h3>
+          <ul>
+            <li>Lập Hồ sơ Đánh giá tác động xử lý dữ liệu cá nhân (DPIA)</li>
+            <li>Tư vấn cấp chứng chỉ quốc tế ISO/IEC 27001 & PCI-DSS</li>
+            <li>Đào tạo nhận thức an toàn thông tin & Phishing Simulation</li>
+            <li>Ứng cứu sự cố khẩn cấp (DFIR) tại chỗ trong 2 giờ</li>
+          </ul>
+          <a class="btn sm" href="#lien-he" style="margin-top:auto">Đánh giá tuân thủ</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="comp" id="tuan-thu" aria-labelledby="comp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Năng lực & Chứng chỉ</p>
+          <h2 id="comp-h" class="split" style="margin-top:16px">Đội ngũ chuyên gia sở hữu<br>chứng chỉ bảo mật danh giá</h2>
+        </div>
+        <p class="rv">100% kỹ sư Pentest là người Việt Nam có lý lịch tư pháp trong sạch và ký cam kết bảo mật NDA tuyệt đối.</p>
+      </div>
+      <div class="comp-grid">
+        <article class="c-box rv">
+          <span class="code">OFFSEC OSCP / OSEP</span>
+          <h3>24 Kỹ sư Pentest</h3>
+          <p>Nắm giữ các chứng chỉ tấn công thực chiến khắt khe nhất của Offensive Security và CREST quốc tế.</p>
+        </article>
+        <article class="c-box rv">
+          <span class="code">GIẤY PHÉP BỘ TTTT</span>
+          <h3>Đủ điều kiện Kinh doanh ATTT</h3>
+          <p>Được cấp phép đầy đủ về Dịch vụ Kiểm tra, Đánh giá và Giám sát An toàn thông tin mạng tại Việt Nam.</p>
+        </article>
+        <article class="c-box rv">
+          <span class="code">CVE DISCOVERIES</span>
+          <h3>38 Lỗ hổng Zero-day</h3>
+          <p>Đội ngũ R&D được vinh danh trên bảng vàng bảo mật của Microsoft, Apple, Oracle và Adobe.</p>
+        </article>
+        <article class="c-box rv">
+          <span class="code">NGHỊ ĐỊNH 85 & THÔNG TƯ 09</span>
+          <h3>Chuẩn Cấp độ ATTT</h3>
+          <p>Tư vấn và thẩm định hồ sơ đề xuất cấp độ an toàn hệ thống thông tin từ Cấp độ 3 đến Cấp độ 5.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="lien-he" aria-labelledby="cta-h">
+    <div class="wrap">
+      <p class="kick">Bảo mật tuyệt đối qua kênh mã hóa PGP</p>
+      <h2 id="cta-h" class="split">Đặt lịch Rà quét Bề mặt Tấn công (ASM) Miễn phí</h2>
+      <p>Chúng tôi sẽ gửi báo cáo tổng quan các tên miền phụ, cổng dịch vụ hở và chứng chỉ SSL sắp hết hạn của doanh nghiệp bạn trong 24 giờ.</p>
+      <form id="ctaForm" novalidate>
+        <label class="sr" for="ctaDomain">Tên miền công ty hoặc Email doanh nghiệp</label>
+        <input id="ctaDomain" type="text" placeholder="Nhập tên miền (vd: congty.vn) hoặc Email..." required>
+        <button type="submit" class="btn mag">Quét Bề Mặt Tấn Công</button>
+      </form>
+      <p class="cta-msg" id="ctaMsg" role="status"></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <a class="logo" href="#top"><span>SAO KHUÊ <em>SECOPS</em></span></a>
+      <ul class="foot-links">
+        <li><a href="#la-chan">Lá Chắn 4 Lớp</a></li>
+        <li><a href="#mo-phong">Mô Phỏng SOC</a></li>
+        <li><a href="#dich-vu">Dịch Vụ</a></li>
+        <li><a href="#tuan-thu">Chứng Chỉ</a></li>
+        <li><a href="#lien-he">Liên Hệ</a></li>
+      </ul>
+    </div>
+    <div class="foot-fine">
+      <span>© <span id="yr"></span> Công ty Cổ phần An Ninh Mạng Sao Khuê · Trung tâm SOC Hà Nội & TP.HCM</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const G = window.gsap
+  const anim = !!G && !reduce
+  if (!anim) document.documentElement.classList.add('rm')
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger)
+  const $ = (s, r = document) => r.querySelector(s)
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+  $('#yr').textContent = new Date().getFullYear()
+
+  // Nav & Mobile menu
+  const nav = $('#nav')
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 24), { passive: true })
+  const mb = $('#menuBtn'), mm = $('#mmenu')
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open)
+    mm.classList.toggle('open', open)
+    mm.setAttribute('aria-hidden', !open)
+    mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'))
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false) })
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { setMenu(false); mb.focus() } })
+
+  // Lenis
+  let lenis = null
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.09 })
+    window.lenis = lenis
+    lenis.on('scroll', ScrollTrigger.update)
+    G.ticker.add((t) => lenis.raf(t * 1000))
+    G.ticker.lagSmoothing(0)
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href')
+    if (!id || id.length < 2 || !$(id)) return
+    e.preventDefault()
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' })
+  }))
+
+  // Hero SOC Radar Sweep Canvas
+  const heroC = $('#heroC'), hCtx = heroC.getContext('2d')
+  let rAng = 0
+  const THREATS = [
+    { a: 0.8, d: 110, l: 'SQLi Blocked' },
+    { a: 2.3, d: 145, l: 'DDoS Filtered' },
+    { a: 3.9, d: 85, l: 'Ransomware Isolated' },
+    { a: 5.2, d: 130, l: 'Zero-Trust Verified' }
+  ]
+  function drawHeroRadar() {
+    const W = heroC.width, H = heroC.height
+    hCtx.clearRect(0, 0, W, H)
+    const cx = W / 2, cy = H / 2
+    ;[45, 90, 135, 180].forEach((r) => {
+      hCtx.strokeStyle = 'rgba(0,255,136,0.2)'
+      hCtx.lineWidth = 1
+      hCtx.beginPath(); hCtx.arc(cx, cy, r, 0, Math.PI * 2); hCtx.stroke()
+    })
+    hCtx.beginPath(); hCtx.moveTo(cx - 190, cy); hCtx.lineTo(cx + 190, cy); hCtx.moveTo(cx, cy - 190); hCtx.lineTo(cx, cy + 190); hCtx.stroke()
+
+    // Sweep sector
+    hCtx.save()
+    hCtx.translate(cx, cy)
+    hCtx.rotate(rAng)
+    const grad = hCtx.createLinearGradient(0, 0, 180, 0)
+    grad.addColorStop(0, 'rgba(0,255,136,0.45)')
+    grad.addColorStop(1, 'rgba(0,255,136,0.02)')
+    hCtx.fillStyle = grad
+    hCtx.beginPath(); hCtx.moveTo(0, 0); hCtx.arc(0, 0, 180, -0.45, 0); hCtx.closePath(); hCtx.fill()
+    hCtx.restore()
+
+    // Threat blips
+    THREATS.forEach((t) => {
+      const tx = cx + Math.cos(t.a) * t.d
+      const ty = cy + Math.sin(t.a) * t.d
+      hCtx.fillStyle = '#00FF88'
+      hCtx.beginPath(); hCtx.arc(tx, ty, 5, 0, Math.PI * 2); hCtx.fill()
+      hCtx.font = '600 10.5px "JetBrains Mono", monospace'
+      hCtx.fillText(t.l, tx + 9, ty + 4)
+    })
+  }
+  drawHeroRadar()
+  if (anim) G.ticker.add(() => { rAng += 0.03; drawHeroRadar() })
+
+  // Pinned 4-Layer Defense Anatomy Canvas
+  const pinC = $('#pinC'), pCtx = pinC.getContext('2d')
+  const P_LAYERS = ['Lớp 01 · WAF & Anti-DDoS', 'Lớp 02 · EDR/XDR Endpoint', 'Lớp 03 · Zero-Trust Isolation', 'Lớp 04 · Forensic & Backup']
+  function drawPinDefense(p) {
+    const W = pinC.width, H = pinC.height
+    pCtx.clearRect(0, 0, W, H)
+    pCtx.fillStyle = '#030705'
+    pCtx.fillRect(0, 0, W, H)
+
+    const idx = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3
+    $('#pLayer').textContent = P_LAYERS[idx]
+
+    const shields = [
+      { x: 130, l: 'WAF', s: 'DROP SQLi' },
+      { x: 255, l: 'EDR', s: 'KILL PROC' },
+      { x: 380, l: 'ZERO-TRUST', s: 'ISOLATE' },
+      { x: 515, l: 'CORE DB', s: 'SAFE 100%' }
+    ]
+    shields.forEach((sh, i) => {
+      const on = i <= idx
+      pCtx.fillStyle = on ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.03)'
+      pCtx.strokeStyle = on ? '#00FF88' : 'rgba(255,255,255,0.18)'
+      pCtx.lineWidth = i === idx ? 3 : 1.5
+      pCtx.fillRect(sh.x - 48, 80, 96, 290)
+      pCtx.strokeRect(sh.x - 48, 80, 96, 290)
+
+      pCtx.fillStyle = on ? '#00FF88' : '#86A899'
+      pCtx.font = '700 12px "JetBrains Mono", monospace'
+      pCtx.textAlign = 'center'
+      pCtx.fillText(sh.l, sh.x, 120)
+      pCtx.fillStyle = '#ECFDF5'
+      pCtx.font = '600 11px "JetBrains Mono", monospace'
+      pCtx.fillText(sh.s, sh.x, 230)
+    })
+    pCtx.textAlign = 'left'
+  }
+
+  const ssteps = $$('.sstep')
+  let curS = -1
+  function setP(i) {
+    if (i === curS) return
+    curS = i
+    ssteps.forEach((el, idx) => {
+      if (!anim) { el.style.opacity = 1; return }
+      G.to(el, { autoAlpha: idx === i ? 1 : 0, y: idx === i ? 0 : 16, duration: 0.45, overwrite: true })
+    })
+  }
+  if (anim) {
+    G.set(ssteps, { autoAlpha: 0 })
+    setP(0)
+    drawPinDefense(0.05)
+    ScrollTrigger.create({
+      trigger: '#la-chan',
+      start: 'top top',
+      end: '+=280%',
+      pin: '#socPin',
+      scrub: true,
+      onUpdate(self) {
+        const p = self.progress
+        drawPinDefense(p)
+        setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3)
+      }
+    })
+  } else {
+    drawPinDefense(1)
+  }
+
+  // Interactive SOC Attack Surface Simulator
+  const simC = $('#simC'), sCtx = simC.getContext('2d')
+  const defBtns = $$('.def-btn')
+  let activeCount = 3, burst = 0
+
+  function drawSimShield() {
+    const W = simC.width, H = simC.height
+    sCtx.clearRect(0, 0, W, H)
+    sCtx.fillStyle = '#030705'
+    sCtx.fillRect(0, 0, W, H)
+
+    // Draw active shield arcs on right side protecting Core Asset
+    const cx = 430, cy = H / 2
+    sCtx.fillStyle = '#00B4D8'
+    sCtx.beginPath(); sCtx.arc(cx, cy, 28, 0, Math.PI * 2); sCtx.fill()
+    sCtx.fillStyle = '#050A08'
+    sCtx.font = '700 10px "JetBrains Mono", monospace'
+    sCtx.textAlign = 'center'
+    sCtx.fillText('CORE', cx, cy + 4)
+
+    for (let i = 0; i < 4; i++) {
+      const on = defBtns[i].getAttribute('aria-pressed') === 'true'
+      sCtx.strokeStyle = on ? '#00FF88' : 'rgba(244,63,94,0.25)'
+      sCtx.lineWidth = on ? 4 : 1.5
+      sCtx.beginPath()
+      sCtx.arc(cx, cy, 48 + i * 22, Math.PI * 0.65, Math.PI * 1.35)
+      sCtx.stroke()
+    }
+
+    // Incoming attack vectors from left
+    const vectors = ['SQLi Payload', 'Ransomware.exe', 'DDoS Flood', 'Credential Stuffing']
+    vectors.forEach((v, i) => {
+      const y = 38 + i * 48
+      const stopX = 260 + (4 - activeCount) * 32
+      sCtx.strokeStyle = '#F43F5E'
+      sCtx.lineWidth = 2
+      sCtx.beginPath(); sCtx.moveTo(24, y); sCtx.lineTo(stopX, y); sCtx.stroke()
+      sCtx.fillStyle = '#00FF88'
+      sCtx.beginPath(); sCtx.arc(stopX, y, 5 + burst * 4, 0, Math.PI * 2); sCtx.fill()
+      sCtx.fillStyle = '#ECFDF5'
+      sCtx.font = '600 11px "JetBrains Mono", monospace'
+      sCtx.textAlign = 'left'
+      sCtx.fillText(v + ' → [BLOCKED]', 28, y - 8)
+    })
+    if (burst > 0.02) burst *= 0.9
+  }
+
+  function updateSim() {
+    let score = 0
+    activeCount = 0
+    defBtns.forEach((b) => {
+      const on = b.getAttribute('aria-pressed') === 'true'
+      if (on) { score += 25; activeCount++ }
+      $('i', b).textContent = on ? 'ĐANG BẬT' : 'ĐANG TẮT'
+    })
+    $('#secScore').textContent = score + ' / 100'
+    $('#mttrVal').textContent = score === 100 ? '0,8 giây' : score >= 75 ? '1,8 phút' : '45 phút (Nguy hiểm)'
+    $('#socLog').textContent = score === 100
+      ? '[SOC-LIVE] Tối đa 4/4 lớp bảo vệ! Mọi đợt tấn công OWASP & Ransomware đều bị vô hiệu hóa ngay tại biên.'
+      : `[SOC-LIVE] Đang bật ${activeCount}/4 lớp phòng thủ (${score}/100 điểm). Hãy bật toàn bộ các lớp để đạt chuẩn Zero-Trust.`
+    drawSimShield()
+  }
+
+  defBtns.forEach((b) => b.addEventListener('click', () => {
+    const cur = b.getAttribute('aria-pressed') === 'true'
+    b.setAttribute('aria-pressed', !cur)
+    updateSim()
+  }))
+  $('#infraType').addEventListener('change', updateSim)
+  $('#fireBtn').addEventListener('click', () => {
+    burst = 1.2
+    $('#socLog').textContent = `⚡ Đã phóng 4 mũi tấn công thử nghiệm: Chặn thành công ${Math.max(1, activeCount)}/4 mũi nhờ lá chắn SOC!`
+    drawSimShield()
+  })
+  updateSim()
+  if (anim) G.ticker.add(drawSimShield)
+
+  // CTA Form
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault()
+    const v = $('#ctaDomain').value.trim()
+    $('#ctaMsg').textContent = v.length >= 4
+      ? '✓ Đã khởi tạo tiến trình rà quét bề mặt tấn công thụ động (Non-intrusive ASM). Báo cáo sẽ gửi sau 2 giờ.'
+      : 'Vui lòng nhập Tên miền hoặc Email doanh nghiệp hợp lệ.'
+  })
+
+  // Animations
+  if (anim) {
+    G.set('.hero h1 .mask>span', { yPercent: 110 })
+    G.set('.hf', { autoAlpha: 0, y: 18 })
+    G.timeline({ delay: 0.1 })
+      .to('.hero h1 .mask>span', { yPercent: 0, duration: 1.0, stagger: 0.1, ease: 'expo.out' })
+      .to('.hf', { autoAlpha: 1, y: 0, duration: 0.75, stagger: 0.08, ease: 'power3.out' }, 0.25)
+
+    $$('.split').forEach((h) => {
+      h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+      const lines = h.querySelectorAll('.mask>span')
+      G.set(lines, { yPercent: 110 })
+      ScrollTrigger.create({
+        trigger: h, start: 'top 88%', once: true,
+        onEnter: () => G.to(lines, { yPercent: 0, duration: 1.0, stagger: 0.1, ease: 'expo.out' })
+      })
+    })
+    G.set('.rv', { autoAlpha: 0, y: 28 })
+    ScrollTrigger.batch('.rv', {
+      start: 'top 90%', once: true,
+      onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.08, ease: 'expo.out', clearProps: 'transform' })
+    })
+  }
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

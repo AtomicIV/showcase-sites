@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EcoSense IoT Vietnam — Hệ thống Trạm Quan trắc Nước thải, Khí thải Tự động Chuẩn Thông tư 10</title>
+<meta name="description" content="EcoSense IoT Vietnam thiết kế, lắp đặt trạm quan trắc nước thải, khí thải tự động liên tục (CEMS/WQMS) đạt chuẩn Thông tư 10/2021/TT-BTNMT truyền dữ liệu trực tiếp về Sở TN&MT.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23081814'/%3E%3Cpath d='M12 36h10l6-16 8 26 6-14h10' fill='none' stroke='%2322C55E' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='14' r='4' fill='%23FACC15'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#081814; --bg2:#102A23; --card:#15362D;
+  --pri:#22C55E; --acc:#FACC15; --text:#ECFDF5; --muted:#99B8AF;
+  --line:rgba(34,197,94,.24);
+  --head:"Chakra Petch", sans-serif; --body:"Be Vietnam Pro", sans-serif; --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:600}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.01em}
+h2{font-size:clamp(34px,4.4vw,58px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pri)}
+.kick::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px 2px rgba(250,204,21,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:#081814;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;cursor:pointer;transition:transform .35s var(--ease),background .3s}
+.btn:hover{background:#4ADE80;border-color:#4ADE80;transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--pri);color:var(--pri)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(8,24,20,.93);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:22px;font-weight:700;color:var(--text)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 75% 25%,rgba(34,197,94,.18),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(250,204,21,.12),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(36px,4.9vw,66px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:50ch;color:var(--muted);font-size:17.5px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-box{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-box canvas{width:100%;height:auto;border-radius:10px}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Pinned Telemetry Process */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:240px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--acc)}
+.pstep h3{font-size:clamp(24px,2.4vw,34px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:44ch}
+.pr-vis{background:#05100D;border:1px solid var(--line);border-radius:16px;padding:20px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive QCVN Station Simulator */
+.sim{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.sim-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.sim-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.sim-stage canvas{width:100%;height:auto;border-radius:10px;background:#05100D}
+.sim-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.sim-info{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:18px}
+.mode-tabs{display:grid;grid-template-columns:1fr;gap:10px}
+.m-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left}
+.m-btn .mono{font-size:10px;color:var(--acc);display:block}
+.m-btn b{font-family:var(--head);font-size:18px}
+.m-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(34,197,94,.14)}
+.quote-box{padding:16px;background:rgba(250,204,21,.1);border-left:3px solid var(--acc);border-radius:6px;display:grid;gap:6px;font-size:14.5px}
+.quote-box strong{font-family:var(--head);font-size:22px;color:var(--pri)}
+
+.specs{padding:110px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.scard .mono{color:var(--acc)}
+.scard h3{font-size:21px}
+.scard p{color:var(--muted);font-size:15px}
+
+.cases{padding:110px 0;background:var(--bg);border-top:1px solid var(--line)}
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ccard{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.ccard .mono{color:var(--pri)}
+.ccard h3{font-size:22px}
+.ccard p{color:var(--muted);font-size:15px}
+
+.cta{padding:110px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(34,197,94,.2),transparent 70%),var(--bg2);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--pri)}
+
+footer{background:#040D0A;border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.sim-shell,.case-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .spec-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.sim-controls,.spec-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="EcoSense IoT Vietnam Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#102A23"/><path d="M5 18h6l3-8 4 13 3-7h6" fill="none" stroke="#22C55E" stroke-width="2.5"/><circle cx="16" cy="7" r="2.5" fill="#FACC15"/></svg>
+      EcoSense IoT
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Chuẩn Thông Tư 10</a></li>
+        <li><a href="#sim">Giả Lập Trạm Quan Trắc</a></li>
+        <li><a href="#specs">Thiết Bị Cảm Biến</a></li>
+        <li><a href="#cases">Dự Án KCN</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#trial">Tư Vấn Hồ Sơ Sở TN&MT</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Hệ thống Quan trắc Chuẩn Thông tư 10</a>
+  <a href="#sim">Giả lập Chỉ số pH, COD, TSS & QCVN</a>
+  <a href="#specs">Tủ Datalogger & Máy lấy mẫu tự động</a>
+  <a href="#cases">Khu Công nghiệp & Nhà máy Nhiệt điện</a>
+  <a href="#trial">Yêu cầu Khảo sát & Báo giá Trạm</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Quan Trắc Môi Trường Tự Động Liên Tục · Chuẩn Thông Tư 10/2021</p>
+        <h1 id="hero-h"><span class="mask"><span>Giám sát nước thải, khí thải</span></span><span class="mask"><span>truyền thẳng về <em>Sở TN&MT.</em></span></span></h1>
+        <p class="hero-lead hf">Giải pháp trọn gói Chìa khóa trao tay từ thiết kế nhà trạm, lắp đặt cảm biến quang học Hach/Endress+Hauser, hiệu chuẩn kiểm định RA đến kết nối Datalogger truyền số liệu 5 phút/lần về Sở Tài nguyên và Môi trường 63 tỉnh thành.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#sim">Giả Lập Tủ Trạm & Ngưỡng QCVN</a>
+          <a class="btn ghost" href="#process">Xem Quy Trình Lấy Mẫu Tự Động</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>5 Phút/Lần</strong><span>Chu kỳ truyền gói tin FTP/SFTP</span></div>
+          <div><strong>100% Đạt</strong><span>Nghiệm thu kết nối Sở TN&MT</span></div>
+          <div><strong>24 Bình</strong><span>Bảo quản mẫu tự động ở 4°C</span></div>
+        </div>
+      </div>
+      <div class="hero-box hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Màn hình SCADA trạm quan trắc nước thải khu công nghiệp hiển thị chỉ số pH, COD, TSS, Amoni và lưu lượng"></canvas>
+        <div class="hero-meta">
+          <span>Di chuột để kiểm tra tín hiệu sóng cảm biến quang học</span>
+          <span style="color:var(--pri)">DATALOGGER: ECOSENSE-DL2026 · ONLINE</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Kiến trúc Trạm Quan trắc Khép kín</p>
+        <h2 id="pr-h">Đo quang học liên tục &<br><em>Tự động niêm phong mẫu</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Hợp phần 01 · Đầu dò Cảm biến Quang học Không Hóa chất</p>
+            <h3>Đo liên tục COD, TSS, pH, Nhiệt độ, DO, Amoni & Lưu lượng</h3>
+            <p>Cảm biến tích hợp chổi gạt tự làm sạch bằng tia khí nén định kỳ, chống bám bùn vi sinh tại bể lắng cuối hệ thống xử lý nước thải KCN.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Hợp phần 02 · Tủ lấy mẫu Tự động Bảo quản Lạnh 4°C</p>
+            <h3>Kích hoạt hút mẫu niêm phong ngay khi phát hiện vượt ngưỡng QCVN</h3>
+            <p>Khi chỉ số COD hoặc pH vượt giới hạn cho phép theo QCVN 40:2011/BTNMT, tủ tự động bơm nước thải vào bình chứa đánh số thứ tự và khóa niêm phong.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Hợp phần 03 · Datalogger Chuẩn Nghị định 08 & Thông tư 10</p>
+            <h3>Ghi nhận tín hiệu 4–20mA / RS485 Modbus không thể can thiệp</h3>
+            <p>Tự động đóng gói tệp `.txt` định dạng chuẩn của Bộ TN&MT, truyền đồng thời qua cáp quang và SIM 4G dự phòng kèm lưu trữ bộ nhớ đệm 60 ngày.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Hợp phần 04 · Hệ thống Camera Giám sát 360° & Báo động SMS</p>
+            <h3>Quan sát cửa xả, bể chỉ thị sinh học và bên trong nhà trạm</h3>
+            <p>Gửi cảnh báo sớm ở mức 80% ngưỡng giới hạn cho kỹ sư vận hành trạm xử lý nước thải qua App di động để kịp thời điều chỉnh châm hóa chất.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Trạng thái trạm: <b id="pMode">Đo quang học 24/7</b></span>
+          <span>Chuẩn quy chiếu: <b id="pStd">QCVN 40:2011/BTNMT</b></span>
+          <span>Độ tin cậy dữ liệu: <b id="pPct">99.8%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sim" id="sim" aria-labelledby="sim-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Bảng Điều Khiển SCADA Trực Tuyến</p>
+          <h2 id="sim-h" style="margin-top:16px">Giả lập Trạm Quan trắc &<br><em>Kiểm tra Ngưỡng vượt QCVN</em></h2>
+        </div>
+        <p class="rv">Chọn loại hình trạm quan trắc, kéo thử thanh trượt nồng độ COD (mg/L) và độ pH để quan sát đồ thị sóng cảm biến, trạng thái kích hoạt máy lấy mẫu tự động và dự toán chi phí đầu tư.</p>
+      </div>
+      <div class="sim-shell">
+        <div class="sim-stage">
+          <canvas id="simC" width="680" height="400" role="img" aria-label="Đồ thị sóng cảm biến COD, TSS, pH so sánh với đường giới hạn QCVN"></canvas>
+          <div class="sim-controls">
+            <div class="sl-row">
+              <label for="codR"><span>Chỉ số COD / Bụi PM (mg/L)</span><b id="vCod">68 mg/L</b></label>
+              <input id="codR" type="range" min="20" max="150" step="2" value="68">
+            </div>
+            <div class="sl-row">
+              <label for="phR"><span>Chỉ số Độ pH dòng xả</span><b id="vPh">7.2 pH</b></label>
+              <input id="phR" type="range" min="4.5" max="10.0" step="0.1" value="7.2">
+            </div>
+          </div>
+        </div>
+        <div class="sim-info">
+          <span class="mono" style="color:var(--pri)">Chọn loại hình trạm quan trắc bắt buộc</span>
+          <div class="mode-tabs" id="stTabs" role="group" aria-label="Chọn loại trạm">
+            <button type="button" class="m-btn" data-s="0" aria-pressed="true">
+              <span class="mono">QCVN 40:2011/BTNMT · Lưu lượng > 500 m³/ngày</span>
+              <b>Trạm Quan trắc Nước thải Tự động (WQMS)</b>
+            </button>
+            <button type="button" class="m-btn" data-s="1" aria-pressed="false">
+              <span class="mono">QCVN 19:2009/BTNMT · Lò hơi, Xi măng, Nhiệt điện</span>
+              <b>Trạm Quan trắc Khí thải Ống khói (CEMS)</b>
+            </button>
+            <button type="button" class="m-btn" data-s="2" aria-pressed="false">
+              <span class="mono">Khai thác khoáng sản & Thủy điện</span>
+              <b>Trạm Quan trắc Nước mặt & Nước ngầm</b>
+            </button>
+          </div>
+          <div>
+            <span class="mono" style="color:var(--acc)" id="sStatus">Trạng thái: TRONG NGƯỠNG AN TOÀN CỘT B (COD <= 100 mg/L)</span>
+            <h3 id="sTitle" style="font-size:22px;margin:6px 0 8px">Tự động hiệu chuẩn & Bảo trì định kỳ</h3>
+            <p id="sDesc" style="color:var(--muted);font-size:15px">Bao gồm trọn gói dịch vụ kiểm định hiệu chuẩn bởi đơn vị có VIMCERTS và lập báo cáo kết nối kỹ thuật nộp Sở TN&MT.</p>
+          </div>
+          <div class="quote-box" id="sQuote" role="status" aria-live="polite">
+            <span class="mono">Suất đầu tư hệ thống tiêu chuẩn (EU/G7):</span>
+            <strong id="sPrice">850.000.000 VNĐ / Trạm</strong>
+            <span id="sSub" style="color:var(--muted);font-size:13.5px">Đã gồm: Đầu dò đa chỉ tiêu, Tủ lấy mẫu tự động, Datalogger, Camera PTZ & Nhà trạm tiêu chuẩn</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="specs" id="specs" aria-labelledby="sp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Thiết bị Nhập khẩu Chính hãng G7</p>
+          <h2 id="sp-h" style="margin-top:16px">Độ bền công nghiệp <em>chống ăn mòn axit</em></h2>
+        </div>
+        <p class="rv">Vỏ cảm biến bằng Titanium và thép không gỉ 316L chịu được môi trường nước thải dệt nhuộm, hóa chất, xi mạ và chế biến thủy sản.</p>
+      </div>
+      <div class="spec-grid">
+        <article class="scard rv">
+          <span class="mono">01 · Quang phổ UV-Vis</span>
+          <h3>Đo COD không thuốc thử</h3>
+          <p>Không tốn chi phí mua hóa chất độc hại hàng tháng, không phát sinh chất thải thứ cấp và cho kết quả tức thì mỗi 60 giây.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">02 · Kiểm Định VIMCERTS</span>
+          <h3>Đầy đủ Hồ sơ Pháp lý</h3>
+          <p>Cung cấp trọn bộ chứng nhận CO/CQ, chứng nhận kiểm định phương tiện đo và thử nghiệm độ chính xác tương đối (RA Test).</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">03 · Datalogger Chuẩn</span>
+          <h3>Lưu trữ 5 năm dữ liệu</h3>
+          <p>Hỗ trợ truyền đồng thời về Sở TN&MT địa phương và Bộ TN&MT với chữ ký số bảo mật toàn vẹn dữ liệu gốc.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">04 · UPS & Chống Sét</span>
+          <h3>Hoạt động xuyên bão lũ</h3>
+          <p>Trang bị bộ lưu điện công nghiệp duy trì trạm hoạt động 24 giờ khi mất điện lưới và hệ thống cắt lọc sét lan truyền.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cases" id="cases" aria-labelledby="ca-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Năng lực Thi công Thực tế</p>
+          <h2 id="ca-h" style="margin-top:16px">Hơn 210 Trạm Quan trắc đã bàn giao vận hành</h2>
+        </div>
+        <p class="rv">Đội ngũ kỹ sư môi trường và tự động hóa trực tiếp khảo sát, thi công lắp đặt và bàn giao hồ sơ hoàn công trên toàn quốc.</p>
+      </div>
+      <div class="case-grid">
+        <article class="ccard rv">
+          <span class="mono">Trạm Xử Lý Nước Thải Tập Trung KCN</span>
+          <h3>Giám sát lưu lượng xả 15.000 m³/ngày đêm</h3>
+          <p>Lắp đặt hệ thống 7 chỉ tiêu (Lưu lượng vào/ra, pH, Nhiệt độ, COD, TSS, Amoni) cho các khu công nghiệp tại VSIP, Hải Phòng, Đồng Nai.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Nhà Máy Xi Măng & Nhiệt Điện</span>
+          <h3>Quan trắc khí thải CEMS trên sàn thao tác 45m</h3>
+          <p>Đo liên tục bụi tổng PM, SO₂, NOx, CO và O₂ dư trong điều kiện nhiệt độ ống khói lên tới 250°C bằng công nghệ trích mẫu nóng.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Nhà Máy Chế Biến Thủy Sản & Giấy</span>
+          <h3>Cảnh báo sớm ngăn ngừa sự cố vi sinh</h3>
+          <p>Phát hiện sớm biến động pH và DO tại bể Aerotank giúp kỹ sư điều chỉnh máy thổi khí, tiết kiệm 20% điện năng vận hành.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="trial" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Khảo sát Hiện trường & Tư vấn Pháp lý Môi trường Miễn phí</p>
+        <h2 id="cta-h" style="margin-top:14px">Nhận Bản Vẽ Thiết Kế Nhà Trạm &<br><em>Dự Toán Chi Tiết Chuẩn Thông Tư 10</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="eName">Họ và tên (Trưởng ban Quản lý Dự án / HSE)</label>
+            <input id="eName" type="text" placeholder="KS. Đặng Văn Hùng — Phòng HSE" required>
+          </div>
+          <div>
+            <label for="ePhone">Số điện thoại liên hệ</label>
+            <input id="ePhone" type="tel" placeholder="0912 405 889" required>
+          </div>
+          <div>
+            <label for="eType">Loại hình trạm quan trắc cần lắp đặt</label>
+            <select id="eType">
+              <option value="t1">Trạm Quan trắc Nước thải Tự động (WQMS)</option>
+              <option value="t2">Trạm Quan trắc Khí thải Ống khói (CEMS)</option>
+              <option value="t3">Bảo trì, Hiệu chuẩn & Nâng cấp Datalogger</option>
+            </select>
+          </div>
+          <div>
+            <label for="eFlow">Công suất xả thải / Quy mô nhà máy</label>
+            <select id="eFlow">
+              <option value="f1">Từ 200 – 1.000 m³/ngày đêm</option>
+              <option value="f2">Trên 1.000 m³/ngày đêm (Trạm KCN)</option>
+              <option value="f3">Ống khói Lò hơi / Lò đốt công nghiệp</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Yêu Cầu Kỹ Sư Gửi Báo Giá & Hồ Sơ Kỹ Thuật</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">EcoSense IoT Vietnam</a>
+      <ul class="f-nav">
+        <li><a href="#process">Chuẩn Thông Tư 10</a></li>
+        <li><a href="#sim">Bảng Giả Lập QCVN</a></li>
+        <li><a href="#specs">Thiết Bị Đo</a></li>
+        <li><a href="#cases">Dự Án KCN</a></li>
+        <li><a href="#trial">Báo Giá Trạm</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> EcoSense IoT Vietnam · Giải pháp Quan trắc Môi trường Tự động Liên tục</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  function drawSCADA(ctx, w, h, stType = 0, cod = 68, ph = 7.2, phase = 0) {
+    ctx.fillStyle = '#05100D';
+    ctx.fillRect(0, 0, w, h);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(34,197,94,0.12)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 40) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 40) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+
+    const overLimit = cod > 100 || ph < 5.5 || ph > 9.0;
+    const mainCol = overLimit ? '#FACC15' : '#22C55E';
+
+    // Top 4 Metric Cards
+    const metrics = [
+      [stType === 1 ? 'BỤI TỔNG PM' : 'CHỈ SỐ COD', `${cod} mg/L`, cod > 100 ? '#FACC15' : '#22C55E'],
+      [stType === 1 ? 'KHÍ SO2 / NOX' : 'ĐỘ pH NƯỚC', `${ph.toFixed(1)}`, ph < 5.5 || ph > 9 ? '#FACC15' : '#22C55E'],
+      ['CHẤT RẮN TSS', '34 mg/L', '#22C55E'],
+      ['TRẠNG THÁI LẤY MẪU', overLimit ? 'ĐANG HÚT MẪU!' : 'CHẾ ĐỘ CHỜ', overLimit ? '#FACC15' : '#99B8AF']
+    ];
+
+    const cw = (w - 56) / 4;
+    metrics.forEach(([lbl, val, col], i) => {
+      const cx = 16 + i * (cw + 8);
+      ctx.fillStyle = '#102A23';
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.roundRect(cx, 16, cw, 66, 8); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#99B8AF';
+      ctx.font = '600 9.5px "JetBrains Mono", monospace';
+      ctx.fillText(lbl, cx + 10, 36);
+      ctx.fillStyle = col;
+      ctx.font = '700 18px "Chakra Petch", sans-serif';
+      ctx.fillText(val, cx + 10, 64);
+    });
+
+    // QCVN Threshold Line
+    const limitY = 160;
+    ctx.strokeStyle = '#EF4444';
+    ctx.setLineDash([6, 4]);
+    ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.moveTo(20, limitY); ctx.lineTo(w - 20, limitY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#EF4444';
+    ctx.font = '600 10px "JetBrains Mono", monospace';
+    ctx.fillText('NGƯỠNG GIỚI HẠN QCVN 40:2011 CỘT B (COD = 100 mg/L)', 28, limitY - 8);
+
+    // Live Sensor Waveform
+    ctx.strokeStyle = mainCol;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    const baseY = 310 - (cod / 150) * 180;
+    for (let x = 20; x <= w - 20; x += 8) {
+      const y = baseY + Math.sin(x * 0.035 + phase) * 14 + Math.cos(x * 0.08 - phase) * 6;
+      x === 20 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Bottom FTP Status Bar
+    ctx.fillStyle = 'rgba(16,42,35,0.92)';
+    ctx.fillRect(16, h - 46, w - 32, 32);
+    ctx.fillStyle = mainCol;
+    ctx.font = '600 11px "JetBrains Mono", monospace';
+    ctx.fillText(
+      overLimit
+        ? 'CẢNH BÁO VƯỢT NGƯỠNG QCVN · ĐÃ KÍCH HOẠT BÌNH LẤY MẪU SỐ #04 (4°C)'
+        : 'TRUYỀN DỮ LIỆU FTP SỞ TN&MT: THÀNH CÔNG (5 PHÚT/LẦN · CHUẨN THÔNG TƯ 10)',
+      28,
+      h - 26
+    );
+  }
+
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  drawSCADA(heroX, 580, 420, 0, 64, 7.2, 0.5);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    const phs = ((e.clientX - r.left) / r.width) * 6;
+    drawSCADA(heroX, 580, 420, 0, 64, 7.2, phs);
+  });
+
+  // Pinned Scroll Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const MODES = ['Đo quang học UV-Vis', 'Tự động lấy mẫu 4°C', 'Ghi nhận Datalogger', 'Truyền FTP Sở TN&MT'];
+  function renderPin(p) {
+    const step = p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3;
+    drawSCADA(pinX, 660, 440, 0, step === 1 ? 112 : 68, 7.2, p * 12);
+    $('#pMode').textContent = MODES[step];
+  }
+  renderPin(0.5);
+
+  // Interactive Simulator
+  const simC = $('#simC'), simX = simC.getContext('2d');
+  let curSt = 0, curCod = 68, curPh = 7.2;
+  const PRICES = ['850.000.000 VNĐ / Trạm', '1.450.000.000 VNĐ / Trạm', '520.000.000 VNĐ / Trạm'];
+
+  function updateSim() {
+    drawSCADA(simX, 680, 400, curSt, curCod, curPh, curCod * 0.1);
+    const over = curCod > 100 || curPh < 5.5 || curPh > 9.0;
+    $('#sStatus').textContent = over
+      ? 'CẢNH BÁO: VƯỢT NGƯỠNG QCVN — TỦ LẤY MẪU TỰ ĐỘNG ĐANG HÚT MẪU NIÊM PHONG!'
+      : 'Trạng thái: TRONG NGƯỠNG AN TOÀN QCVN (Đang truyền dữ liệu bình thường)';
+    $('#sPrice').textContent = PRICES[curSt];
+  }
+
+  $$('#stTabs .m-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curSt = +btn.dataset.s;
+      $$('#stTabs .m-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === curSt));
+      updateSim();
+    });
+  });
+  $('#codR').addEventListener('input', (e) => {
+    curCod = +e.target.value;
+    $('#vCod').textContent = `${curCod} mg/L`;
+    updateSim();
+  });
+  $('#phR').addEventListener('input', (e) => {
+    curPh = +e.target.value;
+    $('#vPh').textContent = `${curPh.toFixed(1)} pH`;
+    updateSim();
+  });
+  updateSim();
+
+  // Nav & Mobile Menu
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#eName').value.trim();
+    $('#ctaOk').textContent = n ? `Cảm ơn ${n}! Kỹ sư trưởng EcoSense IoT sẽ gửi hồ sơ kỹ thuật chuẩn Thông tư 10 và liên hệ khảo sát ngay.` : 'Vui lòng nhập họ tên và số điện thoại liên hệ.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.8, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

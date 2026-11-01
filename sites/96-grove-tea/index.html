@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grove Tea — Sinh trưởng trên tầng mây, ủ hương chậm rãi</title>
+<meta name="description" content="Grove Tea tuyển chọn trà lá rời từ bốn vườn trà núi cao. Chọn một loại trà để cẩm nang pha trà thiết lập nhiệt độ nước, lượng lá và đồng hồ bấm giờ ủ trà.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23B5452E'/%3E%3Cpath d='M32 12C46 22 46 42 32 52C18 42 18 22 32 12Z' fill='%23EEF2EA'/%3E%3Cpath d='M32 18V48' stroke='%23B5452E' stroke-width='2.5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400..700;1,400&family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mist:#EEF2EA; --mist2:#E1E9DD; --cel:#A9C4AE; --celD:#6E9A82; --leaf:#2F5A44; --ink:#17291F; --muted:#495C50; --amber:#C68A2E; --seal:#B5452E; --sealD:#93351F;
+  --line:rgba(23,41,31,.16);
+  --serif:"Noto Serif Display", "Times New Roman", serif; --sans:"Be Vietnam Pro", system-ui, sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--mist);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.7;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--seal);outline-offset:3px;border-radius:4px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--mist);padding:10px 16px;z-index:400}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1260px,100% - 64px);margin-inline:auto}
+h1,h2,h3{font-family:var(--serif);font-weight:500;margin:0;line-height:1.12;letter-spacing:.01em}
+h2{font-size:clamp(40px,4.8vw,74px)}
+h2 em,h1 em{font-style:normal;color:var(--leaf)}
+p{margin:0}
+.kick{display:inline-flex;align-items:center;gap:12px;font-size:13px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;color:var(--seal)}
+.kick::before{content:"";width:9px;height:9px;background:var(--seal);transform:rotate(45deg)}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+.seal{display:inline-grid;place-items:center;width:46px;height:46px;background:var(--seal);color:var(--mist);font-family:var(--serif);font-size:13px;line-height:1.05;text-align:center;letter-spacing:.04em;border-radius:3px;box-shadow:inset 0 0 0 3px var(--seal),inset 0 0 0 4px rgba(238,242,234,.6)}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 26px;border:1px solid var(--ink);border-radius:2px;background:var(--ink);color:var(--mist);font-weight:500;font-size:15px;letter-spacing:.12em;text-decoration:none;cursor:pointer;overflow:hidden;isolation:isolate;transform:translate(var(--mx),var(--my));transition:transform .5s var(--ease),color .4s}
+.btn::before{content:"";position:absolute;inset:0;background:var(--leaf);z-index:-1;transform:scaleY(0);transform-origin:50% 100%;transition:transform .5s var(--ease)}
+.btn:hover::before{transform:scaleY(1)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost::before{background:var(--cel)}
+.btn.sm{min-height:44px;padding:0 16px;font-size:14px}
+.btn svg{width:18px;height:18px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn[disabled]::before{display:none}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:90;transition:background .5s,box-shadow .5s}
+.nav.solid{background:rgba(238,242,234,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:78px}
+.logo{display:inline-flex;align-items:center;gap:12px;text-decoration:none;min-height:44px}
+.logo .seal{width:38px;height:38px;font-size:11px}
+.logo b{font-family:var(--serif);font-weight:500;font-size:24px;letter-spacing:.06em}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{position:relative;display:inline-flex;align-items:center;min-height:44px;padding:0 14px;text-decoration:none;font-size:15px;letter-spacing:.08em}
+.nav ul a::after{content:"";position:absolute;left:14px;right:14px;bottom:8px;height:1px;background:var(--seal);transform:scaleX(0);transform-origin:left;transition:transform .5s var(--ease)}
+.nav ul a:hover::after{transform:scaleX(1)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.bag{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:transparent;cursor:pointer;font-size:14px;letter-spacing:.08em}
+.bag b{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:50%;background:var(--seal);color:var(--mist);font-size:12px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--ink);border-radius:50%;background:transparent;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:18px;height:1.5px;background:var(--ink);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:12px;right:12px;top:84px;z-index:89;background:var(--mist);border:1px solid var(--ink);padding:10px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .4s,visibility .4s,transform .5s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;justify-content:space-between;min-height:58px;padding:0 14px;text-decoration:none;font-family:var(--serif);font-size:26px;border-bottom:1px solid var(--line)}
+.mmenu a:last-child{border:0}
+.mmenu a span{font-family:var(--sans);font-size:12px;letter-spacing:.2em;color:var(--seal)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;overflow:hidden;background:linear-gradient(180deg,#F6F8F2 0%,#EAF0E6 45%,#DCE7DA 100%)}
+.hero-art{position:absolute;left:0;right:0;bottom:0;height:58%}
+.hero-art svg{width:100%;height:100%}
+.hero .wrap{position:relative;z-index:2;padding-top:140px}
+.hero h1{font-size:clamp(52px,6.4vw,104px);line-height:1.08}
+.hero-row{display:flex;flex-wrap:wrap;align-items:center;gap:22px 40px;margin-top:28px}
+.hero-lead{max-width:46ch;font-size:18px;color:var(--muted)}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px}
+.vert{position:absolute;right:max(32px,calc((100vw - 1260px)/2));top:150px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px}
+.vert p{writing-mode:vertical-rl;font-family:var(--serif);font-size:15px;letter-spacing:.4em;color:var(--leaf)}
+.cup{position:absolute;right:max(40px,calc((100vw - 1260px)/2 + 40px));bottom:6%;z-index:3;width:min(330px,26vw)}
+.cup svg{width:100%;overflow:visible}
+.steam path{fill:none;stroke:#8FB09A;stroke-width:4;stroke-linecap:round;opacity:.85}
+.hero-foot{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:14px 0 16px;background:linear-gradient(180deg,rgba(23,41,31,0),rgba(23,41,31,.72) 38%)}
+.hero-foot .wrap{padding:0;display:flex;gap:34px;flex-wrap:wrap}
+.hero-foot p{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mist);padding-top:18px}
+.hero-foot b{font-family:var(--serif);font-weight:500;font-size:22px;letter-spacing:.02em;text-transform:none;display:block}
+
+/* journey (pinned) */
+.journey{position:relative;background:#21392B;color:var(--mist)}
+.j-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:40px;align-items:center;width:min(1260px,100% - 64px);margin-inline:auto;padding-top:70px}
+.journey .kick{color:#F0B9A8}
+.journey .kick::before{background:#F0B9A8}
+.journey h2{margin:18px 0 28px}
+.journey h2 em{color:#C9E0B8}
+.jsteps{position:relative;height:210px}
+.jstep{position:absolute;inset:0}
+.jstep .n{font-family:var(--serif);font-size:16px;letter-spacing:.3em;color:#C9E0B8}
+.jstep h3{font-size:clamp(28px,2.6vw,40px);margin:6px 0 12px}
+.jstep p{color:#D3DED3;max-width:40ch}
+.jvis{position:relative;height:min(78vh,640px);display:grid;grid-template-rows:minmax(0,1fr) auto;gap:6px}
+.jvis svg{width:100%;height:100%;overflow:visible}
+.jread{display:flex;justify-content:center;gap:40px;font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:#C3D2C5}
+.jread b{display:block;font-family:var(--serif);font-weight:500;font-size:34px;letter-spacing:.02em;color:var(--mist);font-variant-numeric:tabular-nums}
+
+/* teas */
+.teas{padding:140px 0 120px}
+.sec-head{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:end;margin-bottom:60px}
+.sec-head p{color:var(--muted);max-width:46ch}
+.shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:1px solid var(--ink)}
+.tea{position:relative;padding:34px 30px 30px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:120px minmax(0,1fr);gap:24px;align-items:start;transition:background .5s}
+.tea:not(:nth-child(3n)){border-right:1px solid var(--line)}
+.tea:hover{background:rgba(169,196,174,.22)}
+.tea .tin{width:120px;transition:transform .7s var(--ease)}
+.tea:hover .tin{transform:translateY(-8px) rotate(-3deg)}
+.tea .type{font-size:12px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--seal)}
+.tea h3{font-size:26px;margin:6px 0 4px}
+.tea .org{font-size:14px;color:var(--muted);letter-spacing:.04em}
+.tea .notes{font-family:var(--serif);font-size:17px;margin:12px 0 16px;line-height:1.5}
+.tea .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.tea .price{font-family:var(--serif);font-size:22px;margin-right:auto}
+.tea .price small{font-family:var(--sans);font-size:13px;color:var(--muted)}
+.linkb{min-height:44px;padding:0 4px;border:0;background:none;cursor:pointer;font-size:14px;letter-spacing:.08em;text-decoration:underline;text-underline-offset:5px;text-decoration-color:var(--seal)}
+.linkb:hover{color:var(--seal)}
+
+/* brew */
+.brew{position:relative;padding:140px 0 130px;background:linear-gradient(180deg,var(--mist2),var(--mist))}
+.brew::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 46px,rgba(110,154,130,.12) 46px 47px);pointer-events:none}
+.brew .wrap{position:relative}
+.brew-grid{display:grid;grid-template-columns:260px minmax(0,1fr) 330px;gap:36px;align-items:start}
+.picker{display:grid;gap:8px}
+.picker .lbl,.ro small,.sizes .lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
+.picker button{display:grid;grid-template-columns:16px 1fr;gap:12px;align-items:center;min-height:56px;padding:8px 14px;text-align:left;border:1px solid var(--line);background:rgba(238,242,234,.7);cursor:pointer;transition:border-color .3s,background .3s}
+.picker button i{width:14px;height:14px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(23,41,31,.25)}
+.picker button b{display:block;font-family:var(--serif);font-weight:500;font-size:17px;line-height:1.25}
+.picker button small{display:block;font-size:13px;color:var(--muted);line-height:1.3}
+.picker button:hover{border-color:var(--celD)}
+.picker button[aria-checked="true"]{border-color:var(--ink);background:var(--mist);box-shadow:4px 4px 0 var(--cel)}
+.potbox{position:relative;max-width:520px;margin:0 auto;width:100%}
+.potbox svg{width:100%;height:auto}
+.pot-time{text-align:center;margin-top:6px}
+.pot-time b{display:block;font-family:var(--serif);font-weight:500;font-size:clamp(46px,5vw,70px);line-height:1;font-variant-numeric:tabular-nums}
+.pot-time span{font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
+.readouts{display:grid;gap:18px}
+.ro{padding:18px 20px;border:1px solid var(--line);background:rgba(238,242,234,.75)}
+.ro b{display:block;font-family:var(--serif);font-weight:500;font-size:40px;line-height:1.1;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.ro p{font-size:15px;color:var(--muted)}
+.thermo{position:relative;height:8px;margin:10px 0 8px;background:linear-gradient(90deg,#BFD3C4,#E3C07E,#C9653F);border-radius:99px}
+.thermo i{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--mist);border:2px solid var(--ink);transition:left .8s var(--ease)}
+.sizes{display:grid;gap:8px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--ink)}
+.seg button{min-height:48px;border:0;background:transparent;cursor:pointer;font-size:15px;transition:background .3s}
+.seg button+button{border-left:1px solid var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--mist)}
+.ctrls{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ctrls .btn{width:100%;padding:0 12px}
+.ctrls #bStart{grid-column:1/-1}
+.inf{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px;color:var(--muted)}
+.inf .dots{display:flex;gap:6px}
+.inf .dots i{width:10px;height:10px;border-radius:50%;border:1px solid var(--ink)}
+.inf .dots i.on{background:var(--ink)}
+.bstatus{min-height:52px;font-family:var(--serif);font-size:18px;line-height:1.45;color:var(--leaf)}
+
+/* gardens */
+.gardens{padding:140px 0 120px;background:var(--ink);color:var(--mist);overflow:hidden}
+.gardens .kick{color:#F0B9A8}
+.gardens .kick::before{background:#F0B9A8}
+.gardens .sec-head p{color:#C5D2C7}
+.gardens h2 em{color:#C9E0B8}
+.profile{position:relative;margin:0 -20px}
+.profile svg{width:100%;height:auto;overflow:visible}
+.pin-l{font-family:var(--sans);font-size:14px;letter-spacing:.14em;fill:#C5D2C7}
+.g-tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(238,242,234,.25);margin-top:10px}
+.g-tabs button{min-height:88px;padding:16px 18px;text-align:left;border:0;border-right:1px solid rgba(238,242,234,.18);background:transparent;cursor:pointer;color:var(--mist);transition:background .4s}
+.g-tabs button:last-child{border-right:0}
+.g-tabs button b{display:block;font-family:var(--serif);font-weight:500;font-size:22px}
+.g-tabs button small{font-size:13px;letter-spacing:.2em;color:#AFC2B3}
+.g-tabs button:hover{background:rgba(169,196,174,.1)}
+.g-tabs button[aria-selected="true"]{background:var(--mist);color:var(--ink)}
+.g-tabs button[aria-selected="true"] small{color:var(--seal)}
+.g-panel{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:40px;padding:36px 0 0;min-height:200px}
+.g-panel h3{font-size:34px}
+.g-panel .d{color:#D3DED3}
+.g-panel dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:15px}
+.g-panel dt{color:#AFC2B3;letter-spacing:.12em;text-transform:uppercase;font-size:12px;padding-top:4px}
+.g-panel dd{margin:0}
+
+/* club */
+.club{padding:140px 0 120px}
+.club-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:70px;align-items:center}
+.quote{font-family:var(--serif);font-size:clamp(26px,2.6vw,38px);line-height:1.4;margin:26px 0 18px}
+.quote::before{content:"“";display:block;font-size:90px;line-height:.6;color:var(--cel)}
+.who{font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.card-club{position:relative;padding:44px 40px;background:var(--mist2);border:1px solid var(--ink);box-shadow:12px 12px 0 var(--cel)}
+.card-club .seal{position:absolute;top:-23px;right:30px}
+.card-club h3{font-size:36px}
+.card-club .pr{font-family:var(--serif);font-size:54px;line-height:1;margin:16px 0 4px}
+.card-club .pr small{font-family:var(--sans);font-size:15px;color:var(--muted)}
+.card-club ul{list-style:none;margin:18px 0 22px;padding:0;display:grid;gap:8px}
+.card-club li{display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:16px}
+.card-club li::before{content:"";width:12px;height:12px;margin-top:8px;border:1px solid var(--seal);transform:rotate(45deg)}
+.next{font-size:15px;color:var(--leaf);margin-bottom:18px}
+.card-club form{display:grid;grid-template-columns:1fr auto;gap:8px}
+.card-club input{min-height:52px;padding:0 16px;border:1px solid var(--ink);background:var(--mist);border-radius:2px;min-width:0}
+.ok{min-height:26px;margin-top:10px;font-size:15px;color:var(--leaf)}
+
+footer{background:var(--mist2);border-top:1px solid var(--line);padding:70px 0 34px}
+footer .top{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px;padding-bottom:40px}
+footer h4{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--seal)}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:38px;text-decoration:none}
+footer li a:hover{color:var(--seal)}
+footer .tl{font-family:var(--serif);font-size:22px;max-width:20ch;margin-top:14px;line-height:1.4}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:22px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+
+.toast{position:fixed;left:50%;bottom:24px;z-index:150;visibility:hidden;transform:translate(-50%,calc(100% + 40px));transition:transform .6s var(--ease),visibility .6s;padding:14px 22px;background:var(--ink);color:var(--mist);font-size:15px;letter-spacing:.04em;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.show{transform:translate(-50%,0);visibility:visible}
+
+.rm .j-pin{height:auto;padding:120px 0 90px}
+.rm .jsteps{height:auto;display:grid;gap:26px}
+.rm .jstep{position:static}
+.rm .jvis{height:420px}
+@media (prefers-reduced-motion:reduce){.thermo i{transition:none}}
+
+@media (max-width:1180px){
+  .brew-grid{grid-template-columns:minmax(0,1fr) 320px}
+  .picker{grid-column:1/-1;grid-template-columns:repeat(3,1fr)}
+  .picker .lbl{grid-column:1/-1}
+}
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .menu-btn{display:inline-flex}
+  .sec-head,.club-grid{grid-template-columns:1fr;gap:24px}
+  .shelf{grid-template-columns:1fr 1fr}
+  .tea:not(:nth-child(3n)){border-right:0}
+  .tea:nth-child(odd){border-right:1px solid var(--line)}
+  .j-pin{grid-template-columns:1fr;grid-template-rows:auto auto;gap:6px;align-content:center;padding-top:76px}
+  .jvis{order:-1;height:40vh}
+  .g-panel{grid-template-columns:1fr 1fr}
+  .g-panel>div:last-child{grid-column:1/-1}
+  .vert{display:none}
+}
+@media (max-width:760px){
+  .wrap,.j-pin{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav .wrap{height:68px}
+  .mmenu{top:74px}
+  .logo b{font-size:21px}
+  .bag{padding:0 10px}
+  .bag span{display:none}
+  .hero{min-height:880px;display:flex;flex-direction:column}
+  .hero .wrap{padding-top:108px;flex:1}
+  .hero-foot{position:relative;padding-top:40px}
+  .hero h1{font-size:clamp(44px,12.4vw,58px)}
+  .hero-lead{font-size:16px;margin:18px 0 22px}
+  .hero-art{height:44%}
+  .cup{width:140px;right:16px;bottom:150px}
+  .hero-foot{bottom:16px}
+  .hero-foot .wrap{gap:18px;padding:0 16px}
+  .hero-foot p{font-size:11px}
+  .hero-foot b{font-size:17px}
+  .journey h2{font-size:32px;margin:8px 0 12px}
+  .journey .kick{display:none}
+  .jvis{height:36vh}
+  .jread{gap:22px}
+  .gpin rect,.gpin text,.pin-l{display:none}
+  .jread b{font-size:24px}
+  .jsteps{height:196px}
+  .jstep h3{font-size:25px;margin:2px 0 8px}
+  .jstep p{font-size:15px;line-height:1.55}
+  .teas,.brew,.gardens,.club{padding:96px 0 84px}
+  .sec-head{margin-bottom:34px}
+  .shelf{grid-template-columns:1fr}
+  .tea{border-right:0!important;padding:26px 0;grid-template-columns:86px minmax(0,1fr);gap:18px}
+  .tea .tin{width:86px}
+  .brew-grid{grid-template-columns:1fr;gap:26px}
+  .picker{grid-template-columns:1fr 1fr}
+  .picker button{grid-template-columns:12px 1fr;gap:8px;padding:8px 10px}
+  .picker button small{font-size:12px}
+  .ro b{font-size:32px}
+  .profile{margin:0 -8px}
+  .g-tabs{grid-template-columns:1fr 1fr}
+  .g-tabs button{border-bottom:1px solid rgba(238,242,234,.18);min-height:72px;padding:12px}
+  .g-tabs button b{font-size:19px}
+  .g-panel{grid-template-columns:1fr;gap:18px}
+  .card-club{padding:40px 22px 26px;box-shadow:8px 8px 0 var(--cel)}
+  .card-club form{grid-template-columns:1fr}
+  footer .top{grid-template-columns:1fr 1fr;gap:28px}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Grove Tea, trang chủ"><span class="seal" aria-hidden="true">GRO<br>VE</span><b>Grove Tea</b></a>
+    <nav aria-label="Điều hướng chính"><ul><li><a href="#journey">Từ lá đến tách</a></li><li><a href="#teas">Các loại trà</a></li><li><a href="#brew">Cẩm nang pha trà</a></li><li><a href="#gardens">Vườn trà</a></li><li><a href="#club">Câu lạc bộ</a></li></ul></nav>
+    <div class="nav-r">
+      <button class="bag" type="button" id="bagBtn" aria-label="Giỏ hàng, 0 sản phẩm"><span>Giỏ hàng</span><b id="bagN">0</b></button>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#journey">Từ lá đến tách <span>01</span></a><a href="#teas">Các loại trà <span>02</span></a><a href="#brew">Cẩm nang pha trà <span>03</span></a><a href="#gardens">Vườn trà <span>04</span></a><a href="#club">Câu lạc bộ <span>05</span></a>
+</div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="hero-art" aria-hidden="true"><svg id="terraces" viewBox="0 0 1440 620" preserveAspectRatio="xMidYMax slice"></svg></div>
+  <div class="wrap">
+    <p class="kick hf">Trà lá rời · bốn vườn trà núi cao</p>
+    <h1 id="hero-h" style="margin-top:22px"><span class="mask"><span>Đón sương trên đỉnh núi.</span></span><span class="mask"><span><em>Ủ hương thật chậm.</em></span></span></h1>
+    <div class="hero-row"><p class="hero-lead hf">Chúng tôi thu mua từng búp trà trực tiếp từ bốn nông trang gia đình ở độ cao 1.100 đến 1.900 mét — nơi màn sương còn vương trên các bậc thang đồi trà đến tận quá trưa và búp chè lớn chậm đến mức thấm đẫm hương sương núi.</p>
+    <div class="hero-cta hf"><a class="btn mag" href="#teas">Chọn một vị trà</a><a class="btn ghost mag" href="#brew">Mở cẩm nang pha trà</a></div></div>
+  </div>
+  <div class="vert hf" aria-hidden="true"><span class="seal">霧<br>茶</span><p>Hái lúc bình minh</p></div>
+  <div class="cup" aria-hidden="true">
+    <svg viewBox="0 0 330 330">
+      <g class="steam" id="steam"><path d="M140 150C120 120 160 100 140 70S150 30 135 6"/><path d="M175 150C195 118 158 96 178 64S168 26 184 0"/><path d="M208 152C224 130 200 112 214 88"/></g>
+      <ellipse cx="170" cy="310" rx="120" ry="14" fill="rgba(23,41,31,.25)"/>
+      <path d="M58 168H282C280 238 240 300 170 300S60 238 58 168Z" fill="#A9C4AE"/>
+      <path d="M58 168H282C281 196 274 222 262 244C220 252 140 250 70 230C63 211 59 190 58 168Z" fill="#BCD2C0"/>
+      <path d="M100 196l26 30-8 30M210 190l-14 34 22 26M150 260l20 18" fill="none" stroke="rgba(47,90,68,.35)" stroke-width="1.4"/>
+      <ellipse cx="170" cy="168" rx="112" ry="20" fill="#8DB096"/>
+      <ellipse cx="170" cy="171" rx="100" ry="15" fill="#C68A2E"/>
+      <ellipse cx="150" cy="168" rx="40" ry="5" fill="rgba(255,240,200,.45)"/>
+      <path d="M120 300h100l-8 12h-84z" fill="#8DB096"/>
+    </svg>
+  </div>
+  <div class="hero-foot hf"><div class="wrap"><p><b>1.100–1.900 m</b>độ cao vườn trà</p><p><b>Thu hái thủ công</b>một tôm hai lá</p><p><b>11 ngày</b>từ vườn đến tay bạn</p></div></div>
+</section>
+
+<section class="journey" id="journey" aria-labelledby="j-h">
+  <div class="j-pin" id="jPin">
+    <div>
+      <p class="kick">Từ lá đến tách</p>
+      <h2 id="j-h">Một ngày trong<br>đời của <em>búp trà</em></h2>
+      <div class="jsteps">
+        <article class="jstep"><p class="n">05:10 · thu hái</p><h3>Hái trước khi mặt trời lên</h3><p>Một tôm hai lá non được ngắt nhẹ bằng tay khi giọt sương đêm vẫn còn đọng. Người thợ giỏi hái đầy giỏ trước tám giờ sáng; kẻ vội vàng sẽ làm hỏng cả tán trà.</p></article>
+        <article class="jstep"><p class="n">09:00 · làm héo</p><h3>Nghỉ trong bóng râm</h3><p>Lá trà trải trên nong tre suốt nhiều giờ, mềm dần khi thoát đi một phần ba lượng nước. Đây chính là lúc hương hoa thanh nhã của trà ô long bắt đầu thức giấc.</p></article>
+        <article class="jstep"><p class="n">14:30 · vò lá</p><h3>Vò trà bằng tay</h3><p>Động tác vò làm dập nhẹ lớp biểu bì để tinh chất bên trong tiếp xúc với không khí. Nghệ nhân của chúng tôi bọc vải vò trà ô long suốt hai ngày; riêng sencha chỉ cần một buổi chiều.</p></article>
+        <article class="jstep"><p class="n">20:00 · sao lửa</p><h3>Sao trên bếp than hồng</h3><p>Ngọn lửa nhỏ vừa đủ khóa chặt hương vị và hong khô lá trà xuống còn 3% độ ẩm, giúp bảo quản trọn vẹn suốt một năm trong hộp kín và bừng tỉnh khi gặp nước sôi.</p></article>
+      </div>
+    </div>
+    <div class="jvis" aria-hidden="true">
+      <svg id="jSvg" viewBox="0 0 600 600"></svg>
+      <div class="jread"><p><b id="jClock">05:10</b>Giờ tại vườn trà</p><p><b id="jWater">78%</b>Độ ẩm trong lá</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="teas" id="teas" aria-labelledby="teas-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick">Trà tuyển chọn mùa này</p><h2 id="teas-h" class="split" style="margin-top:18px">Sáu phẩm trà,<br><em>bốn đỉnh núi</em></h2></div><p class="rv">Mỗi loại trà được đóng trong hộp thiếc 50 g, pha được khoảng hai mươi lăm ấm. Chọn một hộp để thêm vào giỏ, hoặc mở trong cẩm nang pha trà để xem chính xác nhiệt độ nước, lượng lá và thời gian ủ.</p></div>
+    <div class="shelf" id="shelf"></div>
+  </div>
+</section>
+
+<section class="brew" id="brew" aria-labelledby="brew-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick">Cẩm nang pha trà</p><h2 id="brew-h" class="split" style="margin-top:18px">Đủ độ nóng,<br><em>chẳng vội vàng</em></h2></div><p class="rv">Chọn một loại trà và dung tích ấm. Chúng tôi sẽ gợi ý nhiệt độ nước cùng định lượng lá chuẩn xác, rồi bấm giờ ủ trong lúc từng búp trà bung nở trong ấm. Hầu hết các phẩm trà đều có thể thưởng thức từ ba tuần nước trở lên.</p></div>
+    <div class="brew-grid">
+      <div class="picker" id="picker" role="radiogroup" aria-label="Chọn một loại trà"><span class="lbl">1 · Loại trà</span></div>
+      <div class="potbox">
+        <svg id="potSvg" viewBox="0 0 440 470" role="img" aria-labelledby="potT"><title id="potT">Ấm trà thủy tinh với những chiếc lá bung nở dần khi ủ trà</title></svg>
+        <div class="pot-time"><b id="bTime">1:00</b><span id="bPhase">Sẵn sàng ủ trà</span></div>
+      </div>
+      <div class="readouts">
+        <div class="sizes"><span class="lbl" id="sizeL">2 · Tách hoặc ấm</span><div class="seg" id="sizes" role="group" aria-labelledby="sizeL"><button type="button" data-ml="150" aria-pressed="false">150 ml</button><button type="button" data-ml="300" aria-pressed="true">300 ml</button><button type="button" data-ml="600" aria-pressed="false">600 ml</button></div></div>
+        <div class="ro"><small>Nhiệt độ nước</small><b id="bTemp">70°C</b><div class="thermo" aria-hidden="true"><i id="bThermo"></i></div><p id="bTempN">Đun sôi, sau đó để nguội 7 phút</p></div>
+        <div class="ro"><small>Lượng trà</small><b id="bLeaf">4.5 g</b><p id="bLeafN">khoảng 2 thìa cà phê</p></div>
+        <div class="inf"><span id="bInf">Tuần nước 1 / 3</span><span class="dots" id="bDots" aria-hidden="true"></span></div>
+        <div class="ctrls"><button class="btn" type="button" id="bStart">Bắt đầu ủ trà</button><button class="btn ghost sm" type="button" id="bReset">Đặt lại</button><button class="btn ghost sm" type="button" id="bNext">Tuần nước tiếp</button></div>
+        <p class="bstatus" id="bStatus" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="gardens" id="gardens" aria-labelledby="g-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick">Những vườn trà</p><h2 id="g-h" class="split" style="margin-top:18px">Cao hơn, chậm hơn,<br><em>ngọt hậu hơn</em></h2></div><p class="rv">Ở độ cao trên một nghìn mét, đêm lạnh giá khiến cây trà sinh trưởng chậm lại, cô đọng lượng đường tự nhiên và axit amin trong từng phiến lá. Chúng tôi trả mức giá cao hơn sàn đấu giá cho mỗi nông trang và trực tiếp ghé thăm vào mỗi dịp xuân về.</p></div>
+    <div class="profile rv" aria-hidden="true"><svg id="profSvg" viewBox="0 0 1240 330"></svg></div>
+    <div class="g-tabs" id="gTabs" role="tablist" aria-label="Vườn trà"></div>
+    <div class="g-panel" id="gPanel" role="tabpanel"></div>
+  </div>
+</section>
+
+<section class="club" id="club" aria-labelledby="club-h">
+  <div class="wrap club-grid">
+    <div>
+      <p class="kick">Câu lạc bộ Thưởng Trà</p>
+      <h2 id="club-h" class="split" style="margin-top:18px">Một hộp trà mới<br><em>mỗi tháng</em></h2>
+      <p class="quote rv">Hãy thưởng thức ngay trong tháng đầu tiên, khi hơi thở mùa xuân vẫn còn vẹn nguyên trong lá. Qua tháng sau, trà vẫn rất ngon, nhưng đã khác đi đôi chút.</p>
+      <p class="who rv">Hana Ito · nghệ nhân làm trà, vườn Mistgate</p>
+    </div>
+    <div class="card-club rv">
+      <span class="seal" aria-hidden="true">月<br>茶</span>
+      <h3>Hộp trà định kỳ</h3>
+      <p class="pr">£16<small> / tháng, đã gồm phí vận chuyển</small></p>
+      <ul><li>Một hộp thiếc 50 g thu hái ngay trong vụ mùa đó</li><li>Thẻ ghi chú từ nông trang kèm hướng dẫn pha chi tiết</li><li>Ưu đãi 10% cho mọi sản phẩm khác tại cửa hàng</li><li>Tạm dừng hoặc hủy bất kỳ tháng nào chỉ với hai cú nhấp</li></ul>
+      <p class="next" id="nextShip"></p>
+      <form id="clubForm" novalidate><label class="sr" for="clubE">Địa chỉ email</label><input id="clubE" type="email" placeholder="ban@email.com" autocomplete="email"><button class="btn" type="submit">Tham gia câu lạc bộ</button></form>
+      <p class="ok" id="clubOk" role="status"></p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo" href="#top"><span class="seal" aria-hidden="true">GRO<br>VE</span><b>Grove Tea</b></a><p class="tl">Núi cao chẳng vội. Ấm nước trên bếp cũng vậy.</p></div>
+      <div><h4>Cửa hàng</h4><ul><li><a href="#teas">Tất cả loại trà</a></li><li><a href="#club">Câu lạc bộ Thưởng Trà</a></li><li><a href="#teas">Hộp trà quà tặng</a></li></ul></div>
+      <div><h4>Tìm hiểu</h4><ul><li><a href="#brew">Cẩm nang pha trà</a></li><li><a href="#journey">Từ lá đến tách</a></li><li><a href="#gardens">Các vườn trà</a></li></ul></div>
+      <div><h4>Hỗ trợ</h4><ul><li><a href="#club">Giao hàng</a></li><li><a href="#club">Đổi trả</a></li><li><a href="#club">Liên hệ</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Grove Tea Company</span><span>Thiết kế concept — thương hiệu giả định.</span></p>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+const lerp = (a, b, t) => a + (b - a) * t
+const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+const mix = (a, b, t) => { const A = hex(a), B = hex(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], t))).join(',')})` }
+function ramp(stops, p) { // stops: [[pos, '#hex'], ...]
+  for (let i = 1; i < stops.length; i++) if (p <= stops[i][0]) { const [p0, c0] = stops[i - 1], [p1, c1] = stops[i]; return mix(c0, c1, clamp((p - p0) / (p1 - p0))) }
+  return stops[stops.length - 1][1]
+}
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+$('#yr').textContent = new Date().getFullYear()
+
+/* ================= hero terraces ================= */
+{
+  const W = 1440, H = 620
+  // smooth ridge line through jittered points (Catmull-Rom → cubic Bézier)
+  function ridge(y0, amp, seed, n = 8) {
+    const R = rng(seed), pts = []
+    for (let i = 0; i <= n; i++) pts.push([i / n * (W + 200) - 100, y0 - amp * (0.3 + R() * 0.7) * Math.sin((i / n) * Math.PI * (1 + R() * .4))])
+    let d = `M${pts[0][0]} ${pts[0][1].toFixed(1)}`
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)]
+      d += `C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)} ${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)} ${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`
+    }
+    return d
+  }
+  const L = [
+    { y: 250, a: 150, s: 11, fill: '#D3DFD2', line: '#C3D3C3', gap: 0 },
+    { y: 330, a: 130, s: 27, fill: '#BACFBC', line: '#A7C1AA', gap: 16 },
+    { y: 420, a: 120, s: 5, fill: '#93B39A', line: '#7FA488', gap: 13 },
+    { y: 520, a: 110, s: 41, fill: '#6E9A7E', line: '#5A876B', gap: 11 },
+  ]
+  let s = `<defs><radialGradient id="mistG"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".6" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>`
+  L.forEach((l, i) => {
+    const top = ridge(l.y, l.a, l.s)
+    s += `<g class="ridge" data-d="${i}"><clipPath id="rc${i}"><path d="${top}L${W + 100} ${H + 60}L-100 ${H + 60}Z"/></clipPath><path d="${top}L${W + 100} ${H + 60}L-100 ${H + 60}Z" fill="${l.fill}"/>`
+    if (l.gap) { s += `<g clip-path="url(#rc${i})" fill="none" stroke="${l.line}" stroke-width="${1 + i * .5}">`; for (let k = 1; k < 30; k++) s += `<path d="${top}" transform="translate(${(k % 2) * 6} ${k * l.gap})"/>`; s += '</g>' }
+    if (i === 3) { // a little tea-pickers' hut and a row of bushes on the near terrace
+      s += `<g fill="#2F5A44"><path d="M1060 452l38-24 38 24v30h-76z"/><path d="M1052 454l46-30 46 30" fill="none" stroke="#17291F" stroke-width="4"/></g>`
+      for (let k = 0; k < 16; k++) s += `<ellipse cx="${60 + k * 34}" cy="${560 - Math.sin(k / 3) * 8}" rx="18" ry="10" fill="#4C7A5E"/>`
+    }
+    s += '</g>'
+    if (i < 3) s += `<g class="mist" data-m="${i}"><ellipse cx="${300 + i * 420}" cy="${l.y + 30}" rx="${520 - i * 60}" ry="${46 + i * 6}" fill="url(#mistG)"/><ellipse cx="${1100 - i * 260}" cy="${l.y + 50}" rx="${420}" ry="${38}" fill="url(#mistG)" opacity=".8"/></g>`
+  })
+  $('#terraces').innerHTML = s
+}
+
+/* ================= journey visual ================= */
+const jSvg = $('#jSvg')
+jSvg.innerHTML = `
+  <defs><clipPath id="leafClip"><path id="leafClipP"/></clipPath><radialGradient id="ember"><stop offset="0" stop-color="#FFB15C"/><stop offset="1" stop-color="#C9653F" stop-opacity="0"/></radialGradient></defs>
+  <path d="M60 330A240 240 0 0 1 540 330" fill="none" stroke="rgba(238,242,234,.22)" stroke-width="2" stroke-dasharray="3 9"/>
+  <path id="jArc" d="M60 330A240 240 0 0 1 540 330" fill="none" stroke="#C9E0B8" stroke-width="3" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+  ${[0, .33, .66, 1].map((t, i) => { const a = Math.PI * (1 - t), x = 300 + Math.cos(a) * 240, y = 330 - Math.sin(a) * 240; const lx = Math.cos(a) * (i === 0 || i === 3 ? 0 : 34), ly = i === 0 || i === 3 ? 30 : -Math.sin(a) * 34 + 4; return `<g class="jm" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><circle r="6" fill="#21392B" stroke="#C9E0B8" stroke-width="2"/><text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" font-family="Be Vietnam Pro, sans-serif" font-size="13" letter-spacing="2" fill="#C3D2C5">${['HÁI TRÀ', 'LÀM HÉO', 'VÒ LÁ', 'SAO THAN'][i]}</text></g>` }).join('')}
+  <circle id="jSun" r="16" fill="#F2D27A"/>
+  <g id="embers" opacity="0">${Array.from({ length: 9 }, (_, i) => `<circle cx="${190 + i * 28}" cy="${560 - (i % 3) * 6}" r="${18 + (i % 4) * 4}" fill="url(#ember)"/>`).join('')}<path d="M170 572H430" stroke="#5A3A24" stroke-width="6" stroke-linecap="round"/></g>
+  <g transform="translate(300 318)"><g id="leafG"><path id="leafP"/><g clip-path="url(#leafClip)"><g id="creases" fill="none" stroke="rgba(23,41,31,.45)" stroke-width="3">${Array.from({ length: 11 }, (_, i) => `<path d="M-120 ${-170 + i * 34}L120 ${-210 + i * 34}"/>`).join('')}</g></g><path id="ribP" fill="none" stroke="rgba(238,242,234,.55)" stroke-width="2.5"/><path id="veinP" fill="none" stroke="rgba(238,242,234,.3)" stroke-width="1.6"/></g></g>`
+const leafP = $('#leafP'), ribP = $('#ribP'), veinP = $('#veinP'), leafClipP = $('#leafClipP'), leafG = $('#leafG')
+function leafShape(c, Lh = 150) {
+  const w = 78 * (1 - .62 * c), b = c * 44
+  const outline = `M0 ${Lh}C${-w * 1.3} ${Lh * .42} ${-w * 1.1} ${-Lh * .58} ${b} ${-Lh}C${w * 1.1 + b * .4} ${-Lh * .58} ${w * 1.3} ${Lh * .42} 0 ${Lh}Z`
+  const rib = `M0 ${Lh}Q${b * .45} 0 ${b} ${-Lh}`
+  let v = ''
+  for (let j = 1; j <= 5; j++) { const y = Lh - j * 48, xm = b * ((Lh - y) / (2 * Lh)) ** 1.4, ww = w * (1 - Math.abs(y) / Lh * .45); v += `M${xm.toFixed(1)} ${y}Q${(xm - ww * .5).toFixed(1)} ${y - 14} ${(xm - ww * .82).toFixed(1)} ${y - 34}M${xm.toFixed(1)} ${y}Q${(xm + ww * .5).toFixed(1)} ${y - 14} ${(xm + ww * .82).toFixed(1)} ${y - 34}` }
+  return { outline, rib, v }
+}
+function journeyAt(p) {
+  const curl = clamp((p - .4) / .3), shrink = clamp((p - .2) / .25) * .08 + clamp((p - .72) / .28) * .1
+  const sh = leafShape(curl)
+  leafP.setAttribute('d', sh.outline); leafClipP.setAttribute('d', sh.outline); ribP.setAttribute('d', sh.rib); veinP.setAttribute('d', sh.v)
+  leafP.setAttribute('fill', ramp([[0, '#86BE6E'], [.33, '#A1AE5E'], [.62, '#5D7A3E'], [1, '#3D3825']], p))
+  $('#creases').setAttribute('opacity', clamp((curl - .3) * 1.4).toFixed(2))
+  leafG.setAttribute('transform', `rotate(${(-18 + curl * 42 + Math.sin(p * 6) * 3).toFixed(1)}) scale(${(1 - shrink).toFixed(3)})`)
+  $('#jArc').setAttribute('stroke-dashoffset', (1 - p).toFixed(4))
+  const a = Math.PI * (1 - p)
+  $('#jSun').setAttribute('cx', (300 + Math.cos(a) * 240).toFixed(1)); $('#jSun').setAttribute('cy', (330 - Math.sin(a) * 240).toFixed(1))
+  $('#jSun').setAttribute('fill', ramp([[0, '#F6C59A'], [.4, '#F2D27A'], [.8, '#E89A5B'], [1, '#D7DCE8']], p))
+  $('#embers').setAttribute('opacity', clamp((p - .72) / .2).toFixed(2))
+  $('.journey').style.backgroundColor = ramp([[0, '#21392B'], [.55, '#253A2A'], [1, '#2C251C']], p)
+  const mins = 5 * 60 + 10 + p * (20 * 60 - 5 * 60 - 10)
+  $('#jClock').textContent = `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(Math.floor(mins % 60)).padStart(2, '0')}`
+  const water = p < .33 ? lerp(78, 62, p / .33) : p < .66 ? lerp(62, 55, (p - .33) / .33) : lerp(55, 3, (p - .66) / .34)
+  $('#jWater').textContent = Math.round(water) + '%'
+}
+
+/* ================= teas ================= */
+const TEAS = [
+  { id: 'sencha', short: 'Sencha Sương Sớm', n: 'Sencha Sương Sớm Kirino', type: 'Lục trà', g: 'Đồi Kirino', alt: '1.120 m', notes: 'Hương cỏ non mới cắt, đậu ngọt và thoảng gió biển thanh mát.', price: 14, tin: '#8DB78A', liq: '#B5C25A', temp: 70, gpc: 1.5, tsp: 2.5, t: 60, add: 20, max: 3 },
+  { id: 'silver', short: 'Bạch Hảo Ngân Châm', n: 'Bạch Hảo Ngân Châm Cloud Step', type: 'Bạch trà', g: 'Cloud Step', alt: '1.920 m', notes: 'Hương dưa mật, cỏ khô ấm nắng và hoa mẫu đơn trắng.', price: 22, tin: '#E4DDC8', liq: '#E0CB86', temp: 80, gpc: 2, tsp: 1, t: 180, add: 60, max: 3 },
+  { id: 'oolong', short: 'Ô Long Núi Cao', n: 'Ô Long Núi Cao Mistgate', type: 'Ô long', g: 'Mistgate', alt: '1.480 m', notes: 'Hương hoa lan rừng, bơ nhạt và lê chín, hậu vị ngọt sâu lắng.', price: 18, tin: '#6E9A82', liq: '#D6A03E', temp: 90, gpc: 2, tsp: 3, t: 150, add: 30, max: 4 },
+  { id: 'black', short: 'Hồng Trà Than Hồng', n: 'Hồng Trà Than Hồng Old Stone', type: 'Hồng trà', g: 'Old Stone', alt: '1.650 m', notes: 'Hương ca cao, mận khô và chút khói gỗ thông ấm áp.', price: 12, tin: '#8A4128', liq: '#A3471D', temp: 95, gpc: 1.2, tsp: 2.5, t: 210, add: 45, max: 2 },
+  { id: 'puer', short: 'Phổ Nhĩ Cổ Thụ', n: 'Phổ Nhĩ Cổ Thụ Trăm Năm', type: 'Trà ủ lâu năm', g: 'Old Stone', alt: '1.650 m', notes: 'Hương đất rừng sau mưa, táo đỏ và long não; càng ủ lâu năm càng quý.', price: 26, tin: '#3B3424', liq: '#5A2A15', temp: 98, gpc: 1.5, tsp: 2, t: 90, add: 30, max: 5 },
+  { id: 'hojicha', short: 'Hojicha Rang Mộc', n: 'Hojicha Rang Mộc Đồi Cao', type: 'Trà rang', g: 'Đồi Kirino', alt: '1.120 m', notes: 'Hương gạo rang, caramel và gỗ tuyết tùng; hàm lượng caffeine thấp.', price: 11, tin: '#C68A2E', liq: '#9A5A2A', temp: 90, gpc: 1.5, tsp: 1.2, t: 45, add: 15, max: 3 },
+]
+function tin(t) {
+  const dark = ['puer', 'black'].includes(t.id)
+  return `<svg class="tin" viewBox="0 0 120 150" aria-hidden="true"><ellipse cx="60" cy="144" rx="44" ry="5" fill="rgba(23,41,31,.18)"/><rect x="18" y="26" width="84" height="116" rx="6" fill="${t.tin}"/><rect x="18" y="26" width="16" height="116" fill="rgba(255,255,255,.18)"/><rect x="14" y="14" width="92" height="20" rx="5" fill="${dark ? '#17291F' : '#2F5A44'}"/><rect x="28" y="56" width="64" height="62" fill="#EEF2EA"/><path d="M34 106l14-16 10 9 14-18 14 25z" fill="${t.tin}"/><path d="M34 106h52" stroke="#17291F" stroke-width="1"/><rect x="72" y="62" width="14" height="14" fill="#B5452E"/><text x="60" y="134" text-anchor="middle" font-family="Noto Serif Display, serif" font-size="8.5" letter-spacing="1.5" fill="${dark ? '#EEF2EA' : '#17291F'}">${t.type.toUpperCase()}</text></svg>`
+}
+$('#shelf').innerHTML = TEAS.map((t) => `<article class="tea rv">${tin(t)}<div><p class="type">${t.type}</p><h3>${t.n}</h3><p class="org">${t.g} · ${t.alt}</p><p class="notes">${t.notes}</p><div class="row"><p class="price">£${t.price}<small> / 50 g</small></p><button class="btn sm" type="button" data-add="${t.id}">Thêm vào giỏ</button><button class="linkb" type="button" data-brew="${t.id}">Xem cách pha</button></div></div></article>`).join('')
+let bag = 0
+const toast = $('#toast'); let toastT = 0
+function say(msg) { toast.textContent = msg; toast.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => toast.classList.remove('show'), 2600) }
+$('#shelf').addEventListener('click', (e) => {
+  const a = e.target.closest('[data-add]'), b = e.target.closest('[data-brew]')
+  if (a) {
+    const t = TEAS.find((x) => x.id === a.dataset.add)
+    bag++; $('#bagN').textContent = bag; $('#bagBtn').setAttribute('aria-label', `Giỏ hàng, ${bag} sản phẩm`)
+    say(`Đã thêm ${t.n} — hiện có ${bag} hộp trà trong giỏ hàng`)
+    if (anim) { G.fromTo('#bagN', { scale: 1.6 }, { scale: 1, duration: .6, ease: 'back.out(3)' }); G.fromTo(a.closest('.tea').querySelector('.tin'), { y: 0 }, { y: -18, duration: .25, yoyo: true, repeat: 1, ease: 'power2.out' }) }
+  }
+  if (b) { selectTea(b.dataset.brew); go('#brew') }
+})
+$('#bagBtn').addEventListener('click', () => say(bag ? `Đang có ${bag} hộp trà trong giỏ hàng. Chức năng thanh toán hoạt động tại cửa hàng thực tế.` : 'Giỏ hàng của bạn đang trống. Hãy thử Ô Long Núi Cao Mistgate.'))
+
+/* ================= brew guide ================= */
+const pot = $('#potSvg')
+const LEAVES = [[-70, 370, -30], [-30, 384, 20], [10, 376, -60], [52, 388, 40], [84, 366, -15], [-92, 340, 55], [-10, 340, 80], [40, 330, -40], [96, 330, 10]]
+pot.insertAdjacentHTML('beforeend', `<defs><clipPath id="potClip"><path d="M118 196C92 240 92 330 140 384C164 410 196 418 220 418S276 410 300 384C348 330 348 240 322 196Z"/></clipPath><linearGradient id="glass" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".25" stop-color="#fff" stop-opacity=".05"/><stop offset=".8" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".35"/></linearGradient></defs>
+  <circle cx="220" cy="232" r="206" fill="none" stroke="rgba(23,41,31,.12)" stroke-width="2"/>
+  <circle id="ring" cx="220" cy="232" r="206" fill="none" stroke="#B5452E" stroke-width="4" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-90 220 232)"/>
+  <g id="potSteam" class="steam" opacity="0"><path d="M196 150C182 128 208 112 194 88S204 56 192 38" style="stroke:#9FB8A6"/><path d="M236 148C250 124 226 108 240 82" style="stroke:#9FB8A6"/></g>
+  <path d="M316 246C352 244 372 222 386 190L398 160L412 166L402 198C390 244 362 282 320 296Z" fill="#E4ECE6" stroke="#17291F" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M108 236C62 236 62 330 112 330" fill="none" stroke="#2F5A44" stroke-width="12" stroke-linecap="round"/>
+  <g clip-path="url(#potClip)"><rect x="80" y="150" width="280" height="290" fill="#DCE7E3"/><rect id="liquor" x="80" y="208" width="280" height="240" fill="#B5C25A" opacity=".1"/>
+  <g id="potLeaves">${LEAVES.map(([x, y, r], i) => `<g transform="translate(${220 + x} ${y})"><g class="pl" data-r="${r}"><path d="M0 22C-14 8 -12 -10 0 -24C12 -10 14 8 0 22Z" fill="#5D7A3E"/><path d="M0 20V-20" stroke="rgba(238,242,234,.4)" stroke-width="1.2"/></g></g>`).join('')}</g>
+  <ellipse id="surf" cx="220" cy="208" rx="112" ry="9" fill="#fff" opacity=".35"/></g>
+  <path d="M118 196C92 240 92 330 140 384C164 410 196 418 220 418S276 410 300 384C348 330 348 240 322 196Z" fill="url(#glass)" stroke="#17291F" stroke-width="3"/>
+  <rect x="112" y="184" width="216" height="16" rx="8" fill="#2F5A44"/><path d="M150 184C160 160 280 160 290 184" fill="#A9C4AE" stroke="#17291F" stroke-width="3"/><circle cx="220" cy="160" r="10" fill="#2F5A44"/>`)
+const pls = $$('#potLeaves .pl'), liquor = $('#liquor'), ring = $('#ring')
+let tea = TEAS[0], ml = 300, inf = 0, elapsed = 0, running = false, last = 0, raf = 0, done = false
+const dur = () => tea.t + inf * tea.add
+const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
+const tempNote = (c) => c >= 98 ? 'Nước sôi sùng sục, rót thẳng từ ấm đun' : c >= 95 ? 'Vừa sôi xong, chờ lắng vài giây' : c >= 90 ? 'Đun sôi, sau đó để nguội 1 phút' : c >= 80 ? 'Đun sôi, sau đó để nguội 4 phút' : 'Đun sôi, mở nắp để nguội 7 phút'
+$('#picker').insertAdjacentHTML('beforeend', TEAS.map((t, i) => `<button type="button" role="radio" aria-checked="${!i}" tabindex="${i ? -1 : 0}" data-t="${t.id}"><i style="background:${t.liq}"></i><span><b>${t.short}</b><small>${t.type} · ${t.temp}°C</small></span></button>`).join(''))
+function renderBrew() {
+  const g = tea.gpc * ml / 100
+  $('#bTemp').textContent = tea.temp + '°C'
+  $('#bThermo').style.left = `${clamp((tea.temp - 60) / 40) * 100}%`
+  $('#bTempN').textContent = tempNote(tea.temp)
+  $('#bLeaf').textContent = (Math.round(g * 10) / 10).toFixed(1) + ' g'
+  const tsp = g / tea.tsp
+  $('#bLeafN').textContent = `khoảng ${tsp < 1.25 ? '1 thìa cà phê đầy' : (Math.round(tsp * 2) / 2).toString().replace('.5', '½') + ' thìa cà phê'}${tea.id === 'puer' ? ' — tráng trà nhanh 5 giây trước khi ủ' : ''}`
+  $('#bInf').textContent = `Tuần nước ${inf + 1} / ${tea.max}`
+  $('#bDots').innerHTML = Array.from({ length: tea.max }, (_, i) => `<i class="${i <= inf ? 'on' : ''}"></i>`).join('')
+  $('#bNext').disabled = inf >= tea.max - 1
+  $('#bStart').textContent = running ? 'Tạm dừng' : done ? 'Ủ lại lần nữa' : elapsed > 0 ? 'Tiếp tục' : 'Bắt đầu ủ trà'
+  draw()
+}
+function draw(t = performance.now()) {
+  const D = dur(), p = clamp(elapsed / D), e = 1 - (1 - p) ** 2
+  $('#bTime').textContent = fmt(Math.max(0, Math.ceil(D - elapsed - .001)))
+  $('#bPhase').textContent = done ? 'Rót trà ngay' : running ? 'Đang ủ trà' : elapsed > 0 ? 'Đã tạm dừng' : 'Sẵn sàng ủ trà'
+  ring.setAttribute('stroke-dashoffset', (1 - p).toFixed(4))
+  liquor.setAttribute('fill', tea.liq); liquor.setAttribute('opacity', (.08 + e * (tea.id === 'silver' ? .55 : .82)).toFixed(3))
+  $('#potSteam').setAttribute('opacity', running || done ? '.9' : '0')
+  pls.forEach((el, i) => {
+    const r0 = +el.dataset.r, sway = anim && running ? Math.sin(t / 900 + i * 1.7) * 6 : 0
+    const s = .38 + e * .9, sx = .3 + e * .95
+    el.setAttribute('transform', `translate(0 ${(-e * (24 + (i % 4) * 22)).toFixed(1)}) rotate(${(r0 + (1 - e) * 70 + sway).toFixed(1)}) scale(${sx.toFixed(3)} ${s.toFixed(3)})`)
+    el.firstElementChild.setAttribute('fill', mix('#465C30', tea.id === 'black' || tea.id === 'puer' ? '#6A4A2A' : tea.id === 'hojicha' ? '#7A5532' : '#6E9A4E', e))
+  })
+}
+function tick(now) {
+  if (!running) return
+  elapsed += (now - last) / 1000; last = now
+  if (elapsed >= dur()) {
+    elapsed = dur(); running = false; done = true
+    $('#bStatus').textContent = inf < tea.max - 1 ? `Rót trà ngay. Tuần nước ${inf + 2} cần ủ ${fmt(tea.t + (inf + 1) * tea.add)} ở cùng mức nhiệt độ.` : `Rót trà ngay. Đây là tuần nước trọn vị cuối cùng — lá trà đã hiến dâng hết tinh túy.`
+    if (anim) G.fromTo('.potbox', { scale: 1 }, { scale: 1.03, duration: .25, yoyo: true, repeat: 3, ease: 'power1.inOut' })
+    renderBrew(); return
+  }
+  draw(now); raf = requestAnimationFrame(tick)
+}
+function start() {
+  if (running) { running = false; cancelAnimationFrame(raf); $('#bStatus').textContent = `Đã tạm dừng ở ${fmt(elapsed)}.`; renderBrew(); return }
+  if (done) { elapsed = 0; done = false }
+  running = true; last = performance.now(); $('#bStatus').textContent = `Đang ủ ${tea.n} trong ${fmt(dur())}.`
+  renderBrew(); raf = requestAnimationFrame(tick)
+}
+function reset(msg = '') { running = false; done = false; elapsed = 0; cancelAnimationFrame(raf); $('#bStatus').textContent = msg; renderBrew() }
+$('#bStart').addEventListener('click', start)
+$('#bReset').addEventListener('click', () => reset('Đã đặt lại. Châm nước mới vào cùng phần lá trà.'))
+$('#bNext').addEventListener('click', () => { if (inf < tea.max - 1) { inf++; reset(`Tuần nước ${inf + 1}: ${fmt(dur())}, tăng thêm đôi chút thời gian sau mỗi lần pha.`) } })
+function selectTea(id, focus) {
+  tea = TEAS.find((t) => t.id === id); inf = 0
+  $$('#picker [role=radio]').forEach((b) => { const on = b.dataset.t === id; b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus() })
+  reset(`${tea.n}: ${tea.temp}°C, ${fmt(tea.t)} cho tuần nước đầu tiên.`)
+  if (anim) G.fromTo(pls, { opacity: 0 }, { opacity: 1, duration: .6, stagger: .04 })
+}
+$('#picker').addEventListener('click', (e) => { const b = e.target.closest('[role=radio]'); if (b) selectTea(b.dataset.t) })
+$('#picker').addEventListener('keydown', (e) => {
+  const k = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key]; if (!k) return
+  e.preventDefault(); const i = TEAS.indexOf(tea); selectTea(TEAS[(i + k + TEAS.length) % TEAS.length].id, true)
+})
+$('#sizes').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; ml = +b.dataset.ml; $$('#sizes button').forEach((x) => x.setAttribute('aria-pressed', x === b)); renderBrew() })
+renderBrew()
+
+/* ================= gardens ================= */
+const GARDENS = [
+  { n: 'Đồi Kirino', alt: 1120, x: 250, fam: 'Gia đình Mori, truyền thống bốn thế hệ', d: 'Những bậc thang trà hướng nam nhìn xuống hẻm núi bên sông. Sương mù từ mặt nước bốc lên mỗi sớm mai, che mát các luống trà và giữ trọn vị ngọt dịu cho sencha.', teas: 'Sencha Sương Sớm, Hojicha Rang Mộc Đồi Cao', pick: 'Tháng Tư đến tháng Năm' },
+  { n: 'Mistgate', alt: 1480, x: 560, fam: 'Hana và Joon Ito', d: 'Vườn trà nhỏ trồng các giống ô long cổ nằm trên yên ngựa giữa hai đỉnh núi. Tự tay Hana bọc vải vò từng mẻ trà suốt hai ngày ròng.', teas: 'Ô Long Núi Cao', pick: 'Tháng Năm, và vụ thu tháng Mười' },
+  { n: 'Old Stone', alt: 1650, x: 820, fam: 'Hợp tác xã mười một hộ gia đình', d: 'Những gốc trà mọc tự nhiên xen giữa các tảng đá hoa cương, nhiều cây đã hơn một thế kỷ tuổi. Cả hồng trà và phổ nhĩ đều được thu hái từ chính những cây cổ thụ này.', teas: 'Hồng Trà Than Hồng, Phổ Nhĩ Cổ Thụ Trăm Năm', pick: 'Tháng Ba đến tháng Sáu' },
+  { n: 'Cloud Step', alt: 1920, x: 1050, fam: 'Nông trang Adeyemi-Lin', d: 'Vườn trà cao nhất của chúng tôi, vươn trên tầng mây vào những ngày nắng đẹp. Chỉ những búp non chưa hé mới được thu hái trong đúng mười ngày đầu xuân và phơi dưới nắng nhẹ.', teas: 'Bạch Hảo Ngân Châm', pick: 'Mười ngày đầu xuân' },
+]
+{
+  const W = 1240, H = 330, base = 300
+  const yOf = (alt) => base - (alt - 800) / 1200 * 260
+  const pts = [[0, yOf(860)], [120, yOf(980)], [250, yOf(1120)], [380, yOf(1260)], [470, yOf(1380)], [560, yOf(1480)], [680, yOf(1420)], [760, yOf(1580)], [820, yOf(1650)], [930, yOf(1760)], [1050, yOf(1920)], [1140, yOf(1820)], [1240, yOf(1600)]]
+  const d = 'M' + pts.map((p) => p.map((v) => v.toFixed(1)).join(' ')).join('L')
+  let s = `<path d="${d}L${W} ${H}L0 ${H}Z" fill="rgba(169,196,174,.08)"/><path id="profLine" d="${d}" fill="none" stroke="#A9C4AE" stroke-width="2" pathLength="1" stroke-dasharray="1" stroke-dashoffset="${anim ? 1 : 0}"/>`
+  ;[1000, 1400, 1800].forEach((a) => { s += `<path d="M0 ${yOf(a)}H${W}" stroke="rgba(238,242,234,.12)" stroke-dasharray="4 8"/><text class="pin-l" x="${W - 4}" y="${yOf(a) - 8}" text-anchor="end">${a.toLocaleString('vi-VN')} m</text>` })
+  s += `<clipPath id="profClip"><rect width="${W}" height="${H}"/></clipPath><g fill="none" stroke="rgba(238,242,234,.18)" clip-path="url(#profClip)">${Array.from({ length: 5 }, (_, k) => `<path d="M${pts.map((p) => `${p[0]} ${(p[1] + 14 + k * 12).toFixed(1)}`).join('L')}"/>`).join('')}</g>`
+  GARDENS.forEach((g, i) => { const y = yOf(g.alt); s += `<g class="gpin" data-i="${i}" transform="translate(${g.x} ${y.toFixed(1)})"><path d="M0 0V-46" stroke="#EEF2EA" stroke-width="1.5"/><circle r="7" fill="#17291F" stroke="#EEF2EA" stroke-width="2"/><rect class="gflag" x="0" y="-62" width="${g.n.length * 9 + 22}" height="22" fill="#EEF2EA"/><text x="10" y="-46" font-family="Be Vietnam Pro, sans-serif" font-size="12" letter-spacing="1.2" fill="#17291F">${g.n.toUpperCase()}</text></g>` })
+  $('#profSvg').innerHTML = s
+}
+let gCur = -1, gTw = null
+$('#gTabs').innerHTML = GARDENS.map((g, i) => `<button type="button" role="tab" id="gt${i}" aria-controls="gPanel" aria-selected="false" tabindex="-1" data-i="${i}"><small>${g.alt.toLocaleString('vi-VN')} m</small><b>${g.n}</b></button>`).join('')
+function setGarden(i, focus) {
+  if (i === gCur) return
+  gCur = i; const g = GARDENS[i]
+  $$('#gTabs button').forEach((b, k) => { b.setAttribute('aria-selected', k === i); b.tabIndex = k === i ? 0 : -1 })
+  if (focus) $('#gt' + i).focus()
+  $('#gPanel').setAttribute('aria-labelledby', 'gt' + i)
+  $('#gPanel').innerHTML = `<div><h3>${g.n}</h3><p style="color:#AFC2B3;margin-top:6px">${g.fam}</p></div><p class="d">${g.d}</p><dl><dt>Độ cao</dt><dd>${g.alt.toLocaleString('vi-VN')} mét</dd><dt>Phẩm trà</dt><dd>${g.teas}</dd><dt>Mùa thu hái</dt><dd>${g.pick}</dd></dl>`
+  $$('#profSvg .gpin').forEach((p, k) => { p.style.opacity = k === i ? 1 : .45; p.querySelector('.gflag').setAttribute('fill', k === i ? '#F0B9A8' : '#EEF2EA'); p.querySelector('circle').setAttribute('fill', k === i ? '#F0B9A8' : '#17291F') })
+  if (anim) { if (gTw) gTw.kill(); gTw = G.fromTo('#gPanel > *', { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: .6, stagger: .07, ease: 'power3.out' }) }
+}
+$('#gTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setGarden(+b.dataset.i) })
+$('#gTabs').addEventListener('keydown', (e) => { const k = { ArrowRight: 1, ArrowLeft: -1 }[e.key]; if (!k) return; e.preventDefault(); setGarden((gCur + k + 4) % 4, true) })
+setGarden(1)
+
+/* ================= club ================= */
+{
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + 1)
+  const close = new Date(d); close.setDate(close.getDate() - 5)
+  $('#nextShip').textContent = `Đợt trà tiếp theo gửi vào ${d.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })}. Đăng ký trước ${close.toLocaleDateString('vi-VN', { day: 'numeric', month: 'long' })} để nhận hộp trà này.`
+}
+$('#clubForm').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#clubE').value.trim(); $('#clubOk').textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Chào mừng bạn đến với câu lạc bộ. Hộp trà đầu tiên của bạn sẽ theo chuyến xe sớm nhất xuống núi.' : 'Địa chỉ email có vẻ chưa đầy đủ.' })
+
+/* ================= nav, menu, scrolling ================= */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .075 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+function go(id) { const t = $(id); if (!t) return; lenis ? lenis.scrollTo(t, { offset: 0, duration: 1.6 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }) }
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => { const id = a.getAttribute('href'); if (id.length < 2 || !$(id)) return; e.preventDefault(); go(id) }))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .18}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .28}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+if (!anim) { journeyAt(1); return }
+
+/* ================= motion ================= */
+G.set('.hero h1 .mask>span', { yPercent: 112 })
+G.set('.hf', { autoAlpha: 0, y: 16 })
+G.set('#terraces .ridge', { yPercent: 18, opacity: 0 })
+G.set('#terraces .mist', { opacity: 0, x: -80 })
+G.set('.cup', { autoAlpha: 0, y: 60 })
+const steamPaths = $$('#steam path')
+steamPaths.forEach((p) => { const l = p.getTotalLength(); p.style.strokeDasharray = `${l * .5} ${l}`; p.style.strokeDashoffset = l })
+G.timeline({ delay: .15 })
+  .to('#terraces .ridge', { yPercent: 0, opacity: 1, duration: 1.6, stagger: .14, ease: 'expo.out' }, 0)
+  .to('#terraces .mist', { opacity: 1, x: 0, duration: 2.4, stagger: .2, ease: 'power2.out' }, .2)
+  .to('.hero h1 .mask>span', { yPercent: 0, duration: 1.2, stagger: .12, ease: 'expo.out' }, .3)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .9, stagger: .08, ease: 'power3.out' }, .65)
+  .to('.cup', { autoAlpha: 1, y: 0, duration: 1.2, ease: 'expo.out' }, .7)
+// slow steam loops, each curl offset in time
+steamPaths.forEach((p, i) => { const l = p.getTotalLength(); G.timeline({ repeat: -1, delay: 1 + i * 1.3 }).fromTo(p, { strokeDashoffset: l * 1.5 }, { strokeDashoffset: 0, duration: 4.2, ease: 'none' }, 0).fromTo(p, { opacity: 0 }, { opacity: .85, duration: 1.2 }, 0).to(p, { opacity: 0, duration: 1.2 }, 3) })
+$$('#terraces .mist').forEach((m, i) => G.to(m, { x: i % 2 ? -120 : 140, duration: 16 + i * 5, repeat: -1, yoyo: true, ease: 'sine.inOut', delay: 2.6 }))
+$$('#terraces .ridge').forEach((r, i) => G.to(r, { yPercent: -(3 - i) * 4, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } }))
+G.to('.cup', { y: -70, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+const potSteam = $$('#potSteam path')
+potSteam.forEach((p, i) => { const l = p.getTotalLength(); p.style.strokeDasharray = `${l * .5} ${l}`; G.fromTo(p, { strokeDashoffset: l * 1.5 }, { strokeDashoffset: 0, duration: 3.6, delay: i * 1.2, repeat: -1, ease: 'none' }) })
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 112 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, duration: 1.3, stagger: .12, ease: 'expo.out' }) })
+})
+G.set('.rv', { autoAlpha: 0, y: 34 })
+ScrollTrigger.batch('.rv', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: 1.2, stagger: .09, ease: 'expo.out', clearProps: 'transform' }) })
+ScrollTrigger.create({ trigger: '#profSvg', start: 'top 85%', once: true, onEnter: () => G.to('#profLine', { attr: { 'stroke-dashoffset': 0 }, duration: 2.4, ease: 'power2.inOut' }) })
+
+// pinned journey: the leaf, sun and colour scrub; the copy swaps on the clock
+const jsteps = $$('.jstep')
+let curJ = -1, jTw = []
+function setJ(i) {
+  if (i === curJ) return
+  const prev = curJ; curJ = i
+  jTw.forEach((t) => t.kill()); jTw = []
+  jsteps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) jTw.push(G.to(jsteps[prev], { autoAlpha: 0, y: -14, duration: .3, ease: 'power2.in' }))
+  jTw.push(G.fromTo(jsteps[i], { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: .8, delay: prev >= 0 ? .22 : 0, ease: 'power3.out' }))
+}
+G.set(jsteps, { autoAlpha: 0 })
+journeyAt(0); setJ(0)
+ScrollTrigger.create({
+  trigger: '.journey', start: 'top top', end: '+=280%', pin: '#jPin', scrub: true,
+  onUpdate(self) { const p = self.progress; journeyAt(p); setJ(p < .25 ? 0 : p < .5 ? 1 : p < .75 ? 2 : 3) },
+})
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

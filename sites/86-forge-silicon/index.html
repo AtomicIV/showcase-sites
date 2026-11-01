@@ -1,0 +1,973 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forge Silicon — Mười tỷ cổng mạch trên một đế chip tĩnh lặng</title>
+<meta name="description" content="Forge Silicon là studio thiết kế vi mạch không nhà máy (fabless), chế tạo dòng chip hệ thống tiết kiệm điện cho robot, camera thông minh và ô tô. Khám phá cận cảnh đế chip Halcyon H7.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236DF2FF'/%3E%3Cstop offset='.5' stop-color='%23FF86D6'/%3E%3Cstop offset='1' stop-color='%23FFD27D'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='12' fill='%2307080B'/%3E%3Crect x='14' y='14' width='36' height='36' rx='3' fill='url(%23g)'/%3E%3Cpath d='M22 22h8v8h-8zM34 22h8v8h-8zM22 34h20v8H22z' fill='%2307080B' opacity='.55'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Mona+Sans:wdth,wght@75..125,400..900&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080B; --bg2:#0B0E14; --panel:#10141C; --ink:#E9ECF2; --muted:#9AA3B4; --dim:#6E7790; --line:rgba(190,205,255,.13); --line2:rgba(190,205,255,.24);
+  --cy:#6DF2FF; --vi:#A898FF; --pk:#FF86D6; --au:#FFD27D; --gr:#8DFFBE;
+  --foil:linear-gradient(100deg,#6DF2FF 0%,#A898FF 22%,#FF86D6 44%,#FFD27D 66%,#8DFFBE 84%,#6DF2FF 100%);
+  --disp:"Mona Sans", "Arial Black", system-ui, sans-serif; --sans:"IBM Plex Sans", system-ui, sans-serif; --mono:"IBM Plex Mono", ui-monospace, monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:64px 64px;opacity:.35;mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 0%,transparent 75%)}
+main,footer{position:relative;z-index:1}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cy);outline-offset:3px;border-radius:4px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--cy);color:#000;padding:10px 16px;z-index:400;border-radius:6px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1280px,100% - 64px);margin-inline:auto}
+h1,h2,h3{font-family:var(--disp);font-stretch:118%;font-weight:760;margin:0;line-height:1.08;letter-spacing:-.025em}
+h2{font-size:clamp(40px,5.2vw,82px)}
+p{margin:0}
+.foil-t{background:var(--foil);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:foilshift 9s linear infinite}
+@keyframes foilshift{to{background-position:-220% 0}}
+.mono{font-family:var(--mono)}
+.kick{display:inline-flex;align-items:center;gap:12px;font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--cy)}
+.kick::before{content:"";width:10px;height:10px;border:1.5px solid currentColor;transform:rotate(45deg)}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:3px;border:1px solid transparent;background:var(--ink);color:#07080B;font-family:var(--mono);font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .5s var(--ease),background .3s,color .3s,border-color .3s;isolation:isolate;overflow:hidden}
+.btn::before{content:"";position:absolute;inset:0;background:var(--foil);background-size:200% 100%;opacity:0;transition:opacity .35s;z-index:-1}
+.btn:hover::before{opacity:1;animation:foilshift 3s linear infinite}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.ghost::before{display:none}
+.btn.ghost:hover{border-color:var(--cy);color:var(--cy)}
+.btn.sm{min-height:44px;padding:0 16px;font-size:13px}
+.btn svg{width:16px;height:16px}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:90;transition:background .4s,border-color .4s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(7,8,11,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:74px;gap:20px}
+.logo{display:inline-flex;align-items:center;gap:12px;text-decoration:none;font-family:var(--disp);font-stretch:125%;font-weight:800;font-size:19px;letter-spacing:.02em;min-height:44px;text-transform:uppercase}
+.logo svg{width:30px;height:30px}
+.nav ul{display:flex;gap:2px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;text-decoration:none;font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);transition:color .3s}
+.nav ul a:hover{color:var(--ink)}
+.nav ul a span{color:var(--dim);margin-right:6px}
+.menu-btn{display:none;width:46px;height:46px;border-radius:3px;border:1px solid var(--line2);background:transparent;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:18px;height:1.5px;background:var(--ink);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:12px;right:12px;top:80px;z-index:89;background:rgba(12,15,21,.97);border:1px solid var(--line2);border-radius:6px;padding:10px;display:grid;opacity:0;visibility:hidden;transform:translateY(-8px);transition:opacity .3s,visibility .3s,transform .4s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 14px;text-decoration:none;font-family:var(--disp);font-stretch:118%;font-weight:700;font-size:24px;border-bottom:1px solid var(--line)}
+.mmenu a:last-child{border-bottom:0}
+.mmenu a span{font-family:var(--mono);font-size:12px;color:var(--dim);font-weight:400}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:120px 0 60px;display:flex;align-items:center;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center}
+.hero h1{font-size:clamp(54px,6.6vw,112px);margin:22px 0 0}
+.hero-lead{font-size:19px;color:var(--muted);max-width:44ch;margin:30px 0 34px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px}
+.hero-tag{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:44px;padding-top:20px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.04em}
+.hero-tag b{color:var(--ink);font-weight:600}
+.hero-tag .live{display:inline-flex;align-items:center;gap:8px}
+.hero-tag .live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gr);box-shadow:0 0 10px var(--gr)}
+.wafer-wrap{position:relative;width:100%;max-width:620px;justify-self:center;aspect-ratio:1}
+.wafer{position:absolute;inset:6%;border-radius:50%;--a:0deg;--px:50%;--py:40%}
+.wafer .foil{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 50%,transparent 52%,rgba(7,8,11,.35) 100%),conic-gradient(from var(--a),#6DF2FF,#A898FF,#FF86D6,#FFD27D,#8DFFBE,#6DF2FF,#A898FF,#FF86D6,#FFD27D,#8DFFBE,#6DF2FF);filter:saturate(1.15)}
+.wafer .foil::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from calc(var(--a) * -1.6),rgba(255,255,255,.0),rgba(255,255,255,.35),rgba(255,255,255,0) 18%,rgba(255,255,255,0) 50%,rgba(255,255,255,.28),rgba(255,255,255,0) 68%);mix-blend-mode:overlay}
+.wafer svg.grid{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.wafer .spec{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at var(--px) var(--py),rgba(255,255,255,.55),rgba(255,255,255,0) 32%);mix-blend-mode:soft-light;pointer-events:none}
+.wafer-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.wafer-ring text{font-family:var(--mono);font-size:11px;letter-spacing:.3em;fill:var(--muted)}
+.wafer-glow{position:absolute;inset:14%;border-radius:50%;background:conic-gradient(from 90deg,#6DF2FF55,#FF86D655,#FFD27D55,#6DF2FF55);filter:blur(70px);opacity:.55;z-index:-1}
+.callout{position:absolute;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:8px}
+.callout b{color:var(--ink);font-weight:600}
+.callout::before{content:"";width:40px;height:1px;background:var(--line2)}
+.c1{left:-6%;top:16%;flex-direction:row-reverse}.c2{left:-4%;bottom:16%;flex-direction:row-reverse}
+.scroll-hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+
+/* numbers */
+.nums{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(11,14,20,.7)}
+.nums .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.num{padding:34px 26px 30px;border-left:1px solid var(--line)}
+.num:first-child{border-left:0;padding-left:0}
+.num .v{font-family:var(--disp);font-stretch:125%;font-weight:800;font-size:clamp(40px,4.4vw,64px);line-height:1;letter-spacing:-.03em}
+.num .v small{font-size:.42em;margin-left:6px;letter-spacing:0;color:var(--muted);font-weight:600}
+.num p{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:12px;letter-spacing:.04em}
+
+/* dicing (pinned) */
+.dice{position:relative}
+.dice-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:40px;align-items:center;width:min(1280px,100% - 64px);margin-inline:auto;padding-top:60px}
+.dice h2{margin:16px 0 30px}
+.dsteps{position:relative;height:210px}
+.dstep{position:absolute;inset:0}
+.dstep .n{font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--cy)}
+.dstep h3{font-size:clamp(28px,2.6vw,40px);margin:8px 0 12px}
+.dstep p{color:var(--muted);max-width:42ch}
+.dbar{display:flex;gap:6px;margin-top:22px}
+.dbar i{flex:1;height:3px;background:var(--line2);position:relative;overflow:hidden}
+.dbar i b{position:absolute;inset:0;background:var(--foil);transform-origin:0 50%;transform:scaleX(0)}
+.dstage{position:relative;justify-self:center;width:min(100%,74vh);aspect-ratio:1}
+.dstage canvas{width:100%;height:100%}
+.dhud{position:absolute;left:0;right:0;bottom:-6px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.dhud b{color:var(--ink);font-weight:600}
+
+/* die explorer */
+.die{padding:140px 0 120px}
+.die-head{display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:end;margin-bottom:44px}
+.die-head p{color:var(--muted);max-width:46ch}
+.dx{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:stretch}
+.dx-stage{position:relative;border:1px solid var(--line2);border-radius:6px;background:#05060A;overflow:hidden;touch-action:pan-y;cursor:crosshair;outline:none}
+.dx-stage.zoomed{touch-action:none;cursor:grab}
+.dx-stage.grabbing{cursor:grabbing}
+.dx-stage:focus-visible{box-shadow:0 0 0 2px var(--cy)}
+#dxSvg{width:100%;height:auto;aspect-ratio:1000/680;user-select:none;-webkit-user-select:none}
+.blk{cursor:pointer;outline:none}
+.blk .b{transition:fill-opacity .35s,stroke-width .3s,opacity .35s}
+.blk .tx{transition:opacity .35s}
+.dx-stage.has-sel .blk:not(.on) .b,.dx-stage.has-sel .blk:not(.on) .tx{opacity:.38}
+.blk.on .b{fill-opacity:.34;stroke-width:3}
+.blk:focus-visible .b{stroke:#fff;stroke-width:4}
+.blk .lab{font-family:var(--mono);font-size:13px;letter-spacing:.08em;fill:rgba(233,236,242,.78);pointer-events:none;text-transform:uppercase}
+.dx-hud{position:absolute;left:12px;top:10px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);pointer-events:none;background:rgba(5,6,10,.7);padding:4px 8px;border-radius:3px}
+.dx-tools{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.dx-tools button{width:44px;height:44px;border-radius:4px;border:1px solid var(--line2);background:rgba(10,12,18,.85);cursor:pointer;display:grid;place-items:center;font-family:var(--mono);font-size:18px;transition:border-color .3s,color .3s}
+.dx-tools button:hover{border-color:var(--cy);color:var(--cy)}
+.dx-tools button:disabled{opacity:.35;cursor:not-allowed}
+.dx-tools svg{width:18px;height:18px}
+.dx-mini{position:absolute;left:12px;bottom:12px;width:120px;aspect-ratio:1000/680;border:1px solid var(--line2);background:rgba(5,6,10,.85);border-radius:3px;opacity:0;transition:opacity .3s;pointer-events:none}
+.dx-stage.zoomed .dx-mini{opacity:1}
+.dx-hint{position:absolute;right:12px;bottom:10px;font-family:var(--mono);font-size:12px;color:var(--dim);pointer-events:none}
+.dx-panel{border:1px solid var(--line2);border-radius:6px;background:var(--panel);padding:26px 24px;display:flex;flex-direction:column;min-height:100%}
+.dx-panel .tag{display:inline-flex;align-self:flex-start;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#07080B;background:var(--cy);padding:3px 8px;border-radius:2px}
+.dx-panel h3{font-size:30px;margin:16px 0 6px;font-stretch:110%}
+.dx-panel .area{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.dx-panel .share{height:4px;background:var(--line);margin:14px 0 18px;position:relative}
+.dx-panel .share i{position:absolute;left:0;top:0;bottom:0;background:var(--foil);transition:width .6s var(--ease)}
+.dx-panel dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:0 16px}
+.dx-panel dt,.dx-panel dd{margin:0;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
+.dx-panel dt{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:12px}
+.dx-panel dd{text-align:right}
+.dx-panel .note{margin-top:auto;padding-top:18px;color:var(--muted);font-size:15px}
+.dx-chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
+.dx-chips button{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:transparent;cursor:pointer;font-family:var(--mono);font-size:13px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:8px;transition:border-color .3s,background .3s}
+.dx-chips button i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.dx-chips button:hover{border-color:var(--c)}
+.dx-chips button[aria-pressed="true"]{background:rgba(233,236,242,.08);border-color:var(--c)}
+
+/* parts */
+.parts{padding:120px 0 80px;border-top:1px solid var(--line)}
+.parts-head{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:50px}
+.parts-head p{color:var(--muted);max-width:38ch}
+.part{display:grid;grid-template-columns:1fr 1.2fr 280px;gap:40px;align-items:center;padding:44px 0;border-top:1px solid var(--line);position:relative}
+.part:last-child{border-bottom:1px solid var(--line)}
+.part::before{content:"";position:absolute;left:0;top:-1px;height:1px;width:0;background:var(--foil);transition:width .9s var(--ease)}
+.part:hover::before{width:100%}
+.part .st{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.part .st::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.part h3{font-size:clamp(40px,4.6vw,70px);margin:12px 0 8px}
+.part .what{color:var(--muted)}
+.part table{width:100%;border-collapse:collapse;font-size:15px}
+.part th,.part td{padding:10px 0;border-bottom:1px solid var(--line);text-align:left;font-weight:400}
+.part th{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);width:42%}
+.pkg{width:100%;aspect-ratio:1;max-width:260px;justify-self:end;transition:transform .8s var(--ease)}
+.part:hover .pkg{transform:rotate(-6deg) scale(1.04)}
+
+/* watt */
+.watt{padding:110px 0 130px;background:linear-gradient(180deg,transparent,rgba(16,20,28,.7) 30%,rgba(16,20,28,.7) 70%,transparent)}
+.watt .wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px;align-items:center}
+.watt h2{margin:16px 0 24px}
+.watt p{color:var(--muted);max-width:42ch}
+.watt ul{list-style:none;margin:30px 0 0;padding:0;display:grid;gap:14px}
+.watt li{display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:baseline;padding-top:14px;border-top:1px solid var(--line)}
+.watt li b{font-family:var(--disp);font-stretch:120%;font-weight:800;font-size:30px;letter-spacing:-.02em}
+.watt li span{color:var(--muted);font-size:15px}
+.chart{border:1px solid var(--line2);border-radius:6px;background:#06070B;padding:20px}
+.chart svg{width:100%;height:auto;overflow:visible}
+.chart .ax{font-family:var(--mono);font-size:12px;fill:var(--muted)}
+.chart .lg{font-family:var(--mono);font-size:13px}
+.chart .cap{margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+
+/* lab / principles */
+.lab{padding:120px 0}
+.lab-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+.lab-quote{grid-column:1/8;font-family:var(--disp);font-stretch:112%;font-weight:600;font-size:clamp(30px,3.4vw,52px);line-height:1.1;letter-spacing:-.02em}
+.lab-quote em{font-style:normal}
+.lab-by{grid-column:1/8;margin-top:22px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.lab-cards{grid-column:9/13;grid-row:1/3;display:grid;gap:14px}
+.lc{border:1px solid var(--line);border-radius:6px;padding:20px;background:rgba(16,20,28,.6);transition:border-color .4s,transform .5s var(--ease)}
+.lc:hover{border-color:var(--line2);transform:translateX(-6px)}
+.lc h3{font-size:20px;font-stretch:108%;margin-bottom:6px;letter-spacing:-.01em}
+.lc p{color:var(--muted);font-size:15px}
+.lc .k{font-family:var(--mono);font-size:12px;color:var(--cy);letter-spacing:.1em}
+
+/* contact */
+.contact{padding:60px 0 130px}
+.cbox{position:relative;border:1px solid var(--line2);border-radius:8px;overflow:hidden;padding:70px 60px;display:grid;grid-template-columns:1.1fr 1fr;gap:50px;align-items:center;background:var(--panel)}
+.cbox::before{content:"";position:absolute;right:-180px;top:-180px;width:520px;height:520px;border-radius:50%;background:conic-gradient(from 30deg,#6DF2FF,#A898FF,#FF86D6,#FFD27D,#8DFFBE,#6DF2FF);opacity:.22;filter:blur(30px)}
+.cbox>*{position:relative}
+.cbox h2 em{font-style:normal}
+.cbox .lead{color:var(--muted);margin-top:20px;max-width:42ch}
+.cbox form{display:grid;gap:12px}
+.cbox label{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.cbox input,.cbox select{width:100%;min-height:52px;padding:0 16px;border-radius:3px;border:1px solid var(--line2);background:#07080B;margin-top:6px}
+.cbox select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.cbox .ok{min-height:26px;font-family:var(--mono);font-size:14px;color:var(--gr)}
+.cbox .ok.err{color:var(--pk)}
+
+footer{border-top:1px solid var(--line);padding:60px 0 36px}
+footer .top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;padding-bottom:44px}
+footer h4{margin:0 0 12px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--cy)}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:36px;text-decoration:none;color:var(--muted);transition:color .3s}
+footer li a:hover{color:var(--ink)}
+footer .tl{color:var(--muted);max-width:30ch;margin-top:12px;font-size:15px}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:22px;border-top:1px solid var(--line);font-family:var(--mono);font-size:13px;color:var(--muted)}
+
+.rm .dice-pin{height:auto;padding:110px 0 90px}
+.rm .dsteps{height:auto;display:grid;gap:28px}
+.rm .dstep{position:static}
+.rm .dbar{display:none}
+
+@media (max-width:1100px){
+  .dx{grid-template-columns:1fr}
+  .dx-panel{min-height:0}
+  .part{grid-template-columns:1fr 1fr}
+  .pkg{grid-column:2;grid-row:1;max-width:200px}
+  .part table{grid-column:1/-1}
+}
+@media (max-width:1000px){
+  .nav ul,.nav .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero .wrap{grid-template-columns:1fr}
+  .wafer-wrap{max-width:460px;margin-top:20px}
+  .callout{display:none}
+  .nums .wrap{grid-template-columns:1fr 1fr}
+  .num:nth-child(3){border-left:0;padding-left:0}
+  .num:nth-child(n+3){border-top:1px solid var(--line)}
+  .dice-pin{grid-template-columns:1fr;grid-template-rows:auto auto;gap:14px;align-content:center}
+  .dstage{order:-1;width:min(100%,44vh)}
+  .die-head{grid-template-columns:1fr;gap:20px}
+  .watt .wrap{grid-template-columns:1fr}
+  .lab-quote,.lab-by,.lab-cards{grid-column:1/-1}
+  .lab-cards{grid-row:auto;margin-top:30px}
+  .cbox{grid-template-columns:1fr;padding:50px 32px}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .wrap,.dice-pin{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav .wrap{height:66px}
+  .mmenu{top:72px}
+  .hero{padding:90px 0 50px;min-height:0}
+  .hero h1{font-size:clamp(42px,12.4vw,60px);font-stretch:108%}
+  .hero-lead{font-size:17px;margin:22px 0 26px}
+  .wafer-wrap{max-width:330px}
+  .wafer-ring text{font-size:14px}
+  .hero-tag{margin-top:30px;font-size:12px}
+  .scroll-hint{display:none}
+  .num{padding:24px 14px 22px}
+  .num:nth-child(2n){padding-right:0}
+  .dice-pin{padding-top:72px}
+  .dice h2{font-size:32px;margin:6px 0 10px}
+  .dice .kick{display:none}
+  .dstage{width:min(100%,40vh)}
+  .dsteps{height:190px}
+  .dstep h3{font-size:24px;margin:4px 0 8px}
+  .dstep p{font-size:15px;line-height:1.5}
+  .dbar{margin-top:6px}
+  .die{padding:100px 0 90px}
+  .die-head{margin-bottom:28px}
+  .blk .lab{display:none}
+  .dx-hud,.dx-hint{display:none}
+  .dx-tools{position:static;flex-direction:row;justify-content:flex-end;padding:8px;border-top:1px solid var(--line)}
+  .dx-mini{width:90px}
+  .dx-panel{padding:22px 18px}
+  .dx-panel h3{font-size:26px}
+  .dx-chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+  .dx-chips button{flex:none}
+  .parts{padding:90px 0}
+  .parts-head{flex-direction:column;align-items:flex-start;gap:16px;margin-bottom:24px}
+  .part{grid-template-columns:1fr;gap:18px;padding:34px 0}
+  .pkg{grid-column:auto;grid-row:auto;max-width:150px;justify-self:start;order:-1}
+  .watt{padding:90px 0}
+  .watt li{grid-template-columns:90px 1fr}
+  .watt li b{font-size:24px}
+  .chart{padding:12px}
+  .lab{padding:90px 0}
+  .contact{padding:30px 0 90px}
+  .cbox{padding:40px 20px}
+  footer .top{gap:28px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Forge Silicon, trang chủ"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="2" fill="none" stroke="#E9ECF2" stroke-width="1.6"/><rect x="10" y="10" width="12" height="12" fill="#6DF2FF"/><path d="M9 1v4M16 1v4M23 1v4M9 27v4M16 27v4M23 27v4M1 9h4M1 16h4M1 23h4M27 9h4M27 16h4M27 23h4" stroke="#E9ECF2" stroke-width="1.6"/></svg>Forge</a>
+    <nav aria-label="Điều hướng chính"><ul><li><a href="#process"><span>01</span>Quy trình</a></li><li><a href="#die"><span>02</span>Đế chip</a></li><li><a href="#parts"><span>03</span>Sản phẩm</a></li><li><a href="#watt"><span>04</span>Hiệu suất/watt</a></li></ul></nav>
+    <a class="btn sm mag" href="#contact">Yêu cầu chip mẫu</a>
+    <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Quy trình <span>01</span></a><a href="#die">Khám phá đế chip <span>02</span></a><a href="#parts">Sản phẩm <span>03</span></a><a href="#watt">Hiệu suất/watt <span>04</span></a><a href="#contact">Yêu cầu chip mẫu <span>05</span></a>
+</div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="wrap">
+    <div>
+      <p class="kick hf">Thiết kế vi mạch fabless · Eindhoven &amp; Austin</p>
+      <h1 id="hero-h"><span class="mask"><span>Mười tỷ</span></span><span class="mask"><span>cổng mạch,</span></span><span class="mask"><span>một đế chip <span class="foil-t">tĩnh lặng</span>.</span></span></h1>
+      <p class="hero-lead hf">Forge Silicon thiết kế dòng vi mạch hệ thống (SoC) tiết kiệm điện cho những cỗ máy suy nghĩ ngay tại biên: robot, camera thông minh, ô tô và các cảm biến kết nối. Chúng tôi tự vẽ từng khối mạch và đo lường thành công bằng đơn vị joule chứ không phải gigahertz.</p>
+      <div class="hero-cta hf"><a class="btn mag" href="#die">Khám phá đế chip <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn ghost mag" href="#contact">Yêu cầu chip mẫu</a></div>
+      <p class="hero-tag hf"><span class="live"><b>Halcyon H7</b>&nbsp;đang gửi mẫu thử</span><span>Tiến trình 3 nm</span><span>48 TOPS ở mức 6 W</span></p>
+    </div>
+    <div class="wafer-wrap" id="waferWrap" aria-hidden="true">
+      <div class="wafer-glow"></div>
+      <svg class="wafer-ring" viewBox="0 0 600 600"><defs><path id="hw-ring" d="M300 22a278 278 0 1 1-.1 0"/></defs><circle cx="300" cy="300" r="296" fill="none" stroke="rgba(190,205,255,.18)" stroke-dasharray="2 6"/><text><textPath href="#hw-ring" startOffset="2%">FS-H7 · LÔ 26A-0412 · WAFER 07 / 25 · 300 MM · N3E · FORGE SILICON ·</textPath></text></svg>
+      <div class="wafer" id="wafer">
+        <div class="foil"></div>
+        <svg class="grid" id="waferGrid" viewBox="0 0 600 600"></svg>
+        <div class="spec"></div>
+      </div>
+      <p class="callout c1">đế chip <b>10.0 × 6.8 mm</b></p>
+      <p class="callout c2"><b>874</b> đế chip mỗi wafer</p>
+    </div>
+  </div>
+  <p class="scroll-hint" aria-hidden="true">cuộn · từ wafer đến linh kiện</p>
+</section>
+
+<section class="nums" aria-label="Halcyon H7 qua những con số">
+  <div class="wrap">
+    <div class="num"><p class="v"><span class="cnt" data-to="18.2" data-dec="1">18.2</span><small>tỷ</small></p><p>bóng bán dẫn trên một đế chip</p></div>
+    <div class="num"><p class="v"><span class="cnt" data-to="48">48</span><small>TOPS</small></p><p>hiệu năng xử lý thần kinh ở 6 W</p></div>
+    <div class="num"><p class="v"><span class="cnt" data-to="31">31</span></p><p>miền nguồn độc lập tự ngắt khi nghỉ</p></div>
+    <div class="num"><p class="v"><span class="cnt" data-to="0">0</span><small>nhà máy</small></p><p>sở hữu riêng. Chúng tôi thiết kế; đối tác đúc.</p></div>
+  </div>
+</section>
+
+<section class="dice" id="process" aria-labelledby="dice-h">
+  <div class="dice-pin" id="dicePin">
+    <div>
+      <p class="kick">01 · Quy trình</p>
+      <h2 id="dice-h">Từ tấm wafer đến linh kiện,<br>qua <span class="foil-t">năm công đoạn</span></h2>
+      <div class="dsteps">
+        <article class="dstep"><p class="n">BƯỚC 01 / TAPE-OUT</p><h3>Mười bốn tháng, một tệp thiết kế</h3><p>Mọi khối mạch được vẽ, kiểm tra và nghiệm thu, sau đó gửi tới đối tác đúc dưới dạng tệp đa giác nặng 41 GB. Mười hai tuần sau, các tấm wafer hoàn thiện được chuyển về.</p></article>
+        <article class="dstep"><p class="n">BƯỚC 02 / ĐO KIỂM WAFER</p><h3>Kiểm định từng đế chip</h3><p>Đầu dò tiếp xúc lên từng đế chip và chạy 9.000 bài kiểm tra trong chưa đầy một giây. Những đế lỗi được chấm mực đánh dấu. Lô mới nhất của chúng tôi đạt tỷ lệ thành phẩm 91%.</p></article>
+        <article class="dstep"><p class="n">BƯỚC 03 / CẮT HẠT (DICING)</p><h3>Cắt dọc theo các rãnh phân cách</h3><p>Lưỡi cưa kim cương dày 30 micron chạy dọc các rãnh ngăn giữa những đế chip, hết hàng này đến hàng khác, được làm mát bằng một màn nước mỏng.</p></article>
+        <article class="dstep"><p class="n">BƯỚC 04 / KÉO GIÃN MÀNG</p><h3>Tạo khoảng cách tách rời</h3><p>Lớp màng keo bên dưới được kéo căng để mỗi đế chip tách rời khỏi các đế lân cận. Những phần rìa không nguyên vẹn sẽ được giữ lại trên khung.</p></article>
+        <article class="dstep"><p class="n">BƯỚC 05 / GẮP &amp; ĐÓNG GÓI</p><h3>Linh kiện nằm gọn trên tay bạn</h3><p>Đế chip đạt chuẩn được nhấc lên, lật úp và hàn gắn vào vỏ đóng gói 15 mm với 1.206 bi hàn. Khối vuông nhỏ bé đó chính là một chip Halcyon H7.</p></article>
+      </div>
+      <div class="dbar" aria-hidden="true"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
+    </div>
+    <div class="dstage" aria-hidden="true">
+      <canvas id="diceCv"></canvas>
+      <div class="dhud"><span>GIAI ĐOẠN <b id="dStage">01</b> / 05</span><span>LÔ 26A-0412</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="die" id="die" aria-labelledby="die-h">
+  <div class="wrap">
+    <div class="die-head">
+      <div><p class="kick">02 · Khám phá đế chip</p><h2 id="die-h" class="split" style="margin-top:16px">Bên trong<br><span class="foil-t">Halcyon H7</span></h2></div>
+      <p class="reveal">Bản vẽ mặt bằng thực tế của từng khối chức năng. Di chuột hoặc chạm vào một khối để xem thông số, nhấp để phóng to, rồi kéo để quan sát xung quanh. Phím mũi tên dùng để di chuyển và phím cộng/trừ để thu phóng khi khung vẽ đang được chọn.</p>
+    </div>
+    <div class="dx reveal">
+      <div class="dx-stage" id="dxStage" tabindex="0" role="group" aria-label="Sơ đồ đế chip Halcyon H7. Phím mũi tên để di chuyển, cộng và trừ để thu phóng, Escape để đặt lại.">
+        <svg id="dxSvg" viewBox="0 0 1000 680" aria-hidden="false"></svg>
+        <p class="dx-hud" id="dxHud" aria-hidden="true">X 0000 µm · Y 0000 µm · 1.0×</p>
+        <div class="dx-tools">
+          <button type="button" id="zIn" aria-label="Phóng to">+</button>
+          <button type="button" id="zOut" aria-label="Thu nhỏ" disabled>−</button>
+          <button type="button" id="zReset" aria-label="Đặt lại góc nhìn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 9V4h5M20 15v5h-5M4 15v5h5M20 9V4h-5"/></svg></button>
+        </div>
+        <svg class="dx-mini" id="dxMini" viewBox="0 0 1000 680" aria-hidden="true"></svg>
+        <p class="dx-hint" aria-hidden="true">ctrl + cuộn để thu phóng</p>
+      </div>
+      <aside class="dx-panel" id="dxPanel" aria-live="polite">
+        <span class="tag" id="pTag">Tính toán</span>
+        <h3 id="pName">Nhân hiệu năng cao Anvil</h3>
+        <p class="area" id="pArea">8.37 mm² · 12.3% diện tích đế chip</p>
+        <div class="share" aria-hidden="true"><i id="pShare" style="width:12%"></i></div>
+        <dl id="pSpecs"></dl>
+        <p class="note" id="pNote"></p>
+      </aside>
+      <div class="dx-chips" id="dxChips" role="group" aria-label="Các khối chức năng trên đế chip"></div>
+    </div>
+  </div>
+</section>
+
+<section class="parts" id="parts" aria-labelledby="parts-h">
+  <div class="wrap">
+    <div class="parts-head"><div><p class="kick">03 · Sản phẩm</p><h2 id="parts-h" class="split" style="margin-top:16px">Ba dòng chip,<br>một nỗi trăn trở</h2></div><p class="reveal">Từ cảm biến dùng pin cúc áo đến tủ rack chứa các thẻ suy luận AI, mọi vi mạch của Forge đều xoay quanh cùng một câu hỏi: câu trả lời này có thể tiêu tốn ít năng lượng đến mức nào?</p></div>
+    <div id="partList"></div>
+  </div>
+</section>
+
+<section class="watt" id="watt" aria-labelledby="watt-h">
+  <div class="wrap">
+    <div>
+      <p class="kick">04 · Hiệu suất trên mỗi watt</p>
+      <h2 id="watt-h" class="split">Đo bằng<br><span class="foil-t">joule</span>, không phải<br>gigahertz</h2>
+      <p class="reveal">Những con số xung nhịp đỉnh cao chỉ để làm đẹp slide thuyết trình. Thời lượng pin, nhiệt độ và độ ồn quạt tản nhiệt đến từ khối lượng công việc xử lý được trên mỗi joule suốt cả ngày ở mức điện áp thực tế.</p>
+      <ul class="reveal">
+        <li><b>11</b><span>TOPS mỗi watt trên nhân xử lý thần kinh, INT8, ở mức điện áp 0.65 V</span></li>
+        <li><b>40 µs</b><span>thời gian để nhân hiệu năng cao chuyển sang trạng thái ngủ ngay khi xong việc</span></li>
+        <li><b>2.3×</b><span>số lượt suy luận trên mỗi joule cao hơn thế hệ trước của chúng tôi</span></li>
+      </ul>
+    </div>
+    <figure class="chart reveal" style="margin:0">
+      <svg id="chart" viewBox="0 0 640 420" role="img" aria-labelledby="chartT"><title id="chartT">Biểu đồ hiệu năng theo mức tiêu thụ điện: Halcyon H7 đạt hiệu năng cao hơn ở mọi mức công suất so với một chip di động điển hình, và khoảng cách lớn nhất nằm ở vùng dưới 8 watt.</title></svg>
+      <figcaption class="cap">Đường cong minh họa từ mô phỏng nội bộ, đơn vị tương đối. Không phải điểm chuẩn thương mại.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="lab" aria-labelledby="lab-h">
+  <div class="wrap">
+    <h2 id="lab-h" class="sr">Cách chúng tôi làm việc</h2>
+    <div class="lab-grid">
+      <p class="lab-quote reveal">“Một vi mạch là một thành phố được vẽ ở kích thước của móng tay. <em class="foil-t">Chúng tôi quy hoạch những con đường trước</em>, rồi mới quyết định nơi ở của từng khu vực.”</p>
+      <p class="lab-by reveal">Ilse Varga-Okoro, kiến trúc sư trưởng, Forge Silicon</p>
+      <div class="lab-cards">
+        <article class="lc reveal"><p class="k">// ưu tiên mặt bằng</p><h3>Đường dẫn trước bóng bán dẫn</h3><p>Chúng tôi sắp xếp các khối mạch dựa theo tần suất giao tiếp giữa chúng, để những khối trao đổi nhiều nhất nằm sát vách nhau và dữ liệu không bao giờ phải đi đường vòng.</p></article>
+        <article class="lc reveal"><p class="k">// silicon minh bạch</p><h3>Tài liệu kỹ thuật mở</h3><p>Mọi thanh ghi, mọi trạng thái nguồn, mọi ghi chú lỗi đều được công khai ngay từ mẫu thử đầu tiên. Không cần ký NDA chỉ để tìm hiểu vì sao chip ấm lên.</p></article>
+        <article class="lc reveal"><p class="k">// linh kiện mười năm</p><h3>Chế tạo để duy trì sản xuất lâu dài</h3><p>Robot và xe hơi vận hành suốt cả thập kỷ. Chúng tôi cam kết cung ứng linh kiện và cập nhật firmware trong mười năm cho mọi mã sản phẩm xuất xưởng.</p></article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact" aria-labelledby="contact-h">
+  <div class="wrap">
+    <div class="cbox reveal">
+      <div><p class="kick">05 · Chip mẫu</p><h2 id="contact-h" style="margin-top:16px">Đặt một bộ Halcyon<br>lên <em class="foil-t">bàn thử nghiệm</em></h2><p class="lead">Bộ kit đánh giá bao gồm mô-đun H7, bo mạch mở rộng với đầy đủ cổng giao tiếp và cụm chân đo nguồn trực tiếp để bạn tự kiểm chứng từng con số của chúng tôi.</p></div>
+      <form id="cForm" novalidate>
+        <label for="cEmail">Email công việc<input id="cEmail" type="email" placeholder="ban@congty.com" autocomplete="email"></label>
+        <label for="cUse">Bạn đang phát triển thiết bị gì?<select id="cUse"><option value="robotics">Robot &amp; thiết bị bay tự hành</option><option value="vision">Camera thông minh &amp; thị giác máy</option><option value="auto">Khoang lái ô tô</option><option value="industrial">Cảm biến công nghiệp</option></select></label>
+        <button class="btn" type="submit">Yêu cầu bộ kit đánh giá</button>
+        <p class="ok" id="cOk" role="status"></p>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo" href="#top"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="5" width="22" height="22" rx="2" fill="none" stroke="#E9ECF2" stroke-width="1.6"/><rect x="10" y="10" width="12" height="12" fill="#6DF2FF"/></svg>Forge Silicon</a><p class="tl">Vi mạch tiết kiệm năng lượng cho những cỗ máy suy nghĩ tại biên.</p></div>
+      <div><h4>Sản phẩm</h4><ul><li><a href="#parts">Halcyon H7</a></li><li><a href="#parts">Ember E2</a></li><li><a href="#parts">Lattice L40</a></li></ul></div>
+      <div><h4>Kỹ thuật</h4><ul><li><a href="#die">Khám phá đế chip</a></li><li><a href="#process">Quy trình</a></li><li><a href="#watt">Hiệu suất năng lượng</a></li></ul></div>
+      <div><h4>Công ty</h4><ul><li><a href="#top">Giới thiệu</a></li><li><a href="#contact">Chip mẫu</a></li><li><a href="#contact">Tuyển dụng</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Forge Silicon B.V.</span><span>Thiết kế concept — thương hiệu giả định.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t) }
+const hash = (n) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s) }
+$('#yr').textContent = new Date().getFullYear()
+
+/* ================= hero wafer ================= */
+const HC = 300, HR = 284, PX = 38, PY = 46
+const hDies = [], hEdge = []
+for (let gx = -8; gx < 8; gx++) for (let gy = -7; gy < 7; gy++) {
+  const x = HC + gx * PX + 2, y = HC + gy * PY + 2, w = PX - 4, h = PY - 4
+  const corners = [[x, y], [x + w, y], [x, y + h], [x + w, y + h]].map(([a, b]) => Math.hypot(a - HC, b - HC))
+  if (Math.max(...corners) < HR - 8) hDies.push({ x, y, w, h, d: Math.hypot(x + w / 2 - HC, y + h / 2 - HC) })
+  else if (Math.min(...corners) < HR) hEdge.push({ x, y, w, h })
+}
+{
+  const holes = hDies.map((d) => `<rect x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#000"/>`).join('')
+  const show = hDies.map((d) => `<rect x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#fff"/>`).join('')
+  const ink = hDies.filter((_, i) => hash(i) > .93)
+  $('#waferGrid').innerHTML = `<defs>
+    <mask id="hw-streets"><circle cx="${HC}" cy="${HC}" r="${HR + 16}" fill="#fff"/>${holes}</mask>
+    <mask id="hw-dies">${show}</mask>
+    <pattern id="hw-detail" width="${PX}" height="${PY}" patternUnits="userSpaceOnUse" x="${HC + 2}" y="${HC + 2}">
+      <rect x="3" y="3" width="13" height="13" fill="none" stroke="rgba(7,8,11,.45)" stroke-width="1"/><rect x="18" y="3" width="13" height="13" fill="none" stroke="rgba(7,8,11,.45)" stroke-width="1"/>
+      <rect x="3" y="19" width="28" height="9" fill="rgba(7,8,11,.22)"/><path d="M3 32h28M3 35h28M3 38h20" stroke="rgba(7,8,11,.3)" stroke-width="1"/>
+    </pattern>
+    <clipPath id="hw-clip"><circle cx="${HC}" cy="${HC}" r="${HR}"/></clipPath>
+  </defs>
+  <g clip-path="url(#hw-clip)"><rect width="600" height="600" fill="rgba(7,8,11,.78)" mask="url(#hw-streets)"/><rect width="600" height="600" fill="url(#hw-detail)" mask="url(#hw-dies)"/></g>
+  <g id="hwLit">${hDies.map((d) => `<rect x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" fill="#fff" opacity="0"/>`).join('')}</g>
+  <g>${ink.map((d) => `<circle class="inkdot" cx="${d.x + d.w / 2}" cy="${d.y + d.h / 2}" r="6" fill="#07080B"/>`).join('')}</g>
+  <circle cx="${HC}" cy="${HC}" r="${HR}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+  <path d="M${HC - 14} ${HC + HR - 1}a14 14 0 0 1 28 0z" fill="#07080B"/>`
+}
+const wafer = $('#wafer')
+let wa = 0, wTarget = 0, wRun = true, wRaf = 0
+function wLoop() {
+  wa += (wTarget - wa) * .06
+  if (anim) wTarget += .05
+  wafer.style.setProperty('--a', `${wa.toFixed(2)}deg`)
+  if (wRun && anim) wRaf = requestAnimationFrame(wLoop)
+}
+if (anim) {
+  new IntersectionObserver(([e]) => { wRun = e.isIntersecting; cancelAnimationFrame(wRaf); if (wRun) wRaf = requestAnimationFrame(wLoop) }).observe($('#waferWrap'))
+  if (matchMedia('(hover:hover)').matches) $('.hero').addEventListener('pointermove', (e) => {
+    const r = wafer.getBoundingClientRect()
+    const px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height
+    wafer.style.setProperty('--px', `${(px * 100).toFixed(1)}%`); wafer.style.setProperty('--py', `${(py * 100).toFixed(1)}%`)
+    wTarget = wa + (px - .5) * 40 + (py - .5) * 30
+  })
+}
+
+/* ================= counters ================= */
+function runCounters() {
+  $$('.cnt').forEach((el) => {
+    const to = +el.dataset.to, dec = +(el.dataset.dec || 0), o = { v: 0 }
+    if (!anim || !to) { el.textContent = to.toFixed(dec); return }
+    G.to(o, { v: to, duration: 1.6, ease: 'power3.out', onUpdate: () => { el.textContent = o.v.toFixed(dec) } })
+  })
+}
+
+/* ================= dicing canvas ================= */
+const cv = $('#diceCv'), ctx = cv.getContext('2d')
+const DP = 2 / 9.2, DS = DP * .88
+const dDies = []
+for (let gx = -5; gx < 5; gx++) for (let gy = -5; gy < 5; gy++) {
+  const x0 = gx * DP + (DP - DS) / 2, y0 = gy * DP + (DP - DS) / 2
+  const cs = [[x0, y0], [x0 + DS, y0], [x0, y0 + DS], [x0 + DS, y0 + DS]].map(([a, b]) => Math.hypot(a, b))
+  const full = Math.max(...cs) < .95, part = Math.min(...cs) < 1
+  if (full || part) dDies.push({ x: x0 + DS / 2, y: y0 + DS / 2, full, fail: full && hash(gx * 13 + gy * 7 + 3) > .86 })
+}
+let pickI = 0, best = 9
+dDies.forEach((d, i) => { if (d.full && !d.fail) { const q = Math.hypot(d.x - .12, d.y + .1); if (q < best) { best = q; pickI = i } } })
+let cW = 0, lastP = 0
+function sizeDice() {
+  const r = cv.getBoundingClientRect(); if (!r.width) return
+  const dpr = Math.min(2, devicePixelRatio || 1)
+  cW = r.width; cv.width = Math.round(cW * dpr); cv.height = Math.round(cW * dpr)
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); drawDice(lastP)
+}
+function drawDice(p) {
+  lastP = p
+  if (!cW) return
+  const R = cW * .4, c = cW / 2
+  const kRot = smooth(0, .14, p), scan = smooth(.12, .32, p), sawH = smooth(.36, .5, p), sawV = smooth(.5, .62, p), ex = smooth(.64, .8, p), pick = smooth(.82, .97, p)
+  ctx.clearRect(0, 0, cW, cW)
+  ctx.save(); ctx.translate(c, c)
+  // tape frame
+  ctx.strokeStyle = 'rgba(190,205,255,.22)'; ctx.lineWidth = 1
+  ctx.beginPath(); ctx.arc(0, 0, R * 1.18, 0, Math.PI * 2); ctx.stroke()
+  ctx.setLineDash([2, 6]); ctx.beginPath(); ctx.arc(0, 0, R * 1.12, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([])
+  ctx.rotate((1 - kRot) * -.6)
+  ctx.scale(R, R)
+  const lw = 1 / R
+  // wafer disc (fades as dies spread)
+  ctx.globalAlpha = 1 - ex * .85
+  ctx.fillStyle = '#0B0E14'; ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.fill()
+  ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.5 * lw; ctx.stroke()
+  ctx.globalAlpha = 1
+  const grad = ctx.createConicGradient ? ctx.createConicGradient(p * 2.4, 0, 0) : null
+  if (grad) ['#6DF2FF', '#A898FF', '#FF86D6', '#FFD27D', '#8DFFBE', '#6DF2FF'].forEach((col, i) => grad.addColorStop(i / 5, col))
+  const spread = ex * .34
+  dDies.forEach((d, i) => {
+    let x = d.x * (1 + spread), y = d.y * (1 + spread), s = DS, a = 1
+    if (!d.full) { a = (1 - ex) * .5; if (a <= .01) return }
+    if (pick > 0) {
+      if (i === pickI) { x = x + (0 - x) * pick; y = y + (0 - y) * pick; s = DS * (1 + 1.6 * pick) }
+      else a *= 1 - .82 * pick
+    }
+    ctx.globalAlpha = a
+    ctx.save()
+    if (!d.full) { ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.clip(); ctx.fillStyle = '#2A3040' } else ctx.fillStyle = grad || '#A898FF'
+    if (i === pickI && pick > 0) { ctx.shadowColor = 'rgba(109,242,255,.8)'; ctx.shadowBlur = 40 * pick }
+    ctx.fillRect(x - s / 2, y - s / 2, s, s)
+    ctx.restore()
+    if (d.full) {
+      ctx.globalAlpha = a * .5
+      ctx.strokeStyle = '#07080B'; ctx.lineWidth = lw
+      const q = s / 2
+      ctx.strokeRect(x - q * .8, y - q * .8, q * .7, q * .7); ctx.strokeRect(x + q * .1, y - q * .8, q * .7, q * .7)
+      ctx.fillStyle = 'rgba(7,8,11,.35)'; ctx.fillRect(x - q * .8, y + q * .1, q * 1.6, q * .3)
+      ctx.globalAlpha = a
+      if (d.x < -1 + 2 * scan) {
+        if (d.fail) { ctx.fillStyle = '#07080B'; ctx.beginPath(); ctx.arc(x, y, s * .16, 0, Math.PI * 2); ctx.fill() }
+        else { ctx.fillStyle = 'rgba(7,8,11,.6)'; ctx.beginPath(); ctx.arc(x + q * .65, y + q * .65, s * .05, 0, Math.PI * 2); ctx.fill() }
+      }
+    }
+  })
+  ctx.globalAlpha = 1
+  // probe scan line
+  if (scan > 0 && scan < 1) {
+    const sx = -1 + 2 * scan, hh = Math.sqrt(Math.max(0, 1 - sx * sx))
+    ctx.strokeStyle = 'rgba(141,255,190,.9)'; ctx.lineWidth = 2 * lw; ctx.shadowColor = '#8DFFBE'; ctx.shadowBlur = 14
+    ctx.beginPath(); ctx.moveTo(sx, -hh); ctx.lineTo(sx, hh); ctx.stroke(); ctx.shadowBlur = 0
+  }
+  // saw lines
+  const sawA = 1 - smooth(.62, .7, p)
+  if (sawH > 0 && sawA > 0) {
+    ctx.save(); ctx.beginPath(); ctx.arc(0, 0, 1, 0, Math.PI * 2); ctx.clip()
+    ctx.globalAlpha = sawA; ctx.strokeStyle = '#6DF2FF'; ctx.lineWidth = 1.6 * lw
+    for (let k = -4; k <= 4; k++) {
+      const yy = k * DP, len = -1.05 + 2.1 * clamp(sawH * 1.25 - (k + 4) * .028)
+      ctx.beginPath(); ctx.moveTo(-1.05, yy); ctx.lineTo(len, yy); ctx.stroke()
+    }
+    for (let k = -4; k <= 4; k++) {
+      const xx = k * DP, len = -1.05 + 2.1 * clamp(sawV * 1.25 - (k + 4) * .028)
+      if (sawV > 0) { ctx.beginPath(); ctx.moveTo(xx, -1.05); ctx.lineTo(xx, len); ctx.stroke() }
+    }
+    if (sawH < 1 || (sawV > 0 && sawV < 1)) {
+      const hx = sawV > 0 ? 4 * DP * (sawV * 2 - 1) : -1.05 + 2.1 * sawH, hy = sawV > 0 ? -1.05 + 2.1 * sawV : 0
+      ctx.fillStyle = '#fff'; ctx.shadowColor = '#6DF2FF'; ctx.shadowBlur = 24
+      ctx.beginPath(); ctx.arc(hx, hy, .022, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0
+    }
+    ctx.restore()
+  }
+  ctx.restore()
+  // package outline when picked
+  if (pick > .02) {
+    const s = DS * (1 + 1.6 * pick) * R * 1.55
+    ctx.save(); ctx.translate(c, c); ctx.globalAlpha = pick
+    ctx.strokeStyle = 'rgba(233,236,242,.55)'; ctx.lineWidth = 1; ctx.setLineDash([4, 5])
+    ctx.strokeRect(-s / 2, -s / 2, s, s); ctx.setLineDash([])
+    ctx.fillStyle = 'rgba(233,236,242,.75)'; ctx.font = `600 ${Math.max(10, cW * .022)}px "IBM Plex Mono", monospace`; ctx.textAlign = 'center'
+    ctx.fillText('HALCYON H7 · 15 × 15 MM FCBGA', 0, s / 2 + cW * .05)
+    ctx.restore()
+  }
+}
+const stageNo = $('#dStage')
+function stageOf(p) { return p < .12 ? 0 : p < .34 ? 1 : p < .63 ? 2 : p < .81 ? 3 : 4 }
+addEventListener('resize', () => sizeDice())
+
+/* ================= die explorer ================= */
+const BLOCKS = [
+  { k: 'pcore', n: 'Nhân hiệu năng cao Anvil', t: 'Tính toán', x: 60, y: 60, w: 310, h: 270, c: '#6DF2FF', tex: 'logic', specs: [['Số nhân', '4 × Anvil, thực thi loạn thứ tự'], ['Xung nhịp', 'lên đến 3.4 GHz'], ['Bộ nhớ đệm L2', '2 MB mỗi nhân'], ['Vector', '2 × 256-bit SIMD']], note: 'Băng thông rộng, đường ống sâu và được tinh chỉnh để chuyển sang chế độ ngủ trong 40 µs ngay khi hoàn tất tác vụ.' },
+  { k: 'ecore', n: 'Nhân tiết kiệm điện Spark', t: 'Tính toán', x: 384, y: 60, w: 210, h: 130, c: '#8DFFBE', tex: 'logic', specs: [['Số nhân', '8 × Spark, thực thi tuần tự'], ['Xung nhịp', 'lên đến 2.1 GHz'], ['Bộ nhớ đệm L2', '4 MB dùng chung'], ['Mức nghỉ', '0.9 mW mỗi nhân']], note: 'Nơi tạo nên thời lượng hoạt động cả ngày: các tác vụ nền không bao giờ làm thức giấc cụm nhân lớn.' },
+  { k: 'cache', n: 'Bộ nhớ đệm toàn hệ thống', t: 'Bộ nhớ', x: 384, y: 200, w: 210, h: 130, c: '#A898FF', tex: 'sram', specs: [['Dung lượng', '24 MB'], ['Băng thông', '1.2 TB/s'], ['Số luồng', '16 luồng, có thể phân vùng'], ['Duy trì dữ liệu', 'Chế độ ngủ nhẹ 0.6 V']], note: 'Các dãy SRAM mật độ cao. Những đường sọc mảnh trên sơ đồ chính là các hàng ô nhớ bit.' },
+  { k: 'npu', n: 'Nhân thần kinh Lattice', t: 'Trí tuệ nhân tạo', x: 608, y: 60, w: 332, h: 270, c: '#FF86D6', tex: 'mac', specs: [['Thông lượng', '48 TOPS INT8'], ['Mảng MAC', '16 khối × 2.048'], ['Định dạng', 'INT4 · INT8 · FP8 · BF16'], ['Hiệu suất', '11 TOPS/W']], note: 'Mười sáu khối tính toán giữ trọng số ngay trên chip, giúp các mô hình ngôn ngữ nhỏ hầu như không cần gọi tới DRAM.' },
+  { k: 'gpu', n: 'Đồ họa Prism', t: 'Đồ họa', x: 60, y: 344, w: 360, h: 176, c: '#FFD27D', tex: 'logic2', specs: [['Cụm xử lý', '6'], ['Số ALU', '768'], ['Đỉnh tính toán', '2.4 TFLOPS FP32'], ['API hỗ trợ', 'Vulkan 1.3 · OpenCL 3.0']], note: 'Được thiết kế vừa vặn cho bảng điều khiển, robot và dựng bản đồ, thay vì chạy đua điểm chuẩn.' },
+  { k: 'isp', n: 'Bộ xử lý tín hiệu hình ảnh', t: 'Thị giác máy', x: 434, y: 344, w: 160, h: 86, c: '#6DF2FF', tex: 'logic', specs: [['Camera', '6 luồng đồng thời'], ['Thông lượng', '2.5 Gpixel/s'], ['Dải tương phản HDR', '3 mức phơi sáng, 24-bit'], ['Độ trễ', 'dưới một khung hình']], note: 'Truyền dữ liệu trực tiếp sang nhân xử lý thần kinh để khung hình không phải đi vòng qua bộ nhớ chính.' },
+  { k: 'sec', n: 'Vùng bảo mật biệt lập', t: 'Bảo mật', x: 434, y: 440, w: 76, h: 80, c: '#8DFFBE', tex: 'sram', specs: [['Gốc tin cậy', 'ROM khởi động bất biến'], ['Mã hóa', 'AES-256 · SHA-3 · ML-KEM'], ['Khóa bảo mật', 'PUF riêng từng thiết bị'], ['Cô lập phần cứng', 'Nhân và SRAM độc lập']], note: 'Được thiết kế nhỏ gọn có chủ đích. Càng ít thành phần dư thừa thì bề mặt tấn công càng hẹp.' },
+  { k: 'pmu', n: 'Quản lý nguồn và xung nhịp', t: 'Hạ tầng', x: 518, y: 440, w: 76, h: 80, c: '#FFD27D', tex: 'phy', specs: [['Miền nguồn', '31 ốc đảo nguồn'], ['Bộ khóa pha PLL', '6 bộ, phân số-N'], ['DVFS', '12 điểm vận hành'], ['Thời gian chuyển', 'dưới 2 µs']], note: 'Ba mươi mốt ốc đảo nguồn có thể tắt độc lập. Trong phần lớn thời gian, hầu hết chúng đều ngủ.' },
+  { k: 'media', n: 'Bộ xử lý đa phương tiện', t: 'Video', x: 608, y: 344, w: 152, h: 176, c: '#A898FF', tex: 'logic2', specs: [['Mã hóa', '8K30 AV1 · HEVC'], ['Giải mã', '8K60 AV1 · HEVC'], ['Số luồng', '16 × 1080p30'], ['Công suất', 'dưới 400 mW ở 4K']], note: 'Giải mã bằng phần cứng chuyên dụng, bởi xử lý video bằng phần mềm chính là kẻ rút cạn pin nhanh nhất.' },
+  { k: 'disp', n: 'Đường ống hiển thị', t: 'Video', x: 774, y: 344, w: 166, h: 86, c: '#FF86D6', tex: 'logic', specs: [['Ngõ ra', '3 màn hình độc lập'], ['Độ phân giải tối đa', '8K60 hoặc 3 × 4K60'], ['Giao tiếp', 'DP 2.1 · MIPI DSI-2'], ['Nén hình ảnh', 'DSC 1.2a']], note: 'Ba màn hình độc lập trên một đường truyền tĩnh lặng.' },
+  { k: 'fabric', n: 'Mạng liên kết đồng bộ', t: 'Hạ tầng', x: 774, y: 440, w: 166, h: 80, c: '#6DF2FF', tex: 'phy', specs: [['Cấu trúc mạng', 'Lưới 2D, 12 trạm'], ['Băng thông cắt ngang', '640 GB/s'], ['Đồng bộ dữ liệu', 'Dựa trên thư mục'], ['Phân luồng QoS', '8 cấp ưu tiên']], note: 'Hệ thống đại lộ nối liền các thành phố trên chip. Mọi khối chức năng đều giao tiếp qua đây.' },
+  { k: 'mem', n: 'Bộ điều khiển LPDDR5X', t: 'Vào/Ra', x: 60, y: 534, w: 534, h: 86, c: '#A898FF', tex: 'phy', specs: [['Số kênh', '4 × 32-bit'], ['Tốc độ', '8.533 MT/s'], ['Băng thông', '136 GB/s'], ['Dung lượng hỗ trợ', 'lên đến 64 GB']], note: 'Dải mạch dài nằm sát mép đế: các khối PHY đặt ngay vị trí của hàng bi hàn.' },
+  { k: 'io', n: 'Giao tiếp tốc độ cao', t: 'Vào/Ra', x: 608, y: 534, w: 332, h: 86, c: '#FFD27D', tex: 'phy', specs: [['PCIe', 'Gen 5 × 8'], ['USB', '2 × USB4, 40 Gbps'], ['Camera', '6 × MIPI CSI-2'], ['Ethernet', '2 × 10 GbE']], note: 'Các làn truyền SerDes được bố trí thủ công dọc rìa đế chip để rút ngắn tối đa đường đi tín hiệu.' },
+]
+const DIE_AREA = 1000 * 680
+function blockDetail(b) {
+  let s = ''
+  if (b.k === 'pcore') for (let i = 0; i < 4; i++) { const cx = b.x + 8 + (i % 2) * 150, cy = b.y + 8 + Math.floor(i / 2) * 130; s += `<rect x="${cx}" y="${cy}" width="144" height="124" fill="none" stroke="${b.c}" stroke-opacity=".55"/><rect x="${cx + 96}" y="${cy + 8}" width="40" height="108" fill="url(#dx-sram)"/><rect x="${cx + 10}" y="${cy + 10}" width="38" height="38" fill="${b.c}" fill-opacity=".18"/>` }
+  if (b.k === 'ecore') for (let i = 0; i < 8; i++) { const cx = b.x + 8 + (i % 4) * 49, cy = b.y + 8 + Math.floor(i / 4) * 58; s += `<rect x="${cx}" y="${cy}" width="45" height="54" fill="none" stroke="${b.c}" stroke-opacity=".55"/>` }
+  if (b.k === 'npu') for (let i = 0; i < 16; i++) { const cx = b.x + 10 + (i % 4) * 79, cy = b.y + 10 + Math.floor(i / 4) * 63; s += `<rect x="${cx}" y="${cy}" width="73" height="57" fill="none" stroke="${b.c}" stroke-opacity=".5"/><rect x="${cx + 6}" y="${cy + 6}" width="22" height="45" fill="url(#dx-sram)"/>` }
+  if (b.k === 'gpu') for (let i = 0; i < 6; i++) { const cx = b.x + 10 + (i % 3) * 116, cy = b.y + 10 + Math.floor(i / 3) * 80; s += `<rect x="${cx}" y="${cy}" width="110" height="74" fill="none" stroke="${b.c}" stroke-opacity=".5"/>` }
+  if (b.k === 'cache') for (let i = 0; i < 4; i++) s += `<rect x="${b.x + 8 + (i % 2) * 100}" y="${b.y + 8 + Math.floor(i / 2) * 60}" width="94" height="54" fill="none" stroke="${b.c}" stroke-opacity=".5"/>`
+  return s
+}
+const TEXFILL = { logic: 'url(#dx-logic)', logic2: 'url(#dx-logic2)', sram: 'url(#dx-sram)', mac: 'url(#dx-mac)', phy: 'url(#dx-phy)' }
+{
+  let pads = ''
+  for (let x = 40; x <= 960; x += 20) pads += `<rect x="${x - 4}" y="22" width="8" height="8"/><rect x="${x - 4}" y="650" width="8" height="8"/>`
+  for (let y = 50; y <= 630; y += 20) pads += `<rect x="22" y="${y - 4}" width="8" height="8"/><rect x="970" y="${y - 4}" width="8" height="8"/>`
+  $('#dxSvg').innerHTML = `<defs>
+    <pattern id="dx-logic" width="18" height="10" patternUnits="userSpaceOnUse"><rect width="18" height="10" fill="rgba(233,236,242,.03)"/><rect x="1" y="1" width="6" height="3.4" fill="rgba(233,236,242,.13)"/><rect x="9" y="1" width="8" height="3.4" fill="rgba(233,236,242,.08)"/><rect x="1" y="6" width="10" height="3" fill="rgba(233,236,242,.1)"/><rect x="13" y="6" width="4" height="3" fill="rgba(233,236,242,.14)"/></pattern>
+    <pattern id="dx-logic2" width="14" height="14" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="5" height="5" fill="rgba(233,236,242,.12)"/><rect x="8" y="1" width="5" height="12" fill="rgba(233,236,242,.06)"/><rect x="1" y="8" width="5" height="5" fill="rgba(233,236,242,.09)"/></pattern>
+    <pattern id="dx-sram" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1.6" fill="rgba(233,236,242,.2)"/></pattern>
+    <pattern id="dx-mac" width="12" height="12" patternUnits="userSpaceOnUse"><rect x="1" y="1" width="10" height="10" fill="none" stroke="rgba(233,236,242,.14)" stroke-width="1"/><circle cx="6" cy="6" r="1.4" fill="rgba(233,236,242,.2)"/></pattern>
+    <pattern id="dx-phy" width="10" height="20" patternUnits="userSpaceOnUse"><rect x="1" width="3" height="20" fill="rgba(233,236,242,.16)"/><rect x="6" y="4" width="2" height="12" fill="rgba(233,236,242,.08)"/></pattern>
+  </defs>
+  <g id="dxView">
+    <rect x="0" y="0" width="1000" height="680" fill="#0A0C12"/>
+    <rect x="12" y="12" width="976" height="656" fill="none" stroke="rgba(190,205,255,.35)" stroke-width="3"/>
+    <rect x="44" y="44" width="912" height="592" fill="#0D1017" stroke="rgba(190,205,255,.12)"/>
+    <g fill="rgba(255,210,125,.55)">${pads}</g>
+    ${BLOCKS.map((b) => `<g class="blk" data-k="${b.k}" role="button" tabindex="0" aria-label="${b.n}, ${b.t}. ${(b.w * b.h / 10000).toFixed(2)} milimét vuông">
+      <rect class="b" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="${b.c}" fill-opacity=".1" stroke="${b.c}" stroke-opacity=".75" stroke-width="1.5"/>
+      <g class="tx"><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="${TEXFILL[b.tex]}"/>${blockDetail(b)}</g>
+      <text class="lab" x="${b.x + 10}" y="${b.y + b.h - 10}">${b.w > 150 ? b.n.split(' ').slice(0, b.w > 300 ? 3 : 2).join(' ') : b.k.toUpperCase()}</text>
+    </g>`).join('')}
+    <text x="60" y="41" font-family="IBM Plex Mono, monospace" font-size="11" fill="rgba(190,205,255,.45)">FS-H7 REV B0 © FORGE</text>
+  </g>`
+  $('#dxMini').innerHTML = `<rect width="1000" height="680" fill="#0A0C12"/>${BLOCKS.map((b) => `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="${b.c}" fill-opacity=".35"/>`).join('')}<rect id="dxMiniView" x="0" y="0" width="1000" height="680" fill="none" stroke="#fff" stroke-width="24"/>`
+  $('#dxChips').innerHTML = BLOCKS.map((b) => `<button type="button" data-k="${b.k}" aria-pressed="false" style="--c:${b.c}"><i aria-hidden="true"></i>${b.n}</button>`).join('')
+}
+const stage = $('#dxStage'), dxSvg = $('#dxSvg'), dxView = $('#dxView')
+const v = { s: 1, x: 0, y: 0 }
+let vTw = null, sel = null
+function clampView(t) { t.s = clamp(t.s, 1, 6); t.x = clamp(t.x, 1000 - 1000 * t.s, 0); t.y = clamp(t.y, 680 - 680 * t.s, 0); return t }
+function applyView() {
+  dxView.setAttribute('transform', `translate(${v.x.toFixed(2)} ${v.y.toFixed(2)}) scale(${v.s.toFixed(4)})`)
+  const mv = $('#dxMiniView'); mv.setAttribute('x', -v.x / v.s); mv.setAttribute('y', -v.y / v.s); mv.setAttribute('width', 1000 / v.s); mv.setAttribute('height', 680 / v.s)
+  stage.classList.toggle('zoomed', v.s > 1.01)
+  $('#zOut').disabled = $('#zReset').disabled = v.s <= 1.01
+  $('#zIn').disabled = v.s >= 5.99
+  hud()
+}
+let hp = { x: 500, y: 340 }
+function hud() { $('#dxHud').textContent = `X ${String(Math.round((hp.x - v.x) / v.s * 10)).padStart(4, '0')} µm · Y ${String(Math.round((hp.y - v.y) / v.s * 10)).padStart(4, '0')} µm · ${v.s.toFixed(1)}×` }
+function setView(t, instant) {
+  clampView(t)
+  if (vTw) vTw.kill()
+  if (!anim || instant) { Object.assign(v, t); applyView(); return }
+  vTw = G.to(v, { ...t, duration: .9, ease: 'power3.inOut', onUpdate: applyView })
+}
+function zoomAt(f, cx = 500, cy = 340) { const s = clamp(v.s * f, 1, 6), k = s / v.s; setView({ s, x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k }) }
+function zoomTo(b) { const s = clamp(Math.min(1000 / b.w, 680 / b.h) * .72, 1.4, 5); setView({ s, x: 500 - (b.x + b.w / 2) * s, y: 340 - (b.y + b.h / 2) * s }) }
+function select(k) {
+  const b = BLOCKS.find((q) => q.k === k); if (!b) return
+  sel = k
+  stage.classList.add('has-sel')
+  $$('.blk', dxSvg).forEach((g) => g.classList.toggle('on', g.dataset.k === k))
+  $$('#dxChips button').forEach((x) => x.setAttribute('aria-pressed', x.dataset.k === k))
+  const area = b.w * b.h, pct = area / DIE_AREA * 100
+  $('#pTag').textContent = b.t; $('#pTag').style.background = b.c
+  $('#pName').textContent = b.n
+  $('#pArea').textContent = `${(area / 10000).toFixed(2)} mm² · ${pct.toFixed(1)}% diện tích đế chip`
+  $('#pShare').style.width = `${Math.min(100, pct * 4).toFixed(1)}%`
+  $('#pSpecs').innerHTML = b.specs.map(([a, c]) => `<dt>${a}</dt><dd>${c}</dd>`).join('')
+  $('#pNote').textContent = b.note
+  if (anim) G.fromTo('#dxPanel > *', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: .45, stagger: .03, ease: 'power2.out', overwrite: true })
+}
+select('pcore')
+stage.classList.remove('has-sel'); $$('.blk', dxSvg).forEach((g) => g.classList.remove('on'))
+// pointer: hover previews, click zooms, drag pans, two fingers pinch
+const pts = new Map()
+let moved = false, last = null, pinch0 = null
+const toVB = (e) => { const r = dxSvg.getBoundingClientRect(); return { x: (e.clientX - r.left) * 1000 / r.width, y: (e.clientY - r.top) * 680 / r.height, k: 1000 / r.width } }
+stage.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('.dx-tools')) return
+  pts.set(e.pointerId, toVB(e)); moved = false; last = toVB(e)
+  if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch0 = { d: Math.hypot(a.x - b.x, a.y - b.y), s: v.s } }
+})
+stage.addEventListener('pointermove', (e) => {
+  const p = toVB(e)
+  hp = p; hud()
+  if (!pts.has(e.pointerId)) {
+    if (e.pointerType === 'mouse' && !pts.size) { const g = e.target.closest('.blk'); if (g && g.dataset.k !== sel) select(g.dataset.k) }
+    return
+  }
+  pts.set(e.pointerId, p)
+  if (pts.size === 2 && pinch0) {
+    const [a, b] = [...pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2
+    const s = clamp(pinch0.s * d / Math.max(10, pinch0.d), 1, 6), k = s / v.s
+    if (vTw) vTw.kill()
+    Object.assign(v, clampView({ s, x: mx - (mx - v.x) * k, y: my - (my - v.y) * k })); applyView(); moved = true
+    return
+  }
+  if (v.s <= 1.01) return
+  const dx = p.x - last.x, dy = p.y - last.y
+  if (!moved && Math.hypot(dx, dy) < 6) return
+  if (!moved) { moved = true; stage.setPointerCapture(e.pointerId); stage.classList.add('grabbing') }
+  last = p
+  if (vTw) vTw.kill()
+  Object.assign(v, clampView({ s: v.s, x: v.x + dx, y: v.y + dy })); applyView()
+})
+const endPtr = (e) => { pts.delete(e.pointerId); if (pts.size < 2) pinch0 = null; stage.classList.remove('grabbing') }
+stage.addEventListener('pointerup', endPtr); stage.addEventListener('pointercancel', endPtr)
+stage.addEventListener('click', (e) => {
+  if (moved) { moved = false; return }
+  const g = e.target.closest('.blk'); if (!g) return
+  select(g.dataset.k); zoomTo(BLOCKS.find((b) => b.k === g.dataset.k))
+})
+stage.addEventListener('wheel', (e) => {
+  if (!e.ctrlKey && !e.metaKey) return
+  e.preventDefault(); const p = toVB(e); zoomAt(e.deltaY < 0 ? 1.25 : .8, p.x, p.y)
+}, { passive: false })
+stage.addEventListener('focusin', (e) => { const g = e.target.closest && e.target.closest('.blk'); if (g) select(g.dataset.k) })
+stage.addEventListener('keydown', (e) => {
+  const g = e.target.closest('.blk')
+  if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); select(g.dataset.k); zoomTo(BLOCKS.find((b) => b.k === g.dataset.k)); return }
+  const step = 80
+  const map = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }
+  if (map[e.key]) { if (v.s <= 1.01) return; e.preventDefault(); setView({ s: v.s, x: v.x + map[e.key][0], y: v.y + map[e.key][1] }) }
+  else if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomAt(1.5) }
+  else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomAt(1 / 1.5) }
+  else if (e.key === 'Escape' || e.key === '0') { if (v.s > 1.01) { e.preventDefault(); setView({ s: 1, x: 0, y: 0 }) } }
+})
+$('#zIn').addEventListener('click', () => { if (sel && v.s <= 1.01) zoomTo(BLOCKS.find((b) => b.k === sel)); else zoomAt(1.5) })
+$('#zOut').addEventListener('click', () => zoomAt(1 / 1.6))
+$('#zReset').addEventListener('click', () => setView({ s: 1, x: 0, y: 0 }))
+$('#dxChips').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; select(b.dataset.k); zoomTo(BLOCKS.find((q) => q.k === b.dataset.k)) })
+applyView()
+
+/* ================= parts ================= */
+const now = new Date()
+const qOf = (d) => `Q${Math.floor(d.getMonth() / 3) + 1} ${d.getFullYear()}`
+const nextQ = new Date(now.getFullYear(), now.getMonth() + 3, 1)
+function pkgSVG(kind, c) {
+  if (kind === 'bga') { let s = ''; for (let i = 0; i < 13; i++) for (let j = 0; j < 13; j++) s += `<circle cx="${42 + i * 13}" cy="${42 + j * 13}" r="4" fill="rgba(233,236,242,${(i + j) % 5 ? .28 : .5})"/>`; return `<svg class="pkg" viewBox="0 0 240 240" aria-hidden="true"><rect x="22" y="22" width="196" height="196" rx="6" fill="#10141C" stroke="rgba(190,205,255,.35)"/>${s}<rect x="78" y="78" width="84" height="84" rx="2" fill="${c}" fill-opacity=".9"/><rect x="78" y="78" width="84" height="84" rx="2" fill="url(#dx-logic)"/><circle cx="36" cy="36" r="5" fill="${c}"/></svg>` }
+  if (kind === 'qfn') { let s = ''; for (let i = 0; i < 8; i++) s += `<rect x="${66 + i * 15}" y="40" width="8" height="16" fill="rgba(233,236,242,.45)"/><rect x="${66 + i * 15}" y="184" width="8" height="16" fill="rgba(233,236,242,.45)"/><rect x="40" y="${66 + i * 15}" width="16" height="8" fill="rgba(233,236,242,.45)"/><rect x="184" y="${66 + i * 15}" width="16" height="8" fill="rgba(233,236,242,.45)"/>`; return `<svg class="pkg" viewBox="0 0 240 240" aria-hidden="true"><rect x="52" y="52" width="136" height="136" rx="8" fill="#10141C" stroke="rgba(190,205,255,.35)"/>${s}<rect x="88" y="88" width="64" height="64" fill="${c}" fill-opacity=".9"/><rect x="88" y="88" width="64" height="64" fill="url(#dx-sram)"/><circle cx="66" cy="66" r="4" fill="${c}"/></svg>` }
+  let s = ''; for (let i = 0; i < 4; i++) s += `<rect x="${44 + (i % 2) * 58}" y="${58 + Math.floor(i / 2) * 64}" width="52" height="58" rx="2" fill="${c}" fill-opacity=".85"/><rect x="${44 + (i % 2) * 58}" y="${58 + Math.floor(i / 2) * 64}" width="52" height="58" fill="url(#dx-mac)"/>`
+  return `<svg class="pkg" viewBox="0 0 240 240" aria-hidden="true"><rect x="16" y="30" width="208" height="180" rx="6" fill="#10141C" stroke="rgba(190,205,255,.35)"/><rect x="30" y="44" width="180" height="152" fill="none" stroke="rgba(190,205,255,.2)" stroke-dasharray="3 4"/>${s}<rect x="166" y="58" width="34" height="58" rx="2" fill="#A898FF" fill-opacity=".7"/><rect x="166" y="122" width="34" height="58" rx="2" fill="#A898FF" fill-opacity=".7"/><rect x="166" y="58" width="34" height="122" fill="url(#dx-sram)"/></svg>`
+}
+const PARTS = [
+  { n: 'Halcyon H7', c: '#8DFFBE', st: 'Đang gửi mẫu thử', what: 'Vi mạch hệ thống (SoC) AI tại biên cho robot, camera thông minh và khoang lái ô tô.', pkg: 'bga', rows: [['Tiến trình', 'FinFET lớp 3 nm'], ['CPU', '4 Anvil + 8 Spark'], ['Nhân thần kinh', '48 TOPS INT8'], ['Công suất điển hình', '6 W'], ['Đóng gói', '15 × 15 mm FCBGA']] },
+  { n: 'Ember E2', c: '#FFD27D', st: 'Đang sản xuất hàng loạt', what: 'Vi điều khiển luôn bật tích hợp nhân thần kinh siêu nhỏ, dành cho cảm biến chạy bằng pin cúc áo suốt nhiều năm.', pkg: 'qfn', rows: [['Tiến trình', '22 nm FD-SOI'], ['CPU', '1 Spark-M ở 200 MHz'], ['Nhân thần kinh', '0.5 TOPS'], ['Dòng điện khi ngủ', '0.8 µA'], ['Đóng gói', '4 × 4 mm QFN-32']] },
+  { n: 'Lattice L40', c: '#FF86D6', st: `Tape-out ${qOf(nextQ)}`, what: 'Bộ tăng tốc suy luận đa chiplet cho máy chủ nội bộ: bốn đế tính toán và bộ nhớ xếp chồng trên cùng một đế trung gian.', pkg: 'chiplet', rows: [['Tiến trình', 'Tính toán 3 nm, I/O 6 nm'], ['Cấu trúc tính toán', '4 chiplet × 16 khối'], ['Thông lượng', '400 TOPS INT8'], ['Bộ nhớ', '96 GB HBM3E'], ['Công suất bo mạch', '75 W, tản nhiệt thụ động']] },
+]
+$('#partList').innerHTML = PARTS.map((p) => `<article class="part reveal" style="--c:${p.c}">
+  <div><p class="st">${p.st}</p><h3>${p.n}</h3><p class="what">${p.what}</p></div>
+  <table><caption class="sr">Thông số kỹ thuật ${p.n}</caption><tbody>${p.rows.map(([a, b]) => `<tr><th scope="row">${a}</th><td>${b}</td></tr>`).join('')}</tbody></table>
+  ${pkgSVG(p.pkg, p.c)}
+</article>`).join('')
+
+/* ================= chart ================= */
+{
+  const X0 = 60, Y0 = 370, XW = 540, YH = 320
+  const f1 = (w) => 1 - Math.exp(-w / 5.2), f2 = (w) => .82 * (1 - Math.exp(-w / 8.5))
+  const pts1 = [], pts2 = []
+  for (let i = 0; i <= 40; i++) { const w = i * .5; pts1.push([X0 + w / 20 * XW, Y0 - f1(w) * YH]); pts2.push([X0 + w / 20 * XW, Y0 - f2(w) * YH]) }
+  const d = (pp) => 'M' + pp.map(([a, b]) => `${a.toFixed(1)} ${b.toFixed(1)}`).join('L')
+  let grid = ''
+  for (let i = 0; i <= 4; i++) { const y = Y0 - i * YH / 4; grid += `<line x1="${X0}" x2="${X0 + XW}" y1="${y}" y2="${y}" stroke="rgba(190,205,255,.1)"/>` }
+  for (let w = 0; w <= 20; w += 5) { const x = X0 + w / 20 * XW; grid += `<line x1="${x}" x2="${x}" y1="${Y0}" y2="${Y0 + 6}" stroke="rgba(190,205,255,.4)"/><text class="ax" x="${x}" y="${Y0 + 24}" text-anchor="middle">${w} W</text>` }
+  const p6 = [X0 + 6 / 20 * XW, Y0 - f1(6) * YH], q6 = [X0 + 6 / 20 * XW, Y0 - f2(6) * YH]
+  $('#chart').insertAdjacentHTML('beforeend', `<defs><linearGradient id="ch-foil" x1="0" x2="1"><stop offset="0" stop-color="#6DF2FF"/><stop offset=".5" stop-color="#FF86D6"/><stop offset="1" stop-color="#FFD27D"/></linearGradient><linearGradient id="ch-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#FF86D6" stop-opacity=".25"/><stop offset="1" stop-color="#FF86D6" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<line x1="${X0}" x2="${X0}" y1="${Y0 - YH}" y2="${Y0}" stroke="rgba(190,205,255,.4)"/><line x1="${X0}" x2="${X0 + XW}" y1="${Y0}" y2="${Y0}" stroke="rgba(190,205,255,.4)"/>
+    <text class="ax" x="${X0 - 10}" y="${Y0 - YH + 4}" text-anchor="end">h.năng</text>
+    <path id="chFill" d="${d(pts1)}L${X0 + XW} ${Y0}L${X0} ${Y0}Z" fill="url(#ch-fill)"/>
+    <path id="chB" d="${d(pts2)}" fill="none" stroke="rgba(190,205,255,.55)" stroke-width="2" stroke-dasharray="5 6"/>
+    <path id="chA" d="${d(pts1)}" fill="none" stroke="url(#ch-foil)" stroke-width="3.5" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/>
+    <line x1="${p6[0]}" x2="${p6[0]}" y1="${p6[1]}" y2="${q6[1]}" stroke="#fff" stroke-width="1.5" class="chMark"/>
+    <circle cx="${p6[0]}" cy="${p6[1]}" r="6" fill="#FF86D6" class="chMark"/><circle cx="${q6[0]}" cy="${q6[1]}" r="4.5" fill="#9AA3B4" class="chMark"/>
+    <text class="lg chMark" x="${p6[0] + 12}" y="${(p6[1] + q6[1]) / 2 + 4}" fill="#E9ECF2">+38% ở mức 6 W</text>
+    <g class="lg"><rect x="${X0 + 300}" y="${Y0 - 92}" width="22" height="4" fill="url(#ch-foil)"/><text x="${X0 + 330}" y="${Y0 - 86}" fill="#E9ECF2">Halcyon H7</text><rect x="${X0 + 300}" y="${Y0 - 66}" width="22" height="2" fill="#9AA3B4"/><text x="${X0 + 330}" y="${Y0 - 60}" fill="#9AA3B4">SoC di động điển hình</text></g>`)
+}
+
+/* ================= nav, menu, form ================= */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+$('#cForm').addEventListener('submit', (e) => {
+  e.preventDefault()
+  const val = $('#cEmail').value.trim(), ok = $('#cOk')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) { ok.textContent = 'Địa chỉ email chưa hợp lệ. Vui lòng kiểm tra lại.'; ok.classList.add('err'); return }
+  const ship = new Date(); ship.setDate(ship.getDate() + 21)
+  const use = $('#cUse').selectedOptions[0].textContent.toLowerCase()
+  ok.classList.remove('err')
+  ok.textContent = `Đã ghi nhận. Kỹ sư ứng dụng mảng ${use} sẽ liên hệ trong vòng hai ngày; bộ kit dự kiến gửi trước ${ship.toLocaleDateString('vi-VN', { day: 'numeric', month: 'long' })}.`
+})
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .09 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t, { offset: 0 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .2}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .3}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+sizeDice()
+if (!anim) {
+  drawDice(1); stageNo.textContent = '05'
+  if ('ResizeObserver' in window) new ResizeObserver(() => sizeDice()).observe(cv)
+  return
+}
+
+/* ================= motion ================= */
+G.set('.hero h1 .mask>span', { yPercent: 112 })
+G.set('.hf', { autoAlpha: 0, y: 18 })
+G.set('#wafer', { scale: .82, rotation: -40, autoAlpha: 0 })
+G.set('.wafer-ring', { autoAlpha: 0, rotation: 30 })
+G.set('.callout', { autoAlpha: 0, x: (i) => (i ? -20 : 20) })
+G.set('.inkdot', { scale: 0, transformOrigin: 'center', transformBox: 'fill-box' })
+const lit = $$('#hwLit rect')
+const order = lit.map((r, i) => ({ r, d: hDies[i].d + hash(i) * 60 })).sort((a, b) => a.d - b.d).map((o) => o.r)
+G.timeline({ delay: .1 })
+  .to('#wafer', { scale: 1, rotation: 0, autoAlpha: 1, duration: 1.6, ease: 'expo.out' }, 0)
+  .to('.wafer-ring', { autoAlpha: 1, rotation: 0, duration: 1.8, ease: 'expo.out' }, .1)
+  .to('.hero h1 .mask>span', { yPercent: 0, duration: 1.1, stagger: .1, ease: 'expo.out' }, .15)
+  .to(order, { keyframes: [{ opacity: .75, duration: .08 }, { opacity: 0, duration: .5 }], stagger: { each: .006 } }, .5)
+  .to('.inkdot', { scale: 1, duration: .3, stagger: .08, ease: 'back.out(3)' }, 1.4)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .8, stagger: .08, ease: 'power3.out' }, .5)
+  .to('.callout', { autoAlpha: 1, x: 0, duration: .8, stagger: .15, ease: 'power3.out' }, 1.2)
+wRaf = requestAnimationFrame(wLoop)
+G.to('#waferWrap', { yPercent: 12, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 112 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, duration: 1.1, stagger: .1, ease: 'expo.out' }) })
+})
+G.set('.reveal', { autoAlpha: 0, y: 34 })
+ScrollTrigger.batch('.reveal', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: 1, stagger: .08, ease: 'expo.out', clearProps: 'transform' }) })
+$$('.cnt').forEach((el) => { el.textContent = '0' })
+ScrollTrigger.create({ trigger: '.nums', start: 'top 85%', once: true, onEnter: runCounters })
+
+// chart line draws with scroll (continuous)
+G.set('#chA', { attr: { 'stroke-dashoffset': 1 } }); G.set('#chFill', { opacity: 0 }); G.set('.chMark', { opacity: 0 })
+G.timeline({ scrollTrigger: { trigger: '.chart', start: 'top 80%', end: 'center 50%', scrub: true } })
+  .to('#chA', { attr: { 'stroke-dashoffset': 0 }, ease: 'none', duration: 1 }, 0)
+  .to('#chFill', { opacity: 1, duration: .4 }, .6)
+  .to('.chMark', { opacity: 1, duration: .2 }, .8)
+
+// pinned dicing: canvas scrubs, copy swaps on the clock
+const dsteps = $$('.dstep'), dbars = $$('.dbar b')
+let curS = -1, sTw = []
+function setStep(i) {
+  if (i === curS) return
+  const prev = curS; curS = i
+  stageNo.textContent = String(i + 1).padStart(2, '0')
+  sTw.forEach((t) => t.kill()); sTw = []
+  dsteps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) sTw.push(G.to(dsteps[prev], { autoAlpha: 0, y: -14, duration: .3, ease: 'power2.in' }))
+  sTw.push(G.fromTo(dsteps[i], { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: .7, delay: prev >= 0 ? .2 : 0, ease: 'power3.out' }))
+}
+const SEG = [0, .12, .34, .63, .81, 1]
+G.set(dsteps, { autoAlpha: 0 })
+drawDice(0); setStep(0)
+ScrollTrigger.create({
+  trigger: '.dice', start: 'top top', end: '+=320%', pin: '#dicePin', scrub: true,
+  onUpdate(self) {
+    const p = self.progress
+    drawDice(p); setStep(stageOf(p))
+    dbars.forEach((b, i) => { b.style.transform = `scaleX(${clamp((p - SEG[i]) / (SEG[i + 1] - SEG[i])).toFixed(3)})` })
+  },
+  onRefresh() { sizeDice() },
+})
+addEventListener('load', () => { ScrollTrigger.refresh(); sizeDice() })
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

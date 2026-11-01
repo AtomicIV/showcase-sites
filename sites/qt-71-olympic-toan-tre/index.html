@@ -1,0 +1,1622 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chấm điểm — Olympic Toán Trẻ</title>
+<meta name="description" content="Olympic Toán Trẻ — hệ thống tổ chức kỳ thi: đánh số báo danh, phân phòng thi, chấm điểm hai giám khảo và xếp giải. Thiết kế concept — thương hiệu giả định.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='6' fill='%23d01e3b'/%3E%3Cpath d='M10 8h12v3.2h-7.6l4.8 4.8-4.8 4.8H22V24H10v-2.8l5.4-5.2L10 10.8z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noticia+Text:ital,wght@0,400;0,700;1,400;1,700&family=Inconsolata:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+try { var t = localStorage.getItem('ott-theme'); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t } catch (e) {}
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('rm')
+</script>
+<style>
+:root{--bg:#EBEFF8;--paper:#fff;--paper2:#F5F7FC;--grid:#E1E7F3;--ink:#0D1736;--mute:#55608A;--line:#D3DAEC;--line2:#B9C4E0;--blue:#1E3CB8;--blue2:#2C52DE;--blues:#E2E8FD;--mast:#15288A;--mast2:#0E1C66;--red:#C91A37;--red2:#E0294A;--reds:#FCE3E8;--ok:#0A7A66;--oks:#D9F1EA;--warn:#965F00;--warns:#FFF0D0;--g1:#C91A37;--g2:#1E3CB8;--g3:#0A7A66;--g4:#A06500;--g0:#C6CEE3;--sh:0 1px 2px rgba(13,23,54,.06),0 10px 26px -14px rgba(13,23,54,.3);--focus:#2C52DE;--hl:#FFF4BF;--k8:#E2E8FD;--k9:#FCE3E8}
+[data-theme=dark]{--bg:#070C1C;--paper:#0E162E;--paper2:#121C3A;--grid:#1A2546;--ink:#E6EBFA;--mute:#98A3C8;--line:#233057;--line2:#334273;--blue:#8EA5FF;--blue2:#B1C1FF;--blues:#1A2858;--mast:#0C1650;--mast2:#08103B;--red:#FF6079;--red2:#FF7A90;--reds:#3B1424;--ok:#4FD0B4;--oks:#0E3832;--warn:#F2B347;--warns:#38290B;--g1:#FF6079;--g2:#8EA5FF;--g3:#4FD0B4;--g4:#F2B347;--g0:#2C3A66;--sh:0 1px 0 rgba(0,0,0,.4),0 14px 30px -16px rgba(0,0,0,.85);--focus:#B1C1FF;--hl:#3A3518;--k8:#1A2858;--k9:#3B1424}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 'Noticia Text',Georgia,serif;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+h1,h2,h3{line-height:1.2;margin:0}
+.mono,kbd,.num{font-family:Inconsolata,ui-monospace,monospace}
+kbd{white-space:nowrap;font-size:12px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--paper);color:var(--mute)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--paper);padding:8px 12px;z-index:200}
+.skip:focus{left:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* masthead */
+.mast{position:sticky;top:0;z-index:40;display:flex;align-items:stretch;gap:18px;height:64px;padding:0 18px;color:#fff;background-color:var(--mast);background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);background-size:16px 16px;border-bottom:3px solid var(--red)}
+[data-theme=dark] .mast{border-bottom-color:#C91A37}
+.burger{display:none;align-self:center;width:42px;height:42px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;min-width:0;flex:none}
+.brand svg{flex:none}
+.brand b{display:block;font-size:17px;letter-spacing:.01em;white-space:nowrap}
+.brand small{display:block;font:500 12px/1.3 Inconsolata,monospace;opacity:.8;white-space:nowrap;letter-spacing:.04em}
+.steps{display:flex;align-items:stretch;flex:1;min-width:0;justify-content:center;counter-reset:s}
+.step{position:relative;display:flex;align-items:center;gap:9px;padding:0 16px;text-decoration:none;color:rgba(255,255,255,.78);min-width:0}
+.step+.step::before{content:"";position:absolute;left:-14px;top:50%;width:28px;height:1px;background:rgba(255,255,255,.35)}
+.step i{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);font:700 14px Inconsolata,monospace;font-style:normal}
+.step.done i{background:#fff;color:var(--mast);border-color:#fff}
+.step span{min-width:0}
+.step b{display:block;font-size:14px;white-space:nowrap;font-weight:700;color:#fff}
+.step small{display:block;font:500 12px/1.3 Inconsolata,monospace;white-space:nowrap;opacity:.82}
+.step[aria-current=page]{color:#fff}
+.step[aria-current=page] i{background:var(--red2);border-color:var(--red2);color:#fff}
+.step[aria-current=page]::after{content:"";position:absolute;left:10px;right:10px;bottom:-3px;height:3px;background:#fff}
+.tools{display:flex;align-items:center;gap:8px;flex:none}
+.kbtn{display:flex;align-items:center;gap:8px;height:38px;padding:0 8px 0 12px;border-radius:8px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;font-size:14px}
+.kbtn kbd{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+.clock{font:500 13px Inconsolata,monospace;opacity:.85;white-space:nowrap}
+.ibtn{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:8px;border:0;background:transparent;color:#fff}
+.ibtn:hover{background:rgba(255,255,255,.12)}
+.ibtn em{position:absolute;top:4px;right:3px;min-width:18px;height:18px;border-radius:9px;background:var(--red2);font:700 12px/18px Inconsolata,monospace;font-style:normal;text-align:center;color:#fff}
+.me{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#fff;color:var(--mast);font:800 14px Inconsolata,monospace}
+/* sub bar */
+.sub{display:flex;align-items:center;gap:16px;padding:9px 22px;background:var(--paper);border-bottom:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.crumb{display:flex;gap:6px;align-items:center;color:var(--mute);white-space:nowrap}
+.crumb b{color:var(--ink)}
+.greet{flex:1;min-width:200px;font-style:italic;color:var(--mute)}
+.dots{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);font:600 12.5px Inconsolata,monospace;white-space:nowrap;background:var(--paper2)}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c,var(--blue))}
+main{max-width:1600px;margin:0 auto;padding:18px 22px 28px}
+.view{display:none}
+.view.on{display:block}
+.vh{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.vh h1{font-size:27px;letter-spacing:-.005em}
+.vh p{margin:2px 0 0;color:var(--mute);font-size:14px}
+.vh .grow{flex:1;min-width:240px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 14px;border-radius:8px;border:1px solid var(--line2);background:var(--paper);font-size:14px;font-weight:700;white-space:nowrap}
+.btn:hover{border-color:var(--blue)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+[data-theme=dark] .btn.pri{color:#0A1130}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+[data-theme=dark] .btn.red{color:#2A0710}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{min-height:34px;padding:0 10px;font-size:13px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:var(--paper)}
+.seg button{min-height:38px;padding:0 13px;border:0;background:transparent;font:700 13.5px Inconsolata,monospace;white-space:nowrap;color:var(--mute)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mute)}
+.inp,.selx{height:40px;border:1px solid var(--line2);border-radius:8px;background:var(--paper);padding:0 11px;font-size:14px;color:var(--ink);min-width:0}
+.inp:focus,.selx:focus{outline:2px solid var(--focus);outline-offset:0;border-color:transparent}
+.inp[aria-invalid=true]{border-color:var(--red);background:var(--reds)}
+.err{color:var(--red);font-size:13px;min-height:0}
+.err:empty{display:none}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh)}
+.card h2{font-size:17px}
+.card .ch{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:14px 16px 0}
+.card .cb{padding:12px 16px 16px}
+.lbl{font:700 12px Inconsolata,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.strip{display:flex;border:1px solid var(--line);border-radius:12px;background:var(--paper);margin-bottom:14px;overflow:hidden}
+.strip>div{flex:1;padding:10px 16px;min-width:0;border-right:1px dashed var(--line)}
+.strip>div:last-child{border-right:0}
+.strip b{display:block;font:700 24px/1.15 Inconsolata,monospace;white-space:nowrap}
+.strip span{font-size:13px;color:var(--mute)}
+.strip .r b{color:var(--red)}
+.strip .o b{color:var(--ok)}
+/* ===== Chấm điểm: spreadsheet ===== */
+.cd-grid{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px;align-items:start}
+.fbar{display:flex;align-items:stretch;border:1px solid var(--line);border-bottom:0;border-radius:12px 12px 0 0;background:var(--paper2);font:500 14px Inconsolata,monospace;min-height:40px}
+.fbar .addr{flex:none;display:flex;align-items:center;padding:0 12px;border-right:1px solid var(--line);font-weight:700;color:var(--blue);min-width:190px}
+.fbar .fx{flex:none;display:flex;align-items:center;padding:0 10px;border-right:1px solid var(--line);font-style:italic;color:var(--mute);font-family:'Noticia Text',serif}
+.fbar .val{flex:1;display:flex;align-items:center;gap:12px;padding:0 12px;min-width:0;white-space:nowrap;overflow:hidden}
+.fbar .val em{font-style:normal;color:var(--mute)}
+.ttools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px;border:1px solid var(--line);border-bottom:0;background:var(--paper)}
+.ttools .inp{width:170px}
+.ttools .sp{flex:1}
+.sheet-wrap{position:relative;overflow:auto;max-height:calc(100vh - 330px);min-height:380px;border:1px solid var(--line);border-radius:0 0 12px 12px;background:var(--paper);outline:none}
+.sheet-wrap:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
+table.sheet{border-collapse:separate;border-spacing:0;font:500 14.5px Inconsolata,monospace;min-width:100%}
+.sheet th,.sheet td{border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);height:33px;padding:0 9px;text-align:right;white-space:nowrap;position:relative}
+.sheet thead th{position:sticky;z-index:3;background:var(--paper2);font-weight:700;color:var(--mute)}
+.sheet thead tr.g th{top:0;height:28px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;text-align:center;border-bottom:1px solid var(--line)}
+.sheet thead tr.h th{top:28px;border-bottom:2px solid var(--ink)}
+.sheet thead th small{font-weight:500;opacity:.75}
+.sheet th.g1{color:var(--blue)}
+.sheet th.g2{color:var(--red)}
+.sheet .fz{position:sticky;left:0;z-index:2;background:var(--paper);text-align:left;font-weight:700}
+.sheet .fz2{position:sticky;left:78px;z-index:2;background:var(--paper);text-align:center;color:var(--mute);border-right:2px solid var(--line2)}
+.sheet thead .fz,.sheet thead .fz2{z-index:4;background:var(--paper2)}
+.sheet td.fz{width:78px;min-width:78px;border-left:4px solid transparent}
+.sheet tr.st-g3 td.fz{border-left-color:var(--red)}
+.sheet tr.st-wait td.fz{border-left-color:var(--line2)}
+.sheet tr.st-done td.fz{border-left-color:var(--ok)}
+.sheet td.a{color:var(--blue)}
+.sheet td.b{color:var(--red)}
+.sheet td.s{font-weight:800;background:var(--paper2)}
+.sheet td.s.b,.sheet td.s.a{border-right:2px solid var(--line2)}
+.sheet td.nil{color:var(--line2)}
+.sheet td.hot{background:var(--reds)}
+.sheet td.df{min-width:74px}
+.sheet td.df i{position:absolute;left:6px;bottom:6px;height:3px;border-radius:2px;background:var(--line2)}
+.sheet td.df.bad{color:var(--red);font-weight:800}
+.sheet td.df.bad i{background:var(--red)}
+.sheet td.g3c.need{background:repeating-linear-gradient(-45deg,var(--reds) 0 6px,transparent 6px 12px)}
+.sheet td.fin{font-weight:800;font-size:15.5px;color:var(--ink);min-width:70px}
+.sheet td.fin .tag{font:700 12px Inconsolata,monospace;color:var(--red);border:1px solid var(--red);border-radius:4px;padding:0 4px}
+.sheet tbody tr:hover td{background-color:var(--hl)}
+.sheet tbody tr:hover td.fz,.sheet tbody tr:hover td.fz2{background:var(--hl)}
+.sheet td.cur{box-shadow:inset 0 0 0 2px var(--blue2);z-index:1}
+.sheet tr.currow td.fz,.sheet tr.currow td.fz2{color:var(--blue2)}
+.sheet td.edit{padding:0}
+.cin{width:100%;height:31px;border:0;outline:2px solid var(--blue2);background:var(--paper);text-align:right;padding:0 8px;font:700 15px Inconsolata,monospace;color:var(--ink)}
+.cin[aria-invalid=true]{outline-color:var(--red);background:var(--reds)}
+.sheet .empty td{text-align:center;height:180px;font-family:'Noticia Text',serif;color:var(--mute);white-space:normal}
+.hint{display:none;padding:7px 12px;font-size:13px;color:var(--mute);background:var(--paper2);border:1px solid var(--line);border-bottom:0}
+.keys{display:flex;flex-wrap:wrap;gap:6px 14px;padding:9px 2px 0;font-size:13px;color:var(--mute)}
+.side{display:flex;flex-direction:column;gap:14px}
+.prog{display:grid;gap:10px}
+.prog .row{display:grid;grid-template-columns:96px 1fr 64px;gap:10px;align-items:center;font-size:13.5px}
+.prog .row b{font:700 13.5px Inconsolata,monospace;text-align:right;white-space:nowrap}
+.bar{height:9px;border-radius:5px;background:var(--grid);overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:var(--blue)}
+.bar i.r{background:var(--red)}
+.bar i.o{background:var(--ok)}
+.flist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.flist button{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;text-align:left;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper2);min-height:44px}
+.flist button:hover{border-color:var(--red)}
+.flist .p{font:800 15px Inconsolata,monospace}
+.flist .d{font-size:13px;color:var(--mute)}
+.flist .dv{font:800 14px Inconsolata,monospace;color:var(--red);white-space:nowrap}
+.flist button{grid-template-columns:auto minmax(0,1fr) auto}
+.flist .ok .dv{color:var(--ok)}
+.live{font-size:13px;color:var(--mute);display:flex;gap:8px;align-items:flex-start}
+.live::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-top:6px;box-shadow:0 0 0 3px var(--oks)}
+/* ===== Thí sinh ===== */
+.ts-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+.tcard{overflow:hidden}
+.tbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px}
+.tbar .inp{flex:1;min-width:180px;max-width:300px}
+.bulk{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:var(--blues);border-top:1px solid var(--line);font-size:14px}
+.bulk[hidden]{display:none}
+.bulk b{font-family:Inconsolata,monospace}
+.dt{width:100%;border-collapse:collapse;font-size:14px}
+.dt th{position:relative;text-align:left;font:700 12px Inconsolata,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);background:var(--paper2);border-top:1px solid var(--line);border-bottom:2px solid var(--ink);padding:0 10px;height:38px;white-space:nowrap}
+.dt th button{border:0;background:none;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;padding:0;display:inline-flex;gap:4px;align-items:center;min-height:36px}
+.dt th[aria-sort=ascending] button::after{content:"▲";font-size:9px}
+.dt th[aria-sort=descending] button::after{content:"▼";font-size:9px}
+.dt td{padding:0 10px;height:42px;border-bottom:1px solid var(--grid);white-space:nowrap}
+.dt td.nm{font-weight:700;white-space:normal;min-width:160px}
+.dt td.sb{font:700 14.5px Inconsolata,monospace;color:var(--blue)}
+.dt td.sb.no{color:var(--mute);font-weight:500}
+.dt td.sb.new{color:var(--red)}
+.dt tr.sel td{background:var(--blues)}
+.dt .ck{width:40px;text-align:center}
+.dt input[type=checkbox]{width:18px;height:18px;accent-color:var(--blue)}
+.pill{display:inline-block;padding:1px 9px;border-radius:999px;font:700 12.5px Inconsolata,monospace;white-space:nowrap}
+.pill.ok{background:var(--oks);color:var(--ok)}
+.pill.thieu{background:var(--warns);color:var(--warn)}
+.pill.vang{background:var(--reds);color:var(--red)}
+.kh{display:inline-grid;place-items:center;width:28px;height:24px;border-radius:5px;font:800 13px Inconsolata,monospace;background:var(--blues);color:var(--blue)}
+.kh.k7,.kh.k9{background:var(--reds);color:var(--red)}
+.pager{display:flex;align-items:center;gap:6px;padding:10px 12px;border-top:1px solid var(--line);font-size:13.5px;color:var(--mute);flex-wrap:wrap}
+.pager .sp{flex:1}
+.pager button{min-width:38px;height:38px;border-radius:7px;border:1px solid var(--line);background:var(--paper);font:700 13px Inconsolata,monospace}
+.pager button[aria-current=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.empty-st{padding:46px 16px;text-align:center;color:var(--mute)}
+.empty-st b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+.sbd .cb{display:grid;gap:12px}
+.sbd .two{display:grid;grid-template-columns:1fr 110px;gap:10px}
+.prev{font:600 14px/1.6 Inconsolata,monospace;padding:10px 12px;border-radius:8px;background:var(--paper2);border:1px dashed var(--line2)}
+.prev em{font-style:normal;color:var(--red);font-weight:800}
+.big{font:800 34px/1 Inconsolata,monospace}
+.big small{font-size:16px;color:var(--mute);font-weight:600}
+.kbars{display:grid;gap:9px}
+.kbars .row{display:grid;grid-template-columns:62px 1fr 34px;gap:8px;align-items:center;font-size:13.5px}
+.kbars .row b{font-family:Inconsolata,monospace;text-align:right}
+.lg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--mute)}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+/* ===== Phòng thi ===== */
+.rt-wrap{overflow:auto}
+.rt{width:100%;border-collapse:collapse;font-size:14px}
+.rt th{text-align:left;font:700 12px Inconsolata,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);padding:8px 10px;border-bottom:2px solid var(--ink);white-space:nowrap;background:var(--paper2)}
+.rt td{padding:0 10px;height:44px;border-bottom:1px solid var(--grid);white-space:nowrap}
+.rt td.n{font:700 14.5px Inconsolata,monospace}
+.capb{min-width:64px;height:34px;border:1px dashed var(--line2);border-radius:6px;background:var(--paper2);font:800 15px Inconsolata,monospace;color:var(--blue)}
+.capi{width:70px;height:34px;border:0;outline:2px solid var(--blue2);border-radius:6px;text-align:center;font:800 15px Inconsolata,monospace;background:var(--paper)}
+.capi[aria-invalid=true]{outline-color:var(--red);background:var(--reds)}
+.cf-n{font:800 14px Inconsolata,monospace}
+.cf-n.bad{color:var(--red)}
+.cf-n.good{color:var(--ok)}
+.rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(262px,1fr));gap:14px;margin-top:14px}
+.room{padding:12px 12px 14px}
+.room h3{display:flex;justify-content:space-between;align-items:baseline;font-size:16px;gap:8px}
+.room h3 small{font:600 12.5px Inconsolata,monospace;color:var(--mute);white-space:nowrap}
+.board{margin:10px auto 10px;width:62%;height:16px;border-radius:3px;background:var(--ink);color:var(--paper);font:700 12px/16px Inconsolata,monospace;text-align:center;letter-spacing:.2em}
+.seats{display:grid;grid-template-columns:repeat(2,1fr) 14px repeat(2,1fr);gap:5px}
+.seat{height:44px;border-radius:6px;border:1px solid var(--line);background:var(--paper2);font:800 13.5px/1.05 Inconsolata,monospace;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ink);min-width:0}
+.seat small{font-weight:600;font-size:12px;color:var(--mute)}
+.seat.void{border-style:dashed;background:transparent;color:var(--line2)}
+.seat.k8{background:var(--k8)}
+.seat.k9{background:var(--k9)}
+.seat.cf{border:2px solid var(--red);box-shadow:0 0 0 2px var(--reds)}
+.seat[aria-pressed=true]{outline:3px solid var(--blue2);outline-offset:1px}
+.seat.ab{background:var(--reds);color:var(--red);text-decoration:line-through}
+.seat.pr small{color:var(--ok)}
+.aisle{grid-column:3}
+.callout{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:10px;border:1px dashed var(--blue);background:var(--blues);font-size:14px;margin-top:14px;flex-wrap:wrap}
+.callout p{margin:0;flex:1;min-width:220px}
+/* ===== Xếp giải ===== */
+.xg-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start}
+.chart{position:relative;padding:4px 8px 6px}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart text{font-family:Inconsolata,monospace;font-size:12px;fill:var(--mute)}
+.chart .lane{font-family:'Noticia Text',serif;font-weight:700;font-size:13px}
+.chart .gl{stroke:var(--grid)}
+.chart .ax{stroke:var(--ink)}
+.knob{cursor:ew-resize;touch-action:none;outline:none}
+.knob rect.k{stroke-width:2}
+.knob text{font-weight:800;font-size:13px;fill:#fff}
+[data-theme=dark] .knob text{fill:#0A1130}
+.knob:focus-visible rect.k{stroke:var(--ink);stroke-width:3}
+.knob .hit{fill:transparent}
+.legend{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-top:1px solid var(--line)}
+.legend div{padding:10px 14px;border-right:1px dashed var(--line);min-width:0}
+.legend div:last-child{border-right:0}
+.legend b{display:block;font:800 22px/1.1 Inconsolata,monospace}
+.legend span{display:block;font-size:13px;color:var(--mute)}
+.ratio{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--g0)}
+.ratio i{display:block;height:100%}
+.rwrap{position:relative;padding:22px 0 4px}
+.rwrap .cap{position:absolute;top:-2px;transform:translateX(-50%);font:700 12px Inconsolata,monospace;color:var(--ink);white-space:nowrap}
+.rwrap .ln{position:absolute;top:16px;bottom:0;width:2px;background:var(--ink);transform:translateX(-1px)}
+.aw{max-height:430px;overflow:auto}
+.aw table{width:100%;border-collapse:collapse;font-size:14px}
+.aw th{position:sticky;top:0;background:var(--paper2);text-align:left;font:700 12px Inconsolata,monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);padding:8px 10px;border-bottom:2px solid var(--ink)}
+.aw td{padding:6px 10px;border-bottom:1px solid var(--grid);vertical-align:top}
+.aw td.n{font:800 15px Inconsolata,monospace;text-align:right;white-space:nowrap}
+.aw td small{display:block;color:var(--mute);font-size:12.5px}
+.gz{display:inline-block;min-width:44px;text-align:center;padding:1px 7px;border-radius:5px;font:800 12.5px Inconsolata,monospace;color:#fff;white-space:nowrap}
+[data-theme=dark] .gz{color:#0A1130}
+.locked{display:inline-flex;gap:6px;align-items:center;padding:3px 10px;border-radius:6px;border:2px solid var(--red);color:var(--red);font:800 13px Inconsolata,monospace;transform:rotate(-2deg);letter-spacing:.06em}
+/* overlays */
+.scrim{position:fixed;inset:0;background:rgba(7,12,28,.45);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+.modal{position:fixed;left:50%;top:50%;translate:-50% -50%;z-index:70;width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 40px);overflow:auto;background:var(--paper);border-radius:14px;box-shadow:0 30px 70px -20px rgba(0,0,0,.5);border-top:5px solid var(--blue)}
+.modal[hidden],.pal[hidden],.pop[hidden],.drawer[hidden]{display:none}
+.modal header{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px}
+.modal h2{font-size:20px}
+.modal .mb{padding:8px 18px 4px;display:grid;gap:12px}
+.modal .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px 18px;border-top:1px solid var(--line);margin-top:10px;position:sticky;bottom:0;background:var(--paper)}
+.x{width:40px;height:40px;border-radius:8px;border:0;background:transparent;font-size:22px;color:var(--mute)}
+.pal{position:fixed;left:50%;top:90px;translate:-50% 0;z-index:80;width:min(600px,calc(100vw - 24px));background:var(--paper);border-radius:14px;box-shadow:0 30px 70px -20px rgba(0,0,0,.55);overflow:hidden;border:1px solid var(--line)}
+.pal .inp{width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0;height:52px;font-size:16px;padding:0 16px}
+.pal .inp:focus{outline:0}
+.pal ul{list-style:none;margin:0;padding:6px;max-height:min(420px,60vh);overflow:auto}
+.pal li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:14.5px;min-height:42px}
+.pal li small{margin-left:auto;color:var(--mute);font-family:Inconsolata,monospace;font-size:12.5px;white-space:nowrap}
+.pal li.on{background:var(--blues)}
+.pal .grp{font:700 12px Inconsolata,monospace;color:var(--mute);letter-spacing:.08em;text-transform:uppercase;padding:8px 12px 2px;cursor:default;min-height:0}
+.pop{position:fixed;top:70px;right:12px;z-index:65;width:min(360px,calc(100vw - 24px));background:var(--paper);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);padding:6px}
+.pop h2{font-size:15px;padding:10px 10px 4px}
+.pop ul{list-style:none;margin:0;padding:0}
+.pop li{padding:10px;border-radius:8px;font-size:14px;display:grid;gap:2px}
+.pop li+li{border-top:1px solid var(--grid)}
+.pop li small{color:var(--mute);font-family:Inconsolata,monospace;font-size:12.5px}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:min(320px,86vw);z-index:70;background:var(--paper);box-shadow:20px 0 60px -20px rgba(0,0,0,.5);display:flex;flex-direction:column;padding:16px;gap:6px;overflow:auto}
+.drawer a,.drawer button.dl{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;text-decoration:none;min-height:48px;border:0;background:transparent;text-align:left;font-size:15px}
+.drawer a[aria-current=page]{background:var(--blues);color:var(--blue);font-weight:700}
+.drawer a i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1.5px solid currentColor;font:800 14px Inconsolata,monospace;font-style:normal}
+.drawer .dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.dock{display:none}
+.toasts{position:fixed;left:20px;bottom:20px;z-index:90;display:flex;flex-direction:column;gap:8px;width:min(380px,calc(100vw - 32px));pointer-events:none}
+.toasts.top{left:50%;translate:-50% 0;top:14px;bottom:auto}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:11px 12px 11px 14px;border-radius:10px;background:var(--ink);color:var(--paper);box-shadow:0 14px 34px -12px rgba(0,0,0,.5);font-size:14px;border-left:4px solid var(--red2)}
+.toast p{margin:0;flex:1}
+.toast button{border:1px solid rgba(255,255,255,.35);background:transparent;color:inherit;border-radius:6px;min-height:34px;padding:0 10px;font-weight:700;font-size:13px}
+[data-theme=dark] .toast button{border-color:rgba(0,0,0,.3)}
+.tip{position:fixed;z-index:95;pointer-events:none;background:var(--ink);color:var(--paper);font:600 13px/1.4 Inconsolata,monospace;padding:6px 9px;border-radius:6px;opacity:0;max-width:260px;transition:opacity .12s}
+.tip.on{opacity:1}
+.tip.err{background:var(--red);color:#fff}
+footer.foot{max-width:1600px;margin:0 auto;padding:6px 22px 26px;font-size:13px;color:var(--mute);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+/* responsive */
+@media (max-width:1360px){.clock{display:none}.step{padding:0 11px}.step+.step::before{left:-10px;width:20px}}
+@media (max-width:1240px){.step small{display:none}.kbtn span{display:none}}
+@media (max-width:1100px){
+  .steps{justify-content:flex-start}
+  .step b{font-size:13px}
+  .brand small{display:none}
+  .cd-grid,.ts-grid,.xg-grid{grid-template-columns:minmax(0,1fr)}
+  .side{display:grid;grid-template-columns:1fr 1fr}
+  .ts-grid .side{order:-1}
+}
+@media (max-width:960px){.step b{display:none}.step{padding:0 9px}.step[aria-current=page] b{display:block}}
+@media (max-width:819px){
+  .mast{height:58px;gap:10px;padding:0 12px}
+  .burger{display:grid;place-items:center}
+  .steps,.kbtn kbd,#themeBtn{display:none}
+  .tools{margin-left:auto;gap:4px}
+  .kbtn{width:40px;padding:0;justify-content:center;border:0;background:transparent}
+  .brand b{font-size:16px}
+  .sub{padding:8px 14px;gap:8px}
+  .greet{flex-basis:100%;order:3;font-size:13.5px}
+  main{padding:14px 14px 96px}
+  .vh h1{font-size:23px}
+  .side{display:flex}
+  .strip{flex-wrap:wrap}
+  .strip>div{flex:1 1 50%;border-bottom:1px dashed var(--line)}
+  .strip b{font-size:21px}
+  .fbar .addr{min-width:0}
+  .fbar .fx{display:none}
+  .fbar .val em{display:none}
+  .ttools .inp,.ttools .selx{width:auto;flex:1 1 130px}
+  .ttools .sp{display:none}
+  .hint{display:block}
+  .sheet-wrap{max-height:64vh;min-height:300px}
+  .sheet .fz2{position:static;border-right:1px solid var(--grid)}
+  .sheet th,.sheet td{height:42px}
+  .sheet thead tr.h th{top:28px}
+  .keys{display:none}
+  .dt thead{display:none}
+  .dt,.dt tbody{display:block}
+  .dt tr{display:grid;grid-template-columns:40px 1fr auto;grid-template-areas:"ck nm sb" "ck meta meta" "ck st st";gap:2px 8px;padding:10px 12px 10px 4px;border-bottom:1px solid var(--line)}
+  .dt td{height:auto;border:0;padding:0;white-space:normal}
+  .dt td.ck{grid-area:ck;display:flex;align-items:flex-start;justify-content:center;padding-top:6px}
+  .dt td.ck input{width:22px;height:22px}
+  .dt td.nm{grid-area:nm;font-size:15.5px;min-width:0}
+  .dt td.sb{grid-area:sb;text-align:right}
+  .dt td.mt{display:none}
+  .dt td.meta{display:block!important;grid-area:meta;color:var(--mute);font-size:13.5px}
+  .dt td.stc{grid-area:st}
+  .dt tr.empty{display:block}
+  .tbar .inp{max-width:none;flex-basis:100%}
+  .pager .info{flex-basis:100%}
+  .sbd .two{grid-template-columns:1fr 1fr}
+  .rooms{grid-template-columns:1fr 1fr;gap:10px}
+  .room{padding:10px 8px 12px}
+  .seats{gap:4px;grid-template-columns:repeat(2,1fr) 8px repeat(2,1fr)}
+  .seat{height:44px;font-size:12.5px}
+  .legend{grid-template-columns:repeat(3,1fr)}
+  .legend div{border-bottom:1px dashed var(--line)}
+  .legend b{font-size:19px}
+  .modal{top:auto;bottom:0;left:0;translate:0 0;width:100%;max-height:92vh;border-radius:16px 16px 0 0}
+  .modal .two{grid-template-columns:1fr}
+  .toasts{left:50%;translate:-50% 0;top:66px;bottom:auto}
+  .pop{top:62px}
+  .dock{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:45;background:var(--paper);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px -16px rgba(0,0,0,.35)}
+  .dock a{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:52px;justify-content:center;text-decoration:none;font-size:12.5px;color:var(--mute);border-radius:10px}
+  .dock a i{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1.5px solid currentColor;font:800 13px Inconsolata,monospace;font-style:normal}
+  .dock a[aria-current=page]{color:var(--red);font-weight:700}
+  .dock a[aria-current=page] i{background:var(--red);border-color:var(--red);color:#fff}
+  footer.foot{padding-bottom:96px}
+}
+@media (max-width:819px) and (min-width:600px){.rooms{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:480px){.rooms{grid-template-columns:1fr 1fr}.room h3{flex-direction:column;gap:0}.crumb{display:none}}
+.rm *{transition:none!important}
+/* touch: every control reaches 40px (row checkbox keeps its 22px look, hit area widened) */
+@media (pointer:coarse){
+  .burger{flex-shrink:0}
+  .kbtn,.seg button,.capb{min-height:40px;height:auto}
+  .pager button{min-width:40px;height:40px}
+  .dt th button{min-height:40px;min-width:40px}
+  .dt .ck input{position:relative}
+  .dt .ck input::before{content:"";position:absolute;inset:-12px}
+  .dt th{height:44px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Bỏ qua tới nội dung</a>
+<header class="mast">
+  <button class="burger" id="burger" aria-label="Mở menu" aria-expanded="false" aria-controls="drawer"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <a class="brand" href="#cham-diem" aria-label="Olympic Toán Trẻ — về bước chấm điểm">
+    <svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="1" width="30" height="30" rx="7" fill="#E0294A"/><path d="M10 8h12v3.2h-7.6l4.8 4.8-4.8 4.8H22V24H10v-2.8l5.4-5.2L10 10.8z" fill="#fff"/></svg>
+    <span><b>Olympic Toán Trẻ</b><small id="brandSub">KỲ THI LẦN XII</small></span>
+  </a>
+  <nav class="steps" aria-label="Quy trình kỳ thi">
+    <a class="step done" href="#thi-sinh" data-v="thi-sinh"><i>1</i><span><b>Thí sinh &amp; SBD</b><small id="s1">—</small></span></a>
+    <a class="step" href="#phong-thi" data-v="phong-thi"><i>2</i><span><b>Phòng thi</b><small id="s2">—</small></span></a>
+    <a class="step" href="#cham-diem" data-v="cham-diem"><i>3</i><span><b>Chấm điểm</b><small id="s3">—</small></span></a>
+    <a class="step" href="#xep-giai" data-v="xep-giai"><i>4</i><span><b>Xếp giải</b><small id="s4">—</small></span></a>
+  </nav>
+  <div class="tools">
+    <button class="kbtn" id="openK" aria-label="Mở bảng lệnh (Ctrl K)"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m11 11 3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Tìm, lệnh…</span><kbd>Ctrl K</kbd></button>
+    <span class="clock" id="clock"></span>
+    <button class="ibtn" id="bell" aria-label="Thông báo" aria-expanded="false" aria-controls="notif"><svg width="19" height="19" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5a5 5 0 0 0-5 5v3.2L3.4 14h13.2L15 10.7V7.5a5 5 0 0 0-5-5ZM8 16.2a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.7"/></svg><em>3</em></button>
+    <button class="ibtn" id="themeBtn" aria-label="Đổi giao diện sáng / tối"><svg width="19" height="19" viewBox="0 0 20 20" aria-hidden="true"><path d="M16.5 12.2A7 7 0 0 1 7.8 3.5a7 7 0 1 0 8.7 8.7Z" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></button>
+    <span class="me" title="Lương Thị Hạnh · Thư ký hội đồng thi" aria-label="Tài khoản: Lương Thị Hạnh">LH</span>
+  </div>
+</header>
+<div class="sub">
+  <div class="crumb">Kỳ thi XII <span aria-hidden="true">›</span> <b id="crumb">Chấm điểm</b></div>
+  <div class="greet" id="greet"></div>
+  <div class="dots"><span class="chip" id="chip1" style="--c:var(--red)"></span><span class="chip" id="chip2" style="--c:var(--blue)"></span></div>
+</div>
+
+<main id="main">
+<!-- ===================== THÍ SINH ===================== -->
+<section class="view" id="thi-sinh" data-title="Thí sinh & số báo danh" aria-labelledby="h-ts">
+  <div class="vh">
+    <div class="grow"><h1 id="h-ts">Thí sinh &amp; số báo danh</h1><p id="tsSub">Hồ sơ dự thi bốn khối, đánh số báo danh theo đợt.</p></div>
+    <div class="acts"><button class="btn" id="exportBtn">Xuất danh sách</button><button class="btn pri" id="addBtn">+ Thêm thí sinh</button></div>
+  </div>
+  <div class="ts-grid">
+    <div class="card tcard">
+      <div class="tbar">
+        <label class="sr" for="tsQ">Tìm thí sinh</label>
+        <input class="inp" id="tsQ" type="search" placeholder="Tìm tên, trường, SBD…" title="Gõ không dấu cũng tìm được" autocomplete="off">
+        <div class="seg" id="tsKhoi" role="group" aria-label="Lọc theo khối"><button aria-pressed="true" data-k="0">Tất cả</button><button aria-pressed="false" data-k="6">K6</button><button aria-pressed="false" data-k="7">K7</button><button aria-pressed="false" data-k="8">K8</button><button aria-pressed="false" data-k="9">K9</button></div>
+        <label class="sr" for="tsSt">Lọc theo hồ sơ</label>
+        <select class="selx" id="tsSt"><option value="">Mọi trạng thái</option><option value="ok">Đủ hồ sơ</option><option value="thieu">Thiếu hồ sơ</option><option value="vang">Vắng thi</option><option value="nosbd">Chưa có SBD</option></select>
+      </div>
+      <div class="bulk" id="bulk" hidden><b id="bulkN">0</b> thí sinh đã chọn <button class="btn sm" id="bOk">Duyệt đủ hồ sơ</button><button class="btn sm" id="bThieu">Đánh dấu thiếu hồ sơ</button><button class="btn sm" id="bDel">Xóa khỏi danh sách</button><button class="btn sm" id="bClr">Bỏ chọn</button></div>
+      <table class="dt" id="tsT">
+        <thead><tr><th class="ck"><input type="checkbox" id="tsAll" aria-label="Chọn tất cả trên trang này"></th><th aria-sort="none" data-s="sbd"><button>SBD</button></th><th aria-sort="ascending" data-s="ten"><button>Họ và tên</button></th><th aria-sort="none" data-s="dob"><button>Ngày sinh</button></th><th aria-sort="none" data-s="khoi"><button>Khối</button></th><th aria-sort="none" data-s="sch"><button>Trường</button></th><th>Đợt</th><th>Hồ sơ</th></tr></thead>
+        <tbody id="tsB"></tbody>
+      </table>
+      <div class="pager" id="tsPg"></div>
+    </div>
+    <div class="side">
+      <div class="card sbd">
+        <div class="ch"><h2>Đánh số báo danh</h2><span class="lbl">Đợt 2 · K8–9</span></div>
+        <div class="cb">
+          <div><div class="big num" id="sbdBig">0<small>/112</small></div><div class="bar" style="margin-top:8px"><i id="sbdBar" style="width:0"></i></div><div class="lg" style="margin-top:6px" id="sbdNote">thí sinh đợt 2 đã có SBD</div></div>
+          <label class="fld">Thứ tự xếp trong mỗi khối<select class="selx" id="sbdOrder"><option value="ten">Theo tên gọi A–Z (chuẩn tiếng Việt)</option><option value="sch">Theo trường, rồi tên gọi</option><option value="dob">Theo ngày sinh (lớn tuổi trước)</option></select></label>
+          <div class="two">
+            <label class="fld">Mã đầu<input class="inp num" id="sbdPre" value="OT26" maxlength="6" autocomplete="off" aria-describedby="sbdPreE"><span class="err" id="sbdPreE"></span></label>
+            <label class="fld">Bắt đầu từ<input class="inp num" id="sbdStart" value="1" inputmode="numeric" maxlength="3" autocomplete="off" aria-describedby="sbdStartE"><span class="err" id="sbdStartE"></span></label>
+          </div>
+          <div class="prev" id="sbdPrev" aria-live="polite"></div>
+          <button class="btn red" id="sbdRun">Đánh số báo danh</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><h2>Hồ sơ theo khối</h2><span class="lbl" id="hsTot"></span></div>
+        <div class="cb"><div class="kbars" id="kbars"></div><div class="lg" style="margin-top:10px"><span><i style="background:var(--ok)"></i>Đủ hồ sơ</span><span><i style="background:var(--warn)"></i>Thiếu</span><span><i style="background:var(--red)"></i>Vắng thi</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PHÒNG THI ===================== -->
+<section class="view" id="phong-thi" data-title="Phân phòng thi" aria-labelledby="h-pt">
+  <div class="vh">
+    <div class="grow"><h1 id="h-pt">Phân phòng thi</h1><p id="ptSub"></p></div>
+    <div class="acts">
+      <div class="seg" id="ptDot" role="group" aria-label="Chọn đợt thi"><button aria-pressed="true" data-d="2">Đợt 2 · sắp thi</button><button aria-pressed="false" data-d="1">Đợt 1 · đã thi</button></div>
+    </div>
+  </div>
+  <div class="strip" id="ptStrip"></div>
+  <div class="card" id="ptCtl">
+    <div class="tbar">
+      <label class="sr" for="ptMode">Cách xếp chỗ</label>
+      <select class="selx" id="ptMode"><option value="opt">Tối ưu: tách bạn cùng trường</option><option value="seq">Tuần tự theo SBD</option></select>
+      <button class="btn pri" id="ptRun">Phân phòng tự động</button>
+      <span class="lg" id="ptHelp">Bấm một ghế rồi bấm ghế khác để đổi chỗ · <kbd>Esc</kbd> bỏ chọn</span>
+    </div>
+    <div class="rt-wrap"><table class="rt"><thead><tr><th>Phòng</th><th>Vị trí</th><th>Sức chứa</th><th>Đã xếp</th><th>SBD từ – đến</th><th>Giám thị</th><th>Cùng trường kề</th></tr></thead><tbody id="rtB"></tbody></table></div>
+    <div class="err" id="capErr" style="padding:6px 12px"></div>
+  </div>
+  <div id="ptCall"></div>
+  <div class="rooms" id="rooms"></div>
+</section>
+
+<!-- ===================== CHẤM ĐIỂM ===================== -->
+<section class="view" id="cham-diem" data-title="Chấm điểm" aria-labelledby="h-cd">
+  <div class="vh">
+    <div class="grow"><h1 id="h-cd">Bảng chấm điểm · Đợt 1</h1><p>Chấm theo số phách, hai giám khảo độc lập. Lệch tổng trên 1 điểm thì chấm lần 3.</p></div>
+    <div class="acts"><button class="btn" id="undoBtn" disabled>↶ Hoàn tác</button><button class="btn pri" id="nextG3">Bài cần GK3 kế tiếp</button></div>
+  </div>
+  <div class="cd-grid">
+    <div>
+      <div class="fbar"><div class="addr" id="fAddr">—</div><div class="fx">fx</div><div class="val" id="fVal"></div></div>
+      <div class="ttools">
+        <div class="seg" id="cdKhoi" role="group" aria-label="Lọc theo khối"><button aria-pressed="true" data-k="0">Cả đợt</button><button aria-pressed="false" data-k="6">Khối 6</button><button aria-pressed="false" data-k="7">Khối 7</button></div>
+        <label class="sr" for="cdSt">Lọc trạng thái bài</label>
+        <select class="selx" id="cdSt"><option value="">Mọi bài</option><option value="wait">Chờ GK2</option><option value="g3">Cần chấm lần 3</option><option value="done">Đã có điểm chốt</option></select>
+        <label class="sr" for="cdQ">Tìm số phách</label>
+        <input class="inp num" id="cdQ" placeholder="Số phách…" inputmode="numeric" autocomplete="off">
+        <span class="sp"></span>
+        <span class="lg" id="cdCount"></span>
+      </div>
+      <div class="hint">Vuốt ngang trong bảng để xem cột GK2, lệch và điểm chốt →</div>
+      <div class="sheet-wrap" id="sheetWrap" tabindex="0" role="grid" aria-label="Bảng điểm theo số phách" aria-describedby="keysHelp"><table class="sheet" id="sheet"></table></div>
+      <div class="keys" id="keysHelp"><span><kbd>↑↓←→</kbd> di chuyển</span><span><kbd>0–9</kbd> gõ đè</span><span><kbd>Enter</kbd> sửa / lưu xuống</span><span><kbd>Tab</kbd> lưu sang phải</span><span><kbd>Del</kbd> xóa điểm</span><span><kbd>Ctrl Z</kbd> hoàn tác</span><span><kbd>Esc</kbd> hủy</span></div>
+    </div>
+    <div class="side">
+      <div class="card">
+        <div class="ch"><h2>Tiến độ chấm</h2><span class="lbl" id="cdPct"></span></div>
+        <div class="cb prog" id="cdProg"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><h2>Cần chấm lần 3</h2><span class="lbl" id="g3n"></span></div>
+        <div class="cb"><ul class="flist" id="g3List"></ul></div>
+      </div>
+      <div class="card"><div class="cb"><div class="live" id="live">Giám khảo đang trực tuyến: Trần Hữu Phước (GK2), Đinh Ngọc Hà (GK2)</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== XẾP GIẢI ===================== -->
+<section class="view" id="xep-giai" data-title="Xếp giải" aria-labelledby="h-xg">
+  <div class="vh">
+    <div class="grow"><h1 id="h-xg">Xếp giải · Đợt 1</h1><p>Kéo các nút ngưỡng trên phổ điểm (hoặc chọn nút rồi dùng <kbd>←</kbd> <kbd>→</kbd>). Quy chế: tổng số giải không quá 50% thí sinh dự thi.</p></div>
+    <div class="acts">
+      <div class="seg" id="xgK" role="group" aria-label="Chọn khối xếp giải"><button aria-pressed="true" data-k="6">Khối 6</button><button aria-pressed="false" data-k="7">Khối 7</button><button aria-pressed="false" data-k="0">Cả đợt</button></div>
+      <span id="lockTag"></span>
+    </div>
+  </div>
+  <div class="xg-grid">
+    <div class="card">
+      <div class="ch"><h2>Phổ điểm chốt</h2><span class="lbl" id="xgN"></span></div>
+      <div class="chart" id="chart"><svg id="hist" role="img" aria-label="Biểu đồ phổ điểm chốt và ngưỡng giải"></svg></div>
+      <div class="legend" id="legend"></div>
+      <div class="cb">
+        <div class="rwrap" id="rwrap"><div class="ratio" id="ratio"></div><span class="ln" id="rLn" style="left:50%"></span><span class="cap" id="rCap" style="left:50%">trần 50%</span></div>
+        <div class="acts" style="margin-top:14px"><button class="btn" id="xgReset">Đặt lại ngưỡng đề xuất</button><span class="sp" style="flex:1"></span><button class="btn red" id="xgLock">Chốt danh sách giải</button></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="card">
+        <div class="ch"><h2>Danh sách đạt giải</h2><span class="lbl" id="awN"></span></div>
+        <div class="cb" style="padding-bottom:8px"><div class="seg" id="awF" role="group" aria-label="Lọc theo giải"><button aria-pressed="true" data-g="0">Tất cả</button><button aria-pressed="false" data-g="1">Nhất</button><button aria-pressed="false" data-g="2">Nhì</button><button aria-pressed="false" data-g="3">Ba</button><button aria-pressed="false" data-g="4">KK</button></div></div>
+        <div class="aw" id="aw"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><h2>Giải theo trường</h2><span class="lbl">8 trường dẫn đầu</span></div>
+        <div class="cb"><svg id="schChart" width="100%" role="img" aria-label="Số giải theo trường"></svg></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="foot"><span>Olympic Toán Trẻ — hệ thống tổ chức kỳ thi toán THCS.</span><span>Thiết kế concept — thương hiệu giả định.</span></footer>
+
+<nav class="dock" aria-label="Các bước kỳ thi">
+  <a href="#thi-sinh" data-v="thi-sinh"><i>1</i>Thí sinh</a>
+  <a href="#phong-thi" data-v="phong-thi"><i>2</i>Phòng thi</a>
+  <a href="#cham-diem" data-v="cham-diem"><i>3</i>Chấm điểm</a>
+  <a href="#xep-giai" data-v="xep-giai"><i>4</i>Xếp giải</a>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Menu điều hướng" hidden>
+  <div class="dh"><b>Olympic Toán Trẻ</b><button class="x" id="drawerX" aria-label="Đóng menu">×</button></div>
+  <a href="#thi-sinh" data-v="thi-sinh"><i>1</i>Thí sinh &amp; số báo danh</a>
+  <a href="#phong-thi" data-v="phong-thi"><i>2</i>Phân phòng thi</a>
+  <a href="#cham-diem" data-v="cham-diem"><i>3</i>Chấm điểm</a>
+  <a href="#xep-giai" data-v="xep-giai"><i>4</i>Xếp giải</a>
+  <hr style="border:0;border-top:1px solid var(--line);width:100%">
+  <button class="dl" id="dTheme">◐ Đổi giao diện sáng / tối</button>
+  <button class="dl" id="dK">⌕ Tìm kiếm &amp; lệnh nhanh</button>
+  <p style="margin-top:auto;font-size:13px;color:var(--mute)">Lương Thị Hạnh · Thư ký hội đồng thi<br>Thiết kế concept — thương hiệu giả định.</p>
+</aside>
+
+<div class="pop" id="notif" role="dialog" aria-label="Thông báo" hidden><h2>Thông báo</h2><ul id="notifL"></ul></div>
+
+<div class="pal" id="pal" role="dialog" aria-modal="true" aria-label="Bảng lệnh" hidden>
+  <input class="inp" id="palQ" placeholder="Gõ lệnh, tên bước hoặc tên thí sinh…" aria-label="Tìm lệnh hoặc thí sinh" autocomplete="off">
+  <ul id="palL" role="listbox" aria-label="Kết quả"></ul>
+</div>
+
+<div class="modal" id="addM" role="dialog" aria-modal="true" aria-labelledby="addH" hidden>
+  <header><h2 id="addH">Thêm thí sinh</h2><button class="x" data-close aria-label="Đóng">×</button></header>
+  <form id="addF" novalidate>
+    <div class="mb">
+      <label class="fld">Họ và tên<input class="inp" id="fName" autocomplete="off" aria-describedby="fNameE"><span class="err" id="fNameE"></span></label>
+      <div class="two">
+        <label class="fld">Ngày sinh (dd/mm/yyyy)<input class="inp num" id="fDob" inputmode="numeric" placeholder="vd. 14/03/2013" autocomplete="off" aria-describedby="fDobE"><span class="err" id="fDobE"></span></label>
+        <label class="fld">Khối<select class="selx" id="fKhoi"><option value="">— Chọn khối —</option><option>6</option><option>7</option><option>8</option><option>9</option></select><span class="err" id="fKhoiE"></span></label>
+      </div>
+      <label class="fld">Trường<select class="selx" id="fSch"></select><span class="err" id="fSchE"></span></label>
+      <label class="fld">SĐT phụ huynh<input class="inp num" id="fPhone" inputmode="tel" placeholder="09x xxx xxxx" autocomplete="off" aria-describedby="fPhoneE"><span class="err" id="fPhoneE"></span></label>
+    </div>
+    <footer><button type="button" class="btn" data-close>Hủy</button><button type="submit" class="btn pri">Lưu thí sinh</button></footer>
+  </form>
+</div>
+
+<div class="modal" id="lockM" role="dialog" aria-modal="true" aria-labelledby="lockH" hidden>
+  <header><h2 id="lockH">Chốt danh sách giải</h2><button class="x" data-close aria-label="Đóng">×</button></header>
+  <div class="mb" id="lockBody"></div>
+  <footer><button type="button" class="btn" data-close>Xem lại</button><button type="button" class="btn red" id="lockOk">Chốt và ghép phách</button></footer>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+'use strict'
+/* ---------- utils ---------- */
+const STATIC = /\bstatic\b/.test(location.search)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const G = window.gsap
+const RM = () => document.documentElement.classList.contains('rm') || !G
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+const fold = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+const pad = (n, l = 2) => String(n).padStart(l, '0')
+const fs = (v) => v == null ? '' : String(Math.round(v * 100) / 100).replace('.', ',')
+const fd = (d) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`
+const WD = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+const rng = ((s) => () => { s |= 0; s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 })(7126)
+const pick = (a) => a[Math.floor(rng() * a.length)]
+const gauss = () => { let u = 0; while (!u) u = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng()) }
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]] } return a }
+const vi = new Intl.Collator('vi')
+const NOW = new Date()
+const DAY = 864e5
+const day0 = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate())
+const D1 = new Date(+day0 - 3 * DAY) // đợt 1 đã thi
+const D2 = new Date(+day0 + 4 * DAY) // đợt 2 sắp thi
+const PUB = new Date(+day0 + 6 * DAY) // công bố kết quả đợt 1
+const YEAR = D2.getFullYear()
+const PRE = 'OT' + String(YEAR).slice(2)
+
+/* ---------- seed data ---------- */
+const HO = ['Nguyễn', 'Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Vũ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý', 'Phan', 'Đinh', 'Trịnh', 'Lương']
+const DEM_NAM = ['Văn', 'Minh', 'Đức', 'Quang', 'Gia', 'Hoàng', 'Hữu', 'Tuấn', 'Bảo', 'Anh', 'Trung', 'Nhật']
+const DEM_NU = ['Thị', 'Ngọc', 'Thu', 'Minh', 'Bảo', 'Khánh', 'Phương', 'Hà', 'Mai', 'Gia', 'Thùy', 'Diệu']
+const TEN_NAM = ['An', 'Bình', 'Khang', 'Phúc', 'Minh', 'Nam', 'Huy', 'Long', 'Quân', 'Duy', 'Khôi', 'Đạt', 'Hiếu', 'Tùng', 'Sơn', 'Kiên', 'Lâm', 'Nhật', 'Thành', 'Vinh', 'Hưng', 'Phong']
+const TEN_NU = ['Anh', 'Linh', 'Trang', 'Ngân', 'Hà', 'Vy', 'Thảo', 'Chi', 'Mai', 'Hân', 'Nhi', 'Yến', 'Uyên', 'Diệp', 'Hương', 'Quỳnh', 'Tâm', 'Giang', 'Ly', 'Châu', 'Ngọc', 'Phương']
+// [tên đầy đủ, tên ngắn, mã 3 chữ, quận]
+const SCH = [['THCS Chu Văn An', 'Chu Văn An', 'CVA', 'Tây Hồ'], ['THCS Lý Thường Kiệt', 'Lý Thường Kiệt', 'LTK', 'Hoàn Kiếm'], ['THCS Nguyễn Du', 'Nguyễn Du', 'NDU', 'Hai Bà Trưng'], ['THCS Trần Phú', 'Trần Phú', 'TPH', 'Hoàng Mai'], ['THCS Lê Lợi', 'Lê Lợi', 'LLO', 'Hà Đông'], ['THCS Hồng Bàng', 'Hồng Bàng', 'HBA', 'Đống Đa'], ['THCS Phan Chu Trinh', 'Phan Chu Trinh', 'PCT', 'Ba Đình'], ['THCS Kim Đồng', 'Kim Đồng', 'KDO', 'Cầu Giấy'], ['THCS Đoàn Thị Điểm', 'Đoàn Thị Điểm', 'DTD', 'Bắc Từ Liêm'], ['THCS Ngô Quyền', 'Ngô Quyền', 'NQU', 'Long Biên'], ['THCS Lương Thế Vinh', 'Lương Thế Vinh', 'LTV', 'Thanh Xuân'], ['THCS Võ Thị Sáu', 'Võ Thị Sáu', 'VTS', 'Nam Từ Liêm']]
+const SW = [0, 0, 0, 1, 1, 2, 2, 3, 4, 5, 5, 6, 6, 6, 7, 7, 8, 9, 10, 10, 11, 1, 3, 7] // trường đông thí sinh xuất hiện nhiều hơn
+const C = []
+let uid = 1
+function mk(khoi, dot) {
+  const nam = rng() < 0.52
+  const ho = pick(HO), dem = pick(nam ? DEM_NAM : DEM_NU), ten = pick(nam ? TEN_NAM : TEN_NU)
+  const dob = new Date(YEAR - 5 - khoi, Math.floor(rng() * 12), 1 + Math.floor(rng() * 28))
+  return { id: uid++, ho, dem, ten, name: `${ho} ${dem} ${ten}`, khoi, dot, sch: pick(SW), dob, phone: '09' + Math.floor(rng() * 9) + ' ' + pad(Math.floor(rng() * 1000), 3) + ' ' + pad(Math.floor(rng() * 10000), 4), st: 'ok', sbd: null }
+}
+const byTen = (a, b) => vi.compare(a.ten, b.ten) || vi.compare(a.ho, b.ho) || vi.compare(a.dem, b.dem) || a.id - b.id
+for (const [k, n, dot] of [[6, 64, 1], [7, 60, 1], [8, 58, 2], [9, 54, 2]]) {
+  const g = []
+  for (let i = 0; i < n; i++) g.push(mk(k, dot))
+  if (dot === 1) g.sort(byTen).forEach((c, i) => (c.sbd = `${PRE}-${k}${pad(i + 1, 3)}`))
+  C.push(...g)
+}
+const d1 = C.filter((c) => c.dot === 1), d2 = C.filter((c) => c.dot === 2)
+shuffle(d1.slice()).slice(0, 3).forEach((c) => (c.st = 'vang'))
+shuffle(d2.slice()).slice(0, 7).forEach((c) => (c.st = 'thieu'))
+
+// bài thi đợt 1: phách ẩn danh
+const MAX = [3, 4, 4, 4, 5]
+const DIFF = [-1.3, -0.5, 0.1, 0.7, 1.4]
+const q4 = (v) => Math.round(v * 4) / 4
+const M = []
+const sat = d1.filter((c) => c.st !== 'vang')
+const ph = shuffle(Array.from({ length: sat.length }, (_, i) => 1001 + i * 3 + Math.floor(rng() * 3)))
+sat.forEach((c, i) => {
+  const z = gauss()
+  const a = MAX.map((m, j) => Math.min(m, Math.max(0, q4(m / (1 + Math.exp(-(1.5 * z - DIFF[j] + 0.25))) + gauss() * 0.35))))
+  const b = a.map((v, j) => { const r = rng(); const d = r < 0.7 ? 0 : r < 0.9 ? 0.25 : 0.5; return Math.min(MAX[j], Math.max(0, v + (rng() < 0.5 ? -d : d))) })
+  c.phach = ph[i]
+  M.push({ cid: c.id, phach: ph[i], khoi: c.khoi, a, b, g3: null })
+})
+M.sort((x, y) => x.phach - y.phach)
+{ // 7 bài lệch lớn, 2 đã có GK3; 28% chưa có GK2, 1 bài chấm dở
+  const idx = shuffle(M.map((_, i) => i))
+  idx.slice(0, 7).forEach((i, n) => {
+    const r = M[i]; r.b = r.a.slice()
+    const j = r.a.findIndex((v, jj) => v <= MAX[jj] - 1.5)
+    if (j >= 0) r.b[j] = r.a[j] + 1.5; else { const k = r.a.findIndex((v) => v >= 1.5); r.b[k] = r.a[k] - 1.5 }
+    if (n < 2) r.g3 = q4((sum(r.a) + sum(r.b)) / 2 + 0.25)
+  })
+  idx.slice(7, 7 + Math.round(M.length * 0.28)).forEach((i) => (M[i].b = [null, null, null, null, null]))
+  const part = M[idx[7 + Math.round(M.length * 0.28)]]
+  part.b = part.b.map((v, j) => (j < 3 ? v : null))
+}
+function sum(a) { return a.every((v) => v != null) ? a.reduce((x, y) => x + y, 0) : null }
+function calc(r) {
+  const s1 = sum(r.a), s2 = sum(r.b)
+  const diff = s1 != null && s2 != null ? Math.abs(s1 - s2) : null
+  const flag = diff != null && diff > 1
+  const fin = flag ? r.g3 : diff != null ? q4((s1 + s2) / 2) : null
+  const st = fin != null ? 'done' : flag ? 'g3' : 'wait'
+  return { s1, s2, diff, flag, fin, st }
+}
+const cById = (id) => C.find((c) => c.id === id)
+
+/* ---------- theme ---------- */
+function setTheme(t) {
+  document.documentElement.dataset.theme = t
+  try { localStorage.setItem('ott-theme', t) } catch (e) {}
+  if (xg.ready) drawHist(false, true)
+  drawSch()
+}
+const toggleTheme = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')
+$('#themeBtn').onclick = toggleTheme
+$('#dTheme').onclick = () => { toggleTheme(); closeLayer() }
+
+/* ---------- toasts & tooltip ---------- */
+function toast(msg, undo) {
+  const host = $('#toasts')
+  while (host.children.length >= 2) host.firstElementChild.remove()
+  const el = document.createElement('div')
+  el.className = 'toast'
+  el.innerHTML = `<p>${msg}</p>${undo ? '<button>Hoàn tác</button>' : ''}`
+  if (undo) el.querySelector('button').onclick = () => { undo(); el.remove() }
+  host.appendChild(el)
+  if (!RM()) G.from(el, { y: 12, opacity: 0, duration: 0.25, clearProps: 'all' })
+  setTimeout(() => el.remove(), undo ? 7000 : 4000)
+}
+const tip = $('#tip')
+function showTip(html, x, y, err) {
+  tip.innerHTML = html
+  tip.className = 'tip on' + (err ? ' err' : '')
+  const r = tip.getBoundingClientRect()
+  tip.style.left = Math.max(8, Math.min(innerWidth - r.width - 8, x - r.width / 2)) + 'px'
+  tip.style.top = (y - r.height - 10 < 60 ? y + 14 : y - r.height - 10) + 'px'
+}
+const hideTip = () => (tip.className = 'tip')
+
+/* ---------- layers (Esc: trên cùng trước) ---------- */
+const layers = []
+function openLayer(el, opener, onClose) {
+  el.hidden = false
+  layers.push({ el, opener, onClose })
+  if (el.classList.contains('modal') || el.id === 'drawer' || el.id === 'pal') $('#scrim').classList.add('on')
+  $('#toasts').classList.toggle('top', !!$('.modal:not([hidden])') && innerWidth >= 820)
+  const f = el.querySelector('input,select,button:not(.x),a')
+  if (f) setTimeout(() => f.focus(), 30)
+}
+function closeLayer() {
+  const l = layers.pop()
+  if (!l) return false
+  l.el.hidden = true
+  if (l.onClose) l.onClose()
+  if (!layers.some((x) => x.el.classList.contains('modal') || x.el.id === 'drawer' || x.el.id === 'pal')) $('#scrim').classList.remove('on')
+  $('#toasts').classList.toggle('top', !!$('.modal:not([hidden])') && innerWidth >= 820)
+  if (l.opener && document.contains(l.opener)) l.opener.focus()
+  return true
+}
+$('#scrim').onclick = () => { while (layers.length) closeLayer() }
+$$('[data-close]').forEach((b) => (b.onclick = closeLayer))
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openPal(); return }
+  if (e.key === 'Escape') { if (closeLayer()) { e.preventDefault(); return } if (pt.sel) { pt.sel = null; renderRooms(); return } }
+  if (e.key === 'Tab' && layers.length) { // giữ focus trong lớp trên cùng
+    const el = layers[layers.length - 1].el
+    const f = $$('input,select,button,a[href],[tabindex="0"]', el).filter((x) => x.offsetParent)
+    if (!f.length) return
+    if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus() } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus() }
+  }
+})
+$('#bell').onclick = (e) => {
+  if (!$('#notif').hidden) { closeLayer(); return }
+  $('#bell').setAttribute('aria-expanded', 'true')
+  openLayer($('#notif'), e.currentTarget, () => $('#bell').setAttribute('aria-expanded', 'false'))
+}
+document.addEventListener('click', (e) => { if (!$('#notif').hidden && !e.target.closest('#notif,#bell')) { const i = layers.findIndex((l) => l.el.id === 'notif'); if (i === layers.length - 1) closeLayer() } })
+$('#burger').onclick = () => { $('#burger').setAttribute('aria-expanded', 'true'); openLayer($('#drawer'), $('#burger'), () => $('#burger').setAttribute('aria-expanded', 'false')) }
+$('#drawerX').onclick = closeLayer
+$$('#drawer a').forEach((a) => a.addEventListener('click', () => closeLayer()))
+
+/* ---------- router ---------- */
+const VIEWS = ['thi-sinh', 'phong-thi', 'cham-diem', 'xep-giai']
+let cur = null
+function route() {
+  let v = location.hash.slice(1)
+  if (!VIEWS.includes(v)) v = 'cham-diem'
+  if (v === cur) return
+  cur = v
+  $$('.view').forEach((s) => s.classList.toggle('on', s.id === v))
+  $$('[data-v]').forEach((a) => (a.dataset.v === v ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')))
+  const t = $('#' + v).dataset.title
+  document.title = `${t} — Olympic Toán Trẻ`
+  $('#crumb').textContent = `Bước ${VIEWS.indexOf(v) + 1} · ${t}`
+  hideTip()
+  window.scrollTo(0, 0)
+  if (v === 'xep-giai') { xg.ready ? drawHist(false) : initHist() }
+  if (v === 'cham-diem') syncFbar()
+  if (!RM()) G.fromTo('#' + v + ' .vh, #' + v + ' .card, #' + v + ' .strip, #' + v + ' .fbar', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.32, stagger: 0.035, clearProps: 'all' })
+}
+addEventListener('hashchange', route)
+
+/* ---------- header ---------- */
+function greet() {
+  const h = new Date().getHours()
+  const g = h < 5 ? 'Khuya rồi' : h < 11 ? 'Chào buổi sáng' : h < 13 ? 'Chào buổi trưa' : h < 18 ? 'Chào buổi chiều' : 'Chào buổi tối'
+  const st = M.map(calc)
+  const wait = st.filter((s) => s.st === 'wait').length, g3 = st.filter((s) => s.st === 'g3').length
+  const tail = h < 5 ? 'phần còn lại để sáng mai cũng kịp' : `${wait} bài chờ GK2, ${g3} bài cần chấm lần 3`
+  $('#greet').textContent = `${g}, chị Hạnh — ${tail} · công bố kết quả đợt 1 ngày ${fd(PUB)}.`
+}
+function clock() {
+  const d = new Date()
+  $('#clock').textContent = `${WD[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth() + 1)} · ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+function steps() {
+  const live = C.filter((c) => c.st !== 'del')
+  const has = live.filter((c) => c.sbd).length
+  $('#s1').textContent = `SBD ${has}/${live.length}`
+  $('#s2').textContent = pt.alloc ? `Đợt 2: ${ROOMS2.length} phòng · ${conflicts()} trùng` : 'Đợt 2 chưa phân'
+  const st = M.map(calc)
+  $('#s3').textContent = `GK2 ${st.filter((s) => s.s2 != null).length}/${M.length}`
+  const lk = Object.keys(xg.locked).length
+  $('#s4').textContent = lk ? 'Đã chốt ' + Object.keys(xg.locked).map((k) => (k === '0' ? 'cả đợt' : 'K' + k)).join(', ') : 'Chưa chốt'
+  $$('.step').forEach((a, i) => a.classList.toggle('done', i === 0 ? has === live.length : i === 1 ? !!pt.alloc : i === 2 ? st.every((s) => s.fin != null) : lk > 0))
+  $$('.step i').forEach((i, n) => (i.textContent = i.parentElement.classList.contains('done') && i.parentElement.getAttribute('aria-current') !== 'page' ? '✓' : n + 1))
+  $('#chip1').textContent = `Đợt 1 · K6–7 · thi ${fd(D1).slice(0, 5)}`
+  $('#chip2').textContent = `Đợt 2 · K8–9 · thi ${fd(D2).slice(0, 5)}`
+  $('#brandSub').textContent = `KỲ THI LẦN XII · ${YEAR}`
+}
+
+/* =========================================================
+   1. THÍ SINH & SBD
+   ========================================================= */
+const ts = { q: '', k: 0, st: '', sort: 'ten', dir: 1, page: 0, per: 12, sel: new Set() }
+const live = () => C.filter((c) => c.st !== 'del')
+function tsRows() {
+  const q = fold(ts.q.trim())
+  let r = live().filter((c) => (!ts.k || c.khoi === ts.k) && (!ts.st || (ts.st === 'nosbd' ? !c.sbd : c.st === ts.st)) && (!q || fold(`${c.name} ${SCH[c.sch][0]} ${c.sbd || ''}`).includes(q)))
+  const key = { sbd: (a, b) => (a.sbd || 'zz').localeCompare(b.sbd || 'zz'), ten: byTen, dob: (a, b) => a.dob - b.dob, khoi: (a, b) => a.khoi - b.khoi || byTen(a, b), sch: (a, b) => vi.compare(SCH[a.sch][1], SCH[b.sch][1]) || byTen(a, b) }[ts.sort]
+  return r.sort((a, b) => key(a, b) * ts.dir)
+}
+const ST_TXT = { ok: 'Đủ hồ sơ', thieu: 'Thiếu hồ sơ', vang: 'Vắng thi' }
+function renderTs() {
+  const rows = tsRows()
+  const pages = Math.max(1, Math.ceil(rows.length / ts.per))
+  ts.page = Math.min(ts.page, pages - 1)
+  const view = rows.slice(ts.page * ts.per, ts.page * ts.per + ts.per)
+  const B = $('#tsB')
+  if (!rows.length) {
+    B.innerHTML = `<tr class="empty"><td colspan="8"><div class="empty-st"><b>Không có thí sinh nào khớp</b>Thử bỏ dấu khác, đổi khối hoặc trạng thái.<br><button class="btn sm" style="margin-top:10px" id="tsClr">Xóa bộ lọc</button></div></td></tr>`
+    $('#tsClr').onclick = () => { ts.q = ''; ts.k = 0; ts.st = ''; $('#tsQ').value = ''; $('#tsSt').value = ''; segSet('#tsKhoi', 'k', 0); renderTs() }
+  } else {
+    B.innerHTML = view.map((c) => {
+      const s = SCH[c.sch]
+      return `<tr data-id="${c.id}" class="${ts.sel.has(c.id) ? 'sel' : ''}"><td class="ck"><input type="checkbox" aria-label="Chọn ${esc(c.name)}" ${ts.sel.has(c.id) ? 'checked' : ''}></td><td class="sb ${c.sbd ? '' : 'no'}" data-sbd="${c.id}">${c.sbd || 'chưa cấp'}</td><td class="nm">${esc(c.name)}</td><td class="num mt">${fd(c.dob)}</td><td class="mt"><span class="kh k${c.khoi}">${c.khoi}</span></td><td class="mt">${esc(s[0])}</td><td class="num mt">Đợt ${c.dot}</td><td class="meta" style="display:none">Khối ${c.khoi} · ${esc(s[1])} · ${fd(c.dob)}</td><td class="stc"><span class="pill ${c.st}">${ST_TXT[c.st]}</span></td></tr>`
+    }).join('')
+  }
+  const from = rows.length ? ts.page * ts.per + 1 : 0
+  let pg = `<span class="info">Hiển thị <b class="num">${from}–${Math.min(rows.length, (ts.page + 1) * ts.per)}</b> / <b class="num">${rows.length}</b> thí sinh</span><span class="sp"></span><button data-p="${ts.page - 1}" ${ts.page ? '' : 'disabled'} aria-label="Trang trước">‹</button>`
+  const s0 = Math.max(0, Math.min(ts.page - 2, pages - 5))
+  for (let i = s0; i < Math.min(pages, s0 + 5); i++) pg += `<button data-p="${i}" aria-current="${i === ts.page}" aria-label="Trang ${i + 1}">${i + 1}</button>`
+  pg += `<button data-p="${ts.page + 1}" ${ts.page < pages - 1 ? '' : 'disabled'} aria-label="Trang sau">›</button>`
+  $('#tsPg').innerHTML = pg
+  $('#tsAll').checked = view.length > 0 && view.every((c) => ts.sel.has(c.id))
+  $$('#tsT th[data-s]').forEach((th) => th.setAttribute('aria-sort', th.dataset.s === ts.sort ? (ts.dir > 0 ? 'ascending' : 'descending') : 'none'))
+  $('#bulk').hidden = !ts.sel.size
+  $('#bulkN').textContent = ts.sel.size
+  renderSbdPanel()
+  renderKbars()
+}
+function segSet(sel, key, val) { $$(sel + ' button').forEach((b) => b.setAttribute('aria-pressed', String(String(b.dataset[key]) === String(val)))) }
+$('#tsQ').addEventListener('input', (e) => { ts.q = e.target.value; ts.page = 0; renderTs() })
+$('#tsSt').addEventListener('change', (e) => { ts.st = e.target.value; ts.page = 0; renderTs() })
+$('#tsKhoi').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; ts.k = +b.dataset.k; ts.page = 0; segSet('#tsKhoi', 'k', ts.k); renderTs() })
+$('#tsT thead').addEventListener('click', (e) => { const th = e.target.closest('th[data-s]'); if (!th) return; ts.dir = ts.sort === th.dataset.s ? -ts.dir : 1; ts.sort = th.dataset.s; renderTs() })
+$('#tsPg').addEventListener('click', (e) => { const b = e.target.closest('button[data-p]'); if (!b || b.disabled) return; ts.page = +b.dataset.p; renderTs() })
+$('#tsB').addEventListener('change', (e) => { const tr = e.target.closest('tr[data-id]'); if (!tr) return; const id = +tr.dataset.id; e.target.checked ? ts.sel.add(id) : ts.sel.delete(id); renderTs() })
+$('#tsAll').addEventListener('change', (e) => { const rows = tsRows().slice(ts.page * ts.per, ts.page * ts.per + ts.per); rows.forEach((c) => (e.target.checked ? ts.sel.add(c.id) : ts.sel.delete(c.id))); renderTs() })
+function bulkSet(st) {
+  const ch = [...ts.sel].map(cById).filter((c) => c && c.st !== 'vang' && c.st !== st)
+  const old = ch.map((c) => [c, c.st])
+  ch.forEach((c) => (c.st = st))
+  ts.sel.clear(); renderTs()
+  toast(`Đã cập nhật ${ch.length} hồ sơ thành “${ST_TXT[st]}”.`, () => { old.forEach(([c, s]) => (c.st = s)); renderTs() })
+}
+$('#bOk').onclick = () => bulkSet('ok')
+$('#bThieu').onclick = () => bulkSet('thieu')
+$('#bClr').onclick = () => { ts.sel.clear(); renderTs() }
+$('#bDel').onclick = () => {
+  const all = [...ts.sel].map(cById).filter(Boolean)
+  const sat = all.filter((c) => c.phach)
+  const del = all.filter((c) => !c.phach)
+  const old = del.map((c) => [c, c.st])
+  del.forEach((c) => (c.st = 'del'))
+  ts.sel.clear(); if (pt.alloc && del.some((c) => c.dot === 2)) resetAlloc(); renderTs(); steps()
+  toast(`Đã xóa ${del.length} thí sinh${sat.length ? ` · giữ lại ${sat.length} em đã dự thi (đã có bài chấm)` : ''}.`, () => { old.forEach(([c, s]) => (c.st = s)); renderTs(); steps() })
+}
+$('#exportBtn').onclick = () => toast(`Đã tạo tệp danh sách ${tsRows().length} thí sinh (theo bộ lọc hiện tại).`)
+
+// --- đánh số báo danh ---
+function sbdOpts() {
+  const pre = $('#sbdPre').value.trim().toUpperCase()
+  const st = $('#sbdStart').value.trim()
+  let ok = true
+  if (!/^[A-Z0-9]{2,6}$/.test(pre)) { $('#sbdPreE').textContent = 'Mã đầu gồm 2–6 chữ in hoa hoặc số.'; $('#sbdPre').setAttribute('aria-invalid', 'true'); ok = false } else { $('#sbdPreE').textContent = ''; $('#sbdPre').removeAttribute('aria-invalid') }
+  const n = Number(st)
+  const big = Math.max(...[8, 9].map((k) => live().filter((c) => c.dot === 2 && c.khoi === k).length))
+  if (!/^\d{1,3}$/.test(st) || n < 1 || n + big - 1 > 999) { $('#sbdStartE').textContent = `Số bắt đầu từ 1 đến ${999 - big + 1}.`; $('#sbdStart').setAttribute('aria-invalid', 'true'); ok = false } else { $('#sbdStartE').textContent = ''; $('#sbdStart').removeAttribute('aria-invalid') }
+  return ok ? { pre, n, order: $('#sbdOrder').value } : null
+}
+function renderSbdPanel() {
+  const g = live().filter((c) => c.dot === 2)
+  const has = g.filter((c) => c.sbd).length
+  $('#sbdBig').innerHTML = `${has}<small>/${g.length}</small>`
+  $('#sbdBar').style.width = (g.length ? has / g.length * 100 : 0) + '%'
+  $('#sbdRun').textContent = has ? `Đánh lại số ${g.length} thí sinh` : `Đánh số ${g.length} thí sinh`
+  const o = sbdOpts()
+  if (!o) { $('#sbdPrev').innerHTML = 'Sửa lỗi ở trên để xem trước số báo danh.'; return }
+  $('#sbdPrev').innerHTML = [8, 9].map((k) => { const n = g.filter((c) => c.khoi === k).length; return `Khối ${k}: <em>${o.pre}-${k}${pad(o.n, 3)}</em> → ${o.pre}-${k}${pad(o.n + n - 1, 3)} <span style="color:var(--mute)">(${n} em)</span>` }).join('<br>')
+}
+;['#sbdPre', '#sbdStart'].forEach((s) => $(s).addEventListener('input', renderSbdPanel))
+$('#sbdOrder').addEventListener('change', renderSbdPanel)
+function runSbd(quiet) {
+  const o = sbdOpts()
+  if (!o) { $('#sbdPre').getAttribute('aria-invalid') ? $('#sbdPre').focus() : $('#sbdStart').focus(); return false }
+  const old = C.map((c) => [c, c.sbd])
+  const ord = { ten: byTen, sch: (a, b) => vi.compare(SCH[a.sch][1], SCH[b.sch][1]) || byTen(a, b), dob: (a, b) => a.dob - b.dob || byTen(a, b) }[o.order]
+  for (const k of [8, 9]) live().filter((c) => c.dot === 2 && c.khoi === k).sort(ord).forEach((c, i) => (c.sbd = `${o.pre}-${k}${pad(o.n + i, 3)}`))
+  const hadAlloc = !!pt.alloc
+  if (hadAlloc) resetAlloc()
+  if (!quiet) {
+    // hiện ngay đợt 2 theo SBD để thấy số chạy
+    ts.k = 0; ts.st = ''; ts.q = ''; ts.sort = 'sbd'; ts.dir = 1; ts.page = 0
+    $('#tsQ').value = ''; $('#tsSt').value = ''; segSet('#tsKhoi', 'k', 0)
+    const first = tsRows().findIndex((c) => c.dot === 2)
+    ts.page = Math.floor(first / ts.per)
+  }
+  renderTs(); steps(); renderRooms()
+  if (!quiet) {
+    const cells = $$('#tsB td[data-sbd]').filter((td) => cById(+td.dataset.sbd).dot === 2)
+    cells.forEach((td, i) => {
+      const fin = td.textContent
+      td.classList.add('new')
+      if (RM()) return
+      const o2 = { t: 0 }
+      G.to(o2, { t: 1, duration: 0.45, delay: i * 0.045, ease: 'none', onUpdate: () => { td.textContent = fin.slice(0, -3) + pad(Math.floor(Math.random() * 1000), 3) }, onComplete: () => { td.textContent = fin } })
+    })
+    if (!RM()) { const n = { v: 0 }; const tot = live().filter((c) => c.dot === 2).length; G.to(n, { v: tot, duration: 0.9, ease: 'power2.out', onUpdate: () => { $('#sbdBig').innerHTML = `${Math.round(n.v)}<small>/${tot}</small>` } }) }
+    toast(`Đã cấp SBD cho ${live().filter((c) => c.dot === 2).length} thí sinh đợt 2${hadAlloc ? ' · sơ đồ phòng cần phân lại' : ''}.`, () => { old.forEach(([c, s]) => (c.sbd = s)); renderTs(); steps(); renderRooms() })
+  }
+  return true
+}
+$('#sbdRun').onclick = () => runSbd(false)
+function renderKbars() {
+  const L = live()
+  $('#hsTot').textContent = `${L.length} hồ sơ`
+  $('#kbars').innerHTML = [6, 7, 8, 9].map((k) => {
+    const g = L.filter((c) => c.khoi === k), n = g.length || 1
+    const p = (s) => g.filter((c) => c.st === s).length / n * 100
+    return `<div class="row"><span>Khối ${k}</span><div class="bar" title="Đủ ${g.filter((c) => c.st === 'ok').length} · Thiếu ${g.filter((c) => c.st === 'thieu').length} · Vắng ${g.filter((c) => c.st === 'vang').length}"><i class="o" style="width:${p('ok')}%"></i><i style="width:${p('thieu')}%;background:var(--warn)"></i><i class="r" style="width:${p('vang')}%"></i></div><b>${g.length}</b></div>`
+  }).join('')
+}
+
+// --- form thêm thí sinh ---
+$('#fSch').innerHTML = '<option value="">— Chọn trường —</option>' + SCH.map((s, i) => `<option value="${i}">${s[0]} · ${s[3]}</option>`).join('')
+$('#addBtn').onclick = (e) => { $('#addF').reset(); $$('#addF .err').forEach((x) => (x.textContent = '')); $$('#addF [aria-invalid]').forEach((x) => x.removeAttribute('aria-invalid')); openLayer($('#addM'), e.currentTarget) }
+function parseDob(s) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s.trim())
+  if (!m) return null
+  const d = new Date(+m[3], +m[2] - 1, +m[1])
+  return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? d : null
+}
+function fErr(id, msg) { $('#' + id + 'E').textContent = msg; msg ? $('#' + id).setAttribute('aria-invalid', 'true') : $('#' + id).removeAttribute('aria-invalid'); return !msg }
+function validateAdd() {
+  const name = $('#fName').value.trim().replace(/\s+/g, ' ')
+  const k = +$('#fKhoi').value
+  const d = parseDob($('#fDob').value)
+  let ok = fErr('fName', !name ? 'Nhập họ và tên thí sinh.' : name.split(' ').length < 2 ? 'Cần cả họ và tên (ít nhất 2 chữ).' : /[\d@#$%^&*]/.test(name) ? 'Họ tên không chứa số hay ký tự đặc biệt.' : '')
+  ok = fErr('fKhoi', k ? '' : 'Chọn khối dự thi.') && ok
+  let dm = ''
+  if (!$('#fDob').value.trim()) dm = 'Nhập ngày sinh dạng dd/mm/yyyy.'
+  else if (!d) dm = 'Ngày sinh không hợp lệ (dd/mm/yyyy).'
+  else if (k && Math.abs(d.getFullYear() - (YEAR - 5 - k)) > 1) dm = `Khối ${k} thường sinh năm ${YEAR - 5 - k} (±1 năm).`
+  ok = fErr('fDob', dm) && ok
+  ok = fErr('fSch', $('#fSch').value === '' ? 'Chọn trường của thí sinh.' : '') && ok
+  const ph = $('#fPhone').value.replace(/\s/g, '')
+  ok = fErr('fPhone', !ph ? 'Nhập số điện thoại phụ huynh.' : !/^0[35789]\d{8}$/.test(ph) ? 'Số di động 10 chữ số, bắt đầu bằng 03/05/07/08/09.' : '') && ok
+  return ok ? { name, k, d, sch: +$('#fSch').value, ph } : null
+}
+$('#addF').addEventListener('input', (e) => { if (e.target.getAttribute('aria-invalid')) validateAdd() })
+$('#addF').addEventListener('submit', (e) => {
+  e.preventDefault()
+  const v = validateAdd()
+  if (!v) { const f = $('#addF [aria-invalid=true]'); if (f) f.focus(); return }
+  const p = v.name.split(' ')
+  const c = { id: uid++, ho: p[0], dem: p.slice(1, -1).join(' '), ten: p[p.length - 1], name: v.name, khoi: v.k, dot: v.k >= 8 ? 2 : 1, sch: v.sch, dob: v.d, phone: v.ph, st: 'ok', sbd: null }
+  C.push(c)
+  closeLayer()
+  if (pt.alloc && c.dot === 2) resetAlloc()
+  ts.q = ''; $('#tsQ').value = ''; ts.st = 'nosbd'; $('#tsSt').value = 'nosbd'; ts.page = 0
+  renderTs(); steps()
+  toast(`Đã thêm ${esc(v.name)} (khối ${v.k}) · chưa có SBD.`, () => { c.st = 'del'; renderTs(); steps() })
+})
+
+/* =========================================================
+   2. PHÒNG THI
+   ========================================================= */
+const GT = ['Nguyễn Thu Trang', 'Phạm Quốc Bảo', 'Đỗ Thị Lan', 'Vũ Đức Thịnh', 'Hoàng Mai Anh', 'Bùi Văn Khải', 'Trịnh Thu Hà', 'Lê Minh Tâm', 'Ngô Thanh Hương', 'Phan Đức Long', 'Dương Thị Nga', 'Hồ Quang Vinh']
+const ROOMS2 = [201, 202, 203, 204, 205].map((n, i) => ({ n, pos: 'Tòa A · tầng 2', cap: 24, gt: [GT[i * 2], GT[i * 2 + 1]] }))
+const ROOMS1 = [101, 102, 103, 104, 105, 106].map((n, i) => ({ n, pos: 'Tòa B · tầng 1', cap: 24, gt: [GT[(i * 2 + 3) % 12], GT[(i * 2 + 4) % 12]] }))
+// đợt 1: xếp theo SBD, 21 em/phòng
+const SEAT1 = ROOMS1.map((r, i) => d1.slice().sort((a, b) => a.sbd.localeCompare(b.sbd)).slice(i * 21, i * 21 + 21))
+const pt = { dot: 2, alloc: null, sel: null, editing: null }
+function resetAlloc() { pt.alloc = null; pt.sel = null }
+function neighbors(i, cap) { const r = Math.floor(i / 4), c = i % 4; const out = []; if (c % 2 === 1) out.push(i - 1); if (c % 2 === 0 && i + 1 < cap) out.push(i + 1); if (r > 0) out.push(i - 4); if (i + 4 < cap) out.push(i + 4); return out } // bàn đôi: kề trái–phải cùng bàn, trước–sau
+function conflicts(seats, cap) {
+  if (!seats) { if (!pt.alloc) return 0; return pt.alloc.reduce((s, x, i) => s + conflicts(x, ROOMS2[i].cap), 0) }
+  let n = 0
+  seats.forEach((c, i) => { if (!c) return; for (const j of neighbors(i, cap)) if (j > i && seats[j] && seats[j].sch === c.sch) n++ })
+  return n
+}
+function cfSet(seats, cap) { const s = new Set(); seats.forEach((c, i) => { if (!c) return; for (const j of neighbors(i, cap)) if (seats[j] && seats[j].sch === c.sch) { s.add(i); s.add(j) } }); return s }
+function allocate(mode) {
+  const list = live().filter((c) => c.dot === 2).sort((a, b) => a.sbd.localeCompare(b.sbd))
+  const out = []
+  let p = 0
+  for (const r of ROOMS2) {
+    const take = list.slice(p, p + r.cap); p += take.length
+    const seats = new Array(r.cap).fill(null)
+    if (mode === 'seq') take.forEach((c, i) => (seats[i] = c))
+    else {
+      const q = take.slice()
+      for (let i = 0; i < take.length; i++) {
+        const near = neighbors(i, r.cap).filter((j) => j < i).map((j) => seats[j] && seats[j].sch)
+        let k = q.findIndex((c) => !near.includes(c.sch))
+        if (k < 0) k = 0
+        seats[i] = q.splice(k, 1)[0]
+      }
+      // tham lam đôi khi kẹt ở cuối phòng: thử đổi từng ghế lỗi với ghế khác nếu giảm số cặp kề
+      for (let pass = 0; pass < 3 && conflicts(seats, r.cap); pass++)
+        for (const i of cfSet(seats, r.cap)) for (let j = 0; j < take.length; j++) {
+          const before = conflicts(seats, r.cap); [seats[i], seats[j]] = [seats[j], seats[i]]
+          if (conflicts(seats, r.cap) < before) break
+          ;[seats[i], seats[j]] = [seats[j], seats[i]]
+        }
+    }
+    out.push(seats)
+  }
+  return out
+}
+function capTotal() { return ROOMS2.reduce((s, r) => s + r.cap, 0) }
+function renderPt() {
+  const d = pt.dot
+  const n2 = live().filter((c) => c.dot === 2).length
+  $('#ptCtl').querySelector('.tbar').style.display = d === 2 ? '' : 'none'
+  if (d === 2) {
+    $('#ptSub').textContent = `Đợt 2 thi ngày ${WD[D2.getDay()]} ${fd(D2)} · ${ROOMS2.length} phòng, Tòa A. Bàn đôi, hai bạn cùng trường không ngồi kề nhau.`
+    const cf = pt.alloc ? conflicts() : null
+    $('#ptStrip').innerHTML = `<div><b class="num">${n2}</b><span>thí sinh đợt 2</span></div><div><b class="num">${capTotal()}</b><span>chỗ ngồi (${ROOMS2.length} phòng)</span></div><div class="o"><b class="num">${pt.alloc ? pt.alloc.flat().filter(Boolean).length : 0}</b><span>đã xếp chỗ</span></div><div class="${cf ? 'r' : 'o'}"><b class="num" id="cfBig">${cf == null ? '—' : cf}</b><span>cặp cùng trường ngồi kề</span></div>`
+  } else {
+    const ab = d1.filter((c) => c.st === 'vang').length
+    $('#ptSub').textContent = `Đợt 1 đã thi ngày ${WD[D1.getDay()]} ${fd(D1)} · ${ROOMS1.length} phòng, Tòa B. Sơ đồ điểm danh lưu theo biên bản phòng thi.`
+    $('#ptStrip').innerHTML = `<div><b class="num">${d1.length}</b><span>thí sinh đợt 1</span></div><div class="o"><b class="num">${d1.length - ab}</b><span>có mặt</span></div><div class="r"><b class="num">${ab}</b><span>vắng thi</span></div><div><b class="num">${M.length}</b><span>bài đã rọc phách</span></div>`
+  }
+  renderRoomTable(); renderRooms()
+}
+function renderRoomTable() {
+  const d = pt.dot
+  const R = d === 2 ? ROOMS2 : ROOMS1
+  $('#rtB').innerHTML = R.map((r, i) => {
+    let seats = d === 2 ? (pt.alloc && pt.alloc[i]) : SEAT1[i]
+    const got = seats ? seats.filter(Boolean) : []
+    const range = got.length ? `${got.map((c) => c.sbd).sort()[0]} – ${got.map((c) => c.sbd).sort().pop().slice(-4)}` : '—'
+    const cf = d === 2 && seats ? conflicts(seats, r.cap) : null
+    const cap = d === 2 ? (pt.editing === i ? `<input class="capi" id="capIn" value="${r.cap}" inputmode="numeric" aria-label="Sức chứa phòng ${r.n}" aria-describedby="capErr">` : `<button class="capb" data-cap="${i}" aria-label="Sửa sức chứa phòng ${r.n}: ${r.cap}">${r.cap}</button>`) : `<span class="num">${r.cap}</span>`
+    return `<tr><td class="n">P.${r.n}</td><td>${r.pos}</td><td>${cap}</td><td class="num">${got.length}</td><td class="num">${range}</td><td>${r.gt.join(', ')}</td><td>${d === 1 ? '<span class="cf-n">—</span>' : cf == null ? '<span class="cf-n">—</span>' : `<span class="cf-n ${cf ? 'bad' : 'good'}">${cf ? cf + ' cặp' : '0 ✓'}</span>`}</td></tr>`
+  }).join('')
+  if (pt.editing != null) { const inp = $('#capIn'); inp.focus(); inp.select() }
+}
+$('#rtB').addEventListener('click', (e) => { const b = e.target.closest('[data-cap]'); if (!b) return; pt.editing = +b.dataset.cap; renderRoomTable() })
+$('#rtB').addEventListener('keydown', (e) => {
+  if (e.target.id !== 'capIn') return
+  if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); const i = pt.editing; pt.editing = null; $('#capErr').textContent = ''; renderRoomTable(); $(`[data-cap="${i}"]`).focus(); return }
+  if (e.key !== 'Enter' && e.key !== 'Tab') return
+  e.preventDefault()
+  const v = e.target.value.trim(), n = Number(v), i = pt.editing
+  if (!/^\d+$/.test(v) || n < 12 || n > 30) { $('#capErr').textContent = `Sức chứa phòng ${ROOMS2[i].n} phải từ 12 đến 30 chỗ.`; e.target.setAttribute('aria-invalid', 'true'); return }
+  const old = ROOMS2[i].cap
+  ROOMS2[i].cap = n
+  const need = live().filter((c) => c.dot === 2).length
+  if (capTotal() < need) { $('#capErr').textContent = `Tổng sức chứa ${capTotal()} chỗ < ${need} thí sinh — tăng thêm ${need - capTotal()} chỗ.`; ROOMS2[i].cap = old; e.target.setAttribute('aria-invalid', 'true'); return }
+  $('#capErr').textContent = ''
+  pt.editing = null
+  if (pt.alloc) pt.alloc = allocate($('#ptMode').value)
+  renderPt(); steps()
+  if (old !== n) toast(`Phòng ${ROOMS2[i].n}: sức chứa ${old} → ${n}${pt.alloc ? ', đã xếp lại chỗ' : ''}.`, () => { ROOMS2[i].cap = old; if (pt.alloc) pt.alloc = allocate($('#ptMode').value); renderPt(); steps() })
+  const nb = $(`[data-cap="${i}"]`); if (nb) nb.focus()
+})
+$('#rtB').addEventListener('focusout', (e) => { if (e.target.id === 'capIn' && pt.editing != null) setTimeout(() => { if (pt.editing != null && document.activeElement !== $('#capIn')) { pt.editing = null; $('#capErr').textContent = ''; renderRoomTable() } }, 0) })
+function renderRooms() {
+  if (!$('#rooms')) return
+  const d = pt.dot
+  const R = d === 2 ? ROOMS2 : ROOMS1
+  const noSbd = live().some((c) => c.dot === 2 && !c.sbd)
+  $('#ptCall').innerHTML = d === 2 && !pt.alloc ? `<div class="callout"><p><b>Chưa phân phòng đợt 2.</b> ${noSbd ? 'Thí sinh khối 8–9 chưa có SBD — hệ thống sẽ cấp SBD theo quy tắc ở bước 1 trước, rồi xếp chỗ.' : 'SBD đã sẵn sàng. Chọn cách xếp rồi bấm phân phòng.'}</p><button class="btn red" id="ptRun2">${noSbd ? 'Cấp SBD & phân phòng' : 'Phân phòng tự động'}</button></div>` : ''
+  const r2 = $('#ptRun2'); if (r2) r2.onclick = runAlloc
+  $('#ptRun').textContent = noSbd ? 'Cấp SBD & phân phòng' : pt.alloc ? 'Phân lại phòng' : 'Phân phòng tự động'
+  $('#rooms').innerHTML = R.map((r, i) => {
+    const seats = d === 2 ? (pt.alloc ? pt.alloc[i] : new Array(r.cap).fill(null)) : SEAT1[i].concat(new Array(r.cap - SEAT1[i].length).fill(null))
+    const cf = d === 2 && pt.alloc ? cfSet(seats, r.cap) : new Set()
+    let html = ''
+    seats.forEach((c, j) => {
+      if (j % 4 === 2) html += '<span class="aisle" aria-hidden="true"></span>'
+      if (!c) { html += `<span class="seat void" aria-hidden="true">${j + 1}</span>`; return }
+      const s = SCH[c.sch]
+      if (d === 1) html += `<span class="seat ${c.st === 'vang' ? 'ab' : 'pr'}" title="${esc(c.name)} · ${s[1]} · ${c.st === 'vang' ? 'vắng' : 'có mặt'}">${c.sbd.slice(-4)}<small>${c.st === 'vang' ? 'vắng' : '✓ ' + s[2]}</small></span>`
+      else html += `<button class="seat k${c.khoi} ${cf.has(j) ? 'cf' : ''}" data-r="${i}" data-s="${j}" aria-pressed="${pt.sel && pt.sel[0] === i && pt.sel[1] === j}" aria-label="Ghế ${j + 1} phòng ${r.n}: ${c.sbd}, ${esc(c.name)}, ${s[1]}${cf.has(j) ? ', ngồi kề bạn cùng trường' : ''}" title="${esc(c.name)} · ${s[1]}">${c.sbd.slice(-4)}<small>${s[2]}</small></button>`
+    })
+    const n = seats.filter(Boolean).length
+    return `<div class="card room"><h3>Phòng ${r.n}<small>${n}/${r.cap} chỗ${d === 2 && pt.alloc ? ` · ${conflicts(seats, r.cap) ? `<span style="color:var(--red)">${conflicts(seats, r.cap)} cặp kề</span>` : 'ổn'}` : ''}</small></h3><div class="board">BẢNG</div><div class="seats">${html}</div></div>`
+  }).join('')
+}
+$('#rooms').addEventListener('click', (e) => {
+  const b = e.target.closest('button.seat'); if (!b) return
+  const at = [+b.dataset.r, +b.dataset.s]
+  if (!pt.sel) { pt.sel = at; renderRooms(); $(`button.seat[data-r="${at[0]}"][data-s="${at[1]}"]`).focus(); return }
+  if (pt.sel[0] === at[0] && pt.sel[1] === at[1]) { pt.sel = null; renderRooms(); return }
+  const [a, z] = [pt.sel, at]
+  const A = pt.alloc
+  const swap = () => { const t = A[a[0]][a[1]]; A[a[0]][a[1]] = A[z[0]][z[1]]; A[z[0]][z[1]] = t }
+  const ca = A[a[0]][a[1]], cz = A[z[0]][z[1]]
+  swap(); pt.sel = null
+  renderPt(); steps()
+  const nb = $(`button.seat[data-r="${z[0]}"][data-s="${z[1]}"]`); if (nb) nb.focus()
+  toast(`Đã đổi chỗ ${ca.sbd.slice(-4)} ↔ ${cz.sbd.slice(-4)} · còn ${conflicts()} cặp cùng trường kề.`, () => { swap(); renderPt(); steps() })
+})
+function runAlloc() {
+  if (live().some((c) => c.dot === 2 && !c.sbd) && !runSbd(true)) { location.hash = '#thi-sinh'; return }
+  const need = live().filter((c) => c.dot === 2).length
+  if (capTotal() < need) { $('#capErr').textContent = `Tổng sức chứa ${capTotal()} chỗ < ${need} thí sinh.`; return }
+  const mode = $('#ptMode').value
+  const prev = pt.alloc
+  pt.alloc = allocate(mode)
+  const seqCf = allocate('seq').reduce((s, x, i) => s + conflicts(x, ROOMS2[i].cap), 0) // số so sánh với xếp tuần tự
+  pt.sel = null
+  renderPt(); steps()
+  if (!RM()) {
+    G.from('#rooms .seat:not(.void)', { scale: 0.4, opacity: 0, duration: 0.3, stagger: { each: 0.004, from: 'start' }, ease: 'back.out(2)', clearProps: 'all' })
+    const o = { v: seqCf }; const now = conflicts()
+    G.to(o, { v: now, duration: 0.9, delay: 0.2, ease: 'power2.out', onUpdate: () => { const el = $('#cfBig'); if (el) el.textContent = Math.round(o.v) } })
+  }
+  toast(mode === 'opt' ? `Đã xếp ${need} thí sinh vào ${ROOMS2.length} phòng · cặp cùng trường kề: ${seqCf} → ${conflicts()}.` : `Đã xếp tuần tự theo SBD · ${conflicts()} cặp cùng trường ngồi kề.`, () => { pt.alloc = prev; renderPt(); steps() })
+}
+$('#ptRun').onclick = runAlloc
+$('#ptMode').addEventListener('change', () => { if (pt.alloc) runAlloc() })
+$('#ptDot').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; pt.dot = +b.dataset.d; pt.sel = null; pt.editing = null; segSet('#ptDot', 'd', pt.dot); renderPt() })
+
+/* =========================================================
+   3. CHẤM ĐIỂM — bảng tính
+   ========================================================= */
+const COLS = [{ k: 'phach', t: 'Phách' }, { k: 'khoi', t: 'Khối' }]
+MAX.forEach((m, j) => COLS.push({ k: 'a', j, t: 'B' + (j + 1), m, ed: true, g: 1 }))
+COLS.push({ k: 's1', t: 'Σ', m: 20, g: 1 })
+MAX.forEach((m, j) => COLS.push({ k: 'b', j, t: 'B' + (j + 1), m, ed: true, g: 2 }))
+COLS.push({ k: 's2', t: 'Σ', m: 20, g: 2 }, { k: 'diff', t: 'Lệch' }, { k: 'g3', t: 'GK3', m: 20, ed: true }, { k: 'fin', t: 'Chốt' })
+const cd = { k: 0, st: '', q: '', r: 0, c: 2, edit: false, hist: [], vis: [] }
+function cdRows() {
+  const q = cd.q.trim()
+  return M.filter((r) => (!cd.k || r.khoi === cd.k) && (!q || String(r.phach).includes(q)) && (!cd.st || calc(r).st === cd.st))
+}
+function cellHtml(r, col) {
+  const x = calc(r)
+  switch (col.k) {
+    case 'phach': return `<td class="fz">${r.phach}</td>`
+    case 'khoi': return `<td class="fz2">${r.khoi}</td>`
+    case 'a': case 'b': {
+      const v = r[col.k][col.j], o = r[col.k === 'a' ? 'b' : 'a'][col.j]
+      const hot = v != null && o != null && Math.abs(v - o) >= 1
+      return `<td class="${col.k} ${v == null ? 'nil' : ''} ${hot ? 'hot' : ''}">${v == null ? '·' : fs(v)}</td>`
+    }
+    case 's1': return `<td class="s a">${x.s1 == null ? '' : fs(x.s1)}</td>`
+    case 's2': return `<td class="s b ${x.s2 == null ? 'nil' : ''}">${x.s2 == null ? '·' : fs(x.s2)}</td>`
+    case 'diff': return `<td class="df ${x.flag ? 'bad' : ''}">${x.diff == null ? '' : fs(x.diff)}${x.diff == null ? '' : `<i style="width:${Math.min(60, x.diff * 20)}%"></i>`}</td>`
+    case 'g3': return `<td class="g3c ${x.flag && r.g3 == null ? 'need' : ''} ${x.flag ? '' : 'nil'}">${x.flag ? fs(r.g3) : ''}</td>`
+    case 'fin': return `<td class="fin">${x.fin != null ? fs(x.fin) : x.flag ? '<span class="tag">GK3</span>' : '<span style="color:var(--line2)">—</span>'}</td>`
+  }
+}
+function rowHtml(r, i) { return `<tr data-i="${i}" class="st-${calc(r).st}">${COLS.map((c) => cellHtml(r, c)).join('')}</tr>` }
+function renderSheet() {
+  cd.vis = cdRows()
+  cd.r = Math.min(cd.r, Math.max(0, cd.vis.length - 1))
+  const head = `<thead><tr class="g"><th class="fz" colspan="1"></th><th class="fz2"></th><th colspan="6" class="g1">Giám khảo 1 · mực xanh</th><th colspan="6" class="g2">Giám khảo 2 · mực đỏ</th><th colspan="3">Đối chiếu</th></tr><tr class="h">${COLS.map((c) => `<th class="${c.k === 'phach' ? 'fz' : c.k === 'khoi' ? 'fz2' : ''} ${c.g ? 'g' + c.g : ''}" scope="col">${c.t}${c.m && c.k !== 'g3' ? `<small>/${c.m}</small>` : ''}</th>`).join('')}</tr></thead>`
+  const body = cd.vis.length ? cd.vis.map(rowHtml).join('') : `<tr class="empty"><td colspan="${COLS.length}">Không có bài nào khớp bộ lọc.<br><button class="btn sm" id="cdClr" style="margin-top:10px">Xóa bộ lọc</button></td></tr>`
+  $('#sheet').innerHTML = head + `<tbody>${body}</tbody>`
+  const b = $('#cdClr'); if (b) b.onclick = () => { cd.k = 0; cd.st = ''; cd.q = ''; $('#cdQ').value = ''; $('#cdSt').value = ''; segSet('#cdKhoi', 'k', 0); renderSheet() }
+  $('#cdCount').textContent = `${cd.vis.length}/${M.length} bài`
+  markCur(false)
+  renderCdSide()
+}
+function td(ri, ci) { const tr = $(`#sheet tbody tr[data-i="${ri}"]`); return tr ? tr.children[ci] : null }
+function markCur(scroll = true) {
+  $$('#sheet td.cur').forEach((t) => t.classList.remove('cur'))
+  $$('#sheet tr.currow').forEach((t) => t.classList.remove('currow'))
+  const t = td(cd.r, cd.c)
+  if (!t) { syncFbar(); return }
+  t.classList.add('cur'); t.parentElement.classList.add('currow')
+  if (scroll) {
+    const w = $('#sheetWrap'), tr = t.getBoundingClientRect(), wr = w.getBoundingClientRect()
+    const fzW = innerWidth < 820 ? 78 : 128
+    if (tr.top < wr.top + 62) w.scrollTop -= wr.top + 62 - tr.top
+    else if (tr.bottom > wr.bottom - 4) w.scrollTop += tr.bottom - wr.bottom + 4
+    if (tr.left < wr.left + fzW) w.scrollLeft -= wr.left + fzW - tr.left
+    else if (tr.right > wr.right - 4) w.scrollLeft += tr.right - wr.right + 4
+  }
+  syncFbar()
+}
+function syncFbar() {
+  const r = cd.vis[cd.r], col = COLS[cd.c]
+  if (!r) { $('#fAddr').textContent = '—'; $('#fVal').innerHTML = '<em>Chọn một ô để xem</em>'; return }
+  const x = calc(r)
+  const gk = col.g ? ` · GK${col.g}` : ''
+  $('#fAddr').textContent = `Phách ${r.phach} · ${col.t}${gk}`
+  let v = ''
+  if (col.k === 'a' || col.k === 'b') v = `<b>${fs(r[col.k][col.j]) || 'trống'}</b><em>tối đa ${col.m} · bước 0,25</em>`
+  else if (col.k === 's1' || col.k === 's2') v = `<b>=SUM(B1:B5)</b><em>= ${fs(x[col.k]) || 'chưa đủ 5 bài'}</em>`
+  else if (col.k === 'diff') v = `<b>=|Σ1 − Σ2|</b><em>= ${fs(x.diff) || '—'} ${x.flag ? '› 1 → chấm lần 3' : ''}</em>`
+  else if (col.k === 'g3') v = x.flag ? `<b>${fs(r.g3) || 'trống'}</b><em>tổng điểm GK3 thay cho trung bình</em>` : '<em>Chỉ nhập khi lệch tổng trên 1 điểm</em>'
+  else if (col.k === 'fin') v = `<b>${x.flag ? '=GK3' : '=TB(Σ1, Σ2) làm tròn 0,25'}</b><em>= ${fs(x.fin) || '—'}</em>`
+  else v = `<b>${col.k === 'phach' ? r.phach : 'Khối ' + r.khoi}</b><em>tên thí sinh ẩn đến khi chốt giải</em>`
+  $('#fVal').innerHTML = v
+}
+function editable(r, col) { return col.ed && (col.k !== 'g3' || calc(r).flag) }
+function startEdit(seed) {
+  const r = cd.vis[cd.r], col = COLS[cd.c]
+  if (!r) return
+  if (!editable(r, col)) { const t = td(cd.r, cd.c); const b = t.getBoundingClientRect(); showTip(col.k === 'g3' ? 'Bài này không cần chấm lần 3' : 'Ô tính tự động — không sửa trực tiếp', b.left + b.width / 2, b.top); setTimeout(hideTip, 1600); return }
+  const t = td(cd.r, cd.c)
+  const v = col.k === 'g3' ? r.g3 : r[col.k][col.j]
+  cd.edit = true
+  t.classList.add('edit')
+  t.innerHTML = `<input class="cin" inputmode="decimal" aria-label="Điểm ${col.t}${col.g ? ' GK' + col.g : ''} phách ${r.phach}" value="${seed != null ? seed : fs(v)}">`
+  const inp = t.firstChild
+  inp.focus()
+  if (seed == null) inp.select(); else inp.setSelectionRange(inp.value.length, inp.value.length)
+}
+function setVal(r, col, v) { if (col.k === 'g3') r.g3 = v; else r[col.k][col.j] = v }
+function getVal(r, col) { return col.k === 'g3' ? r.g3 : r[col.k][col.j] }
+function commit(dr, dc) {
+  const t = td(cd.r, cd.c), inp = t && t.querySelector('.cin')
+  if (!inp) return true
+  const r = cd.vis[cd.r], col = COLS[cd.c]
+  const s = inp.value.trim().replace(',', '.')
+  let v = null
+  if (s !== '') {
+    v = Number(s)
+    const b = t.getBoundingClientRect()
+    let msg = ''
+    if (!/^\d+(\.\d+)?$/.test(s) || isNaN(v)) msg = 'Điểm phải là số, vd. 2,75'
+    else if (v > col.m) msg = `${col.t} tối đa ${col.m} điểm`
+    else if (Math.round(v * 4) !== v * 4) msg = 'Điểm lẻ theo bước 0,25 (0 · 0,25 · 0,5 · 0,75)'
+    if (msg) { inp.setAttribute('aria-invalid', 'true'); showTip(msg, b.left + b.width / 2, b.top, true); inp.focus(); return false }
+  }
+  hideTip()
+  const old = getVal(r, col)
+  cd.edit = false
+  if (old !== v) { setVal(r, col, v); cd.hist.push({ r, col, old, v }); $('#undoBtn').disabled = false }
+  refreshRow(r)
+  if (old !== v && !RM()) { const nt = td(cd.r, cd.c); if (nt) G.fromTo(nt, { backgroundColor: 'rgba(44,82,222,.28)' }, { backgroundColor: 'rgba(44,82,222,0)', duration: 0.7, clearProps: 'backgroundColor' }) }
+  move(dr, dc)
+  return true
+}
+function cancelEdit() { cd.edit = false; hideTip(); refreshRow(cd.vis[cd.r]); markCur(false); $('#sheetWrap').focus({ preventScroll: true }) }
+function refreshRow(r) {
+  const i = cd.vis.indexOf(r)
+  const tr = $(`#sheet tbody tr[data-i="${i}"]`)
+  if (tr) tr.outerHTML = rowHtml(r, i)
+  markCur(false); renderCdSide(); greet(); steps()
+  if (xg.ready) drawHist(true)
+}
+function move(dr, dc) {
+  if (!cd.vis.length) return
+  cd.r = Math.max(0, Math.min(cd.vis.length - 1, cd.r + dr))
+  cd.c = Math.max(0, Math.min(COLS.length - 1, cd.c + dc))
+  markCur(true)
+  $('#sheetWrap').focus({ preventScroll: true })
+}
+$('#sheetWrap').addEventListener('keydown', (e) => {
+  const inEdit = e.target.classList.contains('cin')
+  if (inEdit) {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelEdit() }
+    else if (e.key === 'Enter') { e.preventDefault(); commit(e.shiftKey ? -1 : 1, 0) }
+    else if (e.key === 'Tab') { e.preventDefault(); commit(0, e.shiftKey ? -1 : 1) }
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); commit(e.key === 'ArrowUp' ? -1 : 1, 0) }
+    else if (e.target.getAttribute('aria-invalid')) { e.target.removeAttribute('aria-invalid'); hideTip() }
+    return
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); return }
+  if (e.ctrlKey || e.metaKey || e.altKey) return
+  const k = e.key
+  const mv = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[k]
+  if (mv) { e.preventDefault(); move(...mv) }
+  else if (k === 'Tab') { if ((e.shiftKey && cd.c > 0) || (!e.shiftKey && cd.c < COLS.length - 1)) { e.preventDefault(); move(0, e.shiftKey ? -1 : 1) } }
+  else if (k === 'Home') { e.preventDefault(); move(0, -99) }
+  else if (k === 'End') { e.preventDefault(); move(0, 99) }
+  else if (k === 'Enter' || k === 'F2') { e.preventDefault(); startEdit() }
+  else if (/^[0-9.,]$/.test(k)) { e.preventDefault(); startEdit(k === '.' ? '0,' : k) }
+  else if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); clearCell() }
+})
+function clearCell() {
+  const r = cd.vis[cd.r], col = COLS[cd.c]
+  if (!r || !editable(r, col) || getVal(r, col) == null) return
+  const old = getVal(r, col)
+  setVal(r, col, null); cd.hist.push({ r, col, old, v: null }); $('#undoBtn').disabled = false
+  refreshRow(r)
+  toast(`Đã xóa điểm ${col.t}${col.g ? ' GK' + col.g : ''} của phách ${r.phach}.`, () => { setVal(r, col, old); refreshRow(r) })
+}
+function undo() {
+  const h = cd.hist.pop()
+  if (!h) return
+  setVal(h.r, h.col, h.old)
+  $('#undoBtn').disabled = !cd.hist.length
+  const i = cd.vis.indexOf(h.r)
+  if (i >= 0) { cd.r = i; cd.c = COLS.indexOf(h.col) }
+  refreshRow(h.r); markCur(true)
+  toast(`Hoàn tác: phách ${h.r.phach} · ${h.col.t}${h.col.g ? ' GK' + h.col.g : ''} về ${fs(h.old) || 'trống'}.`)
+}
+$('#undoBtn').onclick = undo
+let lastTap = 0
+$('#sheetWrap').addEventListener('pointerdown', (e) => {
+  const t = e.target.closest('tbody td'); if (!t || e.target.classList.contains('cin')) return
+  const tr = t.parentElement; if (!tr.dataset.i) return
+  if (cd.edit && !commit(0, 0)) return
+  const ri = +tr.dataset.i, ci = [...tr.children].indexOf(t)
+  const same = ri === cd.r && ci === cd.c
+  cd.r = ri; cd.c = ci; markCur(false)
+  if (same && Date.now() - lastTap < 2500 && e.pointerType !== 'mouse') { e.preventDefault(); startEdit() }
+  else setTimeout(() => $('#sheetWrap').focus({ preventScroll: true }), 0)
+  lastTap = Date.now()
+})
+$('#sheetWrap').addEventListener('dblclick', (e) => { if (e.target.closest('tbody td') && !e.target.classList.contains('cin')) startEdit() })
+$('#cdKhoi').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; if (cd.edit) cancelEdit(); cd.k = +b.dataset.k; segSet('#cdKhoi', 'k', cd.k); cd.r = 0; renderSheet() })
+$('#cdSt').addEventListener('change', (e) => { if (cd.edit) cancelEdit(); cd.st = e.target.value; cd.r = 0; renderSheet() })
+$('#cdQ').addEventListener('input', (e) => { if (cd.edit) cancelEdit(); cd.q = e.target.value.replace(/\D/g, ''); cd.r = 0; renderSheet() })
+function goPhach(r, colK) {
+  if (!cd.vis.includes(r)) { cd.k = 0; cd.st = ''; cd.q = ''; $('#cdQ').value = ''; $('#cdSt').value = ''; segSet('#cdKhoi', 'k', 0); renderSheet() }
+  cd.r = cd.vis.indexOf(r); cd.c = COLS.findIndex((c) => c.k === colK)
+  if (location.hash !== '#cham-diem') location.hash = '#cham-diem'
+  setTimeout(() => { markCur(true); $('#sheetWrap').focus({ preventScroll: true }) }, 30)
+}
+$('#nextG3').onclick = () => { const r = M.find((r) => calc(r).st === 'g3'); if (r) goPhach(r, 'g3'); else toast('Không còn bài nào cần chấm lần 3.') }
+function renderCdSide() {
+  const st = M.map(calc)
+  const by = (k) => M.map((r, i) => [r, st[i]]).filter(([r]) => !k || r.khoi === k)
+  const rows = [6, 7].map((k) => { const g = by(k); const n = g.length; const g2 = g.filter(([, s]) => s.s2 != null).length; const dn = g.filter(([, s]) => s.fin != null).length; return `<div class="row"><span>Khối ${k} · GK2</span><div class="bar"><i style="width:${g2 / n * 100}%"></i></div><b>${g2}/${n}</b></div><div class="row"><span>Khối ${k} · chốt</span><div class="bar"><i class="o" style="width:${dn / n * 100}%"></i></div><b>${dn}/${n}</b></div>` })
+  const done = st.filter((s) => s.fin != null).length
+  $('#cdPct').textContent = `${Math.round(done / M.length * 100)}% đã chốt`
+  $('#cdProg').innerHTML = rows.join('') + `<div class="lg">GK1 đã chấm đủ ${M.filter((r) => sum(r.a) != null).length}/${M.length} bài · ${d1.filter((c) => c.st === 'vang').length} thí sinh vắng không có bài.</div>`
+  const fl = M.filter((r, i) => st[i].flag)
+  $('#g3n').textContent = `${fl.filter((r) => r.g3 == null).length} chờ · ${fl.filter((r) => r.g3 != null).length} xong`
+  $('#g3List').innerHTML = fl.length ? fl.map((r) => { const s = calc(r); return `<li class="${r.g3 != null ? 'ok' : ''}"><button data-ph="${r.phach}"><span class="p">${r.phach}</span><span class="d">K${r.khoi} · Σ1 ${fs(s.s1)} / Σ2 ${fs(s.s2)}</span><span class="dv">${r.g3 != null ? 'GK3 ' + fs(r.g3) : 'lệch ' + fs(s.diff)}</span></button></li>` }).join('') : '<li class="lg">Không có bài lệch quá 1 điểm.</li>'
+}
+$('#g3List').addEventListener('click', (e) => { const b = e.target.closest('button[data-ph]'); if (b) goPhach(M.find((r) => r.phach === +b.dataset.ph), 'g3') })
+
+/* =========================================================
+   4. XẾP GIẢI — phổ điểm + ngưỡng kéo thả
+   ========================================================= */
+const GN = ['', 'Nhất', 'Nhì', 'Ba', 'KK']
+const gc = (g) => getComputedStyle(document.documentElement).getPropertyValue('--g' + g).trim()
+const xg = { k: 6, th: {}, def: {}, ready: false, prev: null, locked: {}, f: 0, drag: null }
+function pool(k) { return M.map((r) => [r, calc(r).fin]).filter(([r, f]) => f != null && (!k || r.khoi === k)) }
+function suggest(k) {
+  const f = pool(k).map(([, v]) => v).sort((a, b) => b - a)
+  const at = (p) => Math.floor((f[Math.min(f.length - 1, Math.ceil(f.length * p) - 1)] || 0) * 2) / 2
+  const t = [at(0.06), at(0.16), at(0.3), at(0.46)]
+  for (let i = 1; i < 4; i++) if (t[i] > t[i - 1] - 0.5) t[i] = t[i - 1] - 0.5
+  return t
+}
+const award = (v, t) => (v >= t[0] ? 1 : v >= t[1] ? 2 : v >= t[2] ? 3 : v >= t[3] ? 4 : 0)
+const thOf = () => (xg.th[xg.k] = xg.th[xg.k] || suggest(xg.k))
+function dims() {
+  const w = Math.max(300, $('#chart').clientWidth - 16)
+  const mob = w < 560
+  return { w, L: mob ? 40 : 48, R: 10, T: 4 * 28 + 8, PH: mob ? 170 : 220, B: 28, mob }
+}
+function initHist() {
+  xg.ready = true
+  drawHist(false, true)
+}
+function bins(k) { const b = new Array(40).fill(0); pool(k).forEach(([, v]) => b[Math.min(39, Math.floor(v * 2))]++); return b }
+function drawHist(morph, build) {
+  if (!xg.ready || !$('#chart').clientWidth) return
+  const D = dims(), t = thOf(), b = bins(xg.k)
+  const H = D.T + D.PH + D.B, pw = D.w - D.L - D.R
+  const mx = Math.max(4, Math.ceil(Math.max(...b) / 4) * 4)
+  const X = (s) => D.L + s / 20 * pw, Y = (n) => D.T + D.PH - n / mx * D.PH
+  const svg = $('#hist')
+  const sameW = svg.dataset.w === String(D.w)
+  if (build || !sameW || !svg.querySelector('.bars')) {
+    svg.setAttribute('viewBox', `0 0 ${D.w} ${H}`); svg.setAttribute('height', H); svg.dataset.w = D.w
+    let s = `<g class="grid"></g><g class="bars">`
+    for (let i = 0; i < 40; i++) s += `<rect x="${X(i / 2) + 1}" width="${Math.max(1, pw / 40 - 2)}" y="${D.T + D.PH}" height="0" rx="1.5"></rect>`
+    s += `</g><line class="ax" x1="${D.L}" x2="${D.L + pw}" y1="${D.T + D.PH}" y2="${D.T + D.PH}"></line><g class="xl">`
+    for (let v = 0; v <= 20; v += D.mob ? 4 : 2) s += `<text x="${X(v)}" y="${D.T + D.PH + 18}" text-anchor="middle">${v}</text>`
+    s += `</g><g class="lanes">`
+    for (let g = 1; g <= 4; g++) s += `<line class="gl" x1="${D.L}" x2="${D.L + pw}" y1="${laneY(g) + 11}" y2="${laneY(g) + 11}" stroke-dasharray="2 4"></line><text class="lane" x="${D.L - 8}" y="${laneY(g) + 15}" text-anchor="end" style="fill:${gc(g)}">${GN[g]}</text>`
+    s += `</g><g class="lines"></g><g class="knobs"></g><rect class="hov" x="${D.L}" y="${D.T}" width="${pw}" height="${D.PH}" fill="transparent"></rect>`
+    svg.innerHTML = s
+    svg.querySelector('.knobs').innerHTML = [1, 2, 3, 4].map((g) => `<g class="knob" data-g="${g}" tabindex="0" role="slider" aria-label="Ngưỡng giải ${GN[g]}" aria-valuemin="0" aria-valuemax="20"><rect class="hit" x="-26" y="-4" width="52" height="30"></rect><rect class="k" x="-24" y="0" width="48" height="22" rx="11"></rect><text y="15.5" text-anchor="middle"></text></g>`).join('')
+    morph = false
+  }
+  // lưới Y
+  let gs = ''
+  for (let v = 0; v <= mx; v += mx / 4) gs += `<line class="gl" x1="${D.L}" x2="${D.L + pw}" y1="${Y(v)}" y2="${Y(v)}"></line><text x="${D.L - 6}" y="${Y(v) + 4}" text-anchor="end">${v}</text>`
+  svg.querySelector('.grid').innerHTML = gs
+  const rects = $$('.bars rect', svg)
+  rects.forEach((r, i) => {
+    r.style.fill = gc(award(i / 2, t))
+    const a = { y: Y(b[i]), height: D.PH - (Y(b[i]) - D.T) }
+    if (morph && !RM()) { G.killTweensOf(r); G.to(r, { attr: a, duration: 0.55, ease: 'power3.out' }) } else { G && G.killTweensOf(r); r.setAttribute('y', a.y); r.setAttribute('height', a.height) }
+  })
+  // vạch ngưỡng (vẽ dưới nút chữ)
+  svg.querySelector('.lines').innerHTML = t.map((v, i) => `<line x1="${X(v)}" x2="${X(v)}" y1="${laneY(i + 1) + 22}" y2="${D.T + D.PH}" stroke="${gc(i + 1)}" stroke-width="2" stroke-dasharray="${i ? '5 3' : ''}"></line>`).join('')
+  $$('.knob', svg).forEach((k) => {
+    const g = +k.dataset.g, v = t[g - 1]
+    k.setAttribute('transform', `translate(${Math.max(D.L + 24, Math.min(D.L + pw - 24, X(v)))},${laneY(g)})`)
+    k.querySelector('.k').style.fill = gc(g); k.querySelector('.k').style.stroke = gc(g)
+    k.querySelector('text').textContent = fs(v)
+    k.setAttribute('aria-valuenow', v); k.setAttribute('aria-valuetext', `Giải ${GN[g]} từ ${fs(v)} điểm`)
+  })
+  xg.D = D; xg.X = X; xg.b = b
+  renderXgInfo()
+}
+function laneY(g) { return 4 + (g - 1) * 28 }
+function renderXgInfo() {
+  const t = thOf(), P = pool(xg.k)
+  const all = M.filter((r) => !xg.k || r.khoi === xg.k).length
+  const cnt = [0, 0, 0, 0, 0]
+  P.forEach(([, v]) => cnt[award(v, t)]++)
+  const tot = cnt[1] + cnt[2] + cnt[3] + cnt[4]
+  const pct = all ? tot / all * 100 : 0
+  $('#xgN').textContent = `${P.length}/${all} bài có điểm chốt`
+  $('#legend').innerHTML = [1, 2, 3, 4].map((g) => `<div><b style="color:${gc(g)}">${cnt[g]}</b><span>${GN[g] === 'KK' ? 'Khuyến khích' : 'Giải ' + GN[g]} <span style="display:inline;white-space:nowrap">≥ ${fs(t[g - 1])}</span></span></div>`).join('') + `<div><b style="color:${pct > 50 ? gc(1) : 'var(--ink)'}">${fs(Math.round(pct * 10) / 10)}%</b><span>${tot} giải / ${all} dự thi</span></div>`
+  $('#ratio').innerHTML = [1, 2, 3, 4].map((g) => `<i style="width:${all ? cnt[g] / all * 100 : 0}%;background:${gc(g)}" title="${GN[g]}: ${cnt[g]}"></i>`).join('')
+  $('#rCap').textContent = pct > 50 ? `vượt trần 50% (${tot - Math.floor(all / 2)} giải)` : 'trần 50%'
+  $('#rCap').style.color = pct > 50 ? gc(1) : ''
+  $('#xgLock').disabled = pct > 50
+  const lk = xg.locked[xg.k]
+  $('#lockTag').innerHTML = lk ? '<span class="locked">ĐÃ CHỐT</span>' : ''
+  $('#xgLock').textContent = lk ? 'Đã chốt · mở khóa' : 'Chốt danh sách giải'
+  // danh sách đạt giải (đã ghép phách để hội đồng rà soát)
+  const list = P.map(([r, v]) => ({ r, v, g: award(v, t), c: cById(r.cid) })).filter((x) => x.g && (!xg.f || x.g === xg.f)).sort((a, b) => a.g - b.g || b.v - a.v || a.r.phach - b.r.phach)
+  $('#awN').textContent = `${tot} giải`
+  $('#aw').innerHTML = list.length ? `<table><thead><tr><th>Giải</th><th>Thí sinh</th><th style="text-align:right">Điểm</th></tr></thead><tbody>${list.map((x) => `<tr><td><span class="gz" style="background:${gc(x.g)}">${GN[x.g]}</span></td><td><b>${esc(x.c.name)}</b><small>${x.c.sbd} · K${x.c.khoi} · ${SCH[x.c.sch][1]}</small></td><td class="n">${fs(x.v)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty-st"><b>Chưa có thí sinh ở mức giải này</b>Kéo ngưỡng xuống thấp hơn để mở rộng.</div>'
+  drawSch()
+  steps()
+}
+function drawSch() {
+  const svg = $('#schChart'); if (!svg || !xg.ready) return
+  const t = thOf(), cnt = SCH.map(() => [0, 0, 0, 0, 0])
+  pool(xg.k).forEach(([r, v]) => { const g = award(v, t); if (g) cnt[cById(r.cid).sch][g]++ })
+  const rows = cnt.map((c, i) => ({ i, c, n: c[1] + c[2] + c[3] + c[4] })).filter((x) => x.n).sort((a, b) => b.n - a.n || vi.compare(SCH[a.i][1], SCH[b.i][1])).slice(0, 8)
+  const W = Math.max(260, svg.clientWidth || 340), lw = 118, bw = W - lw - 34, mx = Math.max(1, ...rows.map((r) => r.n))
+  svg.setAttribute('viewBox', `0 0 ${W} ${rows.length * 28 + 4}`); svg.setAttribute('height', rows.length * 28 + 4)
+  svg.innerHTML = rows.length ? rows.map((r, j) => { let x = lw; const y = j * 28 + 4; return `<text x="${lw - 8}" y="${y + 15}" text-anchor="end" style="font:13px 'Noticia Text',serif;fill:var(--ink)">${SCH[r.i][1]}</text>` + [1, 2, 3, 4].map((g) => { const w = r.c[g] / mx * bw; const s = `<rect x="${x}" y="${y + 3}" width="${Math.max(0, w - 1)}" height="16" rx="2" fill="${gc(g)}"><title>${SCH[r.i][1]} · ${GN[g]}: ${r.c[g]}</title></rect>`; x += w; return s }).join('') + `<text x="${x + 6}" y="${y + 15}" style="font:700 13px Inconsolata,monospace;fill:var(--ink)">${r.n}</text>` }).join('') : '<text x="0" y="18" style="fill:var(--mute)">Chưa có giải nào.</text>'
+}
+// kéo thả ngưỡng
+function setTh(g, v) {
+  const t = thOf()
+  const hi = g > 1 ? t[g - 2] - 0.5 : 20, lo = g < 4 ? t[g] + 0.5 : 0
+  v = Math.max(lo, Math.min(hi, Math.round(v * 2) / 2))
+  if (v === t[g - 1]) return
+  if (xg.locked[xg.k]) { toast('Danh sách đã chốt — mở khóa trước khi đổi ngưỡng.'); return }
+  t[g - 1] = v
+  drawHist(false)
+}
+$('#hist').addEventListener('pointerdown', (e) => {
+  const k = e.target.closest('.knob'); if (!k) return
+  e.preventDefault(); k.focus()
+  xg.drag = { g: +k.dataset.g, id: e.pointerId, start: thOf().slice() }
+  $('#hist').setPointerCapture(e.pointerId)
+})
+$('#hist').addEventListener('pointermove', (e) => {
+  const svg = $('#hist'), r = svg.getBoundingClientRect()
+  if (!xg.D) return
+  const sx = (e.clientX - r.left) * (xg.D.w / r.width)
+  if (xg.drag) { setTh(xg.drag.g, (sx - xg.D.L) / (xg.D.w - xg.D.L - xg.D.R) * 20); return }
+  if (!e.target.classList.contains('hov')) { hideTip(); return }
+  const i = Math.max(0, Math.min(39, Math.floor((sx - xg.D.L) / (xg.D.w - xg.D.L - xg.D.R) * 40)))
+  const g = award(i / 2, thOf())
+  showTip(`${fs(i / 2)}–${fs(i / 2 + 0.25)} điểm: <b>${xg.b[i]}</b> bài${g ? ' · ' + GN[g] : ''}`, e.clientX, e.clientY - 6)
+})
+$('#hist').addEventListener('pointerleave', () => { if (!xg.drag) hideTip() })
+const endDrag = () => {
+  if (!xg.drag) return
+  const d = xg.drag; xg.drag = null
+  const now = thOf().slice()
+  if (now.join() !== d.start.join()) toast(`Ngưỡng ${GN[d.g]} khối ${xg.k || '6–7'}: ${fs(d.start[d.g - 1])} → ${fs(now[d.g - 1])}.`, () => { xg.th[xg.k] = d.start; drawHist(false) })
+}
+$('#hist').addEventListener('pointerup', endDrag)
+$('#hist').addEventListener('pointercancel', endDrag)
+$('#hist').addEventListener('keydown', (e) => {
+  const k = e.target.closest('.knob'); if (!k) return
+  const g = +k.dataset.g, d = { ArrowLeft: -0.5, ArrowDown: -0.5, ArrowRight: 0.5, ArrowUp: 0.5, PageUp: 2, PageDown: -2 }[e.key]
+  if (d == null) return
+  e.preventDefault(); setTh(g, thOf()[g - 1] + d)
+  const nk = $(`#hist .knob[data-g="${g}"]`); if (nk) nk.focus()
+})
+$('#xgK').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; xg.k = +b.dataset.k; segSet('#xgK', 'k', xg.k); hideTip(); drawHist(true) })
+$('#awF').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; xg.f = +b.dataset.g; segSet('#awF', 'g', xg.f); renderXgInfo() })
+$('#xgReset').onclick = () => { if (xg.locked[xg.k]) { toast('Danh sách đã chốt — mở khóa trước khi đổi ngưỡng.'); return } const old = thOf().slice(); xg.th[xg.k] = suggest(xg.k); drawHist(false); toast('Đã đặt lại ngưỡng theo tỉ lệ đề xuất 6 / 10 / 14 / 16%.', () => { xg.th[xg.k] = old; drawHist(false) }) }
+$('#xgLock').onclick = (e) => {
+  if (xg.locked[xg.k]) { const k = xg.k; delete xg.locked[k]; renderXgInfo(); toast(`Đã mở khóa danh sách giải ${k ? 'khối ' + k : 'cả đợt'}.`, () => { xg.locked[k] = true; renderXgInfo() }); return }
+  const t = thOf(), P = pool(xg.k), cnt = [0, 0, 0, 0, 0]
+  P.forEach(([, v]) => cnt[award(v, t)]++)
+  const pend = M.filter((r) => (!xg.k || r.khoi === xg.k) && calc(r).fin == null).length
+  $('#lockBody').innerHTML = `<p style="margin:0">Chốt giải <b>${xg.k ? 'khối ' + xg.k : 'cả đợt 1'}</b> theo ngưỡng hiện tại:</p><div class="legend" style="border:1px solid var(--line);border-radius:10px;grid-template-columns:repeat(4,1fr)">${[1, 2, 3, 4].map((g) => `<div><b style="color:${gc(g)}">${cnt[g]}</b><span>${GN[g]} · ≥ ${fs(t[g - 1])}</span></div>`).join('')}</div>${pend ? `<p style="margin:0;color:var(--red)">Còn <b>${pend}</b> bài chưa có điểm chốt (chờ GK2 hoặc GK3) — những bài này sẽ xét bổ sung sau.</p>` : '<p style="margin:0;color:var(--ok)">Tất cả bài đã có điểm chốt.</p>'}<p style="margin:0;color:var(--mute);font-size:14px">Sau khi chốt, hệ thống ghép phách với tên thí sinh và khóa ngưỡng điểm.</p>`
+  openLayer($('#lockM'), e.currentTarget)
+}
+$('#lockOk').onclick = () => { const k = xg.k; xg.locked[k] = true; closeLayer(); renderXgInfo(); toast(`Đã chốt danh sách giải ${k ? 'khối ' + k : 'cả đợt 1'} và ghép phách.`, () => { delete xg.locked[k]; renderXgInfo() }) }
+
+/* ---------- Ctrl K ---------- */
+const CMDS = [
+  { t: 'Bước 1 · Thí sinh & số báo danh', s: 'Đi tới', run: () => (location.hash = '#thi-sinh') },
+  { t: 'Bước 2 · Phân phòng thi', s: 'Đi tới', run: () => (location.hash = '#phong-thi') },
+  { t: 'Bước 3 · Bảng chấm điểm', s: 'Đi tới', run: () => (location.hash = '#cham-diem') },
+  { t: 'Bước 4 · Xếp giải', s: 'Đi tới', run: () => (location.hash = '#xep-giai') },
+  { t: 'Thêm thí sinh mới', s: 'Lệnh', run: () => { location.hash = '#thi-sinh'; setTimeout(() => $('#addBtn').click(), 60) } },
+  { t: 'Đánh số báo danh đợt 2', s: 'Lệnh', run: () => { location.hash = '#thi-sinh'; setTimeout(() => runSbd(false), 60) } },
+  { t: 'Phân phòng tự động đợt 2', s: 'Lệnh', run: () => { location.hash = '#phong-thi'; pt.dot = 2; segSet('#ptDot', 'd', 2); renderPt(); setTimeout(runAlloc, 60) } },
+  { t: 'Tới bài cần chấm lần 3 kế tiếp', s: 'Lệnh', run: () => $('#nextG3').click() },
+  { t: 'Đổi giao diện sáng / tối', s: 'Lệnh', run: toggleTheme },
+]
+const pal = { items: [], i: 0 }
+function openPal() { if (!$('#pal').hidden) return; while (layers.length) closeLayer(); $('#palQ').value = ''; renderPal(); openLayer($('#pal'), document.activeElement) }
+$('#openK').onclick = openPal
+$('#dK').onclick = () => { closeLayer(); openPal() }
+function renderPal() {
+  const q = fold($('#palQ').value.trim())
+  const cmds = CMDS.filter((c) => !q || fold(c.t).includes(q))
+  let ppl = []
+  if (q.length >= 2) {
+    ppl = live().filter((c) => fold(`${c.name} ${c.sbd || ''}`).includes(q)).slice(0, 6).map((c) => ({ t: c.name, s: `${c.sbd || 'chưa có SBD'} · K${c.khoi}`, run: () => { location.hash = '#thi-sinh'; ts.q = c.name; $('#tsQ').value = c.name; ts.k = 0; ts.st = ''; $('#tsSt').value = ''; segSet('#tsKhoi', 'k', 0); ts.page = 0; renderTs() } }))
+    const pm = M.find((r) => String(r.phach) === q)
+    if (pm) ppl.unshift({ t: `Phách ${pm.phach}`, s: `Khối ${pm.khoi} · bài thi`, run: () => goPhach(pm, 'b') })
+  }
+  pal.items = [...cmds, ...ppl]
+  pal.i = 0
+  let h = ''
+  if (cmds.length) h += '<li class="grp" role="presentation">Bước &amp; lệnh</li>' + cmds.map((c, i) => `<li role="option" data-i="${i}">${c.t}<small>${c.s}</small></li>`).join('')
+  if (ppl.length) h += '<li class="grp" role="presentation">Thí sinh &amp; bài thi</li>' + ppl.map((c, i) => `<li role="option" data-i="${cmds.length + i}">${esc(c.t)}<small>${c.s}</small></li>`).join('')
+  if (!pal.items.length) h = '<li class="grp" role="presentation" style="padding:18px 12px;text-transform:none;letter-spacing:0">Không tìm thấy lệnh hay thí sinh nào.</li>'
+  $('#palL').innerHTML = h
+  hiPal()
+}
+function hiPal() { $$('#palL li[data-i]').forEach((li) => { const on = +li.dataset.i === pal.i; li.classList.toggle('on', on); li.setAttribute('aria-selected', on); if (on) li.scrollIntoView({ block: 'nearest' }) }) }
+function runPal(i) { const c = pal.items[i]; if (!c) return; closeLayer(); c.run() }
+$('#palQ').addEventListener('input', renderPal)
+$('#palQ').addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); pal.i = Math.min(pal.items.length - 1, pal.i + 1); hiPal() }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); pal.i = Math.max(0, pal.i - 1); hiPal() }
+  else if (e.key === 'Enter') { e.preventDefault(); runPal(pal.i) }
+})
+$('#palL').addEventListener('click', (e) => { const li = e.target.closest('li[data-i]'); if (li) runPal(+li.dataset.i) })
+
+/* ---------- thông báo ---------- */
+function renderNotif() {
+  const ago = (m) => m < 60 ? `${m} phút trước` : `${Math.round(m / 60)} giờ trước`
+  const f = M.find((r) => calc(r).st === 'g3')
+  $('#notifL').innerHTML = [
+    [`GK Trần Hữu Phước đã nhập xong 12 bài khối 7.`, ago(25)],
+    [f ? `Phách ${f.phach} lệch ${fs(calc(f).diff)} điểm — cần chấm lần 3.` : 'Không còn bài cần chấm lần 3.', ago(48)],
+    [`Hạn công bố kết quả đợt 1: ${WD[PUB.getDay()]} ${fd(PUB)} (còn 6 ngày).`, ago(180)],
+  ].map(([t, s]) => `<li>${t}<small>${s}</small></li>`).join('')
+}
+
+/* ---------- dữ liệu trực tiếp (tắt khi ?static) ---------- */
+const GK2 = ['Trần Hữu Phước', 'Đinh Ngọc Hà']
+function liveTick() {
+  const cand = M.filter((r) => r.b.every((v) => v == null) && !(cd.edit && cd.vis[cd.r] === r))
+  if (!cand.length) return
+  const r = cand[Math.floor(Math.random() * cand.length)]
+  r.b = r.a.map((v, j) => Math.min(MAX[j], Math.max(0, v + (Math.random() < 0.75 ? 0 : (Math.random() < 0.5 ? -0.25 : 0.25)))))
+  refreshRow(r)
+  const who = GK2[Math.floor(Math.random() * 2)]
+  const d = new Date()
+  $('#live').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())} — GK2 ${who} vừa nhập phách ${r.phach} (khối ${r.khoi}).`
+  const i = cd.vis.indexOf(r), tr = $(`#sheet tbody tr[data-i="${i}"]`)
+  if (tr && !RM()) G.fromTo(tr.children, { backgroundColor: 'rgba(201,26,55,.16)' }, { backgroundColor: 'rgba(201,26,55,0)', duration: 1.4, clearProps: 'backgroundColor' })
+}
+
+/* ---------- khởi tạo ---------- */
+let rzT
+addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (cur === 'xep-giai') drawHist(false); drawSch() }, 120) })
+renderTs(); renderPt(); renderSheet(); renderNotif(); greet(); clock(); steps()
+route()
+// hash trùng id section: chặn trình duyệt tự cuộn tới section khi tải trang
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+addEventListener('load', () => setTimeout(() => window.scrollTo(0, 0), 0))
+if (!STATIC) { setInterval(clock, 30000); setInterval(liveTick, 22000) }
+if (!RM()) {
+  G.from('.mast .brand, .mast .step, .mast .tools > *', { y: -12, opacity: 0, duration: 0.4, stagger: 0.04, ease: 'power2.out', clearProps: 'all' })
+  G.from('.sub', { opacity: 0, duration: 0.35, delay: 0.15, clearProps: 'all' })
+}
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

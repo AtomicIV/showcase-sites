@@ -3,7 +3,8 @@
 cd "$(dirname "$0")/.."
 summary=tools/shots/_qa-summary.txt
 : > "$summary"
-for dir in sites/[0-9][0-9]-*/; do
+for dir in sites/[0-9][0-9]-*/ sites/[0-9][0-9][0-9]-*/ sites/qt-*/; do
+  [ -d "$dir" ] || continue
   s=$(basename "$dir")
   for mode in desktop mobile; do
     node tools/shoot.cjs "$s" "$mode" 1 >> "$summary" 2>&1

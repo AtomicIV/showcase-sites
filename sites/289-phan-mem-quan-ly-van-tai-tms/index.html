@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FleetMind TMS & GPS — Phần mềm Quản lý Đội xe Vận tải Container, Cảm biến Nhiên liệu & Tối ưu Lộ trình</title>
+<meta name="description" content="FleetMind TMS giúp doanh nghiệp vận tải và phân phối tối ưu lộ trình giao hàng đa điểm (VRP), giám sát cảm biến dầu chống thất thoát và quản lý chi phí lốp, bảo dưỡng.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230A1017'/%3E%3Cpath d='M14 44L32 14l18 30-18-8z' fill='none' stroke='%2310B981' stroke-width='3' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='28' r='4' fill='%2338BDF8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A1017; --bg2:#141F2C; --card:#1B2A3B;
+  --pri:#10B981; --acc:#38BDF8; --text:#F1F5F9; --muted:#94A3B8;
+  --line:rgba(16,185,129,.22);
+  --head:"Space Grotesk", sans-serif; --body:"Be Vietnam Pro", sans-serif; --mono:"IBM Plex Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:600}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.4vw,58px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+.kick::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--pri);box-shadow:0 0 12px 2px rgba(16,185,129,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:#0A1017;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;cursor:pointer;transition:transform .35s var(--ease),background .3s}
+.btn:hover{background:#34D399;border-color:#34D399;transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--acc);color:var(--acc)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(10,16,23,.93);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:22px;font-weight:700;color:var(--text)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 75% 25%,rgba(16,185,129,.17),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(56,189,248,.14),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(36px,4.9vw,66px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:50ch;color:var(--muted);font-size:17.5px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-box{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-box canvas{width:100%;height:auto;border-radius:10px;cursor:pointer}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Pinned VRP & Fuel Sensor Flow */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:240px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--acc)}
+.pstep h3{font-size:clamp(24px,2.4vw,34px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:44ch}
+.pr-vis{background:#060B10;border:1px solid var(--line);border-radius:16px;padding:20px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive VRP Route & Fuel Savings Simulator */
+.sim{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.sim-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.sim-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.sim-stage canvas{width:100%;height:auto;border-radius:10px;background:#060B10}
+.sim-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.sim-info{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:18px}
+.mode-tabs{display:grid;grid-template-columns:1fr;gap:10px}
+.m-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left}
+.m-btn .mono{font-size:10px;color:var(--acc);display:block}
+.m-btn b{font-family:var(--head);font-size:18px}
+.m-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(16,185,129,.14)}
+.quote-box{padding:16px;background:rgba(56,189,248,.1);border-left:3px solid var(--pri);border-radius:6px;display:grid;gap:6px;font-size:14.5px}
+.quote-box strong{font-family:var(--head);font-size:22px;color:var(--pri)}
+
+.specs{padding:110px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.scard .mono{color:var(--acc)}
+.scard h3{font-size:21px}
+.scard p{color:var(--muted);font-size:15px}
+
+.cases{padding:110px 0;background:var(--bg);border-top:1px solid var(--line)}
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ccard{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.ccard .mono{color:var(--pri)}
+.ccard h3{font-size:22px}
+.ccard p{color:var(--muted);font-size:15px}
+
+.cta{padding:110px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(16,185,129,.2),transparent 70%),var(--bg2);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--pri)}
+
+footer{background:#05090E;border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.sim-shell,.case-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .spec-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.sim-controls,.spec-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="FleetMind TMS Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 24L16 6l10 18-10-4z" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linejoin="round"/><circle cx="16" cy="15" r="2.5" fill="#38BDF8"/></svg>
+      FleetMind TMS
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Thuật Toán VRP & Dầu</a></li>
+        <li><a href="#sim">Mô Phỏng Đội Xe</a></li>
+        <li><a href="#specs">Tính Năng Vận Tải</a></li>
+        <li><a href="#cases">Khách Hàng Logistics</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#trial">Dùng Thử Cho Đội Xe</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Thuật toán Chia tuyến VRP & Cảm biến dầu</a>
+  <a href="#sim">Mô phỏng Lộ trình & Tiết kiệm Nhiên liệu</a>
+  <a href="#specs">Quản lý Lốp, Bảo dưỡng & Lương Tài xế</a>
+  <a href="#cases">Vận tải Container & Phân phối FMCG</a>
+  <a href="#trial">Đăng ký Demo Đội xe Miễn phí</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Nền tảng Quản trị Vận tải TMS & Giám sát IoT Đội xe</p>
+        <h1 id="hero-h"><span class="mask"><span>Tối ưu 200 điểm giao,</span></span><span class="mask"><span>chặn đứng <em>thất thoát dầu.</em></span></span></h1>
+        <p class="hero-lead hf">FleetMind TMS kết hợp thuật toán quy hoạch lộ trình thông minh (VRP) theo khung giờ cấm tải nội đô Hà Nội / TP.HCM với cảm biến nhiên liệu siêu âm độ chính xác 99.5% — giúp chủ xe giảm 18% chi phí dầu DO mỗi tháng.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#sim">Mô Phỏng Chia Tuyến & Tiết Kiệm Dầu</a>
+          <a class="btn ghost" href="#process">Xem Biểu Đồ Phát Hiện Rút Dầu</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>-18.4%</strong><span>Chi phí nhiên liệu toàn đội xe</span></div>
+          <div><strong>99.5%</strong><span>Chính xác cảm biến dầu từng lít</span></div>
+          <div><strong>15 Giây</strong><span>Tự động chia tuyến 200 đơn hàng</span></div>
+        </div>
+      </div>
+      <div class="hero-box hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Bản đồ điều phối đội xe vận tải tối ưu hóa tuyến đường giao hàng và đồ thị mức dầu trong bình"></canvas>
+        <div class="hero-meta">
+          <span>Nhấp vào bản đồ để tái tối ưu hóa tuyến đường VRP</span>
+          <span style="color:var(--pri)">GPS + FUEL TELEMETRY · 64 XE ĐANG CHẠY</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Kiểm Soát Vận Hành Từ Điều Độ Đến Bãi Xe</p>
+        <h2 id="pr-h">Chia tuyến tự động VRP &<br><em>Giám sát từng lít dầu DO</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Bước 01 · Gom đơn & Xếp tải trọng 3D (Vehicle Routing Problem)</p>
+            <h3>Tự động né giờ cấm tải, đường cấm container và ưu tiên khung giờ khách nhận</h3>
+            <p>Thay vì điều độ viên mất 2 tiếng xếp xe bằng kinh nghiệm, AI tự động phân bổ 500 đơn hàng vào đúng tải trọng từng xe 1.5 tấn, 5 tấn, 15 tấn chỉ trong 15 giây.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 02 · Cảm biến Nhiên liệu Siêu âm & Cảnh báo Rút trộm Dầu</p>
+            <h3>Phát hiện tức thì khi mức dầu tụt bất thường > 5 lít lúc xe đang đỗ</h3>
+            <p>Đồ thị nhiên liệu lọc nhiễu sóng sánh khi xe đi đường đèo dốc, tự động đối chiếu số lít đổ thực tế tại cây xăng với hóa đơn tài xế mang về.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 03 · Ứng dụng Di động ePOD cho Tài xế Giao nhận</p>
+            <h3>Chụp ảnh biên bản giao hàng, ký nhận điện tử & thu hộ COD</h3>
+            <p>Kế toán tại văn phòng nhận ngay chứng từ giao hàng thành công (ePOD) để xuất hóa đơn thu tiền chủ hàng mà không phải chờ tài xế nộp giấy tờ cuối tuần.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 04 · Quản lý Sơ-mi Rơ-moóc, Seri Lốp & Bảo dưỡng Định kỳ</p>
+            <h3>Theo dõi tuổi thọ từng quả lốp theo số km lăn bánh thực tế</h3>
+            <p>Cảnh báo hạn đăng kiểm, phù hiệu vận tải, bảo hiểm thân vỏ, lịch thay dầu máy và tự động tính lương chuyến, phụ cấp cầu đường VETC/ePass cho tài xế.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Nghiệp vụ TMS: <b id="pTask">Tối ưu tuyến VRP</b></span>
+          <span>Mức tiết kiệm: <b id="pSave">-18% Quãng đường</b></span>
+          <span>Hiệu suất lấp đầy thùng xe: <b id="pPct">94%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sim" id="sim" aria-labelledby="sim-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Công Cụ Tính Toán Hiệu Quả Đội Xe</p>
+          <h2 id="sim-h" style="margin-top:16px">Mô phỏng Tối ưu Lộ trình &<br><em>Tiết kiệm Nhiên liệu Hàng năm</em></h2>
+        </div>
+        <p class="rv">Chọn loại hình đội xe vận tải, kéo thanh trượt quy mô số đầu xe và số điểm giao hàng mỗi ngày để xem thuật toán nối tuyến tối ưu trên bản đồ canvas cùng số tiền dầu tiết kiệm được.</p>
+      </div>
+      <div class="sim-shell">
+        <div class="sim-stage">
+          <canvas id="simC" width="680" height="400" role="img" aria-label="Mô phỏng bản đồ tối ưu lộ trình giao hàng đa điểm và đồ thị giám sát nhiên liệu"></canvas>
+          <div class="sim-controls">
+            <div class="sl-row">
+              <label for="trkR"><span>Quy mô Số lượng Đầu xe</span><b id="vTrk">30 Xe</b></label>
+              <input id="trkR" type="range" min="10" max="150" step="5" value="30">
+            </div>
+            <div class="sl-row">
+              <label for="ptsR"><span>Số điểm giao hàng / ngày</span><b id="vPts">80 Điểm</b></label>
+              <input id="ptsR" type="range" min="20" max="200" step="10" value="80">
+            </div>
+          </div>
+        </div>
+        <div class="sim-info">
+          <span class="mono" style="color:var(--acc)">Chọn đặc thù vận hành đội xe</span>
+          <div class="mode-tabs" id="fleetTabs" role="group" aria-label="Chọn loại đội xe">
+            <button type="button" class="m-btn" data-f="0" aria-pressed="true">
+              <span class="mono">Phân phối FMCG, Siêu thị, Bưu chính</span>
+              <b>Xe tải Giao hàng Đa điểm Nội đô (Last-mile)</b>
+            </button>
+            <button type="button" class="m-btn" data-f="1" aria-pressed="false">
+              <span class="mono">Cảng Hải Phòng, Cát Lái, Cái Mép · Đường dài</span>
+              <b>Đội xe Đầu kéo Container & Rơ-moóc</b>
+            </button>
+            <button type="button" class="m-btn" data-f="2" aria-pressed="false">
+              <span class="mono">Giám sát Nhiệt độ Thùng lạnh -18°C</span>
+              <b>Xe tải Đông lạnh Thực phẩm & Dược phẩm</b>
+            </button>
+          </div>
+          <div>
+            <span class="mono" style="color:var(--pri)" id="fMeta">Quãng đường rỗng cắt giảm: 4.200 km/tháng · Chống rút dầu: 100%</span>
+            <h3 id="fTitle" style="font-size:22px;margin:6px 0 8px">Tự động ghép hàng chiều về chống chạy rỗng</h3>
+            <p id="fDesc" style="color:var(--muted);font-size:15px">Kết nối trực tiếp dữ liệu hộp đen hợp chuẩn Bộ GTVT, cảm biến dầu, cảm biến nhiệt độ thùng lạnh và trạm thu phí tự động ePass/VETC.</p>
+          </div>
+          <div class="quote-box" id="fQuote" role="status" aria-live="polite">
+            <span class="mono">Chi phí nhiên liệu DO tiết kiệm ước tính / năm:</span>
+            <strong id="fSave">648.000.000 VNĐ / năm</strong>
+            <span id="fSub" style="color:var(--muted);font-size:13.5px">Tính trên định mức tiết kiệm trung bình 1.800.000đ tiền dầu/xe/tháng nhờ chống gian lận & tối ưu tuyến</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="specs" id="specs" aria-labelledby="sp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Kiểm Soát Chi Phí Đến Từng Km</p>
+          <h2 id="sp-h" style="margin-top:16px">Quản trị toàn diện <em>Lãi – Lỗ từng chuyến xe</em></h2>
+        </div>
+        <p class="rv">Báo cáo tức thì doanh thu cước vận chuyển trừ đi chi phí dầu, vé cầu đường, lương tài xế và khấu hao sửa chữa theo từng đầu xe.</p>
+      </div>
+      <div class="spec-grid">
+        <article class="scard rv">
+          <span class="mono">01 · Đối Soát VETC / ePass</span>
+          <h3>Tự động nạp phí BOT</h3>
+          <p>Đồng bộ hóa đơn qua trạm thu phí tự động với lộ trình lệnh điều xe, loại bỏ hoàn toàn vé cầu đường khống.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">02 · Quản Lý Seri Lốp</span>
+          <h3>Chống tráo lốp dọc đường</h3>
+          <p>Theo dõi vị trí lắp từng quả lốp trên sơ đồ trục xe, lịch đảo lốp và cảnh báo khi lốp mòn trước định mức km.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">03 · Cảm Biến Thùng Lạnh</span>
+          <h3>Báo động mở cửa trái phép</h3>
+          <p>Ghi nhận biểu đồ nhiệt độ chuỗi cung ứng lạnh (Cold Chain) liên tục và cảnh báo khi cửa thùng xe mở ngoài điểm giao.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">04 · Camera AI Cabin ADAS</span>
+          <h3>Cảnh báo tài xế buồn ngủ</h3>
+          <p>Đáp ứng Nghị định 10/2020/NĐ-CP và phát âm thanh nhắc nhở ngay trong cabin khi tài xế nhắm mắt hoặc dùng điện thoại.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cases" id="cases" aria-labelledby="ca-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Vận Hành Thực Chiến</p>
+          <h2 id="ca-h" style="margin-top:16px">Quản lý hơn 18.000 đầu xe vận tải khắp Bắc – Trung – Nam</h2>
+        </div>
+        <p class="rv">Được tin dùng bởi các doanh nghiệp vận tải container cảng biển, nhà phân phối hàng tiêu dùng nhanh (FMCG) và chuỗi cung ứng lạnh.</p>
+      </div>
+      <div class="case-grid">
+        <article class="ccard rv">
+          <span class="mono">Doanh Nghiệp Vận Tải Container</span>
+          <h3>Giảm 22% định mức dầu DO chỉ sau 2 tháng</h3>
+          <p>Phát hiện và chấm dứt triệt để tình trạng xả đáy bình dầu, nổ máy bật điều hòa ngủ qua đêm không cần thiết tại bãi chờ cảng.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Nhà Phân Phối Hàng Tiêu Dùng (FMCG)</span>
+          <h3>Giao 1.500 tạp hóa mỗi ngày đúng khung giờ</h3>
+          <p>Tăng tỷ lệ lấp đầy thùng xe từ 72% lên 94%, cắt giảm 4 xe thuê ngoài mỗi ngày nhờ thuật toán gom cụm điểm giao VRP.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Vận Tải Bồn Xăng Dầu & Hóa Chất</span>
+          <h3>Kiểm soát van xả đáy bằng khóa từ thông minh</h3>
+          <p>Van xả chỉ mở được khi xe đã vào đúng tọa độ GPS của trạm nhận hàng trên lệnh điều độ và được trung tâm phê duyệt từ xa.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="trial" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Lắp Đặt Thử Nghiệm Cảm Biến Dầu & Phần Mềm TMS</p>
+        <h2 id="cta-h" style="margin-top:14px">Đăng ký Demo Tối ưu Lộ trình Trên Dữ liệu Thực &<br><em>Nhận Bảng Tính Định Mức Nhiên Liệu Đội Xe</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="tName">Họ và tên (Chủ doanh nghiệp / Giám đốc Vận tải)</label>
+            <input id="tName" type="text" placeholder="Nguyễn Văn Thành — Giám đốc Đội xe" required>
+          </div>
+          <div>
+            <label for="tPhone">Số điện thoại / Zalo</label>
+            <input id="tPhone" type="tel" placeholder="0909 412 886" required>
+          </div>
+          <div>
+            <label for="tSize">Quy mô đội xe hiện tại</label>
+            <select id="tSize">
+              <option value="s1">Từ 5 – 20 đầu xe</option>
+              <option value="s2">Từ 20 – 80 đầu xe</option>
+              <option value="s3">Trên 80 đầu xe (Tập đoàn / 3PL)</option>
+            </select>
+          </div>
+          <div>
+            <label for="tPain">Vấn đề cần giải quyết ưu tiên</label>
+            <select id="tPain">
+              <option value="p1">Kiểm soát tiêu hao nhiên liệu & Chống rút dầu</option>
+              <option value="p2">Tối ưu chia tuyến giao hàng đa điểm (VRP)</option>
+              <option value="p3">Quản lý doanh thu, lương chuyến, lốp & bảo dưỡng</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Đăng Ký Lắp Thử & Demo Phần Mềm</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">FleetMind TMS & GPS</a>
+      <ul class="f-nav">
+        <li><a href="#process">Chia Tuyến VRP</a></li>
+        <li><a href="#sim">Tính Tiết Kiệm Dầu</a></li>
+        <li><a href="#specs">Quản Lý Lốp & BOT</a></li>
+        <li><a href="#cases">Khách Hàng</a></li>
+        <li><a href="#trial">Đăng Ký Demo</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> FleetMind TMS Vietnam · Giải pháp Quản trị Đội xe Vận tải & IoT Telematics</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  const STOPS = [
+    [70, 175], [135, 95], [225, 115], [310, 85], [405, 110], [495, 90], [585, 145],
+    [535, 225], [430, 235], [325, 210], [210, 240], [125, 230]
+  ];
+
+  let routeSeed = 0;
+
+  function drawFleet(ctx, w, h, fType = 0, trucks = 30, stopsCount = 80) {
+    ctx.fillStyle = '#060B10';
+    ctx.fillRect(0, 0, w, h);
+
+    // Map road grid
+    ctx.strokeStyle = 'rgba(56,189,248,0.1)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 38) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h - 110); ctx.stroke();
+    }
+    for (let y = 0; y < h - 110; y += 38) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+
+    // Optimal VRP Route Loop
+    ctx.strokeStyle = '#10B981';
+    ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    STOPS.forEach(([sx, sy], idx) => {
+      const x = sx * (w / 660);
+      const y = sy + ((idx + routeSeed) % 2 ? 8 : -8);
+      idx === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.stroke();
+
+    // Delivery Stop Nodes
+    STOPS.forEach(([sx, sy], idx) => {
+      const x = sx * (w / 660);
+      const y = sy + ((idx + routeSeed) % 2 ? 8 : -8);
+      ctx.fillStyle = idx === 0 ? '#38BDF8' : '#10B981';
+      ctx.beginPath(); ctx.arc(x, y, idx === 0 ? 8 : 5.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#F1F5F9';
+      ctx.font = '600 9.5px "IBM Plex Mono", monospace';
+      ctx.fillText(idx === 0 ? 'KHO TỔNG' : `#${idx}`, x - 10, y - 10);
+    });
+
+    // Bottom Fuel Telemetry Graph
+    const gy = h - 105;
+    ctx.fillStyle = '#141F2C';
+    ctx.strokeStyle = 'rgba(16,185,129,0.28)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(16, gy, w - 32, 90, 8); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#38BDF8';
+    ctx.font = '600 10px "IBM Plex Mono", monospace';
+    ctx.fillText(`BIỂU ĐỒ CẢM BIẾN DẦU SIÊU ÂM · ${trucks} ĐẦU XE · ${stopsCount} ĐIỂM GIAO/NGÀY`, 28, gy + 20);
+
+    // Fuel curve with a simulated sudden drop marker
+    ctx.strokeStyle = '#10B981';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(28, gy + 40);
+    ctx.lineTo(220, gy + 52);
+    ctx.lineTo(235, gy + 74); // Sharp drop
+    ctx.lineTo(440, gy + 80);
+    ctx.lineTo(455, gy + 38); // Refuel
+    ctx.lineTo(w - 30, gy + 55);
+    ctx.stroke();
+
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath(); ctx.arc(230, gy + 64, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.font = '600 9.5px "IBM Plex Mono", monospace';
+    ctx.fillText('CẢNH BÁO RÚT DẦU (-28 LÍT)', 242, gy + 68);
+  }
+
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  drawFleet(heroX, 580, 420, 0, 30, 80);
+  heroC.addEventListener('click', () => {
+    routeSeed++;
+    drawFleet(heroX, 580, 420, 0, 30, 80);
+  });
+
+  // Pinned Scroll Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const TASKS = ['Tối ưu tuyến VRP', 'Cảm biến Dầu Siêu âm', 'Chứng từ Giao hàng ePOD', 'Quản lý Seri Lốp & BOT'];
+  function renderPin(p) {
+    const step = p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3;
+    routeSeed = step;
+    drawFleet(pinX, 660, 440, step % 3, 45, 120);
+    $('#pTask').textContent = TASKS[step];
+  }
+  renderPin(0.5);
+
+  // Interactive Simulator
+  const simC = $('#simC'), simX = simC.getContext('2d');
+  let curFleet = 0, curTrk = 30, curPts = 80;
+  const MULTS = [1800000, 3200000, 2400000];
+
+  function updateSim() {
+    drawFleet(simX, 680, 400, curFleet, curTrk, curPts);
+    const annualSave = curTrk * MULTS[curFleet] * 12;
+    const kmSaved = curTrk * 140;
+    $('#fMeta').textContent = `Quãng đường rỗng cắt giảm: ${kmSaved.toLocaleString('vi-VN')} km/tháng · Chống rút dầu: 100%`;
+    $('#fSave').textContent = `${annualSave.toLocaleString('vi-VN')} VNĐ / năm`;
+  }
+
+  $$('#fleetTabs .m-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curFleet = +btn.dataset.f;
+      $$('#fleetTabs .m-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === curFleet));
+      updateSim();
+    });
+  });
+  $('#trkR').addEventListener('input', (e) => {
+    curTrk = +e.target.value;
+    $('#vTrk').textContent = `${curTrk} Xe`;
+    updateSim();
+  });
+  $('#ptsR').addEventListener('input', (e) => {
+    curPts = +e.target.value;
+    $('#vPts').textContent = `${curPts} Điểm`;
+    updateSim();
+  });
+  updateSim();
+
+  // Nav & Mobile Menu
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#tName').value.trim();
+    $('#ctaOk').textContent = n ? `Cảm ơn ${n}! Chuyên gia giải pháp FleetMind TMS sẽ liên hệ qua Zalo để bố trí lắp thử cảm biến dầu và demo phần mềm.` : 'Vui lòng nhập họ tên và số điện thoại liên hệ.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.8, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

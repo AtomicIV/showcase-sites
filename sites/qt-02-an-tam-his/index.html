@@ -1,0 +1,2351 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hàng đợi — An Tâm Clinic</title>
+<meta name="description" content="Hệ thống quản lý phòng khám đa khoa An Tâm Clinic: tiếp đón, bảng gọi số theo phòng khám, bệnh án, kê đơn có cảnh báo tương tác thuốc và báo cáo.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230A7C74'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('antam-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+:root{--font:'Lexend',system-ui,sans-serif;--mono:'IBM Plex Mono',ui-monospace,monospace;--ease:cubic-bezier(.2,.8,.2,1);--top:56px;--r:10px;--list:330px;--ctx:320px}
+:root,[data-theme=light]{--bg:#EEF4F4;--pane:#FFFFFF;--pane-2:#F5F9F9;--pane-3:#E7EFEF;--line:#DCE6E6;--line-2:#C2D2D2;--text:#0C2326;--muted:#43605F;--dim:#567073;--accent:#0A7C74;--accent-2:#12A594;--accent-ink:#FFFFFF;--accent-soft:rgba(10,124,116,.09);--amber:#995A00;--amber-soft:rgba(196,125,10,.13);--red:#BF302E;--red-soft:rgba(191,48,46,.08);--blue:#2459C2;--green:#18794A;--tv:#062B29;--tv-ink:#D9FFF8;--shadow:0 18px 44px -18px rgba(12,45,48,.32);--back:rgba(8,30,32,.38);color-scheme:light}
+[data-theme=dark]{--bg:#050F11;--pane:#0A181B;--pane-2:#0E2024;--pane-3:#14292D;--line:rgba(190,240,235,.08);--line-2:rgba(190,240,235,.17);--text:#E0F0EE;--muted:#A2BCBA;--dim:#88A3A1;--accent:#2CCFBA;--accent-2:#5EEAD4;--accent-ink:#03201C;--accent-soft:rgba(44,207,186,.12);--amber:#F0B45A;--amber-soft:rgba(240,180,90,.14);--red:#FF7672;--red-soft:rgba(255,118,114,.12);--blue:#7AAEFF;--green:#5BD98E;--tv:#021617;--tv-ink:#C9FFF6;--shadow:0 24px 50px -20px rgba(0,0,0,.8);--back:rgba(0,0,0,.55);color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--text);font:400 14px/1.5 var(--font);-webkit-font-smoothing:antialiased;overflow-x:clip}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{margin:0;line-height:1.25;font-weight:600;letter-spacing:-.01em}
+p{margin:0}
+ul,ol{margin:0;padding:0;list-style:none}
+.sr{position:absolute;top:0;left:0;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:fixed;left:12px;top:-60px;z-index:200;padding:10px 14px;border-radius:8px;background:var(--accent);color:var(--accent-ink);text-decoration:none}
+.skip:focus{top:10px}
+.mono,kbd,code{font-family:var(--mono)}
+.num{font-variant-numeric:tabular-nums}
+svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+kbd{font:500 11px var(--mono);padding:2px 6px;border-radius:5px;border:1px solid var(--line-2);background:var(--pane);color:var(--muted)}
+
+/* ---------- shell ---------- */
+.app{display:grid;grid-template-rows:var(--top) minmax(0,1fr) 30px;height:100vh;height:100dvh}
+.top{position:relative;z-index:30;display:flex;align-items:center;gap:12px;padding:0 14px 0 16px;background:var(--pane);border-bottom:1px solid var(--line);min-width:0}
+.menu-btn{display:none!important}
+.brand{display:flex;align-items:center;gap:10px;flex:none;padding:4px 6px 4px 0;border:0;background:none;text-align:left}
+.mark{width:32px;height:32px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
+.mark svg{width:18px;height:18px;stroke:var(--accent-ink);fill:none;stroke-width:3;stroke-linecap:round}
+.brand b{display:block;font-weight:600;font-size:15px;white-space:nowrap;line-height:1.2}
+.brand small{display:block;font-size:11px;color:var(--dim);white-space:nowrap}
+.tabs{position:relative;display:flex;align-items:stretch;align-self:stretch;gap:2px;margin-left:10px;min-width:0}
+.tabs button{position:relative;display:flex;align-items:center;gap:8px;padding:0 12px;border:0;background:none;color:var(--muted);font-size:13.5px;font-weight:500;white-space:nowrap;transition:color .2s}
+.tabs button:hover{color:var(--text)}
+.tabs button[aria-current=page]{color:var(--accent)}
+.tabs .cnt{font:500 11px var(--mono);min-width:20px;padding:1px 6px;border-radius:999px;background:var(--pane-3);color:var(--muted);text-align:center}
+.tabs button[aria-current=page] .cnt{background:var(--accent-soft);color:var(--accent)}
+.tab-line{position:absolute;bottom:-1px;left:0;width:10px;height:2px;border-radius:2px;background:var(--accent);pointer-events:none}
+.top-r{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}
+.clock{font:500 13px var(--mono);color:var(--muted);padding:0 6px;white-space:nowrap}
+.search{display:flex;align-items:center;gap:8px;height:36px;width:230px;padding:0 6px 0 10px;border:1px solid var(--line);border-radius:8px;background:var(--pane-2);color:var(--dim);font-size:13px;text-align:left;transition:border-color .2s}
+.search:hover{border-color:var(--line-2);color:var(--muted)}
+.search span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ibtn{position:relative;width:36px;height:36px;flex:none;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;background:var(--pane);color:var(--muted);transition:color .2s,border-color .2s,background .2s}
+.ibtn:hover{color:var(--text);border-color:var(--line-2)}
+.ibtn.sm{width:30px;height:30px;border-radius:7px}
+.ibtn.sm svg{width:16px;height:16px}
+.ibtn[aria-expanded=true]{color:var(--accent);border-color:var(--accent)}
+.bdot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--pane)}
+.bdot[hidden]{display:none}
+.theme-ico .sun{display:none}
+[data-theme=dark] .theme-ico .sun{display:block}
+[data-theme=dark] .theme-ico .moon{display:none}
+.me{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 4px;border:1px solid var(--line);border-radius:999px;background:var(--pane);text-align:left}
+.me:hover,.me[aria-expanded=true]{border-color:var(--line-2)}
+.me-t{font-size:12.5px;font-weight:500;line-height:1.2;white-space:nowrap}
+.me-t small{display:block;color:var(--dim);font-weight:400;font-size:11px}
+.av{width:28px;height:28px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;background:var(--c,#0A7C74)}
+.av.lg{width:46px;height:46px;font-size:15px}
+.status{display:flex;align-items:center;gap:18px;padding:0 16px;border-top:1px solid var(--line);background:var(--pane);font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;min-width:0}
+.status .ok::before{content:'';display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:var(--green);vertical-align:1px}
+.status .concept{margin-left:auto}
+
+/* ---------- panes ---------- */
+main{min-height:0;min-width:0}
+.view{display:none;height:100%}
+.view.active{display:block}
+.cols{display:grid;grid-template-columns:var(--list) minmax(0,1fr) var(--ctx);height:100%;transition:grid-template-columns .42s var(--ease)}
+#v-hang-doi .cols{--list:300px;--ctx:330px}
+#v-benh-an .cols{--list:520px;--ctx:310px}
+#v-ke-don .cols{--list:300px}
+#v-bao-cao .cols{--list:280px}
+@media (min-width:1101px){.app.lc .cols{grid-template-columns:52px minmax(0,1fr) var(--ctx)}}
+.pane{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain}
+.list{position:relative;background:var(--pane);border-right:1px solid var(--line);container-type:inline-size;display:flex;flex-direction:column}
+.detail{background:var(--bg);container-type:inline-size}
+.ctx{background:var(--pane);border-left:1px solid var(--line);container-type:inline-size}
+.ph{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:10px;min-height:56px;padding:9px 14px 9px 16px;background:color-mix(in oklab,var(--pane) 94%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line);flex:none}
+.detail .ph{background:color-mix(in oklab,var(--bg) 92%,transparent)}
+.ph-t{flex:1;min-width:0}
+.ph h1{font-size:17px;outline:none}
+.ph h2{font-size:14px}
+.ph small{display:block;font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph-act{display:flex;align-items:center;gap:6px;flex:none}
+.lc-btn svg{transition:rotate .4s var(--ease)}
+/* collapsed list column: desktop only, so narrower layouts never need to undo it */
+@media (min-width:1101px){
+  .app.lc .list{overflow:hidden}
+  .app.lc .list>:not(.ph){display:none}
+  .app.lc .list .ph{flex-direction:column-reverse;justify-content:flex-end;align-items:center;gap:14px;padding:12px 0;border:0;background:none;min-height:0;height:100%}
+  .app.lc .list .ph-t{flex:none;writing-mode:vertical-rl;rotate:180deg;overflow:visible}
+  .app.lc .list .ph-t small,.app.lc .list .ph-act>:not(.lc-btn){display:none}
+  .app.lc .lc-btn svg{rotate:180deg}
+}
+[hidden]{display:none!important}
+.dbody{padding:16px;display:flex;flex-direction:column;gap:14px}
+.cbody{padding:14px 16px 20px;display:flex;flex-direction:column;gap:16px}
+.sheet{background:var(--pane);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.sh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.sh h2,.sh h3{font-size:14px;font-weight:600}
+.sh p{font-size:12px;color:var(--dim)}
+.cap{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.hint{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--dim);line-height:1.45}
+.hint svg{width:15px;height:15px;margin-top:1px}
+
+/* ---------- controls ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-2);background:var(--pane);font-size:13px;font-weight:500;white-space:nowrap;transition:background .2s,border-color .2s,color .2s,scale .15s}
+.btn:hover{border-color:var(--muted)}
+.btn:active{scale:.97}
+.btn svg{width:16px;height:16px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{background:color-mix(in oklab,var(--accent) 86%,var(--text))}
+.btn.sm{height:30px;padding:0 10px;font-size:12.5px;border-radius:7px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--text);background:var(--pane-3)}
+.btn.warn{color:var(--red);border-color:color-mix(in oklab,var(--red) 40%,transparent)}
+.btn[disabled]{opacity:.5;cursor:default;scale:1}
+.field{display:flex;align-items:center;gap:8px;height:36px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:var(--pane-2);color:var(--dim);transition:border-color .2s}
+.field:focus-within{border-color:var(--accent)}
+.field input{flex:1;min-width:0;border:0;background:none;outline:none;color:var(--text);font-size:13px}
+.field input::placeholder{color:var(--dim)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--line);background:var(--pane);color:var(--muted);font-size:12px;font-weight:500;transition:background .2s,color .2s,border-color .2s}
+.fchip[aria-pressed=true]{background:var(--text);border-color:var(--text);color:var(--pane)}
+.seg{display:inline-flex;padding:3px;border-radius:8px;background:var(--pane-3);gap:2px}
+.seg button{height:28px;padding:0 11px;border:0;border-radius:6px;background:none;color:var(--muted);font-size:12.5px;font-weight:500}
+.seg button[aria-pressed=true]{background:var(--pane);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.tag{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:999px;font-size:11.5px;font-weight:500;color:var(--c,var(--muted));background:color-mix(in oklab,var(--c,var(--muted)) 12%,transparent);white-space:nowrap}
+.tag.code{font-family:var(--mono)}
+.cb{appearance:none;-webkit-appearance:none;width:17px;height:17px;margin:0;flex:none;border-radius:5px;border:1.5px solid var(--line-2);background:var(--pane);display:grid;place-items:center;cursor:pointer;transition:background .15s,border-color .15s}
+.cb::after{content:'';width:8px;height:4px;border:solid var(--accent-ink);border-width:0 0 2px 2px;rotate:-45deg;scale:0;margin-top:-2px;transition:scale .2s var(--ease)}
+.cb:checked,.cb:indeterminate{background:var(--accent);border-color:var(--accent)}
+.cb:checked::after{scale:1}
+.cb:indeterminate::after{width:8px;height:0;border-width:0 0 2px;rotate:0deg;scale:1;margin:0}
+.empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:36px 16px;text-align:center;color:var(--muted);font-size:13px}
+.empty svg.ill{width:84px;height:64px;color:var(--line-2)}
+.empty b{color:var(--text);font-weight:600}
+
+/* ---------- queue ---------- */
+.arrs{display:flex;flex-direction:column;gap:8px;padding:12px;flex:1;min-height:120px;transition:background .2s}
+.arrs.over{background:var(--accent-soft)}
+.arr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:stretch;border:1px solid var(--line);border-radius:var(--r);background:var(--pane)}
+.arr.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.arr-main{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;align-items:center;padding:10px 4px 10px 12px;border:0;background:none;text-align:left;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;min-width:0}
+.arr-main b{grid-row:span 2;font:600 18px/1.1 var(--mono);color:var(--accent)}
+.arr-main span{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arr-main small{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arr-go{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:8px 10px 8px 4px}
+.arr-go .btn{height:28px;padding:0 9px;font-size:12px}
+.arr-go .since{font:500 11px var(--mono);text-align:right;color:var(--dim)}
+.qhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.qstats{display:flex;gap:18px;font-size:12px;color:var(--dim);flex-wrap:wrap}
+.qstats b{display:block;font:600 18px/1.2 var(--mono);color:var(--text)}
+.qboard{display:flex;flex-direction:column;gap:10px;container-type:inline-size}
+.qrow{display:grid;grid-template-columns:168px 152px minmax(0,1fr);background:var(--pane);border:1px solid var(--line);border-radius:var(--r);transition:border-color .2s,box-shadow .2s}
+.qrow.over{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.qrow.reject{border-color:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+.qrow.paused{background:repeating-linear-gradient(135deg,var(--pane) 0 10px,var(--pane-2) 10px 20px)}
+.qrow.flash{animation:rowflash 1.4s var(--ease)}
+@keyframes rowflash{0%{box-shadow:0 0 0 0 var(--accent-soft)}30%{box-shadow:0 0 0 6px var(--accent-soft);border-color:var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
+.qr-head{position:relative;display:flex;flex-direction:column;gap:2px;padding:11px 40px 11px 14px;border-right:1px solid var(--line);min-width:0}
+.rc{font:600 12px var(--mono);color:var(--accent);letter-spacing:.04em}
+.qr-head b{font-weight:600;font-size:14px;line-height:1.3}
+.qr-head small{color:var(--dim);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qr-head .room-more{position:absolute;top:8px;right:8px}
+.paused-tag{color:var(--amber);font-size:11.5px;font-weight:500}
+.qr-now{display:flex;flex-direction:column;justify-content:space-between;gap:10px;padding:10px 12px;border-right:1px solid var(--line);background:var(--pane-2);min-width:0}
+.qr-cur{display:flex;flex-direction:column;gap:1px;padding:0;border:0;background:none;text-align:left;color:inherit;min-width:0;border-radius:6px}
+.qr-now .call{width:100%}
+.qr-now .lb{font-size:10.5px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+.qr-now .nm{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qr-now .since{font:500 11.5px var(--mono);color:var(--dim)}
+.tk-big{font:600 26px/1.15 var(--mono);letter-spacing:-.02em;color:var(--text);display:block}
+.fd{display:inline-block;overflow:hidden;vertical-align:top}
+.fd i{display:inline-block;font-style:normal}
+.qr-wait{position:relative;display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;padding:10px;min-height:62px;min-width:0}
+.qr-wait .none{align-self:center;font-size:12px;color:var(--dim);padding:0 4px}
+.chip{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 10px 0 9px;border:1px solid var(--line-2);border-radius:8px;background:var(--pane);font-size:12.5px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;transition:border-color .15s,background .15s,opacity .15s;max-width:100%}
+.chip:hover{border-color:var(--muted)}
+.chip b{font:600 13.5px var(--mono)}
+.chip .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.chip .since{font:500 11.5px var(--mono);color:var(--dim)}
+.chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.chip.prio{box-shadow:inset 3px 0 0 var(--amber)}
+.chip.lifted,.arr.lifted{opacity:.35}
+.drag-ghost{position:fixed;left:0;top:0;z-index:120;pointer-events:none;box-shadow:var(--shadow);border-color:var(--accent);cursor:grabbing;background:var(--pane)}
+.caret{position:absolute;width:3px;height:38px;border-radius:2px;background:var(--accent);pointer-events:none;display:none}
+.since.w2{color:var(--amber)!important}
+.since.w3{color:var(--red)!important;font-weight:600}
+@container (max-width:600px){
+  .qrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .qr-now{border-right:0}
+  .qr-wait{grid-column:1/-1;border-top:1px solid var(--line)}
+}
+.tv{position:relative;overflow:hidden;border-radius:12px;padding:16px 18px 14px;background:var(--tv);color:var(--tv-ink)}
+.tv::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+.tv .lb{display:flex;justify-content:space-between;font:500 10.5px var(--mono);letter-spacing:.16em;text-transform:uppercase;opacity:.75}
+.tv .big{display:flex;align-items:baseline;gap:14px;margin:6px 0 2px}
+.tv .tvn{font:600 52px/1.1 var(--mono);letter-spacing:-.03em;color:#7DF3DF}
+.tv .tvr{font-size:14px;line-height:1.35}
+.tv .tvr b{display:block;font:600 22px/1.15 var(--mono)}
+.tv .tvp{font-size:13px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-theme=dark] .tv{box-shadow:inset 0 0 0 1px var(--line-2)}
+.tv.ping{animation:tvping 1.2s var(--ease)}
+@keyframes tvping{0%,100%{box-shadow:0 0 0 0 transparent}30%{box-shadow:0 0 0 4px var(--accent)}}
+.calls{display:flex;flex-direction:column}
+.calls li{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.calls li:last-child{border-bottom:0}
+.calls b{font:600 13px var(--mono)}
+.calls time{font:500 11.5px var(--mono);color:var(--dim)}
+.pcard{display:flex;flex-direction:column;gap:12px}
+.pc-top{display:flex;gap:12px;align-items:center}
+.pc-top h3{font-size:15px}
+.pc-top p{font-size:12px;color:var(--dim)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12.5px}
+.kv dt{color:var(--dim)}
+.kv dd{margin:0;text-align:right;font-weight:500;min-width:0}
+.alert-line{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:var(--red-soft);color:var(--red);font-size:12.5px;font-weight:500}
+.alert-line svg{width:16px;height:16px;margin-top:1px}
+.f-inline{display:flex;flex-direction:column;gap:5px}
+.f-inline label{font-size:12px;color:var(--muted);font-weight:500}
+.sel{height:36px;padding:0 30px 0 10px;border-radius:8px;border:1px solid var(--line);background:var(--pane-2);appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 15px) 16px,calc(100% - 10px) 16px;background-size:5px 5px;background-repeat:no-repeat;font-size:13px;min-width:0;width:100%}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.btn-row .btn{flex:1}
+.load li{display:grid;grid-template-columns:44px 1fr 56px;gap:10px;align-items:center;padding:5px 0;font-size:12px}
+.load .rc{font-size:11.5px}
+.bar{height:6px;border-radius:6px;background:var(--pane-3);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:inherit;background:var(--accent);transform-origin:left}
+.load em{font:500 11.5px var(--mono);font-style:normal;color:var(--muted);text-align:right}
+
+/* ---------- table ---------- */
+.tools{display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.tbl th:nth-child(2){width:96px}.tbl th:nth-child(4){width:116px}.tbl th:nth-child(5){width:122px}
+.tbl th{padding:9px 10px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--line);white-space:nowrap;background:var(--pane-2)}
+.tbl th:first-child,.tbl td:first-child{padding-left:14px;width:34px}
+.th-b{display:inline-flex;align-items:center;gap:4px;border:0;background:none;padding:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit}
+.th-b svg{width:13px;height:13px;opacity:.35;transition:rotate .25s}
+.th-b[data-dir] svg{opacity:1;color:var(--accent)}
+.th-b[data-dir=asc] svg{rotate:180deg}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tbody tr{cursor:pointer;transition:background .15s}
+.tbl tbody tr:hover{background:var(--pane-2)}
+.tbl tbody tr.on{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.tbl tbody tr.chk{background:color-mix(in oklab,var(--accent) 6%,transparent)}
+.c-id{font:500 12.5px var(--mono);color:var(--muted);white-space:nowrap}
+.c-nm b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-nm small{display:block;font-size:11.5px;color:var(--dim)}
+.c-last{font:500 12.5px var(--mono);white-space:nowrap}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;color:var(--c)}
+.st i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;font-size:12px;color:var(--dim);border-top:1px solid var(--line);margin-top:auto;flex-wrap:wrap}
+.pager .pg{display:flex;gap:4px}
+.pg button{min-width:30px;height:30px;padding:0 8px;border-radius:7px;border:1px solid var(--line);background:var(--pane);font:500 12px var(--mono);color:var(--muted)}
+.pg button[aria-current=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pg button[disabled]{opacity:.4;cursor:default}
+.bulk{display:none;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px 8px 14px;background:var(--text);color:var(--pane);font-size:12.5px}
+.bulk.show{display:flex}
+.bulk b{margin-right:auto}
+.bulk .btn{height:30px;padding:0 10px;font-size:12px;background:transparent;color:var(--pane);border-color:color-mix(in oklab,var(--pane) 30%,transparent)}
+.bulk .btn:hover{border-color:var(--pane)}
+.sortsel{display:none;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)}
+.sortsel label{white-space:nowrap}
+@container (max-width:470px){
+  .sortsel{display:flex}
+  .tbl thead{display:none}
+  .tbl,.tbl tbody{display:block}
+  .tbl tbody tr{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .tbl tbody td{padding:0;border:0}
+  .tbl td.c-cb{width:auto;padding:0}
+  .tbl td.c-nm{flex:1 1 60%;min-width:0}
+  .tbl td.c-nm b{overflow:hidden;text-overflow:ellipsis}
+  .tbl td.c-st{flex:none}
+  .tbl td.c-id{order:3;margin-left:27px;font-size:11.5px}
+  .tbl td.c-last{order:4;font-size:11.5px;color:var(--dim)}
+  .tbl td.c-last::before{content:'Khám: ';font-family:var(--font)}
+  .tbl td[colspan]{flex:1}
+}
+
+/* ---------- record ---------- */
+.rec-head{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.rec-head .who{flex:1;min-width:200px}
+.rec-head h2{font-size:19px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;font-size:12.5px;color:var(--muted)}
+.meta .mono{font-size:12px}
+.vitals{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.vitals div{background:var(--pane);padding:12px 14px;min-width:0}
+.vitals small{display:block;font-size:11.5px;color:var(--dim);white-space:nowrap}
+.vitals b{font:600 19px/1.3 var(--mono);white-space:nowrap}
+.vitals em{display:block;font-style:normal;font-size:11px;line-height:1.2;color:var(--dim)}
+.vitals .hi b{color:var(--red)}
+@container (max-width:560px){.vitals{grid-template-columns:repeat(2,minmax(0,1fr))}.vitals div:last-child{grid-column:span 2}}
+.tl{position:relative;display:flex;flex-direction:column;gap:14px}
+.tl::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.tl li{position:relative;padding-left:28px}
+.tl li::before{content:'';position:absolute;left:2px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--pane);border:2px solid var(--c,var(--accent))}
+.tl .tl-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+.tl .tl-h time{font:500 12px var(--mono);color:var(--muted)}
+.tl p{margin-top:3px;font-size:13px}
+.tl .rx{margin-top:4px;font-size:12px;color:var(--muted)}
+.tl .note-del{margin-left:auto}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0;border:0;margin:0;padding:0}
+.f label,.f legend{font-size:12.5px;font-weight:500;color:var(--muted);padding:0}
+.f label i,.f legend i{font-style:normal;color:var(--red)}
+.f input:not([type=radio]):not([type=checkbox]),.f textarea{width:100%;height:38px;padding:0 11px;border-radius:8px;border:1px solid var(--line-2);background:var(--pane);font-size:13.5px;outline:none;transition:border-color .2s,box-shadow .2s}
+.f textarea{height:auto;padding:9px 11px;resize:vertical;line-height:1.5}
+.f input:focus,.f textarea:focus,.sel:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);outline:none}
+.f [aria-invalid=true]{border-color:var(--red)!important;box-shadow:0 0 0 3px var(--red-soft)!important}
+.err{min-height:0;font-size:12px;color:var(--red);line-height:1.4}
+.err:empty{display:none}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px}
+.span2{grid-column:1/-1}
+@container (max-width:520px){.fgrid{grid-template-columns:minmax(0,1fr)}}
+.radios{display:flex;gap:8px}
+.radios label{display:flex;align-items:center;gap:7px;height:38px;padding:0 14px;border:1px solid var(--line-2);border-radius:8px;font-size:13.5px;color:var(--text);cursor:pointer;flex:1}
+.radios label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.radios input,.ck input{accent-color:var(--accent);margin:0}
+.ck{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--text);cursor:pointer;line-height:1.45}
+.ck input{margin-top:3px}
+.room-hint{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--pane-2);border:1px dashed var(--line-2);font-size:12.5px;color:var(--muted);min-height:44px}
+.room-hint b{font-family:var(--mono);color:var(--accent)}
+.form-foot{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.form-foot .err{margin-right:auto}
+
+/* ---------- appointments / visit list ---------- */
+.appts{display:flex;flex-direction:column}
+.appts li{display:grid;grid-template-columns:50px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line)}
+.appts time{font:600 13px var(--mono)}
+.appts b{display:block;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appts small{display:block;font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appts li.past{opacity:.62}
+.appts .btn{height:28px;padding:0 9px;font-size:12px}
+.vlist{display:flex;flex-direction:column}
+.vlist button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:11px 14px;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;width:100%;transition:background .15s}
+.vlist button:hover{background:var(--pane-2)}
+.vlist button[aria-current=true]{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.vlist b{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vlist small{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vlist .tag{justify-self:end}
+.vlist .mono{font-size:11.5px;color:var(--dim);justify-self:end}
+
+/* ---------- prescription ---------- */
+.dx{display:flex;flex-wrap:wrap;gap:6px}
+.allergy{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:8px;background:var(--red-soft);color:var(--red);font-size:13px;font-weight:500;margin-top:12px}
+.combo{position:relative}
+.combo .field{height:42px;background:var(--pane)}
+.combo-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;max-height:300px;overflow:auto;padding:5px;border-radius:10px;background:var(--pane);border:1px solid var(--line-2);box-shadow:var(--shadow);display:none}
+.combo-list.open{display:block}
+.combo-list li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:13px}
+.combo-list li[aria-selected=true]{background:var(--accent-soft)}
+.combo-list li small{color:var(--dim);font-size:11.5px}
+.combo-list li em{grid-column:1/-1;font-style:normal;font-size:11.5px;color:var(--red)}
+.combo-list .ce{padding:14px;color:var(--dim);font-size:12.5px;text-align:center;cursor:default}
+.quick{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:10px;font-size:12px;color:var(--dim)}
+.quick button{height:28px;padding:0 10px;border-radius:999px;border:1px dashed var(--line-2);background:none;font-size:12px;color:var(--muted)}
+.quick button:hover{border-color:var(--accent);color:var(--accent)}
+.ixs{display:flex;flex-direction:column;gap:10px}
+.ixs:empty{display:none}
+.ix{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:13px 14px;border-radius:var(--r);border:1px solid color-mix(in oklab,var(--c) 45%,transparent);background:color-mix(in oklab,var(--c) 8%,var(--pane))}
+.ix>svg{grid-row:span 3;width:22px;height:22px;color:var(--c);margin-top:1px}
+.ix h3{font-size:13.5px;color:var(--c)}
+.ix h3 span{font-weight:500;color:var(--text)}
+.ix p{font-size:12.5px;color:var(--text)}
+.ix p.adv{color:var(--muted)}
+.ix .ix-act{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.ix .why{grid-column:2;display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.ix .why input{flex:1;min-width:160px;height:32px;padding:0 10px;border-radius:7px;border:1px solid var(--line-2);background:var(--pane);font-size:12.5px;outline:none}
+.ix .why .err{flex-basis:100%}
+.ix.ok{border-color:var(--line);background:var(--pane-2)}
+.ix.ok h3{color:var(--muted)}
+.ix.ok>svg{color:var(--muted)}
+.rx-lines{container-type:inline-size}
+.rxh,.rxl{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(4,44px) 54px 50px minmax(0,1fr) 32px;gap:6px;align-items:center}
+.rxh{padding:0 0 8px;font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+.rxh span:nth-child(n+2):nth-child(-n+7){text-align:center}
+.rxl{padding:10px 0;border-bottom:1px solid var(--line);position:relative}
+.rxl:last-child{border-bottom:0}
+.rxl.bad{box-shadow:inset 3px 0 0 var(--red);padding-left:10px;margin-left:-10px}
+.rxl.mid{box-shadow:inset 3px 0 0 var(--amber);padding-left:10px;margin-left:-10px}
+.rxn b{display:block;font-weight:500;font-size:13.5px;line-height:1.3}
+.rxn small{font-size:11.5px;color:var(--dim)}
+.rxl input{width:100%;height:32px;padding:0 4px;border-radius:7px;border:1px solid var(--line-2);background:var(--pane);font:500 13px var(--mono);text-align:center;outline:none;-moz-appearance:textfield}
+.rxl input::-webkit-outer-spin-button,.rxl input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.rxl input:focus{border-color:var(--accent)}
+.rxl input[aria-invalid=true]{border-color:var(--red)}
+.rxl .sel{height:32px;font-size:12.5px}
+.rxq{font:600 13px var(--mono);text-align:center}
+.rxl .err{grid-column:1/-1}
+.rxl .lb{display:none}
+@container (max-width:600px){
+  .rxh{display:none}
+  .rxl{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .rxn{grid-column:1/-1;padding-right:40px}
+  .rxl .del{position:absolute;top:8px;right:0}
+  .rxl .cell{display:flex;flex-direction:column;gap:3px}
+  .rxl .lb{display:block;font-size:11px;color:var(--dim)}
+  .rxl .c-use{grid-column:span 2}
+}
+.rx-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rx-foot .tot{margin-right:auto;font-size:12.5px;color:var(--muted)}
+.rx-foot .tot b{font:600 17px var(--mono);color:var(--text);margin-left:6px}
+.mx{display:grid;gap:3px;font:500 10.5px var(--mono)}
+.mx span{display:grid;place-items:center;height:30px;color:var(--dim);min-width:0;overflow:hidden}
+.mx button{height:30px;border-radius:5px;border:0;background:var(--pane-3);padding:0;min-width:0}
+.mx button.nang{background:var(--red)}
+.mx button.tb{background:var(--amber)}
+.mx button.ack{background:repeating-linear-gradient(135deg,var(--red) 0 4px,transparent 4px 7px)}
+.mx button.diag{background:none;cursor:default}
+.mx button.diag::after{content:'';display:block;width:12px;height:1px;margin:auto;background:var(--line-2)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--dim);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:5px;vertical-align:-1px}
+.dinfo h3{font-size:14px}
+.dinfo p{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+/* ---------- charts ---------- */
+.chart{position:relative;outline:none;border-radius:8px;touch-action:pan-y}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.ax{font:500 10.5px var(--mono);fill:var(--dim)}
+.gl{stroke:var(--line);stroke-width:1}
+.tip{position:absolute;left:0;top:0;z-index:6;min-width:150px;padding:9px 11px;border-radius:8px;background:var(--text);color:var(--pane);font-size:12px;pointer-events:none;opacity:0;transition:opacity .15s;white-space:nowrap}
+.tip.on{opacity:1}
+.tip b{display:block;font-weight:600;margin-bottom:3px}
+.tip span{display:flex;justify-content:space-between;gap:14px}
+.tip em{font-style:normal;font-family:var(--mono);font-weight:600}
+.sumrow{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:12px}
+.sumrow small{display:block;font-size:11.5px;color:var(--dim)}
+.sumrow b{font:600 20px/1.3 var(--mono)}
+.hbars{display:flex;flex-direction:column;gap:9px}
+.hb{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr) 64px;gap:12px;align-items:center;font-size:12.5px}
+.hb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb span code{color:var(--dim);font-size:11.5px;margin-right:6px}
+.hb .bar{height:10px;position:relative;overflow:visible}
+.hb .bar i{background:var(--c,var(--accent))}
+.hb em{font:500 12px var(--mono);font-style:normal;text-align:right}
+.hb .tgt{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text);opacity:.5;border-radius:2px}
+@container (max-width:520px){.hb{grid-template-columns:minmax(0,1fr) 60px}.hb .bar{grid-column:1/-1;grid-row:2}}
+.rlist{display:flex;flex-direction:column;padding:8px}
+.rlist button{display:flex;gap:12px;align-items:flex-start;padding:11px 12px;border:0;border-radius:8px;background:none;text-align:left;width:100%;color:var(--muted)}
+.rlist button:hover{background:var(--pane-2)}
+.rlist button[aria-current=true]{background:var(--accent-soft);color:var(--text)}
+.rlist button[aria-current=true] svg{color:var(--accent)}
+.rlist b{display:block;font-size:13px;font-weight:500;color:var(--text)}
+.rlist small{display:block;font-size:11.5px;color:var(--dim);line-height:1.4}
+.kpis{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.kpis div{background:var(--pane);padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
+.kpis small{grid-column:1/-1;font-size:11.5px;color:var(--dim)}
+.kpis b{font:600 20px/1.3 var(--mono);white-space:nowrap}
+.delta{font:500 11.5px var(--mono);color:var(--green)}
+.delta.down{color:var(--red)}
+.donut{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center}
+.donut svg{width:104px;height:104px;flex:none;rotate:-90deg}
+.donut circle{fill:none;stroke-width:14}
+.donut ul{display:flex;flex-direction:column;gap:7px;font-size:12.5px;flex:1 1 140px;min-width:0}
+.donut li{display:flex;justify-content:space-between;gap:8px}
+.donut li span{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.donut li i{width:9px;height:9px;border-radius:3px;background:var(--c)}
+.donut li em{font:500 12px var(--mono);font-style:normal}
+
+/* ---------- overlays ---------- */
+.pop{position:fixed;z-index:80;width:min(340px,calc(100vw - 16px));padding:6px;border-radius:12px;background:var(--pane);border:1px solid var(--line-2);box-shadow:var(--shadow);visibility:hidden;opacity:0;transition:opacity .16s,visibility .16s}
+.pop.open{visibility:visible;opacity:1}
+.pop-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;font-size:13.5px;font-weight:600}
+.notes li{display:grid;grid-template-columns:30px 1fr;gap:10px;padding:9px 10px;border-radius:8px;font-size:12.5px;line-height:1.4}
+.notes li.unread{background:var(--accent-soft)}
+.notes .ni{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--c);background:color-mix(in oklab,var(--c) 13%,transparent)}
+.notes .ni svg{width:16px;height:16px}
+.notes small{color:var(--dim)}
+.menu{width:min(250px,calc(100vw - 16px))}
+.menu button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:7px;background:none;font-size:13px;text-align:left;color:var(--text)}
+.menu button:hover,.menu button:focus-visible{background:var(--pane-3);outline:none}
+.menu button svg{color:var(--muted)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:5px 4px}
+.menu .about{padding:8px 10px;font-size:11.5px;color:var(--dim);line-height:1.45}
+.backdrop{position:fixed;inset:0;z-index:90;background:var(--back);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
+.backdrop.open{opacity:1;visibility:visible}
+.palette{position:fixed;left:50%;top:12vh;z-index:91;width:min(600px,calc(100vw - 24px));translate:-50% 0;border-radius:14px;background:var(--pane);border:1px solid var(--line-2);box-shadow:var(--shadow);overflow:hidden;opacity:0;visibility:hidden;transition:opacity .18s,visibility .18s}
+.palette.open{opacity:1;visibility:visible}
+.pal-in{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.pal-in input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:15px}
+.pal-in input::placeholder{color:var(--dim)}
+.pal-list{max-height:min(380px,54vh);overflow-y:auto;padding:6px}
+.pal-g{padding:10px 10px 4px;font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.pal-o{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13.5px;cursor:pointer;color:var(--muted)}
+.pal-o[aria-selected=true]{background:var(--accent-soft);color:var(--text)}
+.pal-o[aria-selected=true] svg{color:var(--accent)}
+.pal-o span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pal-o small{color:var(--dim);font-size:11.5px;white-space:nowrap}
+.pal-o mark{background:none;color:var(--accent);font-weight:600}
+.pal-empty{padding:26px;text-align:center;color:var(--dim)}
+.pal-foot{display:flex;gap:14px;padding:9px 14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--dim);flex-wrap:wrap}
+.mnav{position:fixed;left:0;top:0;bottom:0;z-index:92;width:min(310px,86vw);display:flex;flex-direction:column;gap:6px;padding:14px;background:var(--pane);border-right:1px solid var(--line-2);box-shadow:var(--shadow);transform:translateX(-104%);visibility:hidden;transition:transform .32s var(--ease),visibility .32s;overflow-y:auto}
+.mnav.open{transform:none;visibility:visible}
+.mnav-h{display:flex;align-items:center;justify-content:space-between;padding:2px 0 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.mnav nav button{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:8px 12px;border:0;border-radius:9px;background:none;text-align:left;color:var(--muted)}
+.mnav nav button[aria-current=page]{background:var(--accent-soft);color:var(--text)}
+.mnav nav button[aria-current=page] svg{color:var(--accent)}
+.mnav nav b{display:block;font-size:14px;font-weight:500;color:var(--text)}
+.mnav nav small{display:block;font-size:11.5px;color:var(--dim)}
+.mnav nav .cnt{margin-left:auto;font:500 11px var(--mono);padding:1px 7px;border-radius:999px;background:var(--pane-3)}
+.mnav-f{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.5}
+.toasts{position:fixed;right:12px;bottom:42px;z-index:110;display:flex;flex-direction:column;gap:8px;width:min(300px,calc(100vw - 24px))}
+.toast{position:relative;display:grid;grid-template-columns:26px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:11px 10px 13px 12px;border-radius:10px;background:var(--text);color:var(--pane);box-shadow:var(--shadow);font-size:13px;overflow:hidden}
+.toast .ti{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:var(--c);color:#fff}
+.toast .ti svg{width:15px;height:15px;stroke-width:2.2}
+.toast button{border:0;background:none;color:inherit;opacity:.75;padding:4px 6px;border-radius:6px;font-size:12.5px;font-weight:600}
+.toast button:hover{opacity:1}
+.toast .undo{color:var(--accent-2);opacity:1}
+[data-theme=dark] .toast .undo{color:#0A7C74}
+.toast .tp{position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--c);transform-origin:left}
+
+/* ---------- responsive ---------- */
+@media (max-width:1280px){
+  .cols{--ctx:290px}
+  #v-hang-doi .cols{--ctx:300px}
+  #v-benh-an .cols{--list:420px;--ctx:280px}
+  .search{width:200px}
+}
+@media (max-width:1100px){
+  .app{height:auto;min-height:100dvh;grid-template-rows:var(--top) auto auto}
+  .top{position:sticky;top:0}
+  .tabs .tl{display:none}
+  .tabs button{padding:0 10px}
+  .search{width:36px;padding:0;justify-content:center}
+  .search span,.search kbd{display:none}
+  .me{padding:0 4px}
+  .me-t{display:none}
+  .lc-btn{display:none!important}
+  .view{height:auto}
+  .cols{height:auto;grid-template-columns:var(--list) minmax(0,1fr);grid-template-areas:"list detail" "list ctx";transition:none}
+  .cols{--list:290px}
+  #v-hang-doi .cols,#v-ke-don .cols,#v-bao-cao .cols{--list:280px}
+  #v-benh-an .cols{--list:340px}
+  .list{grid-area:list;position:sticky;top:var(--top);height:calc(100dvh - var(--top));align-self:start}
+  .detail{grid-area:detail}
+  .ctx{grid-area:ctx;border-left:0;border-top:1px solid var(--line)}
+  .detail,.ctx{overflow:visible}
+  .detail .ph,.ctx .ph{position:static}
+  .status{flex-wrap:wrap;white-space:normal;gap:4px 16px;padding:8px 16px;min-height:30px}
+  .status .concept{margin-left:0}
+}
+@media (max-width:960px){.clock{display:none}}
+@media (max-width:820px){
+  .menu-btn{display:grid!important}
+  .tabs{display:none}
+  .brand small{display:none}
+  .top{gap:8px;padding:0 12px}
+  .top-r{gap:6px}
+  .cols{grid-template-columns:minmax(0,1fr);grid-template-areas:"list" "detail" "ctx"}
+  .list{position:static;height:auto;max-height:none;overflow:visible;border-right:0;border-bottom:1px solid var(--line)}
+  #v-benh-an .list .tblwrap{max-height:none}
+  .list .ph{position:static}
+  .arrs{min-height:80px}
+  .dbody{padding:14px 12px}
+  .cbody{padding:14px 12px 20px}
+  .ph{padding:10px 12px}
+  .toasts{left:12px;right:12px;width:auto;bottom:12px}
+  .palette{top:8vh}
+}
+@media (max-width:440px){
+  .brand-t{display:none}
+  .qstats{gap:12px}
+  .tv .tvn{font-size:44px}
+}
+/* Below desktop: readable text (≥12px) and finger-sized tap targets (≥40px). */
+@media (max-width:1100px){
+  kbd,.brand small,.tabs .cnt,.me-t small,.av,.status,.cap,.tag,.arr-main small,.arr-go .since,.paused-tag,.qr-now .lb,.qr-now .since,.chip .since,.tv .lb,.calls time,.load .rc,.load em,.tbl th,.c-nm small,.tbl td.c-id,.tbl td.c-last,.vitals small,.vitals em,.appts small,.vlist small,.vlist .mono,.combo-list li small,.combo-list li em,.rxh,.rxn small,.rxl .lb,.mx,.legend,.sumrow small,.hb span code,.rlist small,.kpis small,.delta,.menu .about,.pal-g,.pal-o small,.pal-foot,.mnav nav small,.mnav nav .cnt{font-size:12px}
+}
+@media (pointer:coarse),(max-width:820px){
+  .ibtn,.search,.me{min-width:40px;height:40px}
+  .brand{min-width:40px}
+  .ibtn.sm{min-width:0;width:30px;height:30px}
+  .ibtn.sm::before{content:'';position:absolute;inset:-5px}
+  .btn,.btn.sm,.arr-go .btn,.fchip,.seg button,.quick button,.chip,.sel,.rxl .sel,.rxl input{height:40px}
+  .pg button{min-width:40px;height:40px}
+  .field{height:40px}
+  .field input{align-self:stretch}
+  .mx span,.mx button{height:40px}
+  .cb{position:relative}
+  .cb::before{content:'';position:absolute;inset:-12px}
+}
+.rm *,.rm *::before,.rm *::after{animation:none!important;transition-duration:.01ms!important}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-reception" viewBox="0 0 24 24"><path d="M9 4h6v3H9z"/><path d="M15 5h3a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h3"/><circle cx="12" cy="12" r="2.3"/><path d="M8.5 18c.6-1.8 2-2.6 3.5-2.6s2.9.8 3.5 2.6"/></symbol>
+  <symbol id="i-queue" viewBox="0 0 24 24"><path d="M4 6h3M4 12h3M4 18h3"/><path d="M10 6h10M10 12h10M10 18h6"/></symbol>
+  <symbol id="i-record" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M12.5 10v6M9.5 13h6"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 24 24"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-40 12 12)"/><path d="m9.6 9.2 5.2 5.6"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16"/><path d="m7 15 4-5 3 3 5-6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5M12 17.2v.3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.6v.3"/></symbol>
+  <symbol id="i-side" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M9 4.5v15M15 10l-2 2 2 2"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r="1.3"/></symbol>
+  <symbol id="i-call" viewBox="0 0 24 24"><path d="M4 10v4h3l5 4V6L7 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="1.5"/><path d="M7 14h10v6.5H7z"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.5-5.8"/><path d="M4 4v4.5h4.5"/></symbol>
+  <symbol id="i-skip" viewBox="0 0 24 24"><path d="m5 6 8 6-8 6zM17 6v12"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c1-4 4-6 7.5-6s6.5 2 7.5 6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-lab" viewBox="0 0 24 24"><path d="M9 3.5h6M10 3.5v6L5 19a1.2 1.2 0 0 0 1 1.5h12a1.2 1.2 0 0 0 1-1.5l-5-9.5v-6"/><path d="M7.5 15h9"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Bỏ qua đến nội dung chính</a>
+<div class="app" id="app">
+  <header class="top">
+    <button class="ibtn menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mnav" aria-label="Mở menu"><svg class="i"><use href="#i-menu"/></svg></button>
+    <button class="brand" type="button" data-go="hang-doi" aria-label="An Tâm Clinic — về bảng hàng đợi"><span class="mark"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span class="brand-t"><b>An Tâm Clinic</b><small>HIS · Phòng khám đa khoa</small></span></button>
+    <nav class="tabs" id="tabs" aria-label="Phân hệ"></nav>
+    <div class="top-r">
+      <span class="clock" id="clock" aria-label="Giờ hiện tại"><span id="clockT">--:--</span></span>
+      <button class="search" id="searchBtn" type="button" aria-label="Tìm kiếm và lệnh nhanh (Ctrl K)"><svg class="i"><use href="#i-search"/></svg><span>Tìm bệnh nhân, thuốc, lệnh…</span><kbd>Ctrl K</kbd></button>
+      <button class="ibtn" id="bellBtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="bellPop" aria-label="Thông báo"><svg class="i"><use href="#i-bell"/></svg><span class="bdot" id="bellDot"></span></button>
+      <button class="ibtn" id="themeBtn" type="button" aria-label="Chuyển giao diện"><span class="theme-ico"><svg class="i moon"><use href="#i-moon"/></svg><svg class="i sun"><use href="#i-sun"/></svg></span></button>
+      <button class="me" id="meBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="mePop" aria-label="Tài khoản: Đỗ Thu Trang"><span class="av" style="--c:#7A4FB5">TT</span><span class="me-t">Đỗ Thu Trang<small>Điều dưỡng điều phối</small></span></button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ============ TIẾP ĐÓN ============ -->
+    <section class="view" id="v-tiep-don" aria-labelledby="h-tiep-don">
+      <div class="cols">
+        <section class="pane list" aria-label="Lịch hẹn hôm nay">
+          <div class="ph"><div class="ph-t"><h2>Lịch hẹn hôm nay</h2><small id="apptSum"></small></div><div class="ph-act"><button class="ibtn sm lc-btn" type="button" aria-pressed="false" aria-label="Thu gọn danh sách"><svg class="i"><use href="#i-side"/></svg></button></div></div>
+          <ol class="appts" id="appts"></ol>
+        </section>
+        <section class="pane detail">
+          <div class="ph"><div class="ph-t"><h1 id="h-tiep-don" tabindex="-1">Tiếp đón bệnh nhân</h1><small>Đăng ký khám, cấp số thứ tự và đưa vào hàng đợi phòng khám</small></div><div class="ph-act"><button class="btn sm ghost" type="button" id="regReset">Làm mới</button></div></div>
+          <form class="dbody" id="regForm" novalidate>
+            <div class="sheet">
+              <div class="sh"><h2>Thông tin hành chính</h2><p>Trường có dấu <span style="color:var(--red)">*</span> là bắt buộc</p></div>
+              <div class="fgrid">
+                <div class="f span2"><label for="fName">Họ và tên <i>*</i></label><input id="fName" autocomplete="off" aria-describedby="eName" placeholder="VD: Nguyễn Thị Lan"><p class="err" id="eName"></p></div>
+                <div class="f"><label for="fDob">Ngày sinh <i>*</i></label><input id="fDob" inputmode="numeric" autocomplete="off" aria-describedby="eDob" placeholder="dd/mm/yyyy"><p class="err" id="eDob"></p></div>
+                <fieldset class="f"><legend>Giới tính <i>*</i></legend><div class="radios"><label><input type="radio" name="gender" value="Nam"> Nam</label><label><input type="radio" name="gender" value="Nữ"> Nữ</label></div><p class="err" id="eGender"></p></fieldset>
+                <div class="f"><label for="fPhone">Số điện thoại <i>*</i></label><input id="fPhone" inputmode="tel" autocomplete="off" aria-describedby="ePhone" placeholder="09x xxx xxxx"><p class="err" id="ePhone"></p></div>
+                <div class="f"><label for="fBhyt">Mã thẻ BHYT</label><input id="fBhyt" autocomplete="off" maxlength="15" aria-describedby="eBhyt" placeholder="2 chữ cái + 13 chữ số"><p class="err" id="eBhyt"></p></div>
+                <div class="f span2"><label for="fAddr">Địa chỉ</label><input id="fAddr" autocomplete="off" placeholder="Số nhà, đường, phường, quận"></div>
+              </div>
+            </div>
+            <div class="sheet">
+              <div class="sh"><h2>Thông tin khám</h2></div>
+              <div class="fgrid">
+                <div class="f"><label for="fSpec">Chuyên khoa <i>*</i></label><select class="sel" id="fSpec" aria-describedby="eSpec"><option value="">Chọn chuyên khoa</option></select><p class="err" id="eSpec"></p></div>
+                <div class="f"><span class="cap" style="margin:0 0 5px">Phòng gợi ý</span><div class="room-hint" id="roomHint" aria-live="polite">Chọn chuyên khoa để xem phòng và thời gian chờ dự kiến</div></div>
+                <div class="f span2"><label for="fReason">Lý do khám <i>*</i></label><textarea id="fReason" rows="3" aria-describedby="eReason" placeholder="Triệu chứng chính, thời gian xuất hiện…"></textarea><p class="err" id="eReason"></p></div>
+                <div class="f span2"><label class="ck"><input type="checkbox" id="fPrio"> Ưu tiên khám trước: người từ 80 tuổi, trẻ dưới 6 tuổi, phụ nữ có thai, người khuyết tật</label><small class="hint" id="prioAuto"></small></div>
+              </div>
+            </div>
+            <div class="form-foot"><p class="err" id="regErr" role="alert"></p><button class="btn primary" type="submit"><svg class="i"><use href="#i-check"/></svg>Cấp số và đưa vào hàng đợi</button></div>
+          </form>
+        </section>
+        <aside class="pane ctx" aria-label="Phiếu số thứ tự">
+          <div class="ph"><div class="ph-t"><h2>Phiếu số thứ tự</h2><small>Cập nhật theo biểu mẫu</small></div><div class="ph-act"><button class="btn sm" type="button" id="printTicket"><svg class="i"><use href="#i-print"/></svg>In phiếu</button></div></div>
+          <div class="cbody">
+            <div class="tv" id="ticketPrev"></div>
+            <div><p class="cap">Tải các phòng khám</p><ul class="load" id="loadReg"></ul></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ HÀNG ĐỢI ============ -->
+    <section class="view" id="v-hang-doi" aria-labelledby="h-hang-doi">
+      <div class="cols">
+        <section class="pane list" aria-label="Chờ phân phòng">
+          <div class="ph"><div class="ph-t"><h2>Chờ phân phòng</h2><small id="arrSum"></small></div><div class="ph-act"><button class="btn sm" type="button" id="autoAll">Phân tự động</button><button class="ibtn sm lc-btn" type="button" aria-pressed="false" aria-label="Thu gọn danh sách"><svg class="i"><use href="#i-side"/></svg></button></div></div>
+          <div class="arrs" id="arrs" data-drop="arr" aria-label="Danh sách chờ phân phòng"></div>
+          <div class="tools" style="border-top:1px solid var(--line);border-bottom:0"><p class="hint"><svg class="i"><use href="#i-info"/></svg><span>Kéo số vào phòng khám, hoặc chọn số rồi dùng phím mũi tên: <b>↑ ↓</b> đổi phòng, <b>← →</b> đổi thứ tự.</span></p></div>
+        </section>
+        <section class="pane detail">
+          <div class="ph"><div class="ph-t"><h1 id="h-hang-doi" tabindex="-1">Bảng gọi số</h1><small>5 phòng khám đang hoạt động · cập nhật theo thời gian thực</small></div>
+            <div class="ph-act qstats" id="qstats"></div></div>
+          <div class="dbody"><div class="qboard" id="qboard"></div></div>
+        </section>
+        <aside class="pane ctx" aria-label="Màn hình gọi số và thông tin bệnh nhân">
+          <div class="ph"><div class="ph-t"><h2>Màn hình sảnh chờ</h2><small>Đồng bộ với TV tầng 1</small></div></div>
+          <div class="cbody">
+            <div class="tv" id="tv" aria-live="polite"></div>
+            <div><p class="cap">Lượt gọi gần đây</p><ol class="calls" id="calls"></ol></div>
+            <div class="sheet" id="pcard"></div>
+            <div><p class="cap">Tải các phòng</p><ul class="load" id="load"></ul></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ BỆNH ÁN ============ -->
+    <section class="view" id="v-benh-an" aria-labelledby="h-benh-an">
+      <div class="cols">
+        <section class="pane list" aria-label="Danh sách bệnh nhân">
+          <div class="ph"><div class="ph-t"><h2>Bệnh nhân</h2><small id="tblSum"></small></div><div class="ph-act"><button class="ibtn sm lc-btn" type="button" aria-pressed="false" aria-label="Thu gọn danh sách"><svg class="i"><use href="#i-side"/></svg></button></div></div>
+          <div class="tools">
+            <div class="field"><svg class="i"><use href="#i-search"/></svg><input id="pSearch" type="search" aria-label="Tìm theo tên, mã bệnh nhân hoặc số điện thoại" placeholder="Tên, mã BN hoặc số điện thoại"></div>
+            <div class="chips" id="pFilters" role="group" aria-label="Lọc bệnh nhân">
+              <button class="fchip" type="button" data-f="all" aria-pressed="true">Tất cả</button>
+              <button class="fchip" type="button" data-f="bhyt" aria-pressed="false">Có BHYT</button>
+              <button class="fchip" type="button" data-f="tk" aria-pressed="false">Tái khám</button>
+              <button class="fchip" type="button" data-f="dt" aria-pressed="false">Đang điều trị</button>
+              <button class="fchip" type="button" data-f="du" aria-pressed="false">Có dị ứng</button>
+            </div>
+            <div class="sortsel"><label for="pSort">Sắp xếp</label><select class="sel" id="pSort"><option value="last:desc">Khám gần nhất</option><option value="name:asc">Tên A → Z</option><option value="name:desc">Tên Z → A</option><option value="id:asc">Mã bệnh nhân</option><option value="st:asc">Tình trạng</option></select></div>
+          </div>
+          <div class="bulk" id="bulk" role="region" aria-label="Thao tác hàng loạt"><b id="bulkN">0 đã chọn</b><button class="btn" type="button" id="bulkSms"><svg class="i"><use href="#i-send"/></svg>Nhắc tái khám</button><button class="btn" type="button" id="bulkExport"><svg class="i"><use href="#i-dl"/></svg>Xuất</button><button class="btn" type="button" id="bulkArchive"><svg class="i"><use href="#i-trash"/></svg>Lưu trữ</button><button class="btn" type="button" id="bulkClear" aria-label="Bỏ chọn tất cả"><svg class="i"><use href="#i-x"/></svg></button></div>
+          <div class="tblwrap">
+            <table class="tbl" aria-label="Danh sách bệnh nhân">
+              <thead><tr>
+                <th><input class="cb" type="checkbox" id="pAll" aria-label="Chọn tất cả bệnh nhân trên trang"></th>
+                <th><button class="th-b" type="button" data-sort="id">Mã BN<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th><button class="th-b" type="button" data-sort="name">Họ tên<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th><button class="th-b" type="button" data-sort="last">Khám gần nhất<svg class="i"><use href="#i-sort"/></svg></button></th>
+                <th><button class="th-b" type="button" data-sort="st">Tình trạng<svg class="i"><use href="#i-sort"/></svg></button></th>
+              </tr></thead>
+              <tbody id="pBody"></tbody>
+            </table>
+          </div>
+          <div class="pager" id="pager"></div>
+        </section>
+        <section class="pane detail">
+          <div class="ph"><div class="ph-t"><h1 id="h-benh-an" tabindex="-1">Bệnh án</h1><small id="recSub"></small></div><div class="ph-act"><button class="btn sm" type="button" id="recQueue">Đưa vào hàng đợi</button><button class="btn sm primary" type="button" id="recRx"><svg class="i"><use href="#i-pill"/></svg>Kê đơn</button></div></div>
+          <div class="dbody" id="recBody"></div>
+        </section>
+        <aside class="pane ctx" aria-label="Chỉ số theo dõi">
+          <div class="ph"><div class="ph-t"><h2>Theo dõi huyết áp</h2><small>Các lần khám gần nhất</small></div></div>
+          <div class="cbody" id="recCtx">
+            <div class="chart" id="bpChart" tabindex="0" role="img" aria-label="Biểu đồ huyết áp"><svg id="bpSvg"></svg><div class="tip" id="bpTip"></div></div>
+            <div class="legend"><span><i style="--c:var(--accent)"></i>Tâm thu</span><span><i style="--c:var(--blue)"></i>Tâm trương</span><span><i style="--c:var(--red);height:2px"></i>Ngưỡng 140/90</span></div>
+            <div id="recSide"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ KÊ ĐƠN ============ -->
+    <section class="view" id="v-ke-don" aria-labelledby="h-ke-don">
+      <div class="cols">
+        <section class="pane list" aria-label="Lượt khám cần kê đơn">
+          <div class="ph"><div class="ph-t"><h2>Lượt khám hôm nay</h2><small id="vSum"></small></div><div class="ph-act"><button class="ibtn sm lc-btn" type="button" aria-pressed="false" aria-label="Thu gọn danh sách"><svg class="i"><use href="#i-side"/></svg></button></div></div>
+          <div class="tools"><div class="field"><svg class="i"><use href="#i-search"/></svg><input id="vSearch" type="search" aria-label="Tìm lượt khám" placeholder="Tìm theo tên hoặc số thứ tự"></div></div>
+          <div class="vlist" id="vlist"></div>
+        </section>
+        <section class="pane detail">
+          <div class="ph"><div class="ph-t"><h1 id="h-ke-don" tabindex="-1">Kê đơn thuốc</h1><small id="rxSub"></small></div><div class="ph-act"><span class="tag" id="rxState"></span></div></div>
+          <div class="dbody" id="rxBody">
+            <div class="sheet" id="rxPatient"></div>
+            <div class="sheet">
+              <div class="combo">
+                <label class="cap" for="drugIn" style="display:block">Thêm thuốc vào đơn</label>
+                <div class="field"><svg class="i"><use href="#i-search"/></svg><input id="drugIn" type="text" role="combobox" aria-expanded="false" aria-controls="drugList" aria-autocomplete="list" autocomplete="off" placeholder="Gõ tên thuốc hoặc hoạt chất, Enter để thêm"><kbd>Enter</kbd></div>
+                <ul class="combo-list" id="drugList" role="listbox" aria-label="Kết quả tìm thuốc"></ul>
+              </div>
+              <div class="quick" id="quick"><span>Thường dùng:</span></div>
+            </div>
+            <div class="ixs" id="ixs" aria-live="assertive"></div>
+            <div class="sheet rx-lines">
+              <div class="sh"><h2>Đơn thuốc</h2><p id="rxCount"></p></div>
+              <div class="rxh" aria-hidden="true"><span>Thuốc</span><span>Sáng</span><span>Trưa</span><span>Chiều</span><span>Tối</span><span>Ngày</span><span>SL</span><span>Cách dùng</span><span></span></div>
+              <div id="rxLines"></div>
+            </div>
+            <div class="sheet">
+              <div class="fgrid">
+                <div class="f span2"><label for="rxNote">Lời dặn của bác sĩ</label><textarea id="rxNote" rows="2" placeholder="VD: Uống nhiều nước, tái khám nếu sốt trên 3 ngày"></textarea></div>
+                <div class="f"><label for="rxBack">Tái khám sau</label><select class="sel" id="rxBack"><option value="0">Không hẹn</option><option value="3">3 ngày</option><option value="7">7 ngày</option><option value="14">14 ngày</option><option value="30">30 ngày</option></select></div>
+              </div>
+            </div>
+            <div class="rx-foot"><p class="tot">Tạm tính<b id="rxTotal">0 ₫</b></p><p class="err" id="rxErr" role="alert"></p><button class="btn" type="button" id="rxDraft">Lưu nháp</button><button class="btn primary" type="button" id="rxSave"><svg class="i"><use href="#i-print"/></svg>Lưu và in đơn</button></div>
+          </div>
+        </section>
+        <aside class="pane ctx" aria-label="Kiểm tra tương tác thuốc">
+          <div class="ph"><div class="ph-t"><h2>Ma trận tương tác</h2><small>Đối chiếu từng cặp thuốc trong đơn</small></div></div>
+          <div class="cbody">
+            <div><div class="mx" id="mx"></div><div class="legend"><span><i style="--c:var(--red)"></i>Nghiêm trọng</span><span><i style="--c:var(--amber)"></i>Trung bình</span><span><i style="--c:var(--pane-3)"></i>Không ghi nhận</span></div></div>
+            <div class="sheet dinfo" id="dinfo"></div>
+            <div><p class="cap">Đơn thuốc trước đây</p><ul class="calls" id="rxHist"></ul></div>
+            <p class="hint"><svg class="i"><use href="#i-info"/></svg><span>Dữ liệu tương tác mô phỏng cho bản concept, không dùng cho điều trị thật.</span></p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ BÁO CÁO ============ -->
+    <section class="view" id="v-bao-cao" aria-labelledby="h-bao-cao">
+      <div class="cols">
+        <section class="pane list" aria-label="Danh mục báo cáo">
+          <div class="ph"><div class="ph-t"><h2>Báo cáo</h2><small>4 báo cáo vận hành</small></div><div class="ph-act"><button class="ibtn sm lc-btn" type="button" aria-pressed="false" aria-label="Thu gọn danh sách"><svg class="i"><use href="#i-side"/></svg></button></div></div>
+          <div class="rlist" id="rlist"></div>
+        </section>
+        <section class="pane detail">
+          <div class="ph"><div class="ph-t"><h1 id="h-bao-cao" tabindex="-1">Lượt khám theo ngày</h1><small id="rptSub"></small></div>
+            <div class="ph-act"><div class="seg" id="rangeSeg" role="group" aria-label="Khoảng thời gian"><button type="button" data-range="7" aria-pressed="false">7 ngày</button><button type="button" data-range="30" aria-pressed="true">30 ngày</button><button type="button" data-range="90" aria-pressed="false">90 ngày</button></div></div></div>
+          <div class="dbody">
+            <div class="sheet">
+              <div class="sumrow" id="rptSum"></div>
+              <div class="chart" id="rChart" tabindex="0" role="img" aria-label="Biểu đồ báo cáo"><svg id="rSvg"></svg><div class="tip" id="rTip"></div></div>
+              <div class="hbars" id="icdBars" hidden></div>
+            </div>
+            <div class="sheet">
+              <div class="sh"><h2>Thời gian chờ theo phòng khám</h2><p>Vạch dọc: mục tiêu 20 phút</p></div>
+              <div class="hbars" id="roomBars"></div>
+            </div>
+          </div>
+        </section>
+        <aside class="pane ctx" aria-label="Tóm tắt kỳ báo cáo">
+          <div class="ph"><div class="ph-t"><h2>Tóm tắt kỳ</h2><small id="rptRange"></small></div></div>
+          <div class="cbody">
+            <div class="kpis" id="kpis"></div>
+            <div class="sheet"><p class="cap">Đối tượng khám</p><div class="donut" id="donut"></div></div>
+            <div class="btn-row"><button class="btn" type="button" id="expPdf"><svg class="i"><use href="#i-dl"/></svg>Xuất PDF</button><button class="btn" type="button" id="expXls"><svg class="i"><use href="#i-dl"/></svg>Xuất Excel</button></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="status">
+    <span class="ok">Đã đồng bộ máy chủ HIS</span>
+    <span class="ok">Cổng giám định BHYT: kết nối</span>
+    <span id="stShift">Ca sáng</span>
+    <span class="concept">An Tâm Clinic · Thiết kế concept — thương hiệu giả định.</span>
+  </footer>
+</div>
+
+<div class="pop" id="bellPop" role="dialog" aria-label="Thông báo">
+  <div class="pop-h">Thông báo <button class="btn sm ghost" type="button" id="readAll">Đánh dấu đã đọc</button></div>
+  <ul class="notes" id="notes"></ul>
+</div>
+<div class="pop menu" id="mePop" role="menu" aria-label="Tài khoản">
+  <button type="button" role="menuitem" data-me="profile"><svg class="i"><use href="#i-user"/></svg>Hồ sơ cá nhân</button>
+  <button type="button" role="menuitem" data-me="shift"><svg class="i"><use href="#i-clock"/></svg>Bàn giao ca</button>
+  <button type="button" role="menuitem" data-me="theme"><svg class="i"><use href="#i-moon"/></svg>Đổi giao diện sáng / tối</button>
+  <hr>
+  <button type="button" role="menuitem" data-me="logout"><svg class="i"><use href="#i-logout"/></svg>Đăng xuất</button>
+  <p class="about">An Tâm Clinic HIS 4.2 · Thiết kế concept — thương hiệu giả định. Mọi tên người và số liệu đều là giả lập.</p>
+</div>
+<div class="pop menu" id="roomPop" role="menu" aria-label="Tùy chọn phòng khám"></div>
+
+<div class="backdrop" id="navBack"></div>
+<aside class="mnav" id="mnav" aria-label="Menu điều hướng">
+  <div class="mnav-h"><span class="brand" style="pointer-events:none"><span class="mark"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span><span><b>An Tâm Clinic</b><small style="display:block">HIS · Phòng khám đa khoa</small></span></span><button class="ibtn" type="button" id="navClose" aria-label="Đóng menu"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <nav id="mnavList" aria-label="Phân hệ"></nav>
+  <div class="mnav-f">Đỗ Thu Trang · Điều dưỡng điều phối<br><span id="mShift">Ca sáng</span><br>Thiết kế concept — thương hiệu giả định.</div>
+</aside>
+
+<div class="backdrop" id="palBack"></div>
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Bảng lệnh">
+  <div class="pal-in"><svg class="i"><use href="#i-search"/></svg><input id="palInput" type="text" role="combobox" aria-expanded="true" aria-controls="palList" aria-label="Tìm bệnh nhân, thuốc hoặc lệnh" placeholder="Tìm bệnh nhân, thuốc hoặc gõ lệnh…" autocomplete="off"><kbd>Esc</kbd></div>
+  <ul class="pal-list" id="palList" role="listbox" aria-label="Kết quả"></ul>
+  <div class="pal-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> chọn</span><span><kbd>Enter</kbd> mở</span><span><kbd>Esc</kbd> đóng</span></div>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="sr" aria-live="polite" id="live"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+(() => {
+'use strict'
+const G = window.gsap
+G.config({ nullTargetWarn: false })
+// ?static freezes every self-updating element after the first render (QA screenshots, deep diff).
+const STATIC = /(^|[?&])static(=|&|$)/.test(location.search)
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+const root = document.documentElement
+if (RM) root.classList.add('rm')
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const store = {
+  get(k) { try { return localStorage.getItem(k) } catch { return null } },
+  set(k, v) { try { localStorage.setItem(k, v) } catch { /* private mode */ } },
+}
+
+/* ---------- helpers ---------- */
+function mulberry(a) { return () => { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296 } }
+const nf = new Intl.NumberFormat('vi-VN')
+const vnd = (n) => nf.format(Math.round(n)) + ' ₫'
+function compact(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(2).replace('.', ',') + ' tỷ'
+  if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.', ',') + ' tr'
+  if (n >= 1e3) return Math.round(n / 1e3) + 'k'
+  return String(Math.round(n))
+}
+const dec = (v, d = 1) => v.toFixed(d).replace('.', ',')
+const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v))
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const pad2 = (n) => String(n).padStart(2, '0')
+const fmtD = (t) => { const d = new Date(t); return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) + '/' + d.getFullYear() }
+const fmtDM = (t) => { const d = new Date(t); return pad2(d.getDate()) + '/' + pad2(d.getMonth() + 1) }
+const fmtHM = (t) => { const d = new Date(t); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) }
+function fmtDur(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60)
+  return (h ? h + ':' + pad2(m) : pad2(m)) + ':' + pad2(s % 60)
+}
+const WD = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy']
+const initials = (n) => { const p = n.split(' '); return (p[p.length - 2][0] + p[p.length - 1][0]).toUpperCase() }
+const short = (n) => { const p = n.split(' '); return p.length < 3 ? n : p[0] + ' ' + p.slice(1, -1).map((x) => x[0] + '.').join(' ') + ' ' + p[p.length - 1] }
+const AVC = ['#0A7C74', '#2459C2', '#7A4FB5', '#B5532E', '#2E7D4F', '#9A4A7A', '#3A6A8C', '#8A6A12']
+const avCol = (n) => AVC[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % AVC.length]
+const ico = (id, cls = 'i') => '<svg class="' + cls + '" aria-hidden="true"><use href="#' + id + '"/></svg>'
+const liveMsg = (m) => { const el = $('#live'); el.textContent = ''; setTimeout(() => (el.textContent = m), 30) }
+const NOW = Date.now()
+const MIN = 60000, DAY = 86400000
+
+/* ---------- domain data ---------- */
+const ROOMS = [
+  { id: '101', name: 'Nội tổng quát', doc: 'BS. Trần Minh Khang', icd: ['J06.9', 'K29.7', 'M54.5', 'E11.9', 'A09'] },
+  { id: '102', name: 'Nhi khoa', doc: 'BS. Lê Thu Hà', icd: ['J06.9', 'A09', 'H66.9', 'J45.9', 'J02.9'] },
+  { id: '103', name: 'Tai Mũi Họng', doc: 'BS. Phạm Quốc Bảo', icd: ['J02.9', 'H66.9', 'J30.4'] },
+  { id: '104', name: 'Da liễu', doc: 'BS. Nguyễn Hải Yến', icd: ['L20.9', 'L70.0', 'L50.9'] },
+  { id: '105', name: 'Tim mạch', doc: 'BS. Võ Đình Phúc', icd: ['I10', 'I48.9', 'E78.5'] },
+]
+const RBY = Object.fromEntries(ROOMS.map((r) => [r.id, r]))
+const ICD = { 'J02.9': 'Viêm họng cấp', 'J06.9': 'Nhiễm khuẩn hô hấp trên cấp', 'I10': 'Tăng huyết áp vô căn', 'E11.9': 'Đái tháo đường type 2', 'K29.7': 'Viêm dạ dày', 'L20.9': 'Viêm da cơ địa', 'H66.9': 'Viêm tai giữa', 'M54.5': 'Đau thắt lưng', 'I48.9': 'Rung nhĩ', 'J45.9': 'Hen phế quản', 'L70.0': 'Mụn trứng cá', 'A09': 'Tiêu chảy nhiễm khuẩn', 'J30.4': 'Viêm mũi dị ứng', 'E78.5': 'Rối loạn lipid máu', 'L50.9': 'Mày đay' }
+const REASONS = { '101': ['Đau thượng vị 3 ngày', 'Sốt nhẹ, mệt mỏi', 'Đau lưng khi ngồi lâu', 'Kiểm tra đường huyết định kỳ', 'Tiêu chảy từ tối qua'], '102': ['Bé sốt 38,5 độ, ho', 'Bé đau tai, quấy khóc', 'Bé tiêu chảy 2 ngày', 'Khò khè về đêm'], '103': ['Đau họng, nuốt vướng', 'Nghẹt mũi, hắt hơi buổi sáng', 'Ù tai bên trái'], '104': ['Ngứa, nổi mẩn đỏ', 'Mụn viêm vùng má', 'Da khô bong vảy'], '105': ['Tái khám huyết áp', 'Hồi hộp, đánh trống ngực', 'Kiểm tra mỡ máu'] }
+const FAM = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Vũ', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý', 'Phan', 'Trương', 'Đinh', 'Lâm', 'Mai', 'Tạ', 'Cao', 'Châu', 'Kiều', 'Huỳnh']
+const MID = { Nam: ['Văn', 'Minh', 'Đức', 'Quốc', 'Hữu', 'Gia', 'Thành', 'Hoàng', 'Công', 'Tuấn'], Nữ: ['Thị', 'Ngọc', 'Thu', 'Thanh', 'Bảo', 'Mai', 'Hồng', 'Diệu', 'Khánh', 'Phương'] }
+const GIV = { Nam: ['Hùng', 'Nam', 'Khang', 'Phúc', 'Long', 'Tài', 'Hải', 'Sơn', 'Trí', 'Vinh', 'Khoa', 'Hiếu', 'Thịnh', 'Tùng', 'Đạt', 'Lộc', 'Bình', 'Quân', 'An', 'Kiên'], Nữ: ['Lan', 'Hương', 'Trang', 'Linh', 'Yến', 'Hà', 'Ngân', 'Vy', 'My', 'Thảo', 'Nhung', 'Hạnh', 'Tâm', 'Châu', 'Uyên', 'Như', 'Oanh', 'Xuân', 'Quyên', 'Diệp'] }
+const STREETS = ['Đường số 7', 'Hẻm 42 Lê Văn Sỹ', 'Đường Nguyễn Gia Trí', 'Hẻm 18 Phan Đăng Lưu', 'Đường số 3', 'Đường Trần Não', 'Hẻm 9 Hoàng Hoa Thám', 'Đường Nơ Trang Long']
+const DIST = ['P. 25, Q. Bình Thạnh', 'P. 9, Q. Phú Nhuận', 'P. Thảo Điền, TP. Thủ Đức', 'P. 5, Q. Gò Vấp', 'P. 12, Q. Tân Bình', 'P. Tân Phong, Q. 7', 'P. 14, Q. 10', 'P. Võ Thị Sáu, Q. 3']
+const STAT = { dt: { l: 'Đang điều trị', c: 'var(--blue)' }, tk: { l: 'Tái khám', c: 'var(--amber)' }, od: { l: 'Ổn định', c: 'var(--green)' } }
+
+const R = mulberry(2610)
+const pick = (a, r = R) => a[Math.floor(r() * a.length)]
+let pidSeq = 24100
+function makePatient(o = {}) {
+  const g = o.g || (R() < 0.53 ? 'Nữ' : 'Nam')
+  const room = o.room || pick(['101', '101', '102', '103', '104', '105', '105'])
+  const age = o.age ?? (room === '102' ? 1 + Math.floor(R() * 13) : room === '105' ? 45 + Math.floor(R() * 40) : 18 + Math.floor(R() * 60))
+  const name = o.name || pick(FAM) + ' ' + pick(MID[g]) + ' ' + pick(GIV[g])
+  const dob = NOW - age * 365.25 * DAY - Math.floor(R() * 360) * DAY
+  const nv = 3 + Math.floor(R() * 4)
+  const visits = []
+  let t = NOW - (2 + Math.floor(R() * 70)) * DAY
+  const hyper = room === '105'
+  for (let i = 0; i < nv; i++) {
+    const icd = pick(RBY[room].icd)
+    const sys = Math.round((hyper ? 132 : 108) + R() * (hyper ? 30 : 24)), dia = Math.round(sys * (0.58 + R() * 0.08))
+    visits.push({ t, room, icd, sys, dia, pulse: 64 + Math.floor(R() * 28), temp: 36.4 + Math.round(R() * 12) / 10, note: pick(REASONS[room]) })
+    t -= (14 + Math.floor(R() * 90)) * DAY
+  }
+  const p = {
+    id: 'AT-' + pidSeq++, name, g, age, dob, room,
+    phone: '0' + pick(['9', '9', '3', '8', '7']) + String(10000000 + Math.floor(R() * 89999999)),
+    bhyt: R() < 0.66 ? (age < 6 ? 'TE' : pick(['DN', 'HT', 'GD', 'CN'])) + '4' + '79' + String(1e9 + Math.floor(R() * 8.9e9)).slice(0, 10) : '',
+    addr: (1 + Math.floor(R() * 220)) + ' ' + pick(STREETS) + ', ' + pick(DIST),
+    allergy: R() < 0.14 ? [pick(['Penicillin', 'Hải sản', 'Sulfamid', 'Phấn hoa'])] : [],
+    cond: hyper ? ['I10'] : [], visits, notes: [], weight: age < 14 ? 8 + age * 2.6 : 48 + Math.floor(R() * 30), height: age < 14 ? 75 + age * 6 : 152 + Math.floor(R() * 26),
+  }
+  if (hyper && R() < 0.4) p.cond.push('E78.5')
+  if (room === '101' && R() < 0.3) p.cond.push('E11.9')
+  const recent = NOW - visits[0].t < 20 * DAY
+  p.st = p.cond.length ? 'dt' : recent ? 'tk' : 'od'
+  Object.assign(p, o.extra || {})
+  return p
+}
+const PATIENTS = []
+// Hand-picked cases first, so the demo always has a warfarin patient and a penicillin allergy.
+PATIENTS.push(makePatient({ name: 'Đặng Văn Hùng', g: 'Nam', age: 67, room: '105', extra: { cond: ['I48.9', 'I10'], st: 'dt' } }))
+PATIENTS.push(makePatient({ name: 'Trịnh Thu Hà', g: 'Nữ', age: 34, room: '103', extra: { allergy: ['Penicillin'] } }))
+PATIENTS.push(makePatient({ name: 'Nguyễn Gia Bảo', g: 'Nam', age: 4, room: '102' }))
+for (let i = 0; i < 61; i++) PATIENTS.push(makePatient())
+const PBY = () => Object.fromEntries(PATIENTS.map((p) => [p.id, p]))
+let PIDX = PBY()
+const pat = (id) => PIDX[id]
+
+/* ---------- queue ---------- */
+const Q = { rooms: {}, arr: [] }
+let SEQ = 1001
+const CALLS = []
+{
+  const r = mulberry(77)
+  const done = { '101': 14, '102': 11, '103': 9, '104': 6, '105': 8 }
+  SEQ += Object.values(done).reduce((a, b) => a + b, 0)
+  const byRoom = (id) => PATIENTS.filter((p) => p.room === id)
+  const used = new Set()
+  const take = (id) => { let p = byRoom(id).find((x) => !used.has(x.id)); if (!p) { p = makePatient({ room: id }); PATIENTS.push(p); PIDX = PBY() } used.add(p.id); return p }
+  const waits = { '101': 4, '102': 4, '103': 3, '104': 5, '105': 3 }
+  const all = []
+  ROOMS.forEach((rm) => {
+    const s = take(rm.id)
+    Q.rooms[rm.id] = { serving: { pid: s.id, start: NOW - (2 + Math.floor(r() * 9)) * MIN, in: NOW - (30 + Math.floor(r() * 20)) * MIN, t: 0, reason: pick(REASONS[rm.id], r) }, wait: [], done: done[rm.id], paused: false }
+    all.push(Q.rooms[rm.id].serving)
+    for (let i = 0; i < waits[rm.id]; i++) {
+      const p = take(rm.id)
+      const e = { pid: p.id, in: NOW - Math.round((rm.id === '104' ? 46 : 32) * (1 - i / waits[rm.id]) + r() * 4) * MIN, reason: pick(REASONS[rm.id], r), prio: p.age >= 80 || p.age < 6 }
+      Q.rooms[rm.id].wait.push(e); all.push(e)
+    }
+  })
+  ;['102', '101', '103'].forEach((rid, i) => {
+    const p = take(rid)
+    const e = { pid: p.id, in: NOW - (6 - i * 2) * MIN, reason: pick(REASONS[rid], r), prio: p.age >= 80 || p.age < 6, spec: rid }
+    Q.arr.push(e); all.push(e)
+  })
+  all.sort((a, b) => a.in - b.in).forEach((e) => (e.t = SEQ++))
+  ROOMS.forEach((rm) => { const s = Q.rooms[rm.id].serving; CALLS.push({ t: s.t, room: rm.id, at: s.start, pid: s.pid }) })
+  CALLS.sort((a, b) => b.at - a.at)
+}
+function findT(t) {
+  const a = Q.arr.findIndex((e) => e.t === t)
+  if (a >= 0) return { where: 'arr', idx: a, e: Q.arr[a] }
+  for (const id in Q.rooms) {
+    const rm = Q.rooms[id]
+    const i = rm.wait.findIndex((e) => e.t === t)
+    if (i >= 0) return { where: id, idx: i, e: rm.wait[i] }
+    if (rm.serving && rm.serving.t === t) return { where: id, idx: -1, e: rm.serving, serving: true }
+  }
+  return null
+}
+const waitingCount = () => Object.values(Q.rooms).reduce((a, r) => a + r.wait.length, 0) + Q.arr.length
+
+/* ---------- drugs ---------- */
+const DRUGS = [
+  { id: 'para', n: 'Paracetamol', s: '500 mg', ab: 'PAR', p: 600, note: 'Giảm đau, hạ sốt. Tối đa 4 g mỗi ngày; thận trọng khi suy gan, không dùng cùng rượu.' },
+  { id: 'ibu', n: 'Ibuprofen', s: '400 mg', ab: 'IBU', p: 1500, note: 'Kháng viêm không steroid. Uống sau ăn, tránh dùng khi có loét dạ dày tá tràng.' },
+  { id: 'asp', n: 'Aspirin', s: '81 mg', ab: 'ASP', p: 400, note: 'Chống kết tập tiểu cầu liều thấp, uống sau ăn sáng.' },
+  { id: 'war', n: 'Warfarin', s: '5 mg', ab: 'WAR', p: 2200, note: 'Chống đông kháng vitamin K. Duy trì INR trong khoảng 2–3, nhiều tương tác thuốc và thức ăn.' },
+  { id: 'amox', n: 'Amoxicillin', s: '500 mg', ab: 'AMX', p: 1200, cls: 'Penicillin', note: 'Kháng sinh nhóm penicillin. Hỏi kỹ tiền sử dị ứng trước khi kê.' },
+  { id: 'clar', n: 'Clarithromycin', s: '500 mg', ab: 'CLA', p: 7800, note: 'Kháng sinh macrolid, ức chế mạnh men gan CYP3A4.' },
+  { id: 'simv', n: 'Simvastatin', s: '20 mg', ab: 'SIM', p: 1900, note: 'Statin hạ lipid máu, uống buổi tối. Báo ngay nếu đau cơ bất thường.' },
+  { id: 'amlo', n: 'Amlodipin', s: '5 mg', ab: 'AML', p: 900, note: 'Chẹn kênh calci điều trị tăng huyết áp, có thể gây phù cổ chân.' },
+  { id: 'ome', n: 'Omeprazol', s: '20 mg', ab: 'OME', p: 1100, note: 'Ức chế bơm proton, uống trước bữa sáng 30 phút.' },
+  { id: 'clop', n: 'Clopidogrel', s: '75 mg', ab: 'CLO', p: 3500, note: 'Chống kết tập tiểu cầu, cần được gan hoạt hóa qua CYP2C19.' },
+  { id: 'cipro', n: 'Ciprofloxacin', s: '500 mg', ab: 'CIP', p: 2400, note: 'Kháng sinh nhóm quinolon, uống nhiều nước.' },
+  { id: 'anta', n: 'Nhôm hydroxyd + Magnesi', s: 'gói 10 ml', ab: 'ANT', p: 3200, note: 'Thuốc kháng acid, trung hòa dịch vị; làm giảm hấp thu nhiều thuốc khác.' },
+  { id: 'met', n: 'Metformin', s: '850 mg', ab: 'MET', p: 800, note: 'Điều trị đái tháo đường type 2, uống trong hoặc ngay sau bữa ăn.' },
+  { id: 'lora', n: 'Loratadin', s: '10 mg', ab: 'LOR', p: 700, note: 'Kháng histamin thế hệ 2, ít gây buồn ngủ.' },
+  { id: 'pred', n: 'Prednisolon', s: '5 mg', ab: 'PRE', p: 500, note: 'Corticosteroid, uống buổi sáng sau ăn, không tự ý ngưng đột ngột.' },
+  { id: 'tram', n: 'Tramadol', s: '50 mg', ab: 'TRA', p: 2800, note: 'Giảm đau nhóm opioid yếu, làm tăng serotonin.' },
+  { id: 'sert', n: 'Sertralin', s: '50 mg', ab: 'SER', p: 4100, note: 'Chống trầm cảm nhóm SSRI.' },
+  { id: 'salb', n: 'Salbutamol', s: '2 mg', ab: 'SAL', p: 300, note: 'Giãn phế quản cường beta-2, có thể gây run tay, hồi hộp.' },
+  { id: 'cet', n: 'Cetirizin', s: '10 mg', ab: 'CET', p: 600, note: 'Kháng histamin H1, có thể gây buồn ngủ nhẹ.' },
+  { id: 'vitc', n: 'Vitamin C', s: '500 mg', ab: 'VTC', p: 500, note: 'Bổ sung vitamin C.' },
+]
+const DBY = Object.fromEntries(DRUGS.map((d) => [d.id, d]))
+const IX = {}
+;[
+  ['war', 'asp', 'nang', 'Tăng mạnh nguy cơ xuất huyết.', 'Tránh phối hợp. Nếu bắt buộc, theo dõi INR và dấu hiệu chảy máu.'],
+  ['war', 'ibu', 'nang', 'Tăng nguy cơ xuất huyết tiêu hóa.', 'Thay bằng Paracetamol để giảm đau.'],
+  ['war', 'clar', 'nang', 'Clarithromycin làm tăng nồng độ Warfarin, INR tăng cao.', 'Chọn kháng sinh khác hoặc giảm liều Warfarin, kiểm tra INR sau 3–5 ngày.'],
+  ['clar', 'simv', 'nang', 'Chống chỉ định phối hợp: tăng nguy cơ tiêu cơ vân.', 'Tạm ngưng Simvastatin trong thời gian dùng Clarithromycin.'],
+  ['tram', 'sert', 'nang', 'Nguy cơ hội chứng serotonin và co giật.', 'Cân nhắc thuốc giảm đau khác.'],
+  ['asp', 'ibu', 'tb', 'Ibuprofen làm giảm tác dụng bảo vệ tim mạch của Aspirin.', 'Uống Aspirin trước Ibuprofen ít nhất 2 giờ.'],
+  ['clop', 'ome', 'tb', 'Omeprazol làm giảm hoạt hóa Clopidogrel.', 'Thay bằng Pantoprazol nếu cần bảo vệ dạ dày.'],
+  ['cipro', 'anta', 'tb', 'Thuốc kháng acid làm giảm hấp thu Ciprofloxacin.', 'Uống Ciprofloxacin trước 2 giờ hoặc sau 6 giờ.'],
+  ['pred', 'ibu', 'tb', 'Tăng nguy cơ loét và xuất huyết dạ dày.', 'Dùng kèm thuốc bảo vệ dạ dày, uống sau ăn.'],
+  ['amlo', 'simv', 'tb', 'Amlodipin làm tăng nồng độ Simvastatin.', 'Không dùng Simvastatin quá 20 mg mỗi ngày.'],
+].forEach(([a, b, lv, eff, adv]) => { IX[[a, b].sort().join('|')] = { a, b, lv, eff, adv } })
+const ixOf = (a, b) => IX[[a, b].sort().join('|')]
+
+/* ---------- prescription visits ---------- */
+let VSEQ = 3301
+const VISITS = []
+function addVisit(pid, room, t, status, lines = []) {
+  const p = pat(pid)
+  const v = { vid: 'ĐT-' + VSEQ++, pid, room, t, at: NOW - (5 + VISITS.length * 13) * MIN, icd: p.cond.length ? p.cond.slice() : [pick(RBY[room].icd)], status, lines: lines.map((l, i) => ({ ...l, ord: i })), acks: {}, note: '', back: '0', errs: {} }
+  VISITS.push(v); return v
+}
+{
+  const hung = PATIENTS[0], ha = PATIENTS[1]
+  const sv = Q.rooms['105'].serving
+  // Đặng Văn Hùng is the patient currently in room 105 (swap so the warfarin case is "in the room").
+  sv.pid = hung.id; CALLS.find((c) => c.room === '105').pid = hung.id
+  addVisit(hung.id, '105', sv.t, 'cho', [{ id: 'war', d: [1, 0, 0, 0], days: 30, use: 'Sau ăn' }, { id: 'amlo', d: [1, 0, 0, 0], days: 30, use: 'Sau ăn' }])
+  addVisit(ha.id, '103', Q.rooms['103'].serving.t, 'cho', [])
+  Q.rooms['103'].serving.pid = ha.id; CALLS.find((c) => c.room === '103').pid = ha.id
+  const extra = [['101', [{ id: 'ome', d: [1, 0, 0, 0], days: 14, use: 'Trước ăn' }]], ['102', [{ id: 'para', d: [1, 0, 1, 0], days: 3, use: 'Sau ăn' }]], ['104', [{ id: 'cet', d: [0, 0, 0, 1], days: 10, use: 'Sau ăn' }]], ['101', [{ id: 'met', d: [1, 0, 1, 0], days: 30, use: 'Trong bữa ăn' }]], ['105', [{ id: 'amlo', d: [1, 0, 0, 0], days: 30, use: 'Sau ăn' }, { id: 'simv', d: [0, 0, 0, 1], days: 30, use: 'Sau ăn' }]]]
+  const used = new Set([hung.id, ha.id, ...Object.values(Q.rooms).flatMap((r) => [r.serving.pid, ...r.wait.map((w) => w.pid)]), ...Q.arr.map((a) => a.pid)])
+  extra.forEach(([room, lines], i) => {
+    let p = PATIENTS.find((x) => x.room === room && !used.has(x.id))
+    if (!p) { p = makePatient({ room }); PATIENTS.push(p); PIDX = PBY() }
+    used.add(p.id)
+    addVisit(p.id, room, 1001 + i * 7 + 3, i < 2 ? 'cho' : 'xong', lines)
+  })
+  VISITS.forEach((v) => { if (v.status === 'xong') v.code = v.vid })
+  const cs = Q.rooms['101'].serving; addVisit(cs.pid, '101', cs.t, 'cho', [])
+}
+
+/* ---------- toasts ---------- */
+function toast(msg, type = 'ok', undo) {
+  const c = { ok: 'var(--accent)', info: 'var(--blue)', warn: '#C27A0E', err: 'var(--red)' }[type] || 'var(--accent)'
+  const icon = { ok: 'i-check', info: 'i-info', warn: 'i-alert', err: 'i-alert' }[type] || 'i-check'
+  const el = document.createElement('div')
+  el.className = 'toast'
+  el.style.setProperty('--c', c)
+  el.innerHTML = '<span class="ti">' + ico(icon) + '</span><span>' + msg + '</span>' + (undo ? '<button type="button" class="undo">Hoàn tác</button>' : '<span></span>') + '<button type="button" class="tx" aria-label="Đóng thông báo">' + ico('i-x') + '</button><span class="tp"></span>'
+  const box = $('#toasts')
+  box.appendChild(el)
+  while (box.children.length > 3) box.firstChild.remove()
+  const kill = () => { if (el._gone) return; el._gone = true; G.to(el, { opacity: 0, x: 30, duration: 0.25, ease: 'power2.in', onComplete: () => el.remove() }) }
+  el.querySelector('.tx').addEventListener('click', kill)
+  if (undo) el.querySelector('.undo').addEventListener('click', () => { kill(); undo() })
+  if (!RM) G.from(el, { y: 16, opacity: 0, duration: 0.4, ease: 'expo.out', clearProps: 'transform,opacity' })
+  const bar = G.fromTo(el.querySelector('.tp'), { scaleX: 1 }, { scaleX: 0, duration: undo ? 6 : 4, ease: 'none', onComplete: kill })
+  el.addEventListener('pointerenter', () => bar.pause())
+  el.addEventListener('pointerleave', () => bar.resume())
+}
+
+/* ---------- theme ---------- */
+function setTheme(t) {
+  root.dataset.theme = t
+  store.set('antam-theme', t)
+  $('#themeBtn').setAttribute('aria-label', t === 'dark' ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối')
+  redrawCharts()
+}
+const toggleTheme = () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark')
+$('#themeBtn').addEventListener('click', toggleTheme)
+$('#themeBtn').setAttribute('aria-label', root.dataset.theme === 'dark' ? 'Chuyển giao diện sáng' : 'Chuyển giao diện tối')
+
+/* ---------- clock & shift ---------- */
+const hour = new Date(NOW).getHours()
+const SHIFT = hour < 12 ? 'Ca sáng · 07:00–11:30' : hour < 17 ? 'Ca chiều · 13:00–17:00' : 'Ca tối · 17:00–20:30'
+$('#stShift').textContent = SHIFT
+$('#mShift').textContent = SHIFT
+$('#meBtn .me-t small').textContent = 'Điều phối · ' + SHIFT.split(' · ')[0]
+function tickClock() { const d = new Date(); $('#clockT').textContent = pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + (STATIC ? '' : ':' + pad2(d.getSeconds())) }
+
+/* ---------- views & nav ---------- */
+const VIEWS = {
+  'tiep-don': { l: 'Tiếp đón', d: 'Đăng ký, cấp số thứ tự', i: 'i-reception' },
+  'hang-doi': { l: 'Hàng đợi', d: 'Bảng gọi số theo phòng', i: 'i-queue' },
+  'benh-an': { l: 'Bệnh án', d: 'Hồ sơ, tiền sử, chỉ số', i: 'i-record' },
+  'ke-don': { l: 'Kê đơn', d: 'Đơn thuốc, cảnh báo tương tác', i: 'i-pill' },
+  'bao-cao': { l: 'Báo cáo', d: 'Lượt khám, thời gian chờ', i: 'i-chart' },
+}
+$('#tabs').innerHTML = Object.entries(VIEWS).map(([k, v]) => '<button type="button" data-go="' + k + '" aria-label="' + v.l + '" title="' + v.l + '">' + ico(v.i) + '<span class="tl">' + v.l + '</span>' + (k === 'hang-doi' || k === 'ke-don' ? '<span class="cnt" data-cnt="' + k + '">0</span>' : '') + '</button>').join('') + '<span class="tab-line" id="tabLine"></span>'
+$('#mnavList').innerHTML = Object.entries(VIEWS).map(([k, v]) => '<button type="button" data-go="' + k + '">' + ico(v.i) + '<span><b>' + v.l + '</b><small>' + v.d + '</small></span>' + (k === 'hang-doi' || k === 'ke-don' ? '<span class="cnt" data-cnt="' + k + '">0</span>' : '') + '</button>').join('')
+function updateCounts() {
+  const q = waitingCount(), rx = VISITS.filter((v) => v.status === 'cho').length
+  $$('[data-cnt=hang-doi]').forEach((e) => (e.textContent = q))
+  $$('[data-cnt=ke-don]').forEach((e) => (e.textContent = rx))
+}
+function moveTabLine(instant) {
+  const b = $('#tabs [aria-current=page]'); if (!b || !b.offsetWidth) return
+  G.to('#tabLine', { x: b.offsetLeft + 8, width: b.offsetWidth - 16, duration: instant || RM ? 0 : 0.45, ease: 'expo.out' })
+}
+const app = $('#app')
+const mq = matchMedia('(max-width: 820px)')
+let current = null
+function go(view, { first = false, focus = true } = {}) {
+  if (!VIEWS[view]) view = 'hang-doi'
+  closeAll()
+  if (view === current) { setNav(false); return }
+  const prev = current
+  current = view
+  $$('[data-go]').forEach((b) => { if (b.classList.contains('brand')) return; b.dataset.go === view ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current') })
+  document.title = VIEWS[view].l + ' — An Tâm Clinic'
+  try { history.replaceState(null, '', '#' + view) } catch { /* file:// */ }
+  setNav(false)
+  if (prev) $('#v-' + prev).classList.remove('active')
+  const v = $('#v-' + view)
+  v.classList.add('active')
+  window.scrollTo(0, 0)
+  RENDER[view]()
+  moveTabLine(first)
+  if (!first && !RM) G.from($$('.pane', v), { opacity: 0, y: 10, duration: 0.45, stagger: 0.06, ease: 'expo.out', clearProps: 'transform,opacity' })
+  if (!first && focus) $('#h-' + view).focus({ preventScroll: true })
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go) })
+addEventListener('hashchange', () => { const h = location.hash.slice(1); if (VIEWS[h] && h !== current) go(h) })
+addEventListener('resize', () => moveTabLine(true))
+
+/* list pane collapse (desktop only) */
+function setLC(c, save = true) {
+  app.classList.toggle('lc', c)
+  $$('.lc-btn').forEach((b) => { b.setAttribute('aria-pressed', c); b.setAttribute('aria-label', c ? 'Mở rộng danh sách' : 'Thu gọn danh sách') })
+  if (save) store.set('antam-lc', c ? '1' : '0')
+}
+setLC(store.get('antam-lc') === '1', false)
+document.addEventListener('click', (e) => { if (e.target.closest('.lc-btn')) setLC(!app.classList.contains('lc')) })
+
+/* mobile off-canvas */
+const mnav = $('#mnav'), menuBtn = $('#menuBtn'), navBack = $('#navBack')
+mnav.inert = true
+function setNav(open) {
+  if (!mq.matches) open = false
+  const was = mnav.classList.contains('open')
+  if (open === was) return
+  mnav.classList.toggle('open', open)
+  navBack.classList.toggle('open', open)
+  menuBtn.setAttribute('aria-expanded', open)
+  menuBtn.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  mnav.inert = !open
+  app.inert = open
+  if (open) setTimeout(() => ($('#mnavList [aria-current=page]') || $('#mnavList button')).focus(), 60)
+  else if (was) menuBtn.focus({ preventScroll: true })
+}
+menuBtn.addEventListener('click', () => setNav(true))
+$('#navClose').addEventListener('click', () => setNav(false))
+navBack.addEventListener('click', () => setNav(false))
+mq.addEventListener('change', () => setNav(false))
+
+/* ---------- popovers ---------- */
+const pops = { bell: { el: $('#bellPop'), btn: $('#bellBtn') }, me: { el: $('#mePop'), btn: $('#meBtn') }, room: { el: $('#roomPop'), btn: null } }
+let openPop = null
+function placePop(el, btn, side = 'right') {
+  const r = btn.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight
+  let left = side === 'right' ? r.right - w : r.left
+  left = clamp(left, 8, innerWidth - w - 8)
+  let top = r.bottom + 8
+  if (top + h > innerHeight - 8 && r.top - h - 8 > 8) top = r.top - h - 8
+  el.style.left = left + 'px'; el.style.top = top + 'px'
+}
+function showPop(k, btn) {
+  if (openPop) hidePop(false)
+  const p = pops[k]; p.btn = btn || p.btn
+  openPop = k
+  p.el.classList.add('open')
+  p.btn.setAttribute('aria-expanded', 'true')
+  placePop(p.el, p.btn, k === 'room' ? 'left' : 'right')
+  if (!RM) G.from(p.el, { y: -6, duration: 0.25, ease: 'expo.out', clearProps: 'transform' })
+  const first = p.el.querySelector('[role=menuitem], button')
+  if (k !== 'bell' && first) setTimeout(() => first.focus(), 30)
+}
+function hidePop(refocus = true) {
+  if (!openPop) return
+  const p = pops[openPop]
+  p.el.classList.remove('open')
+  p.btn?.setAttribute('aria-expanded', 'false')
+  if (refocus && p.btn?.isConnected) p.btn.focus({ preventScroll: true })
+  openPop = null
+}
+$('#bellBtn').addEventListener('click', (e) => { e.stopPropagation(); openPop === 'bell' ? hidePop() : (renderNotes(), showPop('bell')) })
+$('#meBtn').addEventListener('click', (e) => { e.stopPropagation(); openPop === 'me' ? hidePop() : showPop('me') })
+document.addEventListener('click', (e) => { if (openPop && !e.target.closest('.pop') && !e.target.closest('#bellBtn,#meBtn,.room-more')) hidePop(false) })
+addEventListener('resize', () => hidePop(false))
+$$('.pop.menu').forEach((m) => m.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+  e.preventDefault()
+  const items = $$('[role=menuitem]', m), i = items.indexOf(document.activeElement)
+  items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus()
+}))
+$('#mePop').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-me]'); if (!b) return
+  hidePop()
+  const k = b.dataset.me
+  if (k === 'theme') toggleTheme()
+  else if (k === 'profile') toast('Hồ sơ của <b>Đỗ Thu Trang</b> · mã NV ĐD-0412', 'info')
+  else if (k === 'shift') toast('Đã tạo biên bản bàn giao ' + SHIFT.split(' · ')[0].toLowerCase() + ': <b>' + waitingCount() + ' bệnh nhân</b> đang chờ', 'info')
+  else toast('Bản concept không có đăng xuất thật', 'warn')
+})
+
+/* notifications */
+const NOTES = [
+  { t: 'Kết quả xét nghiệm máu của <b>' + pat(PATIENTS[5].id).name + '</b> đã có', at: NOW - 4 * MIN, i: 'i-lab', c: 'var(--blue)', u: true },
+  { t: 'Phòng 104 có bệnh nhân chờ quá 40 phút', at: NOW - 9 * MIN, i: 'i-alert', c: 'var(--red)', u: true },
+  { t: 'Cổng giám định BHYT phản hồi chậm (2,4 giây)', at: NOW - 26 * MIN, i: 'i-shield', c: 'var(--amber)', u: false },
+  { t: 'BS. Võ Đình Phúc đã ký 6 đơn thuốc', at: NOW - 48 * MIN, i: 'i-pill', c: 'var(--accent)', u: false },
+]
+const ago = (t) => { const m = Math.round((NOW - t) / MIN); return m < 1 ? 'vừa xong' : m < 60 ? m + ' phút trước' : fmtHM(t) }
+function renderNotes() {
+  $('#notes').innerHTML = NOTES.slice(0, 6).map((n) => '<li class="' + (n.u ? 'unread' : '') + '"><span class="ni" style="--c:' + n.c + '">' + ico(n.i) + '</span><p>' + n.t + '<br><small>' + ago(n.at) + '</small></p></li>').join('')
+  const u = NOTES.filter((n) => n.u).length
+  $('#bellDot').hidden = !u
+  $('#bellBtn').setAttribute('aria-label', 'Thông báo (' + u + ' chưa đọc)')
+}
+$('#readAll').addEventListener('click', () => { NOTES.forEach((n) => (n.u = false)); renderNotes() })
+renderNotes()
+
+/* ================= QUEUE ================= */
+const SPEC_ROOM = (spec) => spec
+function waitCls(ms) { const m = ms / MIN; return m >= 30 ? 'w3' : m >= 15 ? 'w2' : '' }
+// Waiting time warms up amber/red; time spent inside the exam room stays neutral.
+const sinceHTML = (t, warm = true) => '<span class="since ' + (warm ? waitCls(Date.now() - t) : '') + '" data-since="' + t + '"' + (warm ? '' : ' data-cool') + '>' + fmtDur(Date.now() - t) + '</span>'
+let selT = null
+function chipHTML(e) {
+  const p = pat(e.pid)
+  return '<button type="button" class="chip' + (e.prio ? ' prio' : '') + (selT === e.t ? ' on' : '') + '" data-t="' + e.t + '" data-drag aria-pressed="' + (selT === e.t) + '" aria-label="Số ' + e.t + ', ' + esc(p.name) + (e.prio ? ', ưu tiên' : '') + '. Kéo hoặc dùng phím mũi tên để chuyển phòng, đổi thứ tự"><b>' + e.t + '</b><span class="nm">' + esc(short(p.name)) + '</span>' + sinceHTML(e.in) + '</button>'
+}
+function rowHTML(rm) {
+  const s = Q.rooms[rm.id], sp = s.serving && pat(s.serving.pid)
+  return '<div class="qrow' + (s.paused ? ' paused' : '') + '" data-room="' + rm.id + '" data-drop="room" role="group" aria-label="Phòng ' + rm.id + ' ' + rm.name + '">' +
+    '<div class="qr-head"><span class="rc">P.' + rm.id + '</span><b>' + rm.name + '</b><small>' + rm.doc + '</small>' + (s.paused ? '<span class="paused-tag">Tạm dừng nhận</span>' : '<small>Đã khám ' + s.done + '</small>') +
+    '<button class="ibtn sm room-more" type="button" data-room-menu="' + rm.id + '" aria-haspopup="menu" aria-expanded="false" aria-label="Tùy chọn phòng ' + rm.id + '">' + ico('i-more') + '</button></div>' +
+    '<div class="qr-now">' + (s.serving ? '<button type="button" class="qr-cur" data-sel="' + s.serving.t + '" aria-label="Đang khám số ' + s.serving.t + ', ' + esc(sp.name) + '"><span class="lb">Đang khám</span><span class="tk-big" data-tk="' + rm.id + '">' + s.serving.t + '</span><span class="nm">' + esc(short(sp.name)) + '</span>' + sinceHTML(s.serving.start, false) + '</button>'
+      : '<div class="qr-cur"><span class="lb">Đang khám</span><span class="tk-big" data-tk="' + rm.id + '">—</span><span class="nm">Phòng trống</span></div>') +
+    '<button class="btn primary sm call" type="button" data-call="' + rm.id + '"' + (s.paused ? ' disabled' : '') + '>' + ico('i-call') + 'Gọi số tiếp</button></div>' +
+    '<div class="qr-wait">' + (s.wait.length ? s.wait.map(chipHTML).join('') : '<span class="none">Không có bệnh nhân chờ — thả số vào đây</span>') + '<span class="caret"></span></div></div>'
+}
+function arrHTML(e) {
+  const p = pat(e.pid), rm = RBY[e.spec]
+  return '<div class="arr' + (selT === e.t ? ' on' : '') + '" data-at="' + e.t + '"><button type="button" class="arr-main" data-t="' + e.t + '" data-drag aria-pressed="' + (selT === e.t) + '" aria-label="Số ' + e.t + ', ' + esc(p.name) + ', ' + p.age + ' tuổi. Kéo vào phòng khám"><b>' + e.t + '</b><span>' + esc(p.name) + (e.prio ? ' · <span style="color:var(--amber)">Ưu tiên</span>' : '') + '</span><small>' + p.age + ' tuổi · ' + esc(e.reason) + '</small></button>' +
+    '<div class="arr-go"><button class="btn" type="button" data-assign="' + e.t + '" aria-label="Phân số ' + e.t + ' vào phòng ' + rm.id + '">P.' + rm.id + ' ' + ico('i-arrow') + '</button>' + sinceHTML(e.in) + '</div></div>'
+}
+function renderQueue() {
+  $('#qboard').innerHTML = ROOMS.map(rowHTML).join('')
+  $('#arrs').innerHTML = Q.arr.length ? Q.arr.map(arrHTML).join('') : '<div class="empty">' + emptyIll() + '<b>Không còn ai chờ phân phòng</b><span>Bệnh nhân mới từ quầy tiếp đón sẽ hiện ở đây.</span></div>'
+  $('#arrSum').textContent = Q.arr.length + ' bệnh nhân vừa tiếp nhận'
+  const w = Object.values(Q.rooms).flatMap((r) => r.wait), now = Date.now()
+  const avg = w.length ? w.reduce((a, e) => a + (now - e.in), 0) / w.length : 0
+  const done = Object.values(Q.rooms).reduce((a, r) => a + r.done, 0)
+  $('#qstats').innerHTML = '<span><b>' + w.length + '</b>đang chờ</span><span><b>' + Math.round(avg / MIN) + ' ph</b>chờ trung bình</span><span><b>' + done + '</b>đã khám</span>'
+  renderTV(false); renderCalls(); renderPCard(); renderLoad('#load'); updateCounts()
+}
+function renderLoad(sel) {
+  const max = Math.max(6, ...ROOMS.map((r) => Q.rooms[r.id].wait.length))
+  $(sel).innerHTML = ROOMS.map((r) => { const n = Q.rooms[r.id].wait.length; return '<li><span class="rc">P.' + r.id + '</span><span class="bar" role="img" aria-label="Phòng ' + r.id + ': ' + n + ' người chờ"><i style="width:' + (n / max) * 100 + '%;' + (n >= 5 ? 'background:var(--amber)' : '') + '"></i></span><em>' + n + ' chờ</em></li>' }).join('')
+}
+function renderTV(anim) {
+  const c = CALLS[0], p = c && pat(c.pid), rm = c && RBY[c.room]
+  $('#tv').innerHTML = c ? '<div class="lb"><span>Mời số</span><span>' + fmtHM(c.at) + '</span></div><div class="big"><span class="tvn" id="tvn">' + c.t + '</span><span class="tvr">vào phòng<b>' + rm.id + '</b></span></div><p class="tvp">' + esc(p.name) + ' · ' + rm.name + '</p>' : '<div class="lb"><span>Mời số</span></div><div class="big"><span class="tvn">—</span></div>'
+  if (anim && !RM) {
+    const n = $('#tvn')
+    n.innerHTML = [...String(c.t)].map((d) => '<span class="fd"><i>' + d + '</i></span>').join('')
+    G.from($$('i', n), { yPercent: 110, duration: 0.55, stagger: 0.07, ease: 'expo.out', clearProps: 'transform' })
+    const tv = $('#tv'); tv.classList.remove('ping'); void tv.offsetWidth; tv.classList.add('ping')
+  }
+}
+function renderCalls() {
+  $('#calls').innerHTML = CALLS.slice(1, 5).map((c) => '<li><b>' + c.t + '</b><span>P.' + c.room + ' · ' + esc(short(pat(c.pid).name)) + '</span><time>' + fmtHM(c.at) + '</time></li>').join('') || '<li><span>Chưa có lượt gọi</span></li>'
+}
+function renderPCard() {
+  const f = selT != null && findT(selT)
+  const el = $('#pcard')
+  if (!f) { el.innerHTML = '<div class="empty" style="padding:18px 8px">' + ico('i-user', 'i') + '<b>Chọn một số thứ tự</b><span>Nhấn vào số trên bảng để xem thông tin và chuyển phòng.</span></div>'; return }
+  const p = pat(f.e.pid)
+  const where = f.where === 'arr' ? 'Chờ phân phòng' : 'P.' + f.where + ' · ' + RBY[f.where].name
+  el.innerHTML = '<div class="pcard"><div class="pc-top"><span class="av lg" style="--c:' + avCol(p.name) + '">' + initials(p.name) + '</span><div><h3>' + esc(p.name) + '</h3><p>' + p.id + ' · ' + p.age + ' tuổi · ' + p.g + '</p></div></div>' +
+    (p.allergy.length ? '<p class="alert-line">' + ico('i-alert') + 'Dị ứng: ' + p.allergy.join(', ') + '</p>' : '') +
+    '<dl class="kv"><dt>Số thứ tự</dt><dd class="mono">' + f.e.t + (f.e.prio ? ' · ưu tiên' : '') + '</dd><dt>Vị trí</dt><dd>' + where + (f.serving ? ' (đang khám)' : '') + '</dd><dt>Lý do</dt><dd>' + esc(f.e.reason) + '</dd><dt>' + (f.serving ? 'Thời gian khám' : 'Đã chờ') + '</dt><dd>' + sinceHTML(f.serving ? f.e.start : f.e.in, !f.serving) + '</dd><dt>BHYT</dt><dd class="mono">' + (p.bhyt || 'Không') + '</dd></dl>' +
+    (f.serving ? '' : '<div class="f-inline"><label for="moveSel">Chuyển sang phòng</label><select class="sel" id="moveSel">' + (f.where === 'arr' ? '<option value="">Chọn phòng</option>' : '') + ROOMS.map((r) => '<option value="' + r.id + '"' + (r.id === f.where ? ' selected' : '') + (Q.rooms[r.id].paused ? ' disabled' : '') + '>P.' + r.id + ' · ' + r.name + ' (' + Q.rooms[r.id].wait.length + ' chờ)</option>').join('') + '</select></div>') +
+    '<div class="btn-row"><button class="btn sm" type="button" id="pcRec">' + ico('i-record') + 'Bệnh án</button>' + (f.serving ? '<button class="btn sm" type="button" id="pcRx">' + ico('i-pill') + 'Kê đơn</button>' : '<button class="btn sm" type="button" id="pcTop">Lên đầu hàng</button>') + '</div></div>'
+  $('#moveSel')?.addEventListener('change', (e) => { if (e.target.value) moveTicket(selT, e.target.value, Infinity) })
+  $('#pcRec').addEventListener('click', () => openRecord(p.id))
+  $('#pcRx')?.addEventListener('click', () => openRx(p.id, f.where, f.e.t))
+  $('#pcTop')?.addEventListener('click', () => { if (f.where === 'arr') moveTicket(selT, 'arr', 0); else moveTicket(selT, f.where, 0) })
+}
+function select(t) {
+  selT = selT === t ? null : t
+  $$('[data-t]').forEach((c) => { const on = +c.dataset.t === selT; c.classList.toggle('on', on && c.classList.contains('chip')); c.setAttribute('aria-pressed', on) })
+  $$('.arr').forEach((a) => a.classList.toggle('on', +a.dataset.at === selT))
+  renderPCard()
+}
+// Re-render while sliding every ticket from its old spot to its new one (FLIP).
+function flipQueue(mutate) {
+  const before = {}
+  $$('#v-hang-doi [data-t]').forEach((c) => (before[c.dataset.t] = c.getBoundingClientRect()))
+  mutate()
+  renderQueue()
+  if (RM) return
+  $$('#v-hang-doi [data-t]').forEach((c) => {
+    const b = before[c.dataset.t], a = c.getBoundingClientRect()
+    if (b) { const dx = b.left - a.left, dy = b.top - a.top; if (dx || dy) G.from(c, { x: dx, y: dy, duration: 0.5, ease: 'expo.out', clearProps: 'transform' }) }
+    else G.from(c, { opacity: 0, scale: 0.85, duration: 0.4, ease: 'back.out(2)', clearProps: 'transform,opacity' })
+  })
+}
+function moveTicket(t, to, idx, { silent = false, focus = false } = {}) {
+  const f = findT(t); if (!f || f.serving) return false
+  if (to !== 'arr' && Q.rooms[to].paused) { toast('Phòng ' + to + ' đang tạm dừng nhận bệnh nhân', 'warn'); return false }
+  const fromList = f.where === 'arr' ? Q.arr : Q.rooms[f.where].wait
+  const toList = to === 'arr' ? Q.arr : Q.rooms[to].wait
+  const from = f.where, fromIdx = f.idx
+  if (from === to && (idx === fromIdx || (idx === Infinity && fromIdx === toList.length - 1))) return false
+  flipQueue(() => {
+    fromList.splice(fromIdx, 1)
+    let i = idx === Infinity ? toList.length : idx
+    if (from === to && idx !== Infinity && idx > fromIdx) i--
+    toList.splice(clamp(i, 0, toList.length), 0, f.e)
+    if (to !== 'arr') f.e.spec = to
+  })
+  if (focus) $('#v-hang-doi [data-t="' + t + '"]')?.focus()
+  const p = pat(f.e.pid)
+  const msg = from === to ? 'Số ' + t + ' lên vị trí ' + (toList.indexOf(f.e) + 1) + ' tại ' + (to === 'arr' ? 'danh sách chờ' : 'P.' + to) : 'Số ' + t + ' chuyển ' + (from === 'arr' ? 'vào' : 'từ P.' + from + ' sang') + ' ' + (to === 'arr' ? 'danh sách chờ phân phòng' : 'P.' + to + ' ' + RBY[to].name)
+  liveMsg(msg)
+  if (!silent) toast('<b>' + esc(short(p.name)) + '</b> · ' + msg, 'ok', () => {
+    const g = findT(t); if (!g || g.serving) return
+    if (from !== 'arr' && Q.rooms[from].paused) Q.rooms[from].paused = false
+    flipQueue(() => {
+      (g.where === 'arr' ? Q.arr : Q.rooms[g.where].wait).splice(g.idx, 1)
+      const back = from === 'arr' ? Q.arr : Q.rooms[from].wait
+      back.splice(Math.min(fromIdx, back.length), 0, g.e)
+    })
+    liveMsg('Đã hoàn tác chuyển số ' + t)
+  })
+  return true
+}
+function callNext(id) {
+  const s = Q.rooms[id], rm = RBY[id]
+  if (s.paused) { toast('P.' + id + ' đang tạm dừng. Mở lại phòng để gọi số', 'warn'); return }
+  if (!s.wait.length) { toast('P.' + id + ' ' + rm.name + ' không còn bệnh nhân chờ', 'warn'); return }
+  flipQueue(() => {
+    if (s.serving) {
+      s.done++
+      if (!VISITS.some((v) => v.t === s.serving.t)) addVisit(s.serving.pid, id, s.serving.t, 'cho', [])
+    }
+    const e = s.wait.shift()
+    s.serving = { ...e, start: Date.now() }
+    CALLS.unshift({ t: e.t, room: id, at: Date.now(), pid: e.pid })
+  })
+  renderTV(true)
+  // the board was re-rendered, so put keyboard focus back on this room's call button
+  if (document.activeElement === document.body) $('#qboard [data-call="' + id + '"]')?.focus({ preventScroll: true })
+  const row = $('#qboard [data-room="' + id + '"]'); row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash')
+  if (!RM) { const tk = $('[data-tk="' + id + '"]'); tk.innerHTML = [...tk.textContent].map((d) => '<span class="fd"><i>' + d + '</i></span>').join(''); G.from($$('i', tk), { yPercent: 110, duration: 0.5, stagger: 0.06, ease: 'expo.out', clearProps: 'transform' }) }
+  liveMsg('Mời số ' + s.serving.t + ', ' + pat(s.serving.pid).name + ', vào phòng ' + id)
+}
+function roomMenu(id, btn) {
+  const s = Q.rooms[id]
+  $('#roomPop').innerHTML = '<button type="button" role="menuitem" data-rm="recall">' + ico('i-call') + 'Gọi lại số đang khám</button><button type="button" role="menuitem" data-rm="skip">' + ico('i-skip') + 'Bỏ qua số (vắng mặt)</button><button type="button" role="menuitem" data-rm="pause">' + ico(s.paused ? 'i-redo' : 'i-pause') + (s.paused ? 'Mở lại phòng' : 'Tạm dừng nhận bệnh nhân') + '</button><hr><p class="about">P.' + id + ' · ' + RBY[id].doc + '</p>'
+  $('#roomPop').dataset.room = id
+  showPop('room', btn)
+}
+$('#roomPop').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-rm]'); if (!b) return
+  const id = $('#roomPop').dataset.room, s = Q.rooms[id], k = b.dataset.rm
+  hidePop(false)
+  if (k === 'recall') {
+    if (!s.serving) return toast('P.' + id + ' chưa có số đang khám', 'warn')
+    CALLS.unshift({ t: s.serving.t, room: id, at: Date.now(), pid: s.serving.pid }); renderTV(true); renderCalls()
+    toast('Đã gọi lại số <b>' + s.serving.t + '</b> vào P.' + id, 'info')
+  } else if (k === 'skip') {
+    if (!s.serving) return toast('P.' + id + ' chưa có số đang khám', 'warn')
+    const sk = s.serving
+    flipQueue(() => { s.wait.push({ pid: sk.pid, in: sk.in, reason: sk.reason, prio: sk.prio, t: sk.t, spec: id }); s.serving = null })
+    toast('Số <b>' + sk.t + '</b> vắng mặt, chuyển xuống cuối hàng P.' + id, 'warn')
+    if (s.wait.length > 1) callNext(id)
+  } else {
+    s.paused = !s.paused
+    renderQueue()
+    toast(s.paused ? 'P.' + id + ' tạm dừng nhận bệnh nhân mới' : 'P.' + id + ' đã mở lại', s.paused ? 'warn' : 'ok')
+  }
+  $('#qboard [data-room-menu="' + id + '"]')?.focus()
+})
+$('#qboard').addEventListener('click', (e) => {
+  if (suppressClick) return
+  const call = e.target.closest('[data-call]'); if (call) return callNext(call.dataset.call)
+  const m = e.target.closest('[data-room-menu]')
+  if (m) { e.stopPropagation(); return openPop === 'room' && $('#roomPop').dataset.room === m.dataset.roomMenu ? hidePop() : roomMenu(m.dataset.roomMenu, m) }
+  const c = e.target.closest('[data-t],[data-sel]'); if (c) select(+(c.dataset.t || c.dataset.sel))
+})
+$('#arrs').addEventListener('click', (e) => {
+  if (suppressClick) return
+  const a = e.target.closest('[data-assign]')
+  if (a) { const f = findT(+a.dataset.assign); if (f) moveTicket(f.e.t, f.e.spec, Infinity); return }
+  const c = e.target.closest('[data-t]'); if (c) select(+c.dataset.t)
+})
+$('#autoAll').addEventListener('click', () => {
+  if (!Q.arr.length) return toast('Không còn bệnh nhân chờ phân phòng', 'info')
+  const moved = Q.arr.filter((e) => !Q.rooms[e.spec].paused)
+  if (!moved.length) return toast('Các phòng phù hợp đang tạm dừng', 'warn')
+  const snap = moved.map((e) => e.t)
+  flipQueue(() => { moved.forEach((e) => { Q.arr.splice(Q.arr.indexOf(e), 1); const w = Q.rooms[e.spec].wait; e.prio ? w.splice(w.findIndex((x) => !x.prio) < 0 ? w.length : w.findIndex((x) => !x.prio), 0, e) : w.push(e) }) })
+  toast('Đã phân <b>' + moved.length + ' bệnh nhân</b> theo chuyên khoa', 'ok', () => {
+    flipQueue(() => { snap.forEach((t) => { const f = findT(t); if (f && !f.serving && f.where !== 'arr') { Q.rooms[f.where].wait.splice(f.idx, 1); Q.arr.push(f.e) } }) })
+  })
+})
+// keyboard: ←/→ reorder inside a room, ↑/↓ move to the previous/next open room
+$('#v-hang-doi').addEventListener('keydown', (e) => {
+  const c = e.target.closest('[data-t]'); if (!c || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
+  const f = findT(+c.dataset.t); if (!f) return
+  e.preventDefault()
+  const ids = ROOMS.map((r) => r.id)
+  if (f.where === 'arr') {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') moveTicket(f.e.t, 'arr', clamp(f.idx + (e.key === 'ArrowRight' ? 1 : -1), 0, Q.arr.length - 1), { silent: true, focus: true })
+    else moveTicket(f.e.t, f.e.spec, Infinity, { silent: true, focus: true })
+    return
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    const n = clamp(f.idx + (e.key === 'ArrowRight' ? 1 : -1), 0, Q.rooms[f.where].wait.length - 1)
+    if (n !== f.idx) moveTicket(f.e.t, f.where, e.key === 'ArrowRight' ? n + 1 : n, { silent: true, focus: true })
+  } else {
+    let i = ids.indexOf(f.where)
+    do { i += e.key === 'ArrowDown' ? 1 : -1 } while (i >= 0 && i < ids.length && Q.rooms[ids[i]].paused)
+    if (i >= 0 && i < ids.length) moveTicket(f.e.t, ids[i], Infinity, { silent: true, focus: true })
+  }
+})
+
+/* drag & drop (pointer events: mouse, pen, touch) */
+let drag = null, suppressClick = false
+function dropTarget(x, y) { const el = document.elementFromPoint(x, y); return el && el.closest('#v-hang-doi [data-drop]') }
+function dropIndex(zone, x, y) {
+  const items = $$(zone.dataset.drop === 'arr' ? '.arr' : '.chip', zone).filter((c) => +(c.dataset.t || c.dataset.at) !== drag.t)
+  let i = 0
+  for (const c of items) { const r = c.getBoundingClientRect(); if (y > r.bottom || (y >= r.top && x > r.left + r.width / 2 && zone.dataset.drop !== 'arr')) i++ }
+  return { i, items }
+}
+document.addEventListener('pointerdown', (e) => {
+  const el = e.target.closest('#v-hang-doi [data-drag]'); if (!el || e.button > 0) return
+  drag = { el, t: +el.dataset.t, x0: e.clientX, y0: e.clientY, on: false }
+})
+function startDrag(e) {
+  const f = findT(drag.t); if (!f) { drag = null; return }
+  drag.on = true
+  const src = drag.el.closest('.arr') || drag.el
+  drag.src = src
+  src.classList.add('lifted')
+  const g = document.createElement('div')
+  g.innerHTML = chipHTML(f.e); drag.ghost = g.firstChild
+  drag.ghost.classList.add('drag-ghost'); drag.ghost.removeAttribute('data-t'); drag.ghost.removeAttribute('data-drag')
+  document.body.appendChild(drag.ghost)
+  const r = drag.ghost.getBoundingClientRect()
+  drag.ox = r.width / 2; drag.oy = r.height / 2
+  document.body.style.cursor = 'grabbing'
+}
+document.addEventListener('pointermove', (e) => {
+  if (!drag) return
+  if (!drag.on) { if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 6) return; startDrag(e); if (!drag) return }
+  e.preventDefault()
+  G.set(drag.ghost, { x: e.clientX - drag.ox, y: e.clientY - drag.oy, rotate: -2 })
+  $$('#v-hang-doi .over,#v-hang-doi .reject').forEach((z) => z.classList.remove('over', 'reject'))
+  $$('#v-hang-doi .caret').forEach((c) => (c.style.display = 'none'))
+  const z = dropTarget(e.clientX, e.clientY)
+  drag.zone = z
+  if (z) {
+    const paused = z.dataset.drop === 'room' && Q.rooms[z.dataset.room].paused
+    z.classList.add(paused ? 'reject' : 'over')
+    if (z.dataset.drop === 'room' && !paused) {
+      const wrap = $('.qr-wait', z), car = $('.caret', wrap), { i, items } = dropIndex(z, e.clientX, e.clientY)
+      const ref = items[i] || items[items.length - 1]
+      if (ref) { car.style.left = (items[i] ? ref.offsetLeft - 5 : ref.offsetLeft + ref.offsetWidth + 2) + 'px'; car.style.top = ref.offsetTop + 'px' } else { car.style.left = '10px'; car.style.top = '12px' }
+      car.style.display = 'block'
+    }
+  }
+  // auto-scroll the board pane (desktop) or the page (stacked layout) near the edges
+  const pane = $('#v-hang-doi .detail'), pr = pane.getBoundingClientRect()
+  if (pane.scrollHeight > pane.clientHeight) { if (e.clientY > pr.bottom - 40) pane.scrollTop += 10; else if (e.clientY < pr.top + 70) pane.scrollTop -= 10 }
+  else if (e.clientY > innerHeight - 40) scrollBy(0, 12); else if (e.clientY < 90) scrollBy(0, -12)
+}, { passive: false })
+function endDrag(e, cancel) {
+  if (!drag) return
+  const d = drag; drag = null
+  if (!d.on) return
+  suppressClick = true; setTimeout(() => (suppressClick = false), 0)
+  document.body.style.cursor = ''
+  d.ghost.remove(); d.src.classList.remove('lifted')
+  $$('#v-hang-doi .over,#v-hang-doi .reject').forEach((z) => z.classList.remove('over', 'reject'))
+  $$('#v-hang-doi .caret').forEach((c) => (c.style.display = 'none'))
+  if (cancel || !d.zone) return
+  const z = d.zone
+  drag = { t: d.t }
+  const { i } = dropIndex(z, e.clientX, e.clientY)
+  drag = null
+  const to = z.dataset.drop === 'arr' ? 'arr' : z.dataset.room
+  const f = findT(d.t); if (!f) return
+  // dropIndex already skips the dragged ticket, so translate back to an index in the full list
+  const idx = f.where === to && i >= f.idx ? i + 1 : i
+  moveTicket(d.t, to, idx)
+}
+document.addEventListener('pointerup', (e) => endDrag(e, false))
+document.addEventListener('pointercancel', (e) => endDrag(e, true))
+
+/* live tick: wait timers, clock, new arrivals (all frozen under ?static) */
+function tick() {
+  if (document.hidden) return
+  const now = Date.now()
+  $$('.view.active [data-since]').forEach((el) => {
+    const t = +el.dataset.since, w = el.hasAttribute('data-cool') ? '' : waitCls(now - t)
+    el.textContent = fmtDur(now - t)
+    el.classList.toggle('w2', w === 'w2'); el.classList.toggle('w3', w === 'w3')
+  })
+  tickClock()
+}
+const ARRIVAL_POOL = PATIENTS.slice(40)
+let arrN = 0
+function newArrival() {
+  const p = ARRIVAL_POOL[arrN++ % ARRIVAL_POOL.length]
+  if (findAnyPid(p.id)) return
+  const e = { pid: p.id, in: Date.now(), reason: pick(REASONS[p.room]), prio: p.age >= 80 || p.age < 6, spec: p.room, t: SEQ++ }
+  if (current === 'hang-doi') flipQueue(() => Q.arr.push(e)); else { Q.arr.push(e); updateCounts() }
+  NOTES.unshift({ t: 'Quầy tiếp đón cấp số <b>' + e.t + '</b> cho ' + esc(p.name), at: Date.now(), i: 'i-reception', c: 'var(--accent)', u: true })
+  renderNotes()
+}
+const findAnyPid = (pid) => Q.arr.some((e) => e.pid === pid) || Object.values(Q.rooms).some((r) => r.serving?.pid === pid || r.wait.some((w) => w.pid === pid))
+
+/* ================= RECEPTION ================= */
+const APPTS = (() => {
+  const r = mulberry(31), base = Math.round(NOW / (15 * MIN)) * 15 * MIN
+  const offs = [-105, -90, -60, -45, -30, -15, 15, 30, 60, 75, 105]
+  const pool = PATIENTS.slice(20, 40)
+  return offs.map((o, i) => {
+    const p = pool[i], t = base + o * MIN
+    const st = o <= -60 ? 'den' : o < 0 ? (i === 4 ? 'tre' : 'cho') : 'sap'
+    return { t, pid: p.id, spec: p.room, reason: pick(REASONS[p.room], r), st }
+  })
+})()
+const APST = { den: { l: 'Đã đến', c: 'var(--green)' }, tre: { l: 'Trễ hẹn', c: 'var(--red)' }, cho: { l: 'Chờ tiếp nhận', c: 'var(--amber)' }, sap: { l: 'Sắp đến', c: 'var(--blue)' }, nhan: { l: 'Đã tiếp nhận', c: 'var(--green)' } }
+function renderAppts() {
+  $('#appts').innerHTML = APPTS.map((a, i) => {
+    const p = pat(a.pid), s = APST[a.st], done = a.st === 'den' || a.st === 'nhan'
+    return '<li class="' + (done ? 'past' : '') + '"><time>' + fmtHM(a.t) + '</time><div style="min-width:0"><b>' + esc(p.name) + '</b><small>P.' + a.spec + ' ' + RBY[a.spec].name + ' · <span style="color:' + s.c + '">' + s.l + '</span></small></div>' + (done ? '<span class="tag" style="--c:var(--green)">' + ico('i-check') + '</span>' : '<button class="btn" type="button" data-appt="' + i + '" aria-label="Tiếp nhận ' + esc(p.name) + '">Tiếp nhận</button>') + '</li>'
+  }).join('')
+  $('#apptSum').textContent = APPTS.length + ' lịch hẹn · ' + APPTS.filter((a) => a.st === 'den' || a.st === 'nhan').length + ' đã đến'
+}
+$('#appts').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-appt]'); if (!b) return
+  const a = APPTS[+b.dataset.appt], p = pat(a.pid)
+  regFill({ name: p.name, dob: fmtD(p.dob), g: p.g, phone: p.phone, bhyt: p.bhyt, addr: p.addr, spec: a.spec, reason: a.reason })
+  regState.appt = +b.dataset.appt; regState.pid = p.id
+  $('#fName').focus()
+  toast('Đã điền thông tin lịch hẹn của <b>' + esc(p.name) + '</b>. Kiểm tra rồi cấp số', 'info')
+})
+$('#fSpec').innerHTML = '<option value="">Chọn chuyên khoa</option>' + ROOMS.map((r) => '<option value="' + r.id + '">' + r.name + ' (P.' + r.id + ')</option>').join('')
+const regState = { tried: false, appt: null, pid: null }
+const RF = { name: $('#fName'), dob: $('#fDob'), phone: $('#fPhone'), bhyt: $('#fBhyt'), addr: $('#fAddr'), spec: $('#fSpec'), reason: $('#fReason'), prio: $('#fPrio') }
+function regFill(v) {
+  RF.name.value = v.name || ''; RF.dob.value = v.dob || ''; RF.phone.value = v.phone || ''; RF.bhyt.value = v.bhyt || ''; RF.addr.value = v.addr || ''; RF.spec.value = v.spec || ''; RF.reason.value = v.reason || ''
+  $$('[name=gender]').forEach((r) => (r.checked = r.value === v.g))
+  RF.prio.checked = false
+  regState.tried = false
+  $$('#regForm .err').forEach((e) => (e.textContent = '')); $$('#regForm [aria-invalid]').forEach((e) => e.removeAttribute('aria-invalid'))
+  regPreview()
+}
+function parseDob(s) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s.trim()); if (!m) return null
+  const d = new Date(+m[3], +m[2] - 1, +m[1])
+  return d.getDate() === +m[1] && d.getMonth() === +m[2] - 1 ? d : NaN
+}
+function regErrors() {
+  const e = {}
+  const name = RF.name.value.trim().replace(/\s+/g, ' ')
+  if (!name) e.name = 'Vui lòng nhập họ và tên'
+  else if (!/^[\p{L} ]+$/u.test(name)) e.name = 'Họ tên chỉ gồm chữ cái và khoảng trắng'
+  else if (name.split(' ').length < 2) e.name = 'Nhập đủ họ và tên (ít nhất 2 từ)'
+  const d = parseDob(RF.dob.value)
+  if (!RF.dob.value.trim()) e.dob = 'Vui lòng nhập ngày sinh'
+  else if (d === null) e.dob = 'Ngày sinh theo dạng dd/mm/yyyy'
+  else if (isNaN(d) || d > Date.now() || (Date.now() - d) / (365.25 * DAY) > 120) e.dob = 'Ngày sinh không hợp lệ'
+  if (!$('[name=gender]:checked')) e.gender = 'Chọn giới tính'
+  const ph = RF.phone.value.replace(/[\s.]/g, '')
+  if (!ph) e.phone = 'Vui lòng nhập số điện thoại'
+  else if (!/^0(3|5|7|8|9)\d{8}$/.test(ph)) e.phone = 'Số điện thoại gồm 10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09'
+  const bh = RF.bhyt.value.trim().toUpperCase()
+  if (bh && !/^[A-Z]{2}\d{13}$/.test(bh)) e.bhyt = 'Mã thẻ BHYT gồm 2 chữ cái và 13 chữ số'
+  if (!RF.spec.value) e.spec = 'Chọn chuyên khoa khám'
+  if (RF.reason.value.trim().length < 6) e.reason = 'Mô tả lý do khám (ít nhất 6 ký tự)'
+  return e
+}
+const ERRMAP = { name: ['#fName', '#eName'], dob: ['#fDob', '#eDob'], gender: [null, '#eGender'], phone: ['#fPhone', '#ePhone'], bhyt: ['#fBhyt', '#eBhyt'], spec: ['#fSpec', '#eSpec'], reason: ['#fReason', '#eReason'] }
+function showRegErrors(errs, only) {
+  Object.entries(ERRMAP).forEach(([k, [inp, er]]) => {
+    if (only && k !== only) return
+    $(er).textContent = errs[k] || ''
+    if (inp) errs[k] ? $(inp).setAttribute('aria-invalid', 'true') : $(inp).removeAttribute('aria-invalid')
+  })
+}
+function regAge() { const d = parseDob(RF.dob.value); return d && !isNaN(d) ? Math.floor((Date.now() - d) / (365.25 * DAY)) : null }
+function regPreview() {
+  const spec = RF.spec.value, age = regAge()
+  const auto = age != null && (age >= 80 || age < 6)
+  $('#prioAuto').textContent = auto ? 'Tự động đánh dấu ưu tiên: ' + (age < 6 ? 'trẻ dưới 6 tuổi' : 'người từ 80 tuổi') : ''
+  if (auto && !RF.prio.dataset.touched) RF.prio.checked = true
+  if (spec) {
+    const n = Q.rooms[spec].wait.length
+    $('#roomHint').innerHTML = '<b>P.' + spec + '</b><span>' + RBY[spec].doc + ' · ' + n + ' người chờ · dự kiến ' + (n * 7 + 4) + ' phút' + (Q.rooms[spec].paused ? ' · <span style="color:var(--amber)">phòng đang tạm dừng</span>' : '') + '</span>'
+  } else $('#roomHint').textContent = 'Chọn chuyên khoa để xem phòng và thời gian chờ dự kiến'
+  const name = RF.name.value.trim()
+  $('#ticketPrev').innerHTML = '<div class="lb"><span>An Tâm Clinic</span><span>' + fmtD(Date.now()) + '</span></div><div class="big"><span class="tvn">' + SEQ + '</span><span class="tvr">phòng<b>' + (spec || '—') + '</b></span></div><p class="tvp">' + (name ? esc(name) : 'Họ tên bệnh nhân') + (RF.prio.checked ? ' · Ưu tiên' : '') + '</p>' + qrSVG(SEQ) + '<p class="tvp" style="font-size:11.5px;opacity:.7">Quét mã để theo dõi lượt gọi trên điện thoại</p>'
+  renderLoad('#loadReg')
+}
+function qrSVG(n) {
+  const r = mulberry(n * 7919), N = 21
+  let d = ''
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const finder = (x < 7 && y < 7) || (x > 13 && y < 7) || (x < 7 && y > 13)
+    if (finder) continue
+    if (r() < 0.47) d += 'M' + x + ' ' + y + 'h1v1h-1z'
+  }
+  const fin = (x, y) => '<path d="M' + x + ' ' + y + 'h7v7h-7zM' + (x + 1) + ' ' + (y + 1) + 'v5h5v-5z" fill-rule="evenodd"/><rect x="' + (x + 2) + '" y="' + (y + 2) + '" width="3" height="3"/>'
+  return '<svg viewBox="-1 -1 23 23" width="92" height="92" style="display:block;margin:12px 0 6px;background:#fff;border-radius:6px;padding:4px" aria-label="Mã QR theo dõi số ' + n + '" role="img"><g fill="#062B29"><path d="' + d + '"/>' + fin(0, 0) + fin(14, 0) + fin(0, 14) + '</g></svg>'
+}
+;['input', 'change'].forEach((ev) => $('#regForm').addEventListener(ev, (e) => {
+  if (e.target === RF.prio) RF.prio.dataset.touched = '1'
+  if (e.target === RF.bhyt && ev === 'input') { const p = RF.bhyt.selectionStart; RF.bhyt.value = RF.bhyt.value.toUpperCase(); try { RF.bhyt.setSelectionRange(p, p) } catch { /* noop */ } }
+  regPreview()
+  if (regState.tried) { const k = Object.entries(ERRMAP).find(([, [i]]) => i && $(i) === e.target)?.[0] || (e.target.name === 'gender' ? 'gender' : null); if (k) showRegErrors(regErrors(), k) }
+}))
+$('#regForm').addEventListener('focusout', (e) => { const k = Object.entries(ERRMAP).find(([, [i]]) => i && $(i) === e.target)?.[0]; if (k && e.target.value.trim()) showRegErrors(regErrors(), k) })
+$('#regForm').addEventListener('submit', (e) => {
+  e.preventDefault()
+  regState.tried = true
+  const errs = regErrors()
+  showRegErrors(errs)
+  const n = Object.keys(errs).length
+  $('#regErr').textContent = n ? 'Còn ' + n + ' trường cần kiểm tra lại' : ''
+  if (n) { const k = Object.keys(ERRMAP).find((x) => errs[x]); const el = ERRMAP[k][0] ? $(ERRMAP[k][0]) : $('[name=gender]'); el.focus(); return }
+  const spec = RF.spec.value
+  if (Q.rooms[spec].paused) { $('#regErr').textContent = 'P.' + spec + ' đang tạm dừng, chọn chuyên khoa khác hoặc mở lại phòng'; return }
+  const name = RF.name.value.trim().replace(/\s+/g, ' ')
+  let p = regState.pid && pat(regState.pid)
+  let created = false
+  if (!p || p.name !== name) {
+    const d = parseDob(RF.dob.value)
+    p = { id: 'AT-' + pidSeq++, name, g: $('[name=gender]:checked').value, age: regAge(), dob: +d, room: spec, phone: RF.phone.value.replace(/[\s.]/g, ''), bhyt: RF.bhyt.value.trim().toUpperCase(), addr: RF.addr.value.trim() || 'Chưa cập nhật', allergy: [], cond: [], visits: [], notes: [], st: 'od', weight: 60, height: 162 }
+    PATIENTS.unshift(p); PIDX = PBY(); created = true
+  }
+  const entry = { pid: p.id, in: Date.now(), reason: RF.reason.value.trim(), prio: RF.prio.checked, spec, t: SEQ++ }
+  const w = Q.rooms[spec].wait
+  const at = entry.prio ? (w.findIndex((x) => !x.prio) < 0 ? w.length : w.findIndex((x) => !x.prio)) : w.length
+  w.splice(at, 0, entry)
+  const ap = regState.appt
+  if (ap != null) APPTS[ap].st = 'nhan'
+  renderAppts(); updateCounts()
+  toast('Đã cấp số <b>' + entry.t + '</b> · P.' + spec + ' ' + RBY[spec].name + ' cho ' + esc(name), 'ok', () => {
+    const f = findT(entry.t); if (f && !f.serving) (f.where === 'arr' ? Q.arr : Q.rooms[f.where].wait).splice(f.idx, 1)
+    if (created) { PATIENTS.splice(PATIENTS.indexOf(p), 1); PIDX = PBY() }
+    if (ap != null) APPTS[ap].st = 'cho'
+    renderAppts(); updateCounts(); regPreview()
+    toast('Đã hủy số ' + entry.t, 'info')
+  })
+  liveMsg('Đã cấp số ' + entry.t + ' vào phòng ' + spec)
+  regState.appt = null; regState.pid = null; delete RF.prio.dataset.touched
+  regFill({})
+})
+$('#regReset').addEventListener('click', () => { regState.appt = null; regState.pid = null; delete RF.prio.dataset.touched; regFill({}) })
+$('#printTicket').addEventListener('click', () => toast('Đã gửi phiếu số <b>' + SEQ + '</b> tới máy in quầy 1', 'info'))
+
+/* ================= RECORDS (table) ================= */
+const T = { q: '', f: 'all', sort: 'last', dir: 'desc', page: 0, per: 10, sel: new Set() }
+let recPid = null
+function rows() {
+  const q = norm(T.q.trim())
+  let a = PATIENTS.filter((p) => !p.archived)
+  if (T.f === 'bhyt') a = a.filter((p) => p.bhyt)
+  else if (T.f === 'tk') a = a.filter((p) => p.st === 'tk')
+  else if (T.f === 'dt') a = a.filter((p) => p.st === 'dt')
+  else if (T.f === 'du') a = a.filter((p) => p.allergy.length)
+  if (q) a = a.filter((p) => norm(p.name + ' ' + p.id + ' ' + p.phone).includes(q.replace(/\s+/g, ' ')))
+  const lastT = (p) => p.visits[0]?.t || 0
+  const giv = (p) => norm(p.name.split(' ').pop() + ' ' + p.name)
+  const key = { id: (p) => p.id, name: giv, last: lastT, st: (p) => p.st }[T.sort]
+  a.sort((x, y) => { const u = key(x), v = key(y); return (u < v ? -1 : u > v ? 1 : 0) * (T.dir === 'asc' ? 1 : -1) })
+  return a
+}
+function renderTable() {
+  const all = rows(), pages = Math.max(1, Math.ceil(all.length / T.per))
+  T.page = clamp(T.page, 0, pages - 1)
+  const slice = all.slice(T.page * T.per, T.page * T.per + T.per)
+  $('#pBody').innerHTML = slice.length ? slice.map((p) => {
+    const s = STAT[p.st], chk = T.sel.has(p.id)
+    return '<tr data-pid="' + p.id + '" class="' + (p.id === recPid ? 'on ' : '') + (chk ? 'chk' : '') + '"><td class="c-cb"><input class="cb" type="checkbox" data-cb="' + p.id + '"' + (chk ? ' checked' : '') + ' aria-label="Chọn ' + esc(p.name) + '"></td><td class="c-id">' + p.id + '</td><td class="c-nm"><b>' + esc(p.name) + '</b><small>' + p.age + ' tuổi · ' + p.g + (p.bhyt ? ' · BHYT' : '') + (p.allergy.length ? ' · <span style="color:var(--red)">dị ứng</span>' : '') + '</small></td><td class="c-last">' + (p.visits[0] ? fmtD(p.visits[0].t) : '—') + '</td><td class="c-st"><span class="st" style="--c:' + s.c + '"><i></i>' + s.l + '</span></td></tr>'
+  }).join('') : '<tr><td colspan="5"><div class="empty"><svg class="ill" viewBox="0 0 84 64" fill="none" stroke="currentColor" stroke-width="2"><rect x="10" y="8" width="44" height="52" rx="4"/><path d="M20 22h24M20 32h18M20 42h12"/><circle cx="58" cy="40" r="12"/><path d="m67 49 9 9"/></svg><b>Không tìm thấy bệnh nhân phù hợp</b><span>Thử tìm bằng số điện thoại hoặc mã BN, hoặc bỏ bộ lọc.</span><button class="btn sm" type="button" id="clearF">Xóa bộ lọc</button></div></td></tr>'
+  $('#clearF')?.addEventListener('click', () => { T.q = ''; T.f = 'all'; $('#pSearch').value = ''; $$('#pFilters button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.f === 'all')); renderTable() })
+  $('#tblSum').textContent = all.length + ' hồ sơ' + (T.q || T.f !== 'all' ? ' phù hợp' : '') + ' · ' + PATIENTS.filter((p) => !p.archived).length + ' tổng'
+  const from = all.length ? T.page * T.per + 1 : 0, to = Math.min(all.length, (T.page + 1) * T.per)
+  let pg = '<button type="button" data-pg="' + (T.page - 1) + '"' + (T.page === 0 ? ' disabled' : '') + ' aria-label="Trang trước">‹</button>'
+  for (let i = 0; i < pages; i++) if (pages <= 6 || i === 0 || i === pages - 1 || Math.abs(i - T.page) <= 1) pg += '<button type="button" data-pg="' + i + '" aria-current="' + (i === T.page) + '" aria-label="Trang ' + (i + 1) + '">' + (i + 1) + '</button>'; else if (Math.abs(i - T.page) === 2) pg += '<span aria-hidden="true">…</span>'
+  pg += '<button type="button" data-pg="' + (T.page + 1) + '"' + (T.page >= pages - 1 ? ' disabled' : '') + ' aria-label="Trang sau">›</button>'
+  $('#pager').innerHTML = '<span>' + from + '–' + to + ' / ' + all.length + '</span><div class="pg">' + pg + '</div>'
+  $$('#v-benh-an .th-b').forEach((b) => (b.dataset.sort === T.sort ? b.setAttribute('data-dir', T.dir) : b.removeAttribute('data-dir')))
+  const sv = T.sort + ':' + T.dir; if ([...$('#pSort').options].some((o) => o.value === sv)) $('#pSort').value = sv
+  $$('#v-benh-an th').forEach((th) => { const b = $('.th-b', th); if (b) th.setAttribute('aria-sort', b.dataset.sort === T.sort ? (T.dir === 'asc' ? 'ascending' : 'descending') : 'none') })
+  syncSel(slice)
+}
+function syncSel(slice) {
+  slice = slice || rows().slice(T.page * T.per, T.page * T.per + T.per)
+  const n = slice.filter((p) => T.sel.has(p.id)).length
+  const all = $('#pAll')
+  all.checked = n > 0 && n === slice.length; all.indeterminate = n > 0 && n < slice.length
+  $('#bulk').classList.toggle('show', T.sel.size > 0)
+  $('#bulkN').textContent = T.sel.size + ' đã chọn'
+}
+$('#pSearch').addEventListener('input', (e) => { T.q = e.target.value; T.page = 0; renderTable() })
+$('#pFilters').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (!b) return; T.f = b.dataset.f; T.page = 0; $$('#pFilters button').forEach((x) => x.setAttribute('aria-pressed', x === b)); renderTable() })
+$$('#v-benh-an .th-b').forEach((b) => b.addEventListener('click', () => { const k = b.dataset.sort; T.dir = T.sort === k && T.dir === 'asc' ? 'desc' : T.sort === k ? 'asc' : k === 'last' ? 'desc' : 'asc'; T.sort = k; renderTable() }))
+$('#pSort').addEventListener('change', (e) => { const [k, d] = e.target.value.split(':'); T.sort = k; T.dir = d; T.page = 0; renderTable() })
+$('#pager').addEventListener('click', (e) => { const b = e.target.closest('[data-pg]'); if (!b || b.disabled) return; T.page = +b.dataset.pg; renderTable(); $('#v-benh-an .list').scrollTop = 0 })
+$('#pBody').addEventListener('change', (e) => { const c = e.target.closest('[data-cb]'); if (!c) return; c.checked ? T.sel.add(c.dataset.cb) : T.sel.delete(c.dataset.cb); c.closest('tr').classList.toggle('chk', c.checked); syncSel() })
+$('#pBody').addEventListener('click', (e) => {
+  if (e.target.closest('.cb, button')) return
+  const tr = e.target.closest('tr[data-pid]'); if (!tr) return
+  recPid = tr.dataset.pid; $$('#pBody tr').forEach((r) => r.classList.toggle('on', r === tr)); renderRecord(true)
+  if (mq.matches) $('#v-benh-an .detail').scrollIntoView({ behavior: RM ? 'auto' : 'smooth' })
+})
+$('#pAll').addEventListener('change', (e) => { rows().slice(T.page * T.per, T.page * T.per + T.per).forEach((p) => (e.target.checked ? T.sel.add(p.id) : T.sel.delete(p.id))); renderTable() })
+$('#bulkClear').addEventListener('click', () => { T.sel.clear(); renderTable() })
+$('#bulkSms').addEventListener('click', () => toast('Đã lên lịch tin nhắn nhắc tái khám cho <b>' + T.sel.size + ' bệnh nhân</b> lúc 08:00 sáng mai', 'ok'))
+$('#bulkExport').addEventListener('click', () => toast('Đã tạo danh sách <b>' + T.sel.size + ' hồ sơ</b> (Excel) trong mục Tải về', 'info'))
+$('#bulkArchive').addEventListener('click', () => {
+  const ids = [...T.sel]; if (!ids.length) return
+  ids.forEach((id) => (pat(id).archived = true)); T.sel.clear()
+  if (ids.includes(recPid)) recPid = rows()[0]?.id || null
+  renderTable(); renderRecord()
+  toast('Đã lưu trữ <b>' + ids.length + ' hồ sơ</b>', 'warn', () => { ids.forEach((id) => (pat(id).archived = false)); renderTable(); renderRecord() })
+})
+function renderRecord(anim) {
+  const p = recPid && pat(recPid)
+  if (!p || p.archived) { $('#recBody').innerHTML = '<div class="empty">' + emptyIll() + '<b>Chọn một bệnh nhân</b><span>Bệnh án hiện ở đây.</span></div>'; $('#recSub').textContent = ''; $('#recSide').innerHTML = ''; drawBP(); return }
+  const v0 = p.visits[0]
+  const bmi = p.weight / Math.pow(p.height / 100, 2)
+  $('#recSub').textContent = p.id + ' · cập nhật ' + (v0 ? fmtD(v0.t) : 'hôm nay')
+  const items = [...p.notes.map((n) => ({ ...n, kind: 'note' })), ...p.visits.map((v) => ({ ...v, kind: 'visit' }))].sort((a, b) => b.t - a.t)
+  $('#recBody').innerHTML =
+    '<div class="sheet"><div class="rec-head"><span class="av lg" style="--c:' + avCol(p.name) + '">' + initials(p.name) + '</span><div class="who"><h2>' + esc(p.name) + '</h2><div class="meta"><span class="mono">' + p.id + '</span><span>' + p.age + ' tuổi · ' + p.g + '</span><span>Sinh ' + fmtD(p.dob) + '</span><span class="mono">' + p.phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3') + '</span></div><div class="meta"><span>' + esc(p.addr) + '</span></div></div><span class="st" style="--c:' + STAT[p.st].c + '"><i></i>' + STAT[p.st].l + '</span></div>' +
+    (p.allergy.length ? '<p class="allergy">' + ico('i-alert') + 'Dị ứng: ' + p.allergy.join(', ') + '</p>' : '') +
+    '<div class="dx" style="margin-top:12px">' + (p.cond.length ? p.cond.map((c) => '<span class="tag code" style="--c:var(--blue)">' + c + ' · ' + ICD[c] + '</span>').join('') : '<span class="tag">Chưa ghi nhận bệnh nền</span>') + (p.bhyt ? '<span class="tag code" style="--c:var(--green)">BHYT ' + p.bhyt + '</span>' : '<span class="tag">Khám dịch vụ</span>') + '</div></div>' +
+    (v0 ? '<div class="vitals"><div class="' + (v0.sys >= 140 ? 'hi' : '') + '"><small>Huyết áp</small><b>' + v0.sys + '/' + v0.dia + '</b><em>mmHg</em></div><div><small>Mạch</small><b>' + v0.pulse + '</b><em>lần/ph</em></div><div class="' + (v0.temp >= 37.5 ? 'hi' : '') + '"><small>Nhiệt độ</small><b>' + dec(v0.temp) + '</b><em>°C</em></div><div><small>Cân nặng</small><b>' + Math.round(p.weight) + '</b><em>kg</em></div><div><small>BMI</small><b>' + dec(bmi) + '</b></div></div>' : '') +
+    '<div class="sheet"><div class="sh"><h2>Ghi chú lâm sàng</h2><p>Lưu vào dòng thời gian bệnh án</p></div><form id="noteForm" class="fgrid" novalidate><div class="f span2"><label for="noteTxt">Nội dung ghi chú</label><textarea id="noteTxt" rows="2" aria-describedby="eNote" placeholder="VD: Bệnh nhân khai đau đầu buổi sáng, đề nghị đo huyết áp tại nhà"></textarea><p class="err" id="eNote"></p></div><div class="form-foot span2"><button class="btn primary sm" type="submit">' + ico('i-plus') + 'Thêm ghi chú</button></div></form></div>' +
+    '<div class="sheet"><div class="sh"><h2>Dòng thời gian khám</h2><p>' + p.visits.length + ' lần khám</p></div><ol class="tl">' + items.map((it) => it.kind === 'note'
+      ? '<li style="--c:var(--amber)"><div class="tl-h"><time>' + fmtD(it.t) + ' ' + fmtHM(it.t) + '</time><span>Ghi chú · Đỗ Thu Trang</span><button class="btn sm ghost note-del" type="button" data-note="' + it.nid + '" aria-label="Xóa ghi chú">' + ico('i-trash') + '</button></div><p>' + esc(it.text) + '</p></li>'
+      : '<li><div class="tl-h"><time>' + fmtD(it.t) + '</time><span>P.' + it.room + ' · ' + RBY[it.room].doc + '</span></div><p><span class="tag code" style="--c:var(--accent)">' + it.icd + '</span> ' + ICD[it.icd] + '</p><p class="rx">' + esc(it.note) + ' · HA ' + it.sys + '/' + it.dia + '</p></li>').join('') + '</ol></div>'
+  const next = p.st === 'od' ? null : (p.visits[0]?.t || NOW) + 30 * DAY
+  $('#recSide').innerHTML = '<div class="sheet"><p class="cap">Thông tin hành chính</p><dl class="kv"><dt>Nơi ĐKKCB</dt><dd>An Tâm Clinic</dd><dt>Thẻ BHYT</dt><dd>' + (p.bhyt ? 'Còn hạn đến 31/12/' + (new Date(NOW).getFullYear() + 1) : 'Không có') + '</dd><dt>Lần khám</dt><dd class="mono">' + p.visits.length + '</dd><dt>Hẹn tái khám</dt><dd>' + (next ? fmtD(Math.max(next, NOW + 2 * DAY)) : 'Không') + '</dd></dl></div>'
+  $('#noteForm').addEventListener('submit', (e) => {
+    e.preventDefault()
+    const t = $('#noteTxt').value.trim()
+    if (t.length < 10) { $('#eNote').textContent = 'Ghi chú cần ít nhất 10 ký tự'; $('#noteTxt').setAttribute('aria-invalid', 'true'); $('#noteTxt').focus(); return }
+    p.notes.push({ nid: 'n' + Date.now(), t: Date.now(), text: t })
+    renderRecord(); toast('Đã thêm ghi chú vào bệnh án <b>' + esc(p.name) + '</b>')
+  })
+  $('#noteTxt').addEventListener('input', (e) => { if (e.target.value.trim().length >= 10) { $('#eNote').textContent = ''; e.target.removeAttribute('aria-invalid') } })
+  $$('#recBody [data-note]').forEach((b) => b.addEventListener('click', () => {
+    const i = p.notes.findIndex((n) => n.nid === b.dataset.note); if (i < 0) return
+    const [n] = p.notes.splice(i, 1)
+    renderRecord(); toast('Đã xóa một ghi chú', 'warn', () => { p.notes.splice(i, 0, n); renderRecord() })
+  }))
+  drawBP()
+  if (anim && !RM) G.from($$('#recBody > *'), { opacity: 0, y: 8, duration: 0.4, stagger: 0.04, ease: 'expo.out', clearProps: 'transform,opacity' })
+}
+function openRecord(pid) {
+  const p = pat(pid); if (!p) return
+  p.archived = false; recPid = pid
+  const i = rows().findIndex((x) => x.id === pid)
+  if (i < 0) { T.q = ''; T.f = 'all'; $('#pSearch').value = ''; $$('#pFilters button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.f === 'all')) }
+  T.page = Math.floor(Math.max(0, rows().findIndex((x) => x.id === pid)) / T.per)
+  if (current === 'benh-an') { renderTable(); renderRecord(true) } else go('benh-an')
+}
+$('#recRx').addEventListener('click', () => { const p = pat(recPid); if (p) openRx(p.id, p.room) })
+$('#recQueue').addEventListener('click', () => {
+  const p = pat(recPid); if (!p) return
+  if (findAnyPid(p.id)) return toast('<b>' + esc(p.name) + '</b> đã có trong hàng đợi', 'info')
+  const e = { pid: p.id, in: Date.now(), reason: 'Tái khám theo hẹn', prio: p.age >= 80 || p.age < 6, spec: p.room, t: SEQ++ }
+  Q.arr.push(e); updateCounts()
+  toast('Đã cấp số <b>' + e.t + '</b> cho ' + esc(p.name) + ', chờ phân phòng', 'ok', () => { const f = findT(e.t); if (f && f.where === 'arr') { Q.arr.splice(f.idx, 1); updateCounts() } })
+})
+
+/* BP chart */
+function chartColors() { const cs = getComputedStyle(root); return { acc: cs.getPropertyValue('--accent').trim(), blue: cs.getPropertyValue('--blue').trim(), red: cs.getPropertyValue('--red').trim(), pane: cs.getPropertyValue('--pane').trim() } }
+let bpPts = []
+function drawBP() {
+  const svg = $('#bpSvg'), box = $('#bpChart'), p = recPid && pat(recPid)
+  const W = Math.max(220, box.clientWidth), H = 190, pl = 30, pr = 10, pt = 10, pb = 24
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('height', H)
+  if (!p || !p.visits.length) { svg.innerHTML = '<text class="ax" x="' + W / 2 + '" y="' + H / 2 + '" text-anchor="middle">Chưa có dữ liệu</text>'; bpPts = []; return }
+  const v = p.visits.slice(0, 6).reverse()
+  const lo = 50, hi = 180
+  const X = (i) => pl + (v.length === 1 ? (W - pl - pr) / 2 : (i / (v.length - 1)) * (W - pl - pr)), Y = (val) => pt + (1 - (val - lo) / (hi - lo)) * (H - pt - pb)
+  const c = chartColors()
+  let s = ''
+  ;[60, 90, 120, 150, 180].forEach((g) => (s += '<line class="gl" x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(g) + '" y2="' + Y(g) + '"/><text class="ax" x="' + (pl - 6) + '" y="' + (Y(g) + 3) + '" text-anchor="end">' + g + '</text>'))
+  s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(140) + '" y2="' + Y(140) + '" stroke="' + c.red + '" stroke-dasharray="4 4" opacity=".7"/><line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(90) + '" y2="' + Y(90) + '" stroke="' + c.red + '" stroke-dasharray="4 4" opacity=".45"/>'
+  const line = (k, col) => '<path d="' + v.map((x, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(x[k]).toFixed(1)).join('') + '" fill="none" stroke="' + col + '" stroke-width="2.2" stroke-linejoin="round" class="bp-line"/>' + v.map((x, i) => '<circle cx="' + X(i) + '" cy="' + Y(x[k]) + '" r="3.6" fill="' + c.pane + '" stroke="' + col + '" stroke-width="2"/>').join('')
+  s += line('sys', c.acc) + line('dia', c.blue)
+  v.forEach((x, i) => { if (v.length <= 4 || i % 2 === 0 || i === v.length - 1) s += '<text class="ax" x="' + X(i) + '" y="' + (H - 6) + '" text-anchor="middle">' + fmtDM(x.t) + '</text>' })
+  s += '<line id="bpHair" y1="' + pt + '" y2="' + (H - pb) + '" stroke="currentColor" opacity="0" stroke-dasharray="2 3"/>'
+  svg.innerHTML = s
+  svg.style.color = 'var(--dim)'
+  bpPts = v.map((x, i) => ({ x: X(i), v: x }))
+  box.setAttribute('aria-label', 'Biểu đồ huyết áp ' + v.length + ' lần khám gần nhất, lần cuối ' + v[v.length - 1].sys + '/' + v[v.length - 1].dia + ' mmHg')
+  if (!RM && !STATIC) $$('.bp-line', svg).forEach((l) => { const len = l.getTotalLength(); G.fromTo(l, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.8, ease: 'power2.out', onComplete: () => l.removeAttribute('style') }) })
+}
+let bpIdx = -1
+function bpHover(i) {
+  const tip = $('#bpTip'), hair = $('#bpHair')
+  if (i < 0 || !bpPts[i]) { tip.classList.remove('on'); hair && hair.setAttribute('opacity', 0); return }
+  bpIdx = i
+  const pt = bpPts[i], box = $('#bpChart'), sc = box.clientWidth / Math.max(220, box.clientWidth)
+  hair.setAttribute('x1', pt.x); hair.setAttribute('x2', pt.x); hair.setAttribute('opacity', 1)
+  tip.innerHTML = '<b>' + fmtD(pt.v.t) + ' · P.' + pt.v.room + '</b><span>Tâm thu <em>' + pt.v.sys + '</em></span><span>Tâm trương <em>' + pt.v.dia + '</em></span><span>Mạch <em>' + pt.v.pulse + '</em></span>'
+  tip.classList.add('on')
+  const tw = tip.offsetWidth
+  tip.style.transform = 'translate(' + clamp(pt.x * sc - tw / 2, 0, box.clientWidth - tw) + 'px,' + 4 + 'px)'
+}
+$('#bpChart').addEventListener('pointermove', (e) => { if (!bpPts.length) return; const r = $('#bpChart').getBoundingClientRect(), x = e.clientX - r.left; let best = 0; bpPts.forEach((p, i) => { if (Math.abs(p.x - x) < Math.abs(bpPts[best].x - x)) best = i }); bpHover(best) })
+$('#bpChart').addEventListener('pointerleave', () => bpHover(-1))
+$('#bpChart').addEventListener('blur', () => bpHover(-1))
+$('#bpChart').addEventListener('keydown', (e) => { if (!bpPts.length) return; if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); bpHover(clamp((bpIdx < 0 ? bpPts.length : bpIdx) + (e.key === 'ArrowRight' ? 1 : -1), 0, bpPts.length - 1)) } })
+
+/* ================= PRESCRIPTION ================= */
+// Always have a visit selected: inputs of the hidden Kê đơn view can fire before it is ever opened.
+let rxVid = VISITS[0].vid
+const rxV = () => VISITS.find((v) => v.vid === rxVid) || VISITS[0]
+let vq = ''
+function renderVList() {
+  const q = norm(vq.trim())
+  const list = VISITS.filter((v) => !q || norm(pat(v.pid).name + ' ' + v.t + ' ' + v.vid).includes(q)).sort((a, b) => (a.status === b.status ? b.at - a.at : a.status === 'cho' ? -1 : 1))
+  $('#vlist').innerHTML = list.length ? list.map((v) => { const p = pat(v.pid); return '<button type="button" data-vid="' + v.vid + '" aria-current="' + (v.vid === rxVid) + '"><b>' + esc(p.name) + '</b><span class="tag" style="--c:' + (v.status === 'cho' ? 'var(--amber)' : 'var(--green)') + '">' + (v.status === 'cho' ? 'Chờ kê' : 'Đã kê') + '</span><small>Số ' + v.t + ' · P.' + v.room + ' · ' + p.age + ' tuổi</small><span class="mono">' + v.lines.length + ' thuốc</span></button>' }).join('') : '<div class="empty">' + emptyIll() + '<b>Không có lượt khám phù hợp</b></div>'
+  $('#vSum').textContent = VISITS.filter((v) => v.status === 'cho').length + ' chờ kê · ' + VISITS.filter((v) => v.status === 'xong').length + ' đã kê'
+}
+$('#vSearch').addEventListener('input', (e) => { vq = e.target.value; renderVList() })
+$('#vlist').addEventListener('click', (e) => { const b = e.target.closest('[data-vid]'); if (!b) return; rxVid = b.dataset.vid; renderVList(); renderRx(true); if (mq.matches) $('#v-ke-don .detail').scrollIntoView({ behavior: RM ? 'auto' : 'smooth' }) })
+function openRx(pid, room, t) {
+  let v = VISITS.find((x) => x.pid === pid && x.status === 'cho') || VISITS.find((x) => x.pid === pid)
+  if (!v) v = addVisit(pid, room || pat(pid).room, t || SEQ, 'cho', [])
+  rxVid = v.vid
+  if (current === 'ke-don') { renderVList(); renderRx(true) } else go('ke-don')
+}
+function alertsOf(v) {
+  const p = pat(v.pid), out = []
+  for (let i = 0; i < v.lines.length; i++) for (let j = i + 1; j < v.lines.length; j++) {
+    const x = ixOf(v.lines[i].id, v.lines[j].id)
+    if (x) { const newer = v.lines[i].ord > v.lines[j].ord ? v.lines[i] : v.lines[j]; out.push({ key: [x.a, x.b].sort().join('|'), lv: x.lv, a: x.a, b: x.b, eff: x.eff, adv: x.adv, newer: newer.id }) }
+  }
+  v.lines.forEach((l) => { const d = DBY[l.id]; p.allergy.forEach((al) => { if (d.cls === al || d.n === al) out.push({ key: 'dx|' + l.id, lv: 'nang', a: l.id, b: null, allergy: al, eff: 'Bệnh nhân có tiền sử dị ứng ' + al + '. Chống chỉ định.', adv: 'Thay bằng kháng sinh nhóm khác (VD: Clarithromycin) sau khi cân nhắc.', newer: l.id }) }) })
+  return out.sort((a, b) => (a.lv === b.lv ? 0 : a.lv === 'nang' ? -1 : 1))
+}
+const LV = { nang: { l: 'Nghiêm trọng', c: 'var(--red)' }, tb: { l: 'Trung bình', c: 'var(--amber)' } }
+let lastAdded = null, focusDrug = null
+function renderRx(anim) {
+  const v = rxV()
+  if (!v) { rxVid = VISITS[0].vid; return renderRx(anim) }
+  const p = pat(v.pid), rm = RBY[v.room]
+  $('#rxSub').textContent = 'Số ' + v.t + ' · P.' + v.room + ' ' + rm.name + ' · ' + rm.doc
+  $('#rxState').textContent = v.status === 'cho' ? 'Đang soạn' : 'Đã lưu ' + (v.code || '')
+  $('#rxState').style.setProperty('--c', v.status === 'cho' ? 'var(--amber)' : 'var(--green)')
+  $('#rxPatient').innerHTML = '<div class="pc-top"><span class="av lg" style="--c:' + avCol(p.name) + '">' + initials(p.name) + '</span><div style="flex:1;min-width:0"><h3>' + esc(p.name) + '</h3><p>' + p.id + ' · ' + p.age + ' tuổi · ' + p.g + ' · ' + Math.round(p.weight) + ' kg' + (p.bhyt ? ' · BHYT' : '') + '</p></div><button class="btn sm ghost" type="button" id="rxRec">' + ico('i-record') + 'Bệnh án</button></div><div class="dx" style="margin-top:10px"><span class="cap" style="margin:0;align-self:center">Chẩn đoán</span>' + v.icd.map((c) => '<span class="tag code" style="--c:var(--blue)">' + c + ' · ' + ICD[c] + '</span>').join('') + '</div>' + (p.allergy.length ? '<p class="allergy">' + ico('i-alert') + 'Dị ứng: ' + p.allergy.join(', ') + '</p>' : '')
+  $('#rxRec').addEventListener('click', () => openRecord(p.id))
+  $('#rxNote').value = v.note; $('#rxBack').value = v.back
+  renderLines(); renderAlerts(anim); renderMatrix(); renderDInfo()
+  $('#rxHist').innerHTML = p.visits.slice(0, 4).map((x) => '<li><b>' + fmtDM(x.t) + '</b><span>' + ICD[x.icd] + '</span><time>P.' + x.room + '</time></li>').join('') || '<li><span>Chưa có đơn trước đây</span></li>'
+  $('#rxErr').textContent = ''
+  if (anim && !RM) G.from($$('#rxBody > *'), { opacity: 0, y: 8, duration: 0.4, stagger: 0.04, ease: 'expo.out', clearProps: 'transform,opacity' })
+}
+function lineFlag(v, id) { const a = alertsOf(v).filter((x) => (x.a === id || x.b === id) && !v.acks[x.key]); return a.some((x) => x.lv === 'nang') ? 'bad' : a.length ? 'mid' : '' }
+const USES = ['Sau ăn', 'Trước ăn', 'Trong bữa ăn', 'Khi đau', 'Trước ngủ']
+function renderLines() {
+  const v = rxV()
+  $('#rxCount').textContent = v.lines.length + ' thuốc'
+  $('#rxLines').innerHTML = v.lines.length ? v.lines.map((l, i) => {
+    const d = DBY[l.id], er = v.errs[l.id] || ''
+    return '<div class="rxl ' + lineFlag(v, l.id) + '" data-line="' + l.id + '"><div class="rxn"><b>' + d.n + ' ' + d.s + '</b><small>' + vnd(d.p) + ' / ' + (d.id === 'anta' ? 'gói' : 'viên') + ' · ' + d.ab + '</small></div>' +
+      ['Sáng', 'Trưa', 'Chiều', 'Tối'].map((t, k) => '<label class="cell"><span class="lb">' + t + '</span><input type="number" min="0" max="10" step="0.5" inputmode="decimal" data-dose="' + k + '" value="' + l.d[k] + '" aria-label="Liều buổi ' + t.toLowerCase() + ', ' + d.n + '"' + (er.includes('liều') ? ' aria-invalid="true"' : '') + '></label>').join('') +
+      '<label class="cell"><span class="lb">Ngày</span><input type="number" min="1" max="90" data-days value="' + l.days + '" aria-label="Số ngày dùng ' + d.n + '"' + (er.includes('ngày') ? ' aria-invalid="true"' : '') + '></label>' +
+      '<div class="cell"><span class="lb">Số lượng</span><span class="rxq" data-qty>' + qty(l) + '</span></div>' +
+      '<label class="cell c-use"><span class="lb">Cách dùng</span><select class="sel" data-use aria-label="Cách dùng ' + d.n + '">' + USES.map((u) => '<option' + (u === l.use ? ' selected' : '') + '>' + u + '</option>').join('') + '</select></label>' +
+      '<button class="ibtn sm del" type="button" data-del="' + l.id + '" aria-label="Xóa ' + d.n + ' khỏi đơn">' + ico('i-trash') + '</button>' +
+      '<p class="err">' + er + '</p></div>'
+  }).join('') : '<div class="empty" style="padding:24px 8px">' + ico('i-pill') + '<b>Đơn thuốc trống</b><span>Tìm thuốc ở ô phía trên hoặc chọn nhanh một thuốc thường dùng.</span></div>'
+  updateTotal()
+}
+const qty = (l) => { const n = l.d.reduce((a, b) => a + (+b || 0), 0) * (+l.days || 0); return Number.isInteger(n) ? n : dec(n) }
+function updateTotal() { const v = rxV(); $('#rxTotal').textContent = vnd(v.lines.reduce((a, l) => a + DBY[l.id].p * Math.ceil(l.d.reduce((x, y) => x + (+y || 0), 0) * (+l.days || 0)), 0)) }
+function renderAlerts(animNew) {
+  const v = rxV(), al = alertsOf(v)
+  $('#ixs').innerHTML = al.map((a) => {
+    const ok = v.acks[a.key], lv = LV[a.lv]
+    const title = a.b ? DBY[a.a].n + ' × ' + DBY[a.b].n : DBY[a.a].n + ' × dị ứng ' + a.allergy
+    return '<div class="ix' + (ok ? ' ok' : '') + '" data-ix="' + a.key + '" style="--c:' + lv.c + '">' + ico('i-alert') + '<h3>' + (a.allergy ? 'Chống chỉ định' : 'Tương tác ' + lv.l.toLowerCase()) + ': <span>' + title + '</span></h3><p>' + a.eff + '</p><p class="adv">Khuyến nghị: ' + a.adv + '</p>' +
+      (ok ? '<p class="adv" style="grid-column:2">Đã ghi nhận lý do: “' + esc(ok) + '” <button class="btn sm ghost" type="button" data-unack="' + a.key + '">Bỏ ghi nhận</button></p>'
+        : '<div class="ix-act"><button class="btn sm warn" type="button" data-rmdrug="' + a.newer + '">' + ico('i-trash') + 'Gỡ ' + DBY[a.newer].n + '</button>' + (a.lv === 'nang' ? '<button class="btn sm" type="button" data-why="' + a.key + '">Vẫn kê, ghi lý do</button>' : '<button class="btn sm" type="button" data-ackq="' + a.key + '">Đã tư vấn bệnh nhân</button>') + '</div><div class="why" hidden><input type="text" aria-label="Lý do vẫn kê ' + title + '" placeholder="Lý do lâm sàng (ít nhất 10 ký tự)"><button class="btn sm primary" type="button" data-ack="' + a.key + '">Xác nhận</button><p class="err"></p></div>') + '</div>'
+  }).join('')
+  if (animNew && lastAdded && !RM) {
+    const fresh = al.filter((a) => (a.a === lastAdded || a.b === lastAdded) && !v.acks[a.key])
+    fresh.forEach((a) => {
+      const el = $('#ixs [data-ix="' + a.key + '"]')
+      G.from(el, { opacity: 0, y: -10, duration: 0.45, ease: 'expo.out', clearProps: 'transform,opacity' })
+      ;[a.a, a.b].filter(Boolean).forEach((id) => { const row = $('#rxLines [data-line="' + id + '"]'); if (row) G.fromTo(row, { x: 0 }, { keyframes: { x: [-6, 6, -4, 4, 0] }, duration: 0.45, ease: 'none', clearProps: 'transform' }) })
+    })
+  }
+}
+function renderMatrix() {
+  const v = rxV(), ids = v.lines.map((l) => l.id), n = ids.length, mx = $('#mx')
+  if (n < 2) { mx.style.gridTemplateColumns = '1fr'; mx.innerHTML = '<p class="hint" style="font-family:var(--font)">' + ico('i-info') + '<span>Thêm từ 2 thuốc trở lên để đối chiếu tương tác từng cặp.</span></p>'; return }
+  mx.style.gridTemplateColumns = '40px repeat(' + n + ',minmax(0,1fr))'
+  let h = '<span></span>' + ids.map((id) => '<span title="' + DBY[id].n + '">' + DBY[id].ab + '</span>').join('')
+  ids.forEach((a) => {
+    h += '<span title="' + DBY[a].n + '">' + DBY[a].ab + '</span>'
+    ids.forEach((b) => {
+      if (a === b) { h += '<button type="button" class="diag" tabindex="-1" aria-label="' + DBY[a].n + '"></button>'; return }
+      const x = ixOf(a, b), k = [a, b].sort().join('|'), ack = x && v.acks[k]
+      h += '<button type="button" class="' + (x ? (ack ? 'ack' : x.lv) : '') + '" data-mx="' + (x ? k : '') + '" aria-label="' + DBY[a].n + ' × ' + DBY[b].n + ': ' + (x ? LV[x.lv].l + (ack ? ', đã ghi nhận' : '') : 'không ghi nhận tương tác') + '" title="' + DBY[a].n + ' × ' + DBY[b].n + ': ' + (x ? LV[x.lv].l : 'không ghi nhận') + '"></button>'
+    })
+  })
+  mx.innerHTML = h
+  if (!RM && !STATIC) G.from($$('button:not(.diag)', mx), { scale: 0.4, opacity: 0, duration: 0.35, stagger: { amount: 0.25, grid: [n, n] }, ease: 'back.out(2)', clearProps: 'transform,opacity' })
+}
+function renderDInfo() {
+  const v = rxV(), id = focusDrug && v.lines.some((l) => l.id === focusDrug) ? focusDrug : v.lines[v.lines.length - 1]?.id
+  const d = id && DBY[id]
+  $('#dinfo').innerHTML = d ? '<p class="cap">Thông tin thuốc</p><h3>' + d.n + ' ' + d.s + '</h3><p>' + d.note + '</p><dl class="kv" style="margin-top:10px"><dt>Đơn giá</dt><dd class="mono">' + vnd(d.p) + '</dd><dt>Tương tác đã biết</dt><dd>' + Object.values(IX).filter((x) => x.a === d.id || x.b === d.id).map((x) => DBY[x.a === d.id ? x.b : x.a].n).join(', ') + '</dd></dl>' : '<p class="cap">Thông tin thuốc</p><p>Chọn một thuốc trong đơn để xem hướng dẫn sử dụng.</p>'
+}
+function addDrug(id, { quiet = false } = {}) {
+  const v = rxV(), d = DBY[id]; if (!v || !d) return
+  if (v.status !== 'cho') { v.status = 'cho'; renderVList() }
+  if (v.lines.some((l) => l.id === id)) { toast(d.n + ' đã có trong đơn', 'warn'); return }
+  const before = new Set(alertsOf(v).map((a) => a.key))
+  v.lines.push({ id, d: id === 'war' || id === 'amlo' || id === 'asp' ? [1, 0, 0, 0] : [1, 0, 1, 0], days: id === 'simv' || id === 'amlo' || id === 'met' ? 30 : 5, use: id === 'ome' ? 'Trước ăn' : 'Sau ăn', ord: Date.now() })
+  lastAdded = id; focusDrug = id
+  renderLines(); renderAlerts(true); renderMatrix(); renderDInfo(); renderVList()
+  const fresh = alertsOf(v).filter((a) => !before.has(a.key))
+  if (fresh.length) { setCombo(false); liveMsg('Cảnh báo: ' + fresh.map((a) => (a.b ? DBY[a.a].n + ' và ' + DBY[a.b].n : DBY[a.a].n + ' dị ứng') + ', ' + LV[a.lv].l).join('; ')); $('#ixs').scrollIntoView({ block: 'nearest', behavior: RM ? 'auto' : 'smooth' }) }
+  else if (!quiet) liveMsg('Đã thêm ' + d.n)
+  lastAdded = null
+}
+function removeDrug(id) {
+  const v = rxV(), i = v.lines.findIndex((l) => l.id === id); if (i < 0) return
+  const [l] = v.lines.splice(i, 1)
+  delete v.errs[id]
+  renderLines(); renderAlerts(); renderMatrix(); renderDInfo(); renderVList()
+  toast('Đã gỡ <b>' + DBY[id].n + '</b> khỏi đơn', 'warn', () => { if (rxV() !== v || v.lines.some((x) => x.id === id)) return; v.lines.splice(i, 0, l); renderLines(); renderAlerts(); renderMatrix(); renderDInfo(); renderVList() })
+}
+$('#rxLines').addEventListener('input', (e) => {
+  const row = e.target.closest('[data-line]'); if (!row) return
+  const v = rxV(), l = v.lines.find((x) => x.id === row.dataset.line)
+  if (e.target.matches('[data-dose]')) l.d[+e.target.dataset.dose] = e.target.value === '' ? 0 : +e.target.value
+  if (e.target.matches('[data-days]')) l.days = +e.target.value
+  $('[data-qty]', row).textContent = qty(l)
+  if (v.errs[l.id]) { const er = lineErr(l); v.errs[l.id] = er; $('.err', row).textContent = er; $$('input', row).forEach((x) => x.removeAttribute('aria-invalid')) }
+  updateTotal()
+})
+$('#rxLines').addEventListener('change', (e) => { if (e.target.matches('[data-use]')) { const l = rxV().lines.find((x) => x.id === e.target.closest('[data-line]').dataset.line); l.use = e.target.value } })
+$('#rxLines').addEventListener('click', (e) => { const b = e.target.closest('[data-del]'); if (b) return removeDrug(b.dataset.del); const r = e.target.closest('[data-line]'); if (r) { focusDrug = r.dataset.line; renderDInfo() } })
+$('#rxNote').addEventListener('input', (e) => (rxV().note = e.target.value))
+$('#rxBack').addEventListener('change', (e) => (rxV().back = e.target.value))
+$('#ixs').addEventListener('click', (e) => {
+  const v = rxV()
+  const rm = e.target.closest('[data-rmdrug]'); if (rm) return removeDrug(rm.dataset.rmdrug)
+  const why = e.target.closest('[data-why]'); if (why) { const w = $('.why', why.closest('.ix')); w.hidden = false; $('input', w).focus(); return }
+  const q = e.target.closest('[data-ackq]'); if (q) { v.acks[q.dataset.ackq] = 'Đã tư vấn cách dùng'; renderLines(); renderAlerts(); renderMatrix(); return }
+  const un = e.target.closest('[data-unack]'); if (un) { delete v.acks[un.dataset.unack]; renderLines(); renderAlerts(); renderMatrix(); return }
+  const ack = e.target.closest('[data-ack]')
+  if (ack) {
+    const box = ack.closest('.why'), inp = $('input', box), t = inp.value.trim()
+    if (t.length < 10) { $('.err', box).textContent = 'Ghi lý do lâm sàng, ít nhất 10 ký tự'; inp.setAttribute('aria-invalid', 'true'); inp.focus(); return }
+    v.acks[ack.dataset.ack] = t; renderLines(); renderAlerts(); renderMatrix()
+    toast('Đã ghi nhận lý do kê đơn vượt cảnh báo', 'info')
+  }
+})
+$('#ixs').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('.why input')) { e.preventDefault(); $('[data-ack]', e.target.closest('.why')).click() } })
+$('#mx').addEventListener('click', (e) => { const b = e.target.closest('[data-mx]'); if (!b || !b.dataset.mx) return; const el = $('#ixs [data-ix="' + b.dataset.mx + '"]'); if (el) { el.scrollIntoView({ block: 'nearest', behavior: RM ? 'auto' : 'smooth' }); if (!RM) G.fromTo(el, { boxShadow: '0 0 0 4px var(--c)' }, { boxShadow: '0 0 0 0px transparent', duration: 1, clearProps: 'boxShadow' }) } })
+function lineErr(l) {
+  if (!l.d.some((x) => +x > 0)) return 'Nhập liều cho ít nhất một buổi'
+  if (l.d.some((x) => +x < 0 || +x > 10)) return 'Mỗi lần dùng từ 0 đến 10 đơn vị liều'
+  if (!(l.days >= 1 && l.days <= 90 && Number.isInteger(l.days))) return 'Số ngày dùng từ 1 đến 90'
+  return ''
+}
+function saveRx(final) {
+  const v = rxV(), err = $('#rxErr')
+  if (!v.lines.length) { err.textContent = 'Đơn thuốc chưa có thuốc nào'; $('#drugIn').focus(); return }
+  let bad = 0
+  v.lines.forEach((l) => { const e = lineErr(l); v.errs[l.id] = e; if (e) bad++ })
+  renderLines()
+  if (bad) { err.textContent = 'Còn ' + bad + ' dòng thuốc nhập chưa đúng'; $('#rxLines [aria-invalid=true]')?.focus(); return }
+  const open = alertsOf(v).filter((a) => a.lv === 'nang' && !v.acks[a.key])
+  if (final && open.length) { err.textContent = 'Còn ' + open.length + ' cảnh báo nghiêm trọng chưa xử lý'; $('#ixs [data-ix="' + open[0].key + '"]')?.scrollIntoView({ block: 'center', behavior: RM ? 'auto' : 'smooth' }); return }
+  err.textContent = ''
+  if (!final) { toast('Đã lưu nháp đơn của <b>' + esc(pat(v.pid).name) + '</b>', 'info'); return }
+  v.status = 'xong'; v.code = v.vid
+  renderVList(); renderRx(); updateCounts()
+  toast('Đã lưu đơn <b>' + v.code + '</b> · ' + v.lines.length + ' thuốc · gửi in 2 liên tới quầy dược')
+}
+$('#rxSave').addEventListener('click', () => saveRx(true))
+$('#rxDraft').addEventListener('click', () => saveRx(false))
+
+/* drug combobox */
+const din = $('#drugIn'), dlist = $('#drugList')
+let dItems = [], dIdx = 0
+function comboOpen() { return dlist.classList.contains('open') }
+function renderCombo() {
+  const q = norm(din.value.trim()), v = rxV()
+  dItems = DRUGS.filter((d) => !q || norm(d.n + ' ' + d.s + ' ' + d.ab).includes(q)).slice(0, 8)
+  dIdx = clamp(dIdx, 0, Math.max(0, dItems.length - 1))
+  dlist.innerHTML = dItems.length ? dItems.map((d, i) => {
+    const hits = v.lines.map((l) => ixOf(l.id, d.id)).filter(Boolean)
+    const al = pat(v.pid).allergy.find((a) => a === d.cls || a === d.n)
+    const inRx = v.lines.some((l) => l.id === d.id)
+    return '<li role="option" id="do-' + i + '" data-drug="' + d.id + '" aria-selected="' + (i === dIdx) + '"><span>' + d.n + ' <small>' + d.s + '</small></span><small class="mono">' + vnd(d.p) + '</small>' + (inRx ? '<em style="color:var(--dim)">Đã có trong đơn</em>' : al ? '<em>Dị ứng ' + al + ': chống chỉ định</em>' : hits.length ? '<em>Tương tác với ' + hits.map((x) => DBY[x.a === d.id ? x.b : x.a].n).join(', ') + '</em>' : '') + '</li>'
+  }).join('') : '<li class="ce" role="option" aria-disabled="true" aria-selected="false">Không tìm thấy thuốc “' + esc(din.value) + '”</li>'
+  dItems.length ? din.setAttribute('aria-activedescendant', 'do-' + dIdx) : din.removeAttribute('aria-activedescendant')
+}
+function setCombo(open) { dlist.classList.toggle('open', open); din.setAttribute('aria-expanded', open); if (open) renderCombo() }
+din.addEventListener('focus', () => setCombo(true))
+din.addEventListener('input', () => { dIdx = 0; setCombo(true) })
+din.addEventListener('blur', () => setTimeout(() => setCombo(false), 150))
+din.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (!comboOpen()) setCombo(true); dIdx = clamp(dIdx + (e.key === 'ArrowDown' ? 1 : -1), 0, dItems.length - 1); renderCombo(); $('#do-' + dIdx)?.scrollIntoView({ block: 'nearest' }) }
+  else if (e.key === 'Enter') { e.preventDefault(); const d = dItems[dIdx]; if (d) { addDrug(d.id); din.value = ''; dIdx = 0; renderCombo() } }
+})
+dlist.addEventListener('mousedown', (e) => e.preventDefault())
+dlist.addEventListener('click', (e) => { const li = e.target.closest('[data-drug]'); if (!li) return; addDrug(li.dataset.drug); din.value = ''; renderCombo() })
+$('#quick').insertAdjacentHTML('beforeend', ['para', 'ibu', 'asp', 'ome', 'amox', 'clar'].map((id) => '<button type="button" data-quick="' + id + '">+ ' + DBY[id].n + '</button>').join(''))
+$('#quick').addEventListener('click', (e) => { const b = e.target.closest('[data-quick]'); if (b) addDrug(b.dataset.quick) })
+
+/* ================= REPORTS ================= */
+const DAILY = (() => {
+  const r = mulberry(4242), out = []
+  for (let i = 179; i >= 0; i--) {
+    const t = new Date(NOW - i * DAY); t.setHours(12, 0, 0, 0)
+    const dow = t.getDay(), k = 180 - i
+    const base = dow === 0 ? 42 : dow === 6 ? 96 : 124
+    const v = Math.round(base * (0.86 + k * 0.0012) * (0.9 + r() * 0.2) + Math.sin(k / 9) * 6)
+    out.push({ t: +t, luot: v, cho: Math.max(8, 9 + (v - 90) * 0.09 + r() * 6), thu: v * (238000 + r() * 70000), bhyt: 0.58 + r() * 0.1 })
+  }
+  return out
+})()
+const REPORTS = [
+  { k: 'luot', s: 'Lượt khám', n: 'Lượt khám theo ngày', d: 'Số lượt tiếp đón, gồm tái khám', i: 'i-queue', fmt: (v) => Math.round(v) + ' lượt', ax: (v) => Math.round(v) },
+  { k: 'cho', s: 'Thời gian chờ', n: 'Thời gian chờ trung bình', d: 'Từ lúc cấp số đến lúc vào phòng', i: 'i-clock', fmt: (v) => dec(v) + ' phút', ax: (v) => Math.round(v) + "'", target: 20 },
+  { k: 'thu', s: 'Doanh thu', n: 'Doanh thu dịch vụ', d: 'Khám, cận lâm sàng và thuốc', i: 'i-chart', fmt: (v) => compact(v) + ' ₫', ax: (v) => compact(v) },
+  { k: 'icd', n: 'Mô hình bệnh tật', d: '10 chẩn đoán thường gặp theo ICD-10', i: 'i-record' },
+]
+const RP = { k: 'luot', range: 30 }
+const ICD_SHARE = [['J06.9', 0.19], ['J02.9', 0.14], ['I10', 0.12], ['K29.7', 0.09], ['L20.9', 0.07], ['A09', 0.065], ['H66.9', 0.055], ['E11.9', 0.05], ['J30.4', 0.045], ['M54.5', 0.04]]
+$('#rlist').innerHTML = REPORTS.map((r) => '<button type="button" data-rpt="' + r.k + '">' + ico(r.i) + '<span><b>' + r.n + '</b><small>' + r.d + '</small></span></button>').join('')
+$('#rlist').addEventListener('click', (e) => { const b = e.target.closest('[data-rpt]'); if (!b) return; RP.k = b.dataset.rpt; renderReport(true); if (mq.matches) $('#v-bao-cao .detail').scrollIntoView({ behavior: RM ? 'auto' : 'smooth' }) })
+$('#rangeSeg').addEventListener('click', (e) => { const b = e.target.closest('[data-range]'); if (!b) return; RP.range = +b.dataset.range; $$('#rangeSeg button').forEach((x) => x.setAttribute('aria-pressed', x === b)); renderReport(true) })
+const M = 96
+function cr(p0, p1, p2, p3, t) { const t2 = t * t, t3 = t2 * t; return 0.5 * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3) }
+function resample(a) { const n = a.length, out = []; for (let j = 0; j < M; j++) { const x = (j / (M - 1)) * (n - 1), i = Math.min(Math.floor(x), n - 2), t = x - i; out.push(Math.max(0, cr(a[Math.max(i - 1, 0)], a[i], a[i + 1], a[Math.min(i + 2, n - 1)], t))) } return out }
+function niceCeil(v) { const e = Math.pow(10, Math.floor(Math.log10(v))), f = v / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e }
+const CH = { cur: null, max: 0, data: [], tw: null }
+function seriesNow() { const rep = REPORTS.find((r) => r.k === RP.k); const d = DAILY.slice(-RP.range); return { rep, d, vals: d.map((x) => x[rep.k]) } }
+function drawArea(vals, max) {
+  const svg = $('#rSvg'), box = $('#rChart')
+  const W = Math.max(280, box.clientWidth), H = box.clientWidth < 500 ? 220 : 280, pl = 44, pr = 8, pt = 12, pb = 26
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('height', H)
+  const { rep, d } = seriesNow()
+  if (!rep.ax) return // ICD report is drawn as bars; a late morph frame must not redraw the area chart
+  const X = (j) => pl + (j / (M - 1)) * (W - pl - pr), Y = (v) => pt + (1 - v / max) * (H - pt - pb)
+  const c = chartColors()
+  let s = '<defs><linearGradient id="gArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + c.acc + '" stop-opacity=".28"/><stop offset="1" stop-color="' + c.acc + '" stop-opacity="0"/></linearGradient></defs>'
+  for (let g = 0; g <= 4; g++) { const v = (max / 4) * g; s += '<line class="gl" x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/><text class="ax" x="' + (pl - 8) + '" y="' + (Y(v) + 3) + '" text-anchor="end">' + rep.ax(v) + '</text>' }
+  if (rep.target) s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(rep.target) + '" y2="' + Y(rep.target) + '" stroke="' + c.red + '" stroke-dasharray="5 4"/><text class="ax" x="' + (W - pr) + '" y="' + (Y(rep.target) - 6) + '" text-anchor="end" style="fill:' + c.red + '">Mục tiêu 20 phút</text>'
+  const line = vals.map((v, j) => (j ? 'L' : 'M') + X(j).toFixed(1) + ' ' + Y(v).toFixed(1)).join('')
+  s += '<path d="' + line + 'L' + X(M - 1) + ' ' + Y(0) + 'L' + X(0) + ' ' + Y(0) + 'Z" fill="url(#gArea)"/><path d="' + line + '" fill="none" stroke="' + c.acc + '" stroke-width="2.2" stroke-linejoin="round"/>'
+  const n = d.length, step = Math.ceil(n / (W < 500 ? 4 : 7))
+  d.forEach((x, i) => { if (i % step === 0 || i === n - 1) { if (i !== n - 1 && n - 1 - i < step * 0.6) return; s += '<text class="ax" x="' + (pl + (i / (n - 1)) * (W - pl - pr)) + '" y="' + (H - 6) + '" text-anchor="' + (i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle') + '">' + fmtDM(x.t) + '</text>' } })
+  s += '<g id="rHover" opacity="0"><line id="rHair" y1="' + pt + '" y2="' + (H - pb) + '" stroke="' + c.acc + '" stroke-dasharray="3 3"/><circle id="rDot" r="5" fill="' + c.pane + '" stroke="' + c.acc + '" stroke-width="2.4"/></g>'
+  svg.innerHTML = s
+  CH.geo = { W, H, pl, pr, pt, pb, X, Y }
+}
+function renderReport(anim) {
+  const rep = REPORTS.find((r) => r.k === RP.k)
+  $$('#rlist button').forEach((b) => b.setAttribute('aria-current', b.dataset.rpt === RP.k))
+  $('#h-bao-cao').textContent = rep.n
+  const d = DAILY.slice(-RP.range), prev = DAILY.slice(-RP.range * 2, -RP.range)
+  $('#rptSub').textContent = rep.d + ' · ' + fmtD(d[0].t) + ' – ' + fmtD(d[d.length - 1].t)
+  $('#rptRange').textContent = RP.range + ' ngày gần nhất so với ' + RP.range + ' ngày trước đó'
+  const isBars = rep.k === 'icd'
+  if (isBars && CH.tw) { CH.tw.kill(); CH.tw = null }
+  if (isBars) rHover(-1)
+  $('#rChart').hidden = isBars; $('#icdBars').hidden = !isBars
+  const sum = (a, k) => a.reduce((x, y) => x + y[k], 0)
+  if (isBars) {
+    const total = sum(d, 'luot')
+    $('#rptSum').innerHTML = '<div><small>Tổng lượt có chẩn đoán</small><b>' + nf.format(total) + '</b></div><div><small>Nhóm hô hấp</small><b>' + Math.round((0.19 + 0.14 + 0.045 + 0.055) * 100) + '%</b></div>'
+    const r = mulberry(RP.range)
+    const vals = ICD_SHARE.map(([c, s]) => [c, Math.round(total * s * (0.9 + r() * 0.2))])
+    const max = Math.max(...vals.map((x) => x[1]))
+    const html = vals.map(([c, n]) => '<div class="hb"><span><code>' + c + '</code>' + ICD[c] + '</span><span class="bar"><i style="--c:' + (c[0] === 'J' || c[0] === 'H' ? 'var(--accent)' : c[0] === 'I' || c[0] === 'E' ? 'var(--blue)' : 'var(--amber)') + '"></i></span><em>' + nf.format(n) + '</em></div>').join('')
+    if ($('#icdBars').children.length !== vals.length) $('#icdBars').innerHTML = html
+    else $$('#icdBars .hb').forEach((row, i) => { row.querySelector('em').textContent = nf.format(vals[i][1]) })
+    $$('#icdBars .bar i').forEach((b, i) => G.to(b, { scaleX: vals[i][1] / max, duration: anim && !RM ? 0.7 : 0, ease: 'expo.out', overwrite: true }))
+    $('#icdBars').setAttribute('aria-label', 'Mô hình bệnh tật')
+  } else {
+    const vals = d.map((x) => x[rep.k]), avg = vals.reduce((a, b) => a + b, 0) / vals.length
+    const tot = rep.k === 'cho' ? avg : vals.reduce((a, b) => a + b, 0)
+    $('#rptSum').innerHTML = '<div><small>' + (rep.k === 'cho' ? 'Trung bình kỳ' : 'Tổng kỳ') + '</small><b>' + (rep.k === 'luot' ? nf.format(Math.round(tot)) : rep.fmt(tot)) + '</b></div><div><small>Trung bình ngày</small><b>' + rep.fmt(avg) + '</b></div><div><small>Cao nhất</small><b>' + rep.fmt(Math.max(...vals)) + '</b></div>'
+    const next = resample(vals), max = niceCeil(Math.max(...vals, rep.target || 0) * 1.08)
+    if (CH.tw) CH.tw.kill()
+    if (!CH.cur || !anim || RM) { CH.cur = next; CH.max = max; drawArea(next, max) }
+    else {
+      const from = CH.cur.slice(), fm = CH.max, o = { p: 0 }
+      CH.tw = G.to(o, { p: 1, duration: 0.75, ease: 'expo.inOut', onUpdate: () => { CH.cur = from.map((v, j) => v + (next[j] - v) * o.p); CH.max = fm + (max - fm) * o.p; drawArea(CH.cur, CH.max) } })
+    }
+    $('#rChart').setAttribute('aria-label', rep.n + ', ' + RP.range + ' ngày: trung bình ' + rep.fmt(avg) + ' mỗi ngày. Dùng phím mũi tên để xem từng ngày.')
+  }
+  // room waits
+  const rr = mulberry(RP.range * 3 + 1)
+  const waits = ROOMS.map((rm, i) => [rm, [17.5, 14.2, 12.8, 24.6, 19.4][i] * (0.92 + rr() * 0.16)])
+  const wmax = 32
+  if (!$('#roomBars').children.length) $('#roomBars').innerHTML = waits.map(([rm]) => '<div class="hb"><span><code>P.' + rm.id + '</code>' + rm.name + '</span><span class="bar"><i></i><span class="tgt" style="left:' + (20 / wmax) * 100 + '%"></span></span><em></em></div>').join('')
+  $$('#roomBars .hb').forEach((row, i) => { const w = waits[i][1]; row.querySelector('em').textContent = dec(w) + ' ph'; const b = row.querySelector('.bar i'); b.style.setProperty('--c', w > 20 ? 'var(--amber)' : 'var(--accent)'); G.to(b, { scaleX: w / wmax, duration: anim && !RM ? 0.7 : 0, ease: 'expo.out', overwrite: true }) })
+  // KPIs
+  const k = [
+    ['Tổng lượt khám', nf.format(sum(d, 'luot')), sum(d, 'luot') / sum(prev, 'luot') - 1, false],
+    ['Thời gian chờ TB', dec(sum(d, 'cho') / d.length) + ' ph', sum(d, 'cho') / sum(prev, 'cho') - 1, true],
+    ['Doanh thu', compact(sum(d, 'thu')) + ' ₫', sum(d, 'thu') / sum(prev, 'thu') - 1, false],
+    ['Tỷ lệ khám BHYT', Math.round((sum(d, 'bhyt') / d.length) * 100) + '%', sum(d, 'bhyt') / sum(prev, 'bhyt') - 1, false],
+  ]
+  $('#kpis').innerHTML = k.map(([l, v, dlt, inv]) => { const good = inv ? dlt <= 0 : dlt >= 0; return '<div><small>' + l + '</small><b>' + v + '</b><span class="delta' + (good ? '' : ' down') + '">' + (dlt >= 0 ? '▲ ' : '▼ ') + dec(Math.abs(dlt * 100)) + '%</span></div>' }).join('')
+  const bh = sum(d, 'bhyt') / d.length, ks = 0.07
+  const seg = [['Bảo hiểm y tế', bh, 'var(--accent)'], ['Khám dịch vụ', 1 - bh - ks, 'var(--blue)'], ['Sức khỏe định kỳ', ks, 'var(--amber)']]
+  const C = 2 * Math.PI * 42
+  let off = 0
+  $('#donut').innerHTML = '<svg viewBox="0 0 112 112" role="img" aria-label="Tỷ lệ đối tượng khám"><circle cx="56" cy="56" r="42" style="stroke:var(--pane-3)"/>' + seg.map(([, v, c]) => { const s = '<circle cx="56" cy="56" r="42" style="stroke:' + c + '" stroke-dasharray="' + (v * C - 2).toFixed(1) + ' ' + C.toFixed(1) + '" stroke-dashoffset="' + (-off * C).toFixed(1) + '"/>'; off += v; return s }).join('') + '</svg><ul>' + seg.map(([l, v, c]) => '<li><span><i style="--c:' + c + '"></i>' + l + '</span><em>' + Math.round(v * 100) + '%</em></li>').join('') + '</ul>'
+}
+let rIdx = -1
+function rHover(i) {
+  const tip = $('#rTip'), g = $('#rHover')
+  const { rep, d } = seriesNow()
+  if (i < 0 || !CH.geo || rep.k === 'icd') { tip.classList.remove('on'); g && g.setAttribute('opacity', 0); rIdx = -1; return }
+  rIdx = i
+  const { X, Y, W } = CH.geo, n = d.length
+  const j = Math.round((i / (n - 1)) * (M - 1)), x = X(j), y = Y(CH.cur[j])
+  $('#rHair').setAttribute('x1', x); $('#rHair').setAttribute('x2', x); $('#rDot').setAttribute('cx', x); $('#rDot').setAttribute('cy', y); g.setAttribute('opacity', 1)
+  const all = d.map((z) => z[rep.k]), avg = all.reduce((a, b) => a + b, 0) / n, val = d[i][rep.k]
+  const dt = new Date(d[i].t)
+  tip.innerHTML = '<b>' + WD[dt.getDay()] + ', ' + fmtD(d[i].t) + '</b><span>' + rep.s + ' <em>' + rep.fmt(val) + '</em></span><span>So với TB kỳ <em>' + (val >= avg ? '+' : '−') + dec(Math.abs((val / avg - 1) * 100)) + '%</em></span>'
+  tip.classList.add('on')
+  const box = $('#rChart'), sc = box.clientWidth / W, tw = tip.offsetWidth
+  tip.style.transform = 'translate(' + clamp(x * sc - tw / 2, 0, box.clientWidth - tw) + 'px,' + Math.max(0, y * sc - tip.offsetHeight - 14) + 'px)'
+}
+$('#rChart').addEventListener('pointermove', (e) => { if (!CH.geo) return; const r = $('#rChart').getBoundingClientRect(), { pl, pr, W } = CH.geo, sc = r.width / W; const f = clamp(((e.clientX - r.left) / sc - pl) / (W - pl - pr), 0, 1); rHover(Math.round(f * (seriesNow().d.length - 1))) })
+$('#rChart').addEventListener('pointerleave', () => rHover(-1))
+$('#rChart').addEventListener('blur', () => rHover(-1))
+$('#rChart').addEventListener('keydown', (e) => { if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return; e.preventDefault(); const n = seriesNow().d.length; rHover(clamp((rIdx < 0 ? n : rIdx) + (e.key === 'ArrowRight' ? 1 : -1), 0, n - 1)) })
+$('#expPdf').addEventListener('click', () => toast('Đã tạo <b>' + REPORTS.find((r) => r.k === RP.k).n + '</b> (' + RP.range + ' ngày) dạng PDF', 'info'))
+$('#expXls').addEventListener('click', () => toast('Đã xuất dữ liệu ' + RP.range + ' ngày ra tệp Excel', 'info'))
+
+function redrawCharts() {
+  if (current === 'benh-an') drawBP()
+  if (current === 'bao-cao' && CH.cur && RP.k !== 'icd') drawArea(CH.cur, CH.max)
+}
+if ('ResizeObserver' in window) { let raf = 0; const ro = new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(redrawCharts) }); ro.observe($('#rChart')); ro.observe($('#bpChart')) }
+
+function emptyIll() { return '<svg class="ill" viewBox="0 0 84 64" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="14" y="10" width="56" height="44" rx="6"/><path d="M14 22h56M30 34h24M34 42h16"/></svg>' }
+
+/* ---------- view renderers ---------- */
+const RENDER = {
+  'tiep-don': () => { renderAppts(); regPreview() },
+  'hang-doi': () => renderQueue(),
+  'benh-an': () => { if (!recPid) recPid = rows()[0]?.id; renderTable(); renderRecord() },
+  'ke-don': () => { if (!rxVid) rxVid = VISITS[0].vid; renderVList(); renderRx() },
+  'bao-cao': () => renderReport(false),
+}
+
+/* ---------- command palette ---------- */
+const palette = $('#palette'), palBack = $('#palBack'), palInput = $('#palInput'), palList = $('#palList')
+let palOpen = false, palIdx = 0, palItems = [], palReturn = null
+function commands() {
+  const v = rxV()
+  return [
+    ...Object.entries(VIEWS).map(([k, x]) => ({ g: 'Điều hướng', l: 'Đi tới ' + x.l, sub: x.d, i: x.i, run: () => go(k) })),
+    ...ROOMS.map((r) => ({ g: 'Lệnh', l: 'Gọi số tiếp theo · P.' + r.id + ' ' + r.name, sub: Q.rooms[r.id].wait.length + ' chờ', i: 'i-call', run: () => { go('hang-doi'); callNext(r.id) } })),
+    { g: 'Lệnh', l: 'Tiếp nhận bệnh nhân mới', i: 'i-plus', run: () => { go('tiep-don'); setTimeout(() => RF.name.focus(), 50) } },
+    { g: 'Lệnh', l: 'Phân tự động bệnh nhân chờ phân phòng', i: 'i-queue', run: () => { go('hang-doi'); $('#autoAll').click() } },
+    { g: 'Lệnh', l: 'Đổi sang giao diện ' + (root.dataset.theme === 'dark' ? 'sáng' : 'tối'), i: root.dataset.theme === 'dark' ? 'i-sun' : 'i-moon', run: toggleTheme },
+    ...[7, 30, 90].map((n) => ({ g: 'Lệnh', l: 'Xem báo cáo ' + n + ' ngày', i: 'i-chart', run: () => { RP.range = n; $$('#rangeSeg button').forEach((x) => x.setAttribute('aria-pressed', +x.dataset.range === n)); current === 'bao-cao' ? renderReport(true) : go('bao-cao') } })),
+    ...PATIENTS.filter((p) => !p.archived).map((p) => ({ g: 'Bệnh nhân', l: p.name, sub: p.id + ' · ' + p.age + ' tuổi', i: 'i-user', key: p.phone, run: () => openRecord(p.id) })),
+    ...DRUGS.map((d) => ({ g: 'Thuốc', l: 'Thêm ' + d.n + ' ' + d.s, sub: 'vào đơn của ' + short(pat(v ? v.pid : VISITS[0].pid).name), subOnly: true, i: 'i-pill', run: () => { if (current !== 'ke-don') go('ke-don'); addDrug(d.id) } })),
+  ]
+}
+function hl(label, q) {
+  if (!q) return esc(label)
+  const n = norm(label), i = n.indexOf(q)
+  if (i < 0) return esc(label)
+  return esc(label.slice(0, i)) + '<mark>' + esc(label.slice(i, i + q.length)) + '</mark>' + esc(label.slice(i + q.length))
+}
+function renderPal() {
+  const q = norm(palInput.value.trim()), all = commands()
+  palItems = (q ? all.filter((c) => norm(c.l + ' ' + (c.subOnly ? '' : c.sub || '') + ' ' + (c.key || '')).includes(q)) : all.filter((c) => c.g === 'Điều hướng' || c.g === 'Lệnh').slice(0, 11).concat(all.filter((c) => c.g === 'Bệnh nhân').slice(0, 3))).slice(0, 40)
+  palIdx = clamp(palIdx, 0, Math.max(0, palItems.length - 1))
+  if (!palItems.length) { palList.innerHTML = '<li class="pal-empty" role="presentation">Không tìm thấy kết quả cho “' + esc(palInput.value) + '”</li>'; palInput.removeAttribute('aria-activedescendant'); return }
+  let g = '', h = ''
+  palItems.forEach((c, i) => {
+    if (c.g !== g) { g = c.g; h += '<li class="pal-g" role="presentation">' + g + '</li>' }
+    h += '<li class="pal-o" role="option" id="po-' + i + '" data-i="' + i + '" aria-selected="' + (i === palIdx) + '">' + ico(c.i) + '<span>' + hl(c.l, q) + '</span>' + (c.sub ? '<small>' + esc(c.sub) + '</small>' : '') + '</li>'
+  })
+  palList.innerHTML = h
+  palInput.setAttribute('aria-activedescendant', 'po-' + palIdx)
+}
+function setPalIdx(i) {
+  if (!palItems.length) return
+  palIdx = clamp(i, 0, palItems.length - 1)
+  $$('.pal-o', palList).forEach((o) => o.setAttribute('aria-selected', +o.dataset.i === palIdx))
+  palInput.setAttribute('aria-activedescendant', 'po-' + palIdx)
+  $('#po-' + palIdx)?.scrollIntoView({ block: 'nearest' })
+}
+function openPal() {
+  if (palOpen) return
+  closeAll(); setNav(false)
+  palOpen = true; palReturn = document.activeElement
+  palInput.value = ''; palIdx = 0; renderPal()
+  app.inert = true
+  palette.classList.add('open'); palBack.classList.add('open')
+  if (!RM) G.from(palette, { y: -10, scale: 0.98, duration: 0.3, ease: 'expo.out', clearProps: 'transform' })
+  setTimeout(() => palInput.focus(), 20)
+}
+function closePal(run) {
+  if (!palOpen) return
+  palOpen = false
+  app.inert = false
+  palette.classList.remove('open'); palBack.classList.remove('open')
+  if (run) setTimeout(run, 60)
+  else palReturn?.focus?.({ preventScroll: true })
+}
+palInput.addEventListener('input', () => { palIdx = 0; renderPal() })
+palInput.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); setPalIdx(palIdx + 1) }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); setPalIdx(palIdx - 1) }
+  else if (e.key === 'Enter') { e.preventDefault(); const c = palItems[palIdx]; if (c) closePal(c.run) }
+})
+palList.addEventListener('pointermove', (e) => { const o = e.target.closest('.pal-o'); if (o && +o.dataset.i !== palIdx) setPalIdx(+o.dataset.i) })
+palList.addEventListener('click', (e) => { const o = e.target.closest('.pal-o'); if (o) closePal(palItems[+o.dataset.i].run) })
+palBack.addEventListener('click', () => closePal())
+palette.addEventListener('keydown', (e) => { if (e.key === 'Tab') { e.preventDefault(); palInput.focus() } })
+$('#searchBtn').addEventListener('click', openPal)
+
+function closeAll() { hidePop(false); if (comboOpen()) setCombo(false) }
+
+/* ---------- global keys ---------- */
+addEventListener('keydown', (e) => {
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palOpen ? closePal() : openPal(); return }
+  if (e.key === '/' && !typing && !palOpen) { e.preventDefault(); openPal(); return }
+  if (e.key === 'Escape') {
+    if (drag && drag.on) { endDrag(e, true); return }
+    if (palOpen) closePal()
+    else if (openPop) hidePop()
+    else if (comboOpen()) setCombo(false)
+    else if (mnav.classList.contains('open')) setNav(false)
+  }
+})
+
+/* ---------- boot ---------- */
+tickClock()
+updateCounts()
+regPreview()
+const initial = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'hang-doi'
+go(initial, { first: true })
+requestAnimationFrame(() => moveTabLine(true))
+if (document.fonts) document.fonts.ready.then(() => moveTabLine(true))
+if (!RM) {
+  G.from('.top > *:not(.menu-btn)', { y: -8, opacity: 0, duration: 0.5, stagger: 0.04, ease: 'expo.out', clearProps: 'transform,opacity' })
+  G.from('.view.active .pane', { y: 12, opacity: 0, duration: 0.6, stagger: 0.08, delay: 0.1, ease: 'expo.out', clearProps: 'transform,opacity' })
+}
+if (!STATIC) {
+  setInterval(tick, 1000)
+  setInterval(newArrival, 45000)
+}
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

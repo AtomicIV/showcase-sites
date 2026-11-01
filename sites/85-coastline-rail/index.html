@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coastline Rail — 612 km biển xanh bên khung cửa trái</title>
+<meta name="description" content="Coastline Rail vận hành tàu cao tốc dọc 612 km bờ biển, từ Port Avalon đến Northcape. Lên kế hoạch hành trình trên bảng điện tử trực tiếp, chọn chuyến tàu và đặt chỗ ngồi.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23E30613'/%3E%3Cpath d='M12 44h16l10-10h14' fill='none' stroke='%23fff' stroke-width='7' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#FFFFFF; --paper:#F3F3F0; --ink:#111111; --grey:#5F5F5C; --soft:#C9C9C4; --red:#E30613; --redD:#B8050F; --sea:#DCE5E9; --seaD:#B9CBD3; --board:#151515; --flap:#232323; --amber:#FFC23D; --line:rgba(17,17,17,.14);
+  --sans:"Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; --mono:"IBM Plex Mono", ui-monospace, monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--white);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--red);color:#fff;padding:10px 16px;z-index:400}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1320px,100% - 64px);margin-inline:auto}
+h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.035em;line-height:1.08}
+h2{font-size:clamp(46px,6.4vw,104px)}
+p{margin:0}
+.lbl{font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:none}
+.idx{display:flex;align-items:baseline;gap:14px;font-size:14px;font-weight:700}
+.idx b{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;background:var(--red);color:#fff;font-size:14px}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+.rule{border-top:2px solid var(--ink)}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:space-between;gap:28px;min-height:56px;padding:0 20px;border:0;background:var(--red);color:#fff;font-weight:700;font-size:17px;text-decoration:none;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .5s var(--ease),background .25s}
+.btn svg{width:20px;height:20px;transition:transform .35s var(--ease)}
+.btn:hover{background:var(--redD)}
+.btn:hover svg{transform:translateX(4px)}
+.btn.dark{background:var(--ink)}
+.btn.dark:hover{background:#333}
+.btn.line{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+.btn.line:hover{background:var(--ink);color:#fff}
+.btn.sm{min-height:44px;font-size:15px;gap:16px;padding:0 16px}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:90;background:var(--white);border-bottom:2px solid var(--ink)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:20px}
+.logo{display:inline-flex;align-items:center;gap:12px;min-height:44px;text-decoration:none;font-weight:800;font-size:20px;letter-spacing:-.03em}
+.logo i{display:block;width:34px;height:34px;background:var(--red);position:relative}
+.logo i::after{content:"";position:absolute;left:7px;right:7px;top:15px;height:5px;background:#fff;box-shadow:0 -7px 0 0 transparent}
+.nav ul{display:flex;list-style:none;margin:0;padding:0;height:68px}
+.nav ul a{display:flex;align-items:center;height:100%;padding:0 18px;text-decoration:none;font-weight:600;font-size:15px;border-left:1px solid var(--line);transition:background .2s,color .2s}
+.nav ul li:last-child a{border-right:1px solid var(--line)}
+.nav ul a:hover{background:var(--ink);color:#fff}
+.nav .clockmini{font-family:var(--mono);font-weight:600;font-size:15px;min-width:5ch}
+.nav-r{display:flex;align-items:center;gap:16px}
+.menu-btn{display:none;width:48px;height:48px;border:2px solid var(--ink);background:var(--white);cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--ink);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:0;right:0;top:70px;z-index:89;background:var(--white);border-bottom:2px solid var(--ink);display:grid;opacity:0;visibility:hidden;transform:translateY(-8px);transition:opacity .3s,visibility .3s,transform .4s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;justify-content:space-between;min-height:60px;padding:0 16px;text-decoration:none;font-weight:800;font-size:28px;letter-spacing:-.03em;border-top:1px solid var(--line)}
+.mmenu a span{display:inline-grid;place-items:center;min-width:28px;height:28px;background:var(--red);color:#fff;font-size:13px}
+
+/* hero */
+.hero{padding:108px 0 0;min-height:100vh;min-height:100svh;display:flex;flex-direction:column}
+.hgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:0 24px;flex:1;align-content:space-between;padding-bottom:28px}
+.hgrid .top{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:2px solid var(--ink);font-weight:700;font-size:15px}
+.hgrid .top span:nth-child(2){color:var(--grey);font-weight:500}
+.hero h1{grid-column:1/9;font-size:clamp(76px,11.6vw,196px);line-height:1.06;letter-spacing:-.06em;margin-top:30px}
+.hero h1 .r{color:var(--red)}
+.clockbox{grid-column:9/13;align-self:start;margin-top:30px;justify-self:end;width:min(100%,330px)}
+.clockbox svg{width:100%;height:auto}
+.clockbox p{display:flex;justify-content:space-between;margin-top:10px;font-weight:700;font-size:14px}
+.clockbox p span:last-child{font-family:var(--mono);font-weight:600}
+.hcols{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin-top:40px}
+.hcol{border-top:6px solid var(--ink);padding-top:12px}
+.hcol.red{border-color:var(--red)}
+.hcol b{display:block;font-weight:800;font-size:clamp(30px,3vw,46px);letter-spacing:-.04em;line-height:1}
+.hcol span{display:block;font-size:15px;color:var(--grey);margin-top:6px}
+.hero .cta{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.ticker{background:var(--ink);color:#fff;overflow:hidden;white-space:nowrap}
+.ticker div{display:inline-flex;gap:0;animation:tk 50s linear infinite;padding:14px 0}
+.ticker span{font-family:var(--mono);font-weight:600;font-size:14px;padding:0 26px;border-right:1px solid #444}
+.ticker span b{color:var(--amber);font-weight:600}
+@keyframes tk{to{transform:translateX(-50%)}}
+
+/* the line (pinned) */
+.theline{position:relative;background:var(--paper);border-bottom:2px solid var(--ink)}
+.ln-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:30px;align-items:center;width:min(1320px,100% - 64px);margin-inline:auto;padding-top:68px}
+.ln-info h2{font-size:clamp(40px,4.6vw,74px);margin:14px 0 30px}
+.stops{position:relative;height:230px;border-top:2px solid var(--ink)}
+.stop{position:absolute;inset:0;padding-top:16px}
+.stop .km{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--red)}
+.stop h3{font-size:clamp(36px,3.6vw,56px);margin:6px 0 12px}
+.stop p{color:var(--grey);max-width:36ch}
+.speed{display:flex;gap:28px;margin-top:10px;padding-top:14px;border-top:1px solid var(--line)}
+.speed div{font-size:13px;font-weight:700;color:var(--grey)}
+.speed b{display:block;font-family:var(--mono);font-weight:600;font-size:32px;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.mapwrap{position:relative;height:min(78vh,700px)}
+.mapwrap svg{width:100%;height:100%}
+.map .sn{font-family:var(--sans);font-weight:700;font-size:17px;fill:var(--ink)}
+.map .sk{font-family:var(--mono);font-size:12px;fill:var(--grey)}
+.map .sea-l{font-family:var(--sans);font-weight:500;font-style:italic;font-size:22px;fill:#7A939E;letter-spacing:.3em}
+
+/* planner */
+.plan{padding:120px 0 110px}
+.ph{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:50px;align-items:end;margin-bottom:46px}
+.ph p{color:var(--grey);max-width:46ch;font-size:18px}
+.pgrid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:0;border:2px solid var(--ink)}
+.form{padding:22px;border-right:2px solid var(--ink);display:flex;flex-direction:column;gap:16px;background:var(--white)}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld label,.fld .lb{font-size:13px;font-weight:700}
+.fld select{min-height:52px;padding:0 12px;border:2px solid var(--ink);border-radius:0;background:var(--white);font-weight:600;font-size:17px;cursor:pointer}
+.fld select:focus{outline:3px solid var(--red);outline-offset:0}
+.swap{align-self:flex-start;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 12px;border:0;background:var(--paper);font-weight:700;font-size:14px;cursor:pointer;margin:-6px 0}
+.swap svg{width:18px;height:18px;transition:transform .45s var(--ease)}
+.swap:hover svg{transform:rotate(180deg)}
+.days{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.days button{min-height:52px;border:2px solid var(--ink);background:var(--white);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;font-weight:700;font-size:15px;padding:2px}
+.days button small{font-size:11px;font-weight:600;color:var(--grey)}
+.days button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.days button[aria-pressed="true"] small{color:var(--soft)}
+.note{font-size:14px;color:var(--grey);margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+.boardbox{background:var(--board);color:#fff;padding:20px 22px 18px;min-width:0;overflow-x:auto}
+.bhead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.bhead h3{font-size:26px;letter-spacing:-.02em;color:#fff}
+.bhead h3 span{color:var(--amber)}
+.bhead p{font-family:var(--mono);font-size:14px;color:#AFAFAA}
+.cols,.brow{display:grid;grid-template-columns:var(--gc);gap:0 14px;align-items:center}
+.board{--gc:auto auto auto auto auto auto}
+.cols{font-family:var(--sans);font-size:12px;font-weight:700;color:#9A9A95;padding:0 8px 6px;border-bottom:1px solid #333}
+.brow{width:100%;padding:7px 8px;border:0;border-bottom:1px solid #2A2A2A;background:transparent;color:#fff;cursor:pointer;text-align:left;transition:background .2s}
+.brow:hover{background:#1F1F1F}
+.brow[aria-pressed="true"]{background:#2A1416;box-shadow:inset 4px 0 0 var(--red)}
+.brow:disabled{cursor:default;background:transparent}
+.f{display:flex;gap:2px}
+.cell{position:relative;display:inline-grid;place-items:center;width:20px;height:30px;background:linear-gradient(180deg,#2B2B2B 0 49%,#1C1C1C 51% 100%);border-radius:2px;font-family:var(--mono);font-weight:600;font-size:18px;color:#F4F4F0;overflow:hidden}
+.cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#0A0A0A}
+.cell i{font-style:normal;display:block;transform-origin:50% 50%}
+.c-st .cell{color:var(--amber)}
+.c-tm .cell{color:#fff}
+.bmsg{min-height:24px;margin-top:12px;font-family:var(--mono);font-size:14px;color:var(--amber)}
+.detail{grid-column:1/-1;border-top:2px solid var(--ink);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:0}
+.trip{padding:22px;border-right:2px solid var(--ink);min-width:0}
+.trip h3{font-size:clamp(26px,2.4vw,36px)}
+.trip .meta{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:10px;font-weight:600;font-size:15px}
+.trip .meta span{color:var(--grey);font-weight:500}
+.tmap{margin-top:12px}
+.tmap svg{width:100%;height:auto}
+.legs{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 0}
+.legs li{display:flex;align-items:center;gap:8px;font-size:14px;padding-right:16px}
+.legs li b{font-family:var(--mono);font-weight:600}
+.legs li i{width:9px;height:9px;border:2px solid var(--ink);border-radius:50%}
+.legs li.end i{background:var(--red);border-color:var(--red)}
+.seats{padding:22px;min-width:0}
+.seats .top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.cls{display:inline-flex;border:2px solid var(--ink)}
+.cls button{min-height:44px;padding:0 16px;border:0;background:var(--white);cursor:pointer;font-weight:700;font-size:15px}
+.cls button+button{border-left:2px solid var(--ink)}
+.cls button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.coach{padding:14px 16px;border:2px solid var(--ink);border-radius:40px 40px 40px 40px/40px 40px 40px 40px;position:relative;overflow-x:auto}
+.cn{margin:16px 0 6px;font-weight:800;font-size:13px}
+.sgrid{display:grid;gap:4px;justify-content:center;min-width:max-content}
+.seat{width:24px;height:26px;border:0;border-radius:5px 5px 3px 3px;background:var(--seaD);cursor:pointer;padding:0;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--ink);transition:transform .15s,background .15s}
+.seat:hover{transform:translateY(-2px);background:#9DB6C1}
+.seat[aria-disabled="true"]{background:#D9D9D5;cursor:not-allowed;color:transparent;background-image:linear-gradient(45deg,transparent 45%,#AAA 46% 54%,transparent 55%)}
+.seat[aria-disabled="true"]:hover{transform:none}
+.seat[aria-pressed="true"]{background:var(--red);color:#fff}
+.aisle{height:12px}
+.skey{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:13px;color:var(--grey)}
+.skey span{display:inline-flex;align-items:center;gap:6px}
+.skey i{width:14px;height:14px;border-radius:3px;display:block}
+.sum{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.sum p{font-weight:600}
+.sum p span{display:block;font-weight:500;color:var(--grey);font-size:14px}
+.sum .price{font-weight:800;font-size:40px;letter-spacing:-.04em;text-align:right;line-height:1}
+.sum .btn{grid-column:1/-1;justify-self:start}
+.held{min-height:24px;font-weight:700;color:var(--redD);margin-top:10px}
+
+/* fares */
+.fares{padding:110px 0;background:var(--ink);color:#fff}
+.fares .ph p{color:#BDBDB8}
+.fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:2px solid #fff}
+.fare{padding:26px 24px 30px;border-right:1px solid #444;display:flex;flex-direction:column;gap:14px;transition:background .3s}
+.fare:last-child{border-right:0}
+.fare:hover{background:#1C1C1C}
+.fare .from{font-size:14px;font-weight:700;color:#BDBDB8}
+.fare b{font-weight:800;font-size:clamp(70px,7vw,120px);letter-spacing:-.06em;line-height:.85}
+.fare b sup{font-size:.36em;vertical-align:top;margin-right:4px;letter-spacing:0}
+.fare h3{font-size:30px;color:#fff}
+.fare p{color:#BDBDB8;max-width:32ch}
+.fare.red{background:var(--red)}
+.fare.red .from,.fare.red p{color:#FFE3E5}
+
+/* numbers */
+.nums{padding:110px 0}
+.ngrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+.num{border-top:6px solid var(--ink);padding-top:14px}
+.num:nth-child(2){border-color:var(--red)}
+.num b{display:block;font-weight:800;font-size:clamp(56px,6.6vw,112px);letter-spacing:-.06em;line-height:.9;font-variant-numeric:tabular-nums}
+.num b small{font-size:.32em;letter-spacing:-.01em;margin-left:6px}
+.num p{color:var(--grey);margin-top:10px;max-width:26ch}
+
+/* on board */
+.board2{padding:0 0 110px}
+.pgrid2{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-top:2px solid var(--ink);border-left:1px solid var(--line)}
+.pic{padding:20px 18px 24px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);transition:background .25s,color .25s}
+.pic:hover{background:var(--ink);color:#fff}
+.pic:hover svg rect.bg{fill:var(--red)}
+.pic svg{width:64px;height:64px;margin-bottom:16px}
+.pic h3{font-size:20px;letter-spacing:-.02em;line-height:1.1}
+.pic p{font-size:15px;color:var(--grey);margin-top:6px;transition:color .25s}
+.pic:hover p{color:#CFCFCB}
+
+/* app / footer */
+.app{background:var(--red);color:#fff;padding:90px 0}
+.app .wrap{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:50px;align-items:end}
+.app h2{color:#fff}
+.app form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0;border:2px solid #fff}
+.app input{min-height:58px;padding:0 16px;border:0;background:transparent;color:#fff;font-size:17px;border-radius:0}
+.app input::placeholder{color:#FFD1D4}
+.app input:focus{outline:none;background:rgba(255,255,255,.1)}
+.app .btn{background:#fff;color:var(--ink);border-radius:0}
+.app .btn:hover{background:var(--ink);color:#fff}
+.app .ok{grid-column:1/-1;min-height:24px;font-weight:700;margin-top:10px}
+.app label{font-size:14px;font-weight:700;display:block;margin-bottom:8px}
+footer{padding:50px 0 34px;border-top:2px solid var(--ink)}
+.fgrid2{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px}
+.fgrid2 .b{grid-column:1/5;font-weight:800;font-size:34px;letter-spacing:-.04em;line-height:1}
+.fgrid2 ul{grid-column:span 2;list-style:none;margin:0;padding:0}
+.fgrid2 h4{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--grey)}
+.fgrid2 a{display:inline-flex;align-items:center;min-height:36px;text-decoration:none;font-weight:600}
+.fgrid2 a:hover{color:var(--red)}
+.fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;color:var(--grey)}
+
+.rm .ln-pin{height:auto;padding:110px 0 80px;align-items:start}
+.rm .mapwrap{position:sticky;top:90px}
+.rm .stops{height:auto;display:grid;gap:0}
+.rm .stop{position:static;padding:14px 0;border-bottom:1px solid var(--line)}
+.rm .stop h3{font-size:30px}
+@media (prefers-reduced-motion:reduce){.ticker div{animation:none}}
+
+@media (max-width:1280px){
+  .pgrid{grid-template-columns:1fr}
+  .form{border-right:0;border-bottom:2px solid var(--ink);display:grid;grid-template-columns:1fr 1fr;align-items:end}
+  .form .swap{grid-column:1/-1}
+  .form .fld.d{grid-column:1/-1}
+  .form .note{grid-column:1/-1}
+}
+@media (max-width:900px){
+  .board{--gc:auto auto auto auto auto}
+  .c-st{display:none!important}
+}
+@media (max-width:1100px){
+  .detail{grid-template-columns:1fr}
+  .trip{border-right:0;border-bottom:2px solid var(--ink)}
+  .pgrid2{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .menu-btn{display:inline-flex}
+  .hero h1{grid-column:1/-1}
+  .clockbox{grid-column:1/-1;justify-self:start;width:220px;margin-top:20px}
+  .hcols{grid-template-columns:1fr 1fr}
+  .ph,.app .wrap{grid-template-columns:1fr;gap:24px}
+  .ln-pin{grid-template-columns:1fr;grid-template-rows:auto auto;gap:6px;align-content:center}
+  .mapwrap{order:-1;height:40vh}
+  .fgrid{grid-template-columns:1fr}
+  .fare{border-right:0;border-bottom:1px solid #444}
+  .ngrid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:760px){
+  .wrap,.ln-pin{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav .clockmini{display:none}
+  .hero{padding-top:84px}
+  .hgrid .top span:nth-child(2){display:none}
+  .hero h1{font-size:clamp(54px,16.4vw,80px);margin-top:20px}
+  .clockbox{position:absolute;right:16px;top:146px;width:96px;margin:0}
+  .clockbox p{display:none}
+  .hgrid{position:relative}
+  .hcols{gap:16px;margin-top:28px}
+  .hcol b{font-size:28px}
+  .ln-pin{padding-top:66px}
+  .mapwrap{height:34vh}
+  .ln-info h2{font-size:32px;margin:6px 0 12px}
+  .theline .idx{display:none}
+  .stops{height:170px}
+  .stop h3{font-size:34px;margin:4px 0 6px}
+  .stop p{font-size:15px;line-height:1.45}
+  .speed{gap:18px}
+  .speed b{font-size:24px}
+  .plan,.fares,.nums{padding:90px 0}
+  .form{grid-template-columns:1fr;padding:16px}
+  .boardbox{padding:14px 10px}
+  .board{--gc:auto auto auto auto}
+  .c-to,.c-st{display:none!important}
+  .cell{width:15px;height:24px;font-size:14px}
+  .cols,.brow{gap:0 8px;padding-left:4px;padding-right:4px}
+  .trip,.seats{padding:16px}
+  .seat{width:20px;height:22px;font-size:9px}
+  .coach{padding:12px 8px;border-radius:24px}
+  .sum .price{font-size:32px}
+  .ngrid{grid-template-columns:1fr}
+  .pgrid2{grid-template-columns:1fr 1fr}
+  .board2{padding-bottom:90px}
+  .app{padding:70px 0}
+  .app form{grid-template-columns:1fr}
+  .fgrid2{grid-template-columns:1fr 1fr}
+  .fgrid2 .b{grid-column:1/-1}
+  .fgrid2 ul{grid-column:span 1}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Coastline Rail, trang chủ"><i aria-hidden="true"></i>Coastline Rail</a>
+    <nav aria-label="Điều hướng chính"><ul><li><a href="#plan">Tra cứu chuyến</a></li><li><a href="#line">Tuyến đường</a></li><li><a href="#fares">Giá vé</a></li><li><a href="#onboard">Tiện ích trên tàu</a></li></ul></nav>
+    <div class="nav-r"><span class="clockmini" id="clockMini" aria-hidden="true">--:--</span><button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button></div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#plan">Tra cứu chuyến <span>1</span></a><a href="#line">Tuyến đường <span>2</span></a><a href="#fares">Giá vé <span>3</span></a><a href="#onboard">Tiện ích trên tàu <span>4</span></a>
+</div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="wrap hgrid">
+    <p class="top hf"><span>Port Avalon — Northcape</span><span>Tàu cao tốc, mỗi 30 phút, từ 05:10 đến 21:55</span></p>
+    <h1 id="hero-h"><span class="mask"><span>Coastline</span></span><span class="mask"><span class="r">Rail</span></span></h1>
+    <div class="clockbox hf" aria-hidden="true"><svg id="clockSvg" viewBox="0 0 200 200"></svg><p><span>Port Avalon</span><span id="clockTxt">--:--:--</span></p></div>
+    <div class="hcols">
+      <div class="hcol red hf"><b>612 km</b><span>đường bờ biển, biển xanh bên trái hướng bắc</span></div>
+      <div class="hcol hf"><b>300 km/h</b><span>tốc độ tối đa giữa Larkhaven và Old Harbour</span></div>
+      <div class="hcol hf"><b id="heroFast">2 giờ 24</b><span>Port Avalon đi Northcape trên tàu Coast Express</span></div>
+      <div class="hcol hf"><b>10</b><span>nhà ga, tất cả đều nằm sát mặt nước</span></div>
+    </div>
+    <div class="cta hf"><a class="btn mag" href="#plan">Tra cứu hành trình <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a><a class="btn line mag" href="#line">Xem tuyến đường <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a></div>
+  </div>
+  <div class="ticker" aria-hidden="true"><div id="ticker"></div></div>
+</section>
+
+<section class="plan" id="plan" aria-labelledby="plan-h">
+  <div class="wrap">
+    <div class="ph"><div><p class="idx"><b>1</b>Tra cứu hành trình</p><h2 id="plan-h" class="split" style="margin-top:18px">Đi đâu,<br>và khi nào?</h2></div><p class="rv">Chọn hai nhà ga và ngày khởi hành. Bảng điện tử hiển thị sáu chuyến tàu tiếp theo dừng ở cả hai ga, kèm đường ray và trạng thái trực tiếp; chọn một chuyến để xem toàn bộ ga dừng và đặt ghế.</p></div>
+    <div class="pgrid">
+      <div class="form">
+        <div class="fld"><label for="from">Ga đi</label><select id="from"></select></div>
+        <button class="swap" type="button" id="swapBtn" aria-label="Đổi chiều ga đi và ga đến"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M7 4v16M7 20l-4-4M7 20l4-4M17 20V4M17 4l-4 4M17 4l4 4"/></svg>Đổi chiều</button>
+        <div class="fld"><label for="to">Ga đến</label><select id="to"></select></div>
+        <div class="fld d"><span class="lb" id="dayLbl">Ngày đi</span><div class="days" id="days" role="group" aria-labelledby="dayLbl"></div></div>
+        <div class="fld"><label for="after">Khởi hành sau</label><select id="after"></select></div>
+        <p class="note">Giờ tàu mang tính minh họa dựa trên mô hình lịch trình; trang này không thực hiện đặt vé hay thu phí thực tế.</p>
+      </div>
+      <div class="boardbox">
+        <div class="bhead"><h3 id="bTitle">Chuyến khởi hành</h3><p id="bSub"></p></div>
+        <div class="board" id="board">
+          <div class="cols" aria-hidden="true"><span class="c-tm">Giờ đi</span><span class="c-tr">Chuyến</span><span class="c-to">Ga cuối</span><span class="c-pl">Đ.ray</span><span class="c-ar">Giờ đến</span><span class="c-st">Trạng thái</span></div>
+          <div id="rows" role="group" aria-label="Danh sách chuyến tàu"></div>
+        </div>
+        <p class="bmsg" id="bMsg" aria-live="polite"></p>
+      </div>
+      <div class="detail" id="detail">
+        <div class="trip">
+          <p class="lbl" style="color:var(--red)">Chuyến tàu của bạn</p>
+          <h3 id="tTitle">—</h3>
+          <p class="meta" id="tMeta"></p>
+          <div class="tmap"><svg id="tmapSvg" viewBox="-10 10 990 620" aria-hidden="true"></svg></div>
+          <ul class="legs" id="legs"></ul>
+        </div>
+        <div class="seats">
+          <div class="top"><p class="lbl">Chọn chỗ ngồi</p><div class="cls" role="group" aria-label="Hạng ghế"><button type="button" data-c="std" aria-pressed="true">Tiêu chuẩn</button><button type="button" data-c="first" aria-pressed="false">Hạng nhất</button></div></div>
+          <p class="cn" id="coachName">Toa C · Tiêu chuẩn</p><div class="coach"><div class="sgrid" id="sgrid" role="grid" aria-label="Sơ đồ ghế trong toa này"></div></div>
+          <div class="skey" aria-hidden="true"><span><i style="background:#B9CBD3"></i>Còn trống</span><span><i style="background:#D9D9D5"></i>Đã đặt</span><span><i style="background:#E30613"></i>Ghế bạn chọn</span><span>Dùng phím mũi tên để di chuyển giữa các ghế</span></div>
+          <div class="sum"><p id="sumTxt">Chưa chọn ghế<span>Không bắt buộc chọn trước; vé hợp lệ cho mọi ghế trống trong cùng hạng.</span></p><p class="price" id="price">€0</p><button class="btn dark sm" type="button" id="holdBtn">Giữ chỗ chuyến này <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></button></div>
+          <p class="held" id="held" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="theline" id="line" aria-labelledby="line-h">
+  <div class="ln-pin" id="lnPin">
+    <div class="ln-info">
+      <p class="idx"><b>2</b>Tuyến đường</p>
+      <h2 id="line-h">612 km,<br>ghế cạnh cửa sổ</h2>
+      <div class="stops" id="stops"></div>
+      <div class="speed" aria-hidden="true"><div><b id="spKm">0</b>km từ Port Avalon</div><div><b id="spV">0</b>km/h</div></div>
+    </div>
+    <div class="mapwrap" aria-hidden="true"><svg class="map" id="mapSvg" viewBox="0 0 1000 620"></svg></div>
+  </div>
+</section>
+
+<section class="fares" id="fares" aria-labelledby="fares-h">
+  <div class="wrap">
+    <div class="ph"><div><p class="idx"><b>3</b>Giá vé</p><h2 id="fares-h" class="split" style="margin-top:18px;color:#fff">Ba mức vé.<br>Không điều khoản ẩn.</h2></div><p class="rv">Mọi tấm vé đều bao gồm chỗ ngồi, chỗ để xe đạp nếu cần và wifi hoạt động xuyên suốt các hầm tàu. Trẻ em dưới 12 tuổi đi miễn phí cùng người lớn.</p></div>
+    <div class="fgrid">
+      <article class="fare rv"><p class="from">Từ</p><b><sup>€</sup>19</b><h3>Tiết Kiệm</h3><p>Đặt trước 14 ngày cho một chuyến tàu cố định. Đổi miễn phí một lần tối đa một ngày trước giờ khởi hành.</p></article>
+      <article class="fare rv"><p class="from">Từ</p><b><sup>€</sup>39</b><h3>Linh Hoạt</h3><p>Đi bất kỳ chuyến tàu nào trong ngày đã chọn, theo cả hai chiều. Hoàn tiền toàn bộ cho đến trước giờ tàu chạy.</p></article>
+      <article class="fare red rv"><p class="from">Mỗi tháng</p><b><sup>€</sup>149</b><h3>Thẻ Coast Pass</h3><p>Đi lại không giới hạn trên toàn tuyến, bao gồm phòng chờ Hạng Nhất. Dành cho những người đi làm mỗi ngày cùng cảnh biển.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="nums" aria-labelledby="nums-h">
+  <div class="wrap">
+    <div class="ph"><div><p class="idx"><b>4</b>Năm qua qua những con số</p><h2 id="nums-h" class="split" style="margin-top:18px">Đúng giờ chính là<br>sản phẩm.</h2></div><p class="rv">Chúng tôi công bố số liệu này mỗi tháng. Khi tàu trễ, tiền hoàn sẽ tự động chuyển về tài khoản của bạn mà không cần điền bất kỳ biểu mẫu nào.</p></div>
+    <div class="ngrid">
+      <div class="num rv"><b><span class="cnt" data-v="98.7" data-d="1">98.7</span><small>%</small></b><p>chuyến tàu đến ga trong phạm vi ba phút so với lịch trình</p></div>
+      <div class="num rv"><b><span class="cnt" data-v="11.4" data-d="1">11.4</span><small>tr</small></b><p>lượt hành khách, tăng 20% so với năm trước</p></div>
+      <div class="num rv"><b><span class="cnt" data-v="100">100</span><small>%</small></b><p>điện năng kéo tàu đến từ điện gió ngoài khơi dọc bờ biển</p></div>
+      <div class="num rv"><b><span class="cnt" data-v="64">64</span></b><p>đoàn tàu trong đội tàu, mỗi đoàn đều được vệ sinh mỗi đêm</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="board2" id="onboard" aria-labelledby="ob-h">
+  <div class="wrap">
+    <div class="ph"><div><p class="idx"><b>5</b>Tiện ích trên tàu</p><h2 id="ob-h" class="split" style="margin-top:18px">Mọi thứ bạn cần,<br>trong sự tĩnh lặng.</h2></div><p class="rv">Sáu tiện ích có mặt trên mọi chuyến tàu, mỗi ngày, theo cả hai chiều.</p></div>
+    <div class="pgrid2" id="pics"></div>
+  </div>
+</section>
+
+<section class="app" aria-labelledby="app-h">
+  <div class="wrap">
+    <h2 id="app-h" class="split">Cảnh báo trễ chuyến,<br>trước cả bảng sân ga.</h2>
+    <form id="appForm" novalidate><label for="appMail" style="grid-column:1/-1;padding:10px 16px 0">Nhận liên kết tải ứng dụng và thông báo trực tiếp cho tuyến của bạn</label><input id="appMail" type="email" autocomplete="email" placeholder="ban@example.com"><button class="btn" type="submit">Gửi <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></button><p class="ok" id="appOk" role="status" style="padding:0 16px 10px"></p></form>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid2">
+      <p class="b">Coastline<br>Rail</p>
+      <ul><li><h4>Hành trình</h4></li><li><a href="#plan">Tra cứu chuyến</a></li><li><a href="#fares">Giá vé</a></li><li><a href="#line">Tuyến đường</a></li></ul>
+      <ul><li><h4>Trên tàu</h4></li><li><a href="#onboard">Dịch vụ</a></li><li><a href="#onboard">Xe đạp</a></li><li><a href="#onboard">Lối đi không bậc</a></li></ul>
+      <ul><li><h4>Công ty</h4></li><li><a href="#top">Giới thiệu</a></li><li><a href="#top">Tuyển dụng</a></li><li><a href="#top">Báo chí</a></li></ul>
+      <ul><li><h4>Hỗ trợ</h4></li><li><a href="#plan">Trạng thái trực tiếp</a></li><li><a href="#fares">Hoàn vé</a></li><li><a href="#top">Liên hệ</a></li></ul>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Coastline Rail</span><span>Thiết kế concept — thương hiệu giả định.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+const pad = (n) => String(n).padStart(2, '0')
+const hm = (m) => { m = Math.round(m); return `${pad(Math.floor(m / 60) % 24)}:${pad(m % 60)}` }
+const dur = (m) => (m < 60 ? `${Math.round(m)} phút` : `${Math.floor(m / 60)} giờ ${pad(Math.round(m % 60))}`)
+$('#yr').textContent = new Date().getFullYear()
+
+/* ================= network ================= */
+const ST = [
+  { n: 'Port Avalon', km: 0, f: 'Ga đầu mối dưới mái vòm kính. Tàu khởi hành mỗi 30 phút từ lúc bình minh.' },
+  { n: 'Saltmere', km: 58, f: 'Ruộng muối và đàn hồng hạc phía bên trái, chỉ hai phút sau khi rời sân ga.' },
+  { n: 'Kestrel Bay', km: 121, f: 'Ga chuyển tiếp ra phà đi đảo. Bến tàu chỉ cách đường ray số 2 chín mươi giây đi bộ.' },
+  { n: 'Marrow Point', km: 176, f: 'Đường hầm Marrow dài 2,4 km: đoạn duy nhất trên toàn tuyến bạn tạm rời tầm mắt khỏi mặt biển.' },
+  { n: 'Larkhaven', km: 240, f: 'Trạm bảo dưỡng và xưởng kỹ thuật của chúng tôi. Mọi đoàn tàu trên tuyến đều được vệ sinh tại đây mỗi đêm.' },
+  { n: 'Old Harbour', km: 305, f: 'Nhà ga năm 1890 được phục dựng nguyên bản đến từng viên gạch. Quán cà phê sân ga mở cửa từ sáu giờ sáng.' },
+  { n: 'Cliffend', km: 371, f: 'Cầu cạn 21 nhịp vòm, cao 74 mét phía trên những con sóng. Hãy ngồi bên trái khi đi hướng bắc.' },
+  { n: 'Brightwater', km: 438, f: 'Bãi biển ngay trong tầm đi bộ và luôn có chỗ cho sáu chiếc xe đạp trên mỗi chuyến tàu.' },
+  { n: 'Sandhollow', km: 520, f: 'Đồi cát, ngọn hải đăng và cảnh hoàng hôn đẹp nhất toàn tuyến vào khoảng 19:40 mùa hè.' },
+  { n: 'Northcape', km: 612, f: 'Ga cuối của tuyến đường.' },
+]
+const EXP = [0, 2, 4, 5, 7, 9]
+const SPEED = { CE: 270, CL: 240 }, DWELL = 2
+function run(type, dir, dep) {
+  const order = dir === 'N' ? ST.map((_, i) => i) : ST.map((_, i) => 9 - i)
+  const stops = type === 'CE' ? EXP : ST.map((_, i) => i)
+  let t = dep, prev = null
+  const out = {}
+  for (const s of order) {
+    if (!stops.includes(s)) continue
+    if (prev != null) t += Math.abs(ST[s].km - ST[prev].km) / SPEED[type] * 60
+    out[s] = Math.round(t)
+    t += DWELL; prev = s
+  }
+  return out
+}
+const SERV = []
+for (let h = 5; h <= 21; h++) {
+  SERV.push({ type: 'CE', dir: 'N', dep: h * 60 + 10, no: 101 + (h - 5) * 2 })
+  SERV.push({ type: 'CL', dir: 'N', dep: h * 60 + 40, no: 201 + (h - 5) * 2 })
+  SERV.push({ type: 'CE', dir: 'S', dep: h * 60 + 25, no: 102 + (h - 5) * 2 })
+  SERV.push({ type: 'CL', dir: 'S', dep: h * 60 + 55, no: 202 + (h - 5) * 2 })
+}
+SERV.forEach((s) => { s.times = run(s.type, s.dir, s.dep); s.code = `${s.type} ${s.no}` })
+const fastest = run('CE', 'N', 0)[9]
+$('#heroFast').textContent = dur(fastest)
+ST[9].f = `Ga cuối toàn tuyến: cách Port Avalon ${ST[9].km} km và ${dur(fastest)} trên tàu tốc hành Coast Express.`
+
+/* ================= station clock ================= */
+{
+  let s = '<circle cx="100" cy="100" r="98" fill="#fff" stroke="#111" stroke-width="3"/>'
+  for (let i = 0; i < 60; i++) { const a = i * 6; s += i % 5 === 0 ? `<rect x="98" y="10" width="4" height="${i % 15 === 0 ? 20 : 13}" fill="#111" transform="rotate(${a} 100 100)"/>` : `<circle cx="100" cy="12" r="1.3" fill="#111" transform="rotate(${a} 100 100)"/>` }
+  s += '<path id="hH" d="M96 112L97.5 50h5L104 112z" fill="#111"/><path id="hM" d="M97 112L98.6 24h2.8L103 112z" fill="#111"/><g id="hS"><path d="M100 122V22" stroke="#E30613" stroke-width="1.6"/><rect x="95" y="30" width="10" height="10" fill="#fff" stroke="#E30613" stroke-width="2"/></g><circle cx="100" cy="100" r="4" fill="#E30613"/>'
+  $('#clockSvg').innerHTML = s
+}
+function clockAt(d) {
+  const ms = d.getSeconds() * 1000 + d.getMilliseconds(), m = d.getMinutes(), h = d.getHours() % 12
+  // the station clock sweeps the second hand in 58.5 s, then waits at the top for the minute to tick over
+  const sa = Math.min(1, ms / 58500) * 360
+  $('#hS').setAttribute('transform', `rotate(${sa.toFixed(2)} 100 100)`)
+  $('#hM').setAttribute('transform', `rotate(${m * 6} 100 100)`)
+  $('#hH').setAttribute('transform', `rotate(${(h * 30 + m * .5).toFixed(2)} 100 100)`)
+  $('#clockTxt').textContent = `${pad(d.getHours())}:${pad(m)}:${pad(d.getSeconds())}`
+  $('#clockMini').textContent = `${pad(d.getHours())}:${pad(m)}`
+}
+let heroOn = true
+if (anim) {
+  new IntersectionObserver((es) => { heroOn = es[0].isIntersecting }).observe($('#clockSvg'))
+  const loop = () => { if (heroOn && !document.hidden) clockAt(new Date()); requestAnimationFrame(loop) }
+  requestAnimationFrame(loop)
+  setInterval(() => { if (!heroOn) clockAt(new Date()) }, 10000)
+} else { clockAt(new Date()); setInterval(() => clockAt(new Date()), 1000) }
+
+/* ticker of next departures from the terminus */
+{
+  const n = new Date(), nm = n.getHours() * 60 + n.getMinutes()
+  const up = SERV.filter((s) => s.dir === 'N' && s.dep >= nm).slice(0, 5)
+  const list = (up.length ? up : SERV.filter((s) => s.dir === 'N').slice(0, 5)).map((s) => `<span>${hm(s.dep)} <b>${s.code}</b> Port Avalon → Northcape · ${s.type === 'CE' ? 'Tốc hành Coast Express' : 'dừng mọi ga'}</span>`).join('')
+  $('#ticker').innerHTML = list + list
+}
+
+/* ================= schematic map ================= */
+// 45° schematic: points of the line; station index where the line passes a station
+const PTS = [[70, 560, 0], [230, 560, 1], [310, 480], [330, 460, 2], [330, 350, 3], [400, 280], [470, 280, 4], [600, 280, 5], [680, 200], [690, 190, 6], [800, 190, 7], [880, 110, 8], [880, 40, 9]]
+const seg = []; let LEN = 0
+for (let i = 1; i < PTS.length; i++) { const l = Math.hypot(PTS[i][0] - PTS[i - 1][0], PTS[i][1] - PTS[i - 1][1]); seg.push(l); LEN += l }
+const cumL = [0]; seg.forEach((l, i) => cumL.push(cumL[i] + l))
+const stL = []; PTS.forEach((p, i) => { if (p[2] != null) stL[p[2]] = cumL[i] })
+function pointAtL(L) {
+  L = clamp(L, 0, LEN)
+  for (let i = 1; i < PTS.length; i++) if (L <= cumL[i] + 1e-6) { const t = (L - cumL[i - 1]) / seg[i - 1]; return [PTS[i - 1][0] + (PTS[i][0] - PTS[i - 1][0]) * t, PTS[i - 1][1] + (PTS[i][1] - PTS[i - 1][1]) * t] }
+  return PTS[PTS.length - 1].slice(0, 2)
+}
+const kmToL = (km) => { for (let s = 1; s < ST.length; s++) if (km <= ST[s].km) { const t = (km - ST[s - 1].km) / (ST[s].km - ST[s - 1].km); return stL[s - 1] + (stL[s] - stL[s - 1]) * t } return LEN }
+const pathTo = (L0, L1) => { const pts = [pointAtL(L0)]; for (let i = 0; i < PTS.length; i++) if (cumL[i] > L0 && cumL[i] < L1) pts.push(PTS[i]); pts.push(pointAtL(L1)); return 'M' + pts.map((p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') }
+function mapSVG(P, big) {
+  const line = 'M' + PTS.map((p) => p[0] + ' ' + p[1]).join('L')
+  const coast = 'M' + PTS.map((p) => (p[0] + 46) + ' ' + (p[1] + 46)).join('L')
+  const LAB = [[0, 'b'], [1, 'b'], [2, 'r'], [3, 'r'], [4, 't'], [5, 'b'], [6, 'l'], [7, 'b'], [8, big ? 'r' : 'l'], [9, big ? 'r' : 'l']]
+  const lab = LAB.map(([s, side]) => {
+    const [x, y] = PTS.find((p) => p[2] === s)
+    const pos = { b: [x, y + 34, 'middle'], t: [x, y - 22, 'middle'], r: [x + 22, y + 6, 'start'], l: [x - 22, y + 6, 'end'] }[side]
+    return `<g class="st" data-s="${s}"><circle cx="${x}" cy="${y}" r="${s === 0 || s === 9 ? 11 : 9}" fill="#fff" stroke="#111" stroke-width="4"/>${big ? `<text class="sn" x="${pos[0]}" y="${pos[1]}" text-anchor="${pos[2]}">${ST[s].n}</text><text class="sk" x="${pos[0]}" y="${pos[1] + 16}" text-anchor="${pos[2]}">${ST[s].km} km</text>` : `<text x="${pos[0]}" y="${pos[1]}" text-anchor="${pos[2]}" font-family="Hanken Grotesk, sans-serif" font-weight="700" font-size="22" fill="#111">${ST[s].n}</text>`}</g>`
+  }).join('')
+  return `<path d="${coast}L1040 40L1040 660L70 660Z" fill="#DCE5E9"/><path d="${coast}" fill="none" stroke="#B9CBD3" stroke-width="3"/>
+    ${big ? '<text class="sea-l" x="760" y="480">BIỂN HẸP</text>' : ''}
+    <path d="${line}" fill="none" stroke="#111" stroke-width="12" stroke-linejoin="round"/>
+    <path id="${P}done" d="M70 560" fill="none" stroke="#E30613" stroke-width="12" stroke-linejoin="round"/>
+    ${lab}
+    <g id="${P}train"><rect x="-17" y="-11" width="34" height="22" rx="11" fill="#E30613" stroke="#fff" stroke-width="3"/><rect x="2" y="-5" width="9" height="6" rx="2" fill="#fff"/></g>`
+}
+$('#mapSvg').innerHTML = mapSVG('m', true)
+$('#tmapSvg').innerHTML = mapSVG('t', false)
+
+/* ================= the line (pinned) ================= */
+$('#stops').innerHTML = ST.map((s, i) => `<article class="stop"><p class="km">${String(i + 1).padStart(2, '0')} · ${s.km} km</p><h3>${s.n}</h3><p>${s.f}</p></article>`).join('')
+const SPEEDS = (km) => { const near = Math.min(...EXP.map((s) => Math.abs(km - ST[s].km))); return Math.round(Math.min(300, 40 + near * 9)) }
+function lineAt(p) {
+  const km = p * 612, L = kmToL(km), [x, y] = pointAtL(L)
+  $('#mtrain').setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`)
+  $('#mdone').setAttribute('d', pathTo(0, L))
+  $$('#mapSvg .st').forEach((g) => { const s = +g.dataset.s; g.querySelector('circle').setAttribute('fill', ST[s].km <= km + .5 ? '#E30613' : '#fff') })
+  $('#spKm').textContent = Math.round(km)
+  $('#spV').textContent = p > .995 || p < .005 ? 0 : SPEEDS(km)
+  let idx = 0; ST.forEach((s, i) => { if (km >= s.km - 12) idx = i })
+  return idx
+}
+
+/* ================= planner ================= */
+const fromEl = $('#from'), toEl = $('#to'), afterEl = $('#after')
+fromEl.innerHTML = toEl.innerHTML = ST.map((s, i) => `<option value="${i}">${s.n}</option>`).join('')
+fromEl.value = 0; toEl.value = 7
+const today = new Date(); today.setHours(0, 0, 0, 0)
+const DAYS = Array.from({ length: 8 }, (_, k) => { const d = new Date(today); d.setDate(d.getDate() + k); return d })
+let day = 0
+$('#days').innerHTML = DAYS.map((d, k) => `<button type="button" data-k="${k}" aria-pressed="${k === 0}" aria-label="${d.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })}">${k === 0 ? 'H.nay' : k === 1 ? 'N.mai' : d.toLocaleDateString('vi-VN', { weekday: 'short' })}<small>${d.getDate()}/${d.getMonth() + 1}</small></button>`).join('')
+afterEl.innerHTML = '<option value="now">Bây giờ</option>' + Array.from({ length: 18 }, (_, i) => `<option value="${(i + 5) * 60}">${pad(i + 5)}:00</option>`).join('')
+
+/* split-flap engine */
+const CH = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:+-.ÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ'
+const COLS = [['c-tm', 5], ['c-tr', 6], ['c-to', 11], ['c-pl', 2], ['c-ar', 5], ['c-st', 7]]
+const ROWS = 6
+$('#rows').innerHTML = Array.from({ length: ROWS }, (_, r) => `<button class="brow" type="button" data-r="${r}" aria-pressed="false" disabled>${COLS.map(([c, n]) => `<span class="f ${c}" aria-hidden="true">${'<span class="cell" data-c=" "><i> </i></span>'.repeat(n)}</span>`).join('')}</button>`).join('')
+const jobs = []
+let flapRaf = 0
+function setCell(cell, ch, delay) {
+  ch = (ch || ' ').toUpperCase(); if (!CH.includes(ch)) ch = ' '
+  const i = cell.firstChild
+  const job = jobs.find((j) => j.cell === cell); if (job) jobs.splice(jobs.indexOf(job), 1)
+  if (cell.dataset.c === ch && !job) return
+  if (!anim) { i.textContent = ch; cell.dataset.c = ch; return }
+  const from = CH.indexOf(cell.dataset.c), to = CH.indexOf(ch)
+  const dist = (to - from + CH.length) % CH.length || CH.length
+  const n = Math.min(dist, 6 + Math.floor(Math.random() * 6))
+  const seq = []; for (let k = n - 1; k >= 0; k--) seq.push(CH[(to - k + CH.length) % CH.length])
+  jobs.push({ cell, seq, k: 0, next: performance.now() + delay })
+  cell.dataset.c = ch
+  if (!flapRaf) flapRaf = requestAnimationFrame(flapTick)
+}
+function flapTick(now) {
+  for (let j = jobs.length - 1; j >= 0; j--) {
+    const job = jobs[j]
+    if (now < job.next) continue
+    const i = job.cell.firstChild
+    i.textContent = job.seq[job.k]
+    i.animate([{ transform: 'scaleY(1)' }, { transform: 'scaleY(.15)' }, { transform: 'scaleY(1)' }], { duration: 60 })
+    job.k++; job.next = now + 48
+    if (job.k >= job.seq.length) jobs.splice(j, 1)
+  }
+  flapRaf = jobs.length ? requestAnimationFrame(flapTick) : 0
+}
+function setText(span, text, base) {
+  const cells = [...span.children], t = text.toUpperCase().padEnd(cells.length).slice(0, cells.length)
+  cells.forEach((c, k) => setCell(c, t[k], base + k * 18))
+}
+
+let results = [], selIdx = 0, cls = 'std', seat = null
+function statusOf(s) { const r = rng(s.no * 31 + day * 7 + 3), R = r(); return R < .8 ? 'ỔN ĐỊNH' : `+${2 + Math.floor(r() * 6)} PHÚT` }
+function platOf(s, st) { return st === 0 || st === 9 ? String(1 + (s.no >> 1) % 6) : s.dir === 'N' ? '1' : '2' }
+function query() {
+  const a = +fromEl.value, b = +toEl.value
+  const msg = $('#bMsg')
+  $('#bTitle').innerHTML = `${ST[a].n} <span>→</span> ${ST[b].n}`
+  const d = DAYS[day]
+  $('#bSub').textContent = d.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })
+  if (a === b) { results = []; msg.textContent = 'Vui lòng chọn hai nhà ga khác nhau.'; drawBoard(); return }
+  const dir = b > a ? 'N' : 'S'
+  const nowD = new Date(), nowM = nowD.getHours() * 60 + nowD.getMinutes()
+  const after = afterEl.value === 'now' ? (day === 0 ? nowM : 0) : +afterEl.value
+  results = SERV.filter((s) => s.dir === dir && s.times[a] != null && s.times[b] != null && s.times[a] >= after).sort((x, y) => x.times[a] - y.times[a]).slice(0, ROWS)
+  if (!results.length && day === 0 && afterEl.value === 'now') { day = 1; $$('#days button').forEach((x, k) => x.setAttribute('aria-pressed', k === 1)); query(); $('#bMsg').textContent = 'Hôm nay đã hết chuyến thẳng, bảng đang hiển thị các chuyến đầu tiên vào sáng mai.'; return }
+  msg.textContent = results.length ? `Tìm thấy ${results.length} chuyến tàu. Chọn một chuyến để xem các ga dừng và sơ đồ ghế.` : (day === 0 ? 'Không còn chuyến thẳng nào hôm nay sau khung giờ đó. Hãy thử chọn ngày mai.' : 'Không có chuyến tàu nào sau khung giờ đó trong ngày này.')
+  selIdx = results.length ? 0 : -1
+  drawBoard(); showTrip()
+}
+function drawBoard() {
+  const a = +fromEl.value, b = +toEl.value
+  $$('#rows .brow').forEach((row, r) => {
+    const s = results[r], spans = $$('.f', row)
+    const vals = s ? [hm(s.times[a]), s.code, ST[s.dir === 'N' ? 9 : 0].n, platOf(s, a), hm(s.times[b]), statusOf(s)] : ['', '', '', '', '', '']
+    spans.forEach((sp, c) => setText(sp, vals[c], r * 90 + c * 60))
+    row.disabled = !s
+    row.setAttribute('aria-pressed', r === selIdx && !!s)
+    if (s) { row.removeAttribute('aria-hidden'); row.setAttribute('aria-label', `${vals[0]}, ${s.type === 'CE' ? 'Tốc hành Coast Express' : 'Coast Line, dừng mọi ga'} ${s.no} đi ${vals[2]}, đường ray số ${vals[3]}, đến ${ST[b].n} lúc ${vals[4]}, ${vals[5].toLowerCase()}`) }
+    else { row.setAttribute('aria-hidden', 'true'); row.removeAttribute('aria-label') }
+  })
+}
+function price(s) {
+  const a = +fromEl.value, b = +toEl.value, km = Math.abs(ST[b].km - ST[a].km)
+  const dep = s.times[a], peak = (dep >= 420 && dep < 570) || (dep >= 1020 && dep < 1140)
+  let p = 6 + km * .11
+  if (s.type === 'CE') p *= 1.1
+  if (peak) p *= 1.2
+  if (cls === 'first') p *= 1.6
+  return Math.round(p)
+}
+let trainTw = null
+function showTrip() {
+  const s = results[selIdx]
+  const a = +fromEl.value, b = +toEl.value
+  seat = null; $('#held').textContent = ''
+  if (!s) { $('#tTitle').textContent = 'Chưa chọn chuyến tàu'; $('#tMeta').innerHTML = ''; $('#legs').innerHTML = ''; $('#sgrid').innerHTML = ''; $('#price').textContent = '€0'; $('#tdone').setAttribute('d', 'M70 560'); return }
+  const t0 = s.times[a], t1 = s.times[b]
+  $('#tTitle').textContent = `${hm(t0)} ${ST[a].n} → ${hm(t1)} ${ST[b].n}`
+  $('#tMeta').innerHTML = `<b>${s.code}</b><span>${s.type === 'CE' ? 'Tốc hành Coast Express' : 'Coast Line · dừng mọi ga'}</span><b>${dur(t1 - t0)}</b><span>Đường ray ${platOf(s, a)}</span><span>${statusOf(s).toLowerCase()}</span>`
+  const lo = Math.min(a, b), hi = Math.max(a, b)
+  const inRange = ST.map((_, i) => i).filter((i) => i >= lo && i <= hi && s.times[i] != null)
+  const ordered = b > a ? inRange : inRange.reverse()
+  $('#legs').innerHTML = ordered.map((i) => `<li class="${i === a || i === b ? 'end' : ''}"><i></i><b>${hm(s.times[i])}</b>${ST[i].n}</li>`).join('')
+  $$('#tmapSvg .st').forEach((g) => { const i = +g.dataset.s, on = i >= lo && i <= hi; g.style.opacity = on ? 1 : .35; g.querySelector('circle').setAttribute('fill', i === a || i === b ? '#E30613' : on && s.times[i] != null ? '#111' : '#fff') })
+  const L0 = stL[a], L1 = stL[b]
+  $('#tdone').setAttribute('d', pathTo(Math.min(L0, L1), Math.max(L0, L1)))
+  const place = (L) => { const [x, y] = pointAtL(L); $('#ttrain').setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`) }
+  if (trainTw) trainTw.kill()
+  if (anim) { const o = { L: L0 }; place(L0); trainTw = G.to(o, { L: L1, duration: 2.4, ease: 'power2.inOut', onUpdate: () => place(o.L) }) } else place(L1)
+  drawSeats()
+}
+function drawSeats() {
+  const s = results[selIdx]; if (!s) return
+  const first = cls === 'first', rows = first ? 9 : 12, letters = first ? ['A', '', 'C', 'D'] : ['A', 'B', '', 'C', 'D']
+  const R = rng(s.no * 97 + day * 13 + (first ? 5 : 0))
+  $('#coachName').textContent = first ? 'Toa G · Hạng nhất' : 'Toa C · Tiêu chuẩn'
+  let h = ''
+  letters.forEach((L, li) => {
+    if (!L) { h += `<div class="aisle" style="grid-column:1/-1"></div>`; return }
+    h += `<div role="row" style="display:contents">`
+    for (let r = 1; r <= rows; r++) {
+      const id = `${r}${L}`, taken = R() < .42, win = L === 'A' || L === 'D'
+      h += `<button type="button" role="gridcell" class="seat" data-id="${id}" data-r="${r}" data-l="${L}" tabindex="-1" aria-pressed="false" ${taken ? 'aria-disabled="true"' : ''} aria-label="Ghế ${id}, ${win ? 'cạnh cửa sổ' : 'cạnh lối đi'}, ${taken ? 'đã đặt' : 'còn trống'}">${taken ? '' : id}</button>`
+    }
+    h += '</div>'
+  })
+  const g = $('#sgrid'); g.innerHTML = h
+  g.style.gridTemplateColumns = `repeat(${rows}, auto)`
+  const firstFree = $('.seat:not([aria-disabled])', g); if (firstFree) firstFree.tabIndex = 0
+  updateSum()
+}
+function updateSum() {
+  const s = results[selIdx]; if (!s) return
+  const p = price(s)
+  $('#price').textContent = `€${p}`
+  if (seat) { const win = /[AD]$/.test(seat); $('#sumTxt').innerHTML = `${cls === 'first' ? 'Toa G' : 'Toa C'}, ghế ${seat}<span>${win ? 'Cạnh cửa sổ' : 'Cạnh lối đi'}, ${(parseInt(seat) % 2 ? 'xuôi chiều tàu' : 'ngược chiều tàu')}${cls === 'first' ? ', phục vụ tại chỗ' : ''}</span>` }
+  else $('#sumTxt').innerHTML = 'Chưa chọn ghế<span>Không bắt buộc chọn trước; vé hợp lệ cho mọi ghế trống trong cùng hạng.</span>'
+  $('#holdBtn').firstChild.textContent = seat ? 'Giữ ghế này ' : 'Giữ chỗ chuyến này '
+}
+$('#sgrid').addEventListener('click', (e) => {
+  const b = e.target.closest('.seat'); if (!b || b.getAttribute('aria-disabled') === 'true') return
+  const on = b.getAttribute('aria-pressed') !== 'true'
+  $$('#sgrid .seat').forEach((x) => { x.setAttribute('aria-pressed', 'false'); x.tabIndex = -1 })
+  b.setAttribute('aria-pressed', on); b.tabIndex = 0
+  seat = on ? b.dataset.id : null
+  $('#held').textContent = ''
+  updateSum()
+  if (anim && on) G.fromTo(b, { scale: .6 }, { scale: 1, duration: .4, ease: 'back.out(3)', clearProps: 'transform' })
+})
+$('#sgrid').addEventListener('keydown', (e) => {
+  const b = e.target.closest('.seat'); if (!b) return
+  const all = $$('#sgrid .seat'), rows = cls === 'first' ? 9 : 12, i = all.indexOf(b)
+  const mv = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: rows, ArrowUp: -rows }[e.key]
+  if (!mv) return
+  e.preventDefault()
+  const n = all[i + mv]; if (!n) return
+  all.forEach((x) => { x.tabIndex = -1 }); n.tabIndex = 0; n.focus()
+})
+$$('.cls button').forEach((b) => b.addEventListener('click', () => { cls = b.dataset.c; $$('.cls button').forEach((x) => x.setAttribute('aria-pressed', x === b)); seat = null; $('#held').textContent = ''; drawSeats() }))
+$('#holdBtn').addEventListener('click', () => {
+  const s = results[selIdx]; if (!s) { $('#held').textContent = 'Vui lòng chọn một chuyến tàu trên bảng trước.'; return }
+  const ref = 'CR-' + Math.floor(1000 + rng(Date.now() % 9973)() * 9000)
+  $('#held').textContent = `${seat ? `Ghế ${seat} trên chuyến` : 'Một chỗ trên chuyến'} ${s.code} đã được giữ trong 15 phút · mã ${ref}. Chưa phát sinh bất kỳ khoản phí nào.`
+})
+$('#rows').addEventListener('click', (e) => {
+  const r = e.target.closest('.brow'); if (!r || r.disabled) return
+  selIdx = +r.dataset.r
+  $$('#rows .brow').forEach((x, k) => x.setAttribute('aria-pressed', k === selIdx && !x.disabled))
+  showTrip()
+})
+fromEl.addEventListener('change', query); toEl.addEventListener('change', query); afterEl.addEventListener('change', query)
+$('#swapBtn').addEventListener('click', () => { const a = fromEl.value; fromEl.value = toEl.value; toEl.value = a; query() })
+// late in the evening the board opens on tomorrow morning instead of an almost empty list
+{
+  const n = new Date(), nm = n.getHours() * 60 + n.getMinutes()
+  const left = SERV.filter((s) => s.dir === 'N' && s.times[0] != null && s.times[7] != null && s.times[0] >= nm).length
+  if (left < 4) { day = 1; afterEl.value = '420'; $$('#days button').forEach((x, k) => x.setAttribute('aria-pressed', k === 1)) }
+  query()
+  if (left < 4) $('#bMsg').textContent = left ? `Tối nay chỉ còn ${left} chuyến tàu, nên bảng tự động mở lịch sáng mai. Chọn H.nay để xem các chuyến tối nay.` : 'Tối nay đã hết tàu, bảng đang hiển thị các chuyến sáng mai.'
+}
+$('#days').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; day = +b.dataset.k; $$('#days button').forEach((x) => x.setAttribute('aria-pressed', x === b)); query() })
+
+/* ================= on board ================= */
+const PICS = [
+  ['Toa yên tĩnh', 'Toa B theo cả hai chiều. Điện thoại để chế độ im lặng, nghe gọi tại sảnh nối toa.', '<path d="M18 22h28v20H18z" fill="none" stroke="#fff" stroke-width="4"/><path d="M24 30h16" stroke="#fff" stroke-width="4"/><path d="M14 50L50 14" stroke="#fff" stroke-width="4"/>'],
+  ['Xe đạp', 'Sáu chỗ để xe trên mỗi đoàn tàu, đặt trước miễn phí kèm mọi loại vé.', '<circle cx="20" cy="40" r="9" fill="none" stroke="#fff" stroke-width="4"/><circle cx="44" cy="40" r="9" fill="none" stroke="#fff" stroke-width="4"/><path d="M20 40l8-16h10l6 16M28 24l6 16" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>'],
+  ['Toa cà phê', 'Cà phê từ xưởng rang tại Old Harbour và súp nóng nấu mỗi ngày tại Larkhaven.', '<path d="M16 26h26v12a10 10 0 0 1-10 10h-6a10 10 0 0 1-10-10z" fill="none" stroke="#fff" stroke-width="4"/><path d="M42 30h4a5 5 0 0 1 0 10h-4M22 14v6M30 14v6" fill="none" stroke="#fff" stroke-width="4"/>'],
+  ['Không bậc thềm', 'Sàn tàu ngang bằng mặt sân ga tại cả mười nhà ga, luôn có cầu dẫn trên mỗi chuyến tàu.', '<circle cx="28" cy="15" r="4.5" fill="#fff"/><path d="M27 22v14h12l5 10M27 28h10M22 30a10 10 0 1 0 12 13" fill="none" stroke="#fff" stroke-width="4"/>'],
+  ['Nguồn điện', 'Ổ cắm điện và cổng USB-C ngay tại mọi ghế ngồi ở cả hai hạng.', '<path d="M36 12L22 34h10l-4 18 14-22H32z" fill="#fff"/>'],
+  ['Đón thú cưng', 'Chó mọi kích cỡ, có dây dắt, hoàn toàn miễn phí. Luôn có bát nước tại toa cà phê.', '<path d="M16 40c0-10 6-14 14-14h6l6-8 4 2-2 8c4 2 6 6 6 12" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/><path d="M20 40v8M42 40v8" stroke="#fff" stroke-width="4"/>'],
+]
+$('#pics').innerHTML = PICS.map(([h, p, ic]) => `<article class="pic rv"><svg viewBox="0 0 64 64" aria-hidden="true"><rect class="bg" width="64" height="64" fill="#111"/>${ic}</svg><h3>${h}</h3><p>${p}</p></article>`).join('')
+
+/* ================= forms, nav ================= */
+$('#appForm').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#appMail').value.trim(); $('#appOk').textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Đã gửi. Vui lòng kiểm tra hộp thư để nhận liên kết.' : 'Vui lòng nhập địa chỉ email hợp lệ.' })
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .1 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t, { offset: id === '#top' ? 0 : -68 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .15}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .25}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+if (!anim) { lineAt(1); return }
+
+/* ================= motion ================= */
+G.set('#hero-h .mask>span', { yPercent: 105 })
+G.set('.hf', { autoAlpha: 0, y: 16 })
+G.timeline({ delay: .1 })
+  .to('#hero-h .mask>span', { yPercent: 0, duration: .9, stagger: .09, ease: 'power4.out' }, 0)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .7, stagger: .06, ease: 'power3.out' }, .35)
+  .fromTo('#hS', { opacity: 0 }, { opacity: 1, duration: .3 }, .8)
+// the board flips into place again the first time it scrolls into view
+ScrollTrigger.create({ trigger: '#board', start: 'top 85%', once: true, onEnter: () => { jobs.length = 0; $$('#rows .cell').forEach((c) => { c.dataset.c = ' '; c.firstChild.textContent = ' ' }); drawBoard() } })
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 105 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, duration: .9, stagger: .08, ease: 'power4.out' }) })
+})
+G.set('.rv', { autoAlpha: 0, y: 28 })
+ScrollTrigger.batch('.rv', { start: 'top 92%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: .8, stagger: .06, ease: 'power3.out', clearProps: 'transform' }) })
+$$('.cnt').forEach((el) => {
+  const v = +el.dataset.v, d = +(el.dataset.d || 0), o = { n: 0 }
+  el.textContent = (0).toFixed(d)
+  ScrollTrigger.create({ trigger: el, start: 'top 92%', once: true, onEnter: () => G.to(o, { n: v, duration: 1.4, ease: 'power3.out', onUpdate: () => { el.textContent = o.n.toFixed(d) } }) })
+})
+
+// pinned line: the train and red line scrub; station copy swaps on the clock
+const stops = $$('.stop')
+let curS = -1, sTw = []
+function setStop(i) {
+  if (i === curS) return
+  const prev = curS; curS = i
+  sTw.forEach((t) => t.kill()); sTw = []
+  stops.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) sTw.push(G.to(stops[prev], { autoAlpha: 0, x: -24, duration: .22, ease: 'power2.in' }))
+  sTw.push(G.fromTo(stops[i], { autoAlpha: 0, x: 30 }, { autoAlpha: 1, x: 0, duration: .5, delay: prev >= 0 ? .15 : 0, ease: 'power3.out' }))
+}
+G.set(stops, { autoAlpha: 0 })
+setStop(lineAt(0))
+ScrollTrigger.create({
+  trigger: '.theline', start: 'top top', end: '+=400%', pin: '#lnPin', scrub: true,
+  onUpdate(self) { setStop(lineAt(self.progress)) },
+})
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

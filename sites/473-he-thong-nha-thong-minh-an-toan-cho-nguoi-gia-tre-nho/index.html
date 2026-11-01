@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SafeHome Care — Giải Pháp Cảm Biến Phát Hiện Té Ngã Radar Không Camera & Báo Động Khẩn Cấp Cho Gia Đình</title>
+  <meta name="description" content="Cảm biến sóng Milimet mmWave 60GHz phát hiện người cao tuổi ngã trong phòng tắm, cảm biến khói & rò khí Gas chuẩn y tế gia đình." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230A141D'/%3E%3Ccircle cx='32' cy='32' r='22' stroke='%2300D4AA' stroke-width='3' fill='none'/%3E%3Ccircle cx='32' cy='32' r='12' stroke='%2300D4AA' stroke-width='3' fill='none'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23FF6B4A'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0A141D;
+      --surface: #112130;
+      --surface-alt: #182E42;
+      --ink: #F1F7FB;
+      --muted: #98B2C6;
+      --accent: #00D4AA;
+      --alert: #FF6B4A;
+      --warn: #F5B041;
+      --border: rgba(0, 212, 170, 0.18);
+      --font-sans: 'Lexend', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: clip;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+    .skip {
+      position: absolute;
+      top: -100px;
+      left: 16px;
+      background: var(--accent);
+      color: #07121A;
+      padding: 10px 18px;
+      border-radius: 999px;
+      z-index: 1000;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .skip:focus { top: 16px; }
+    .container {
+      width: min(1240px, 100% - 32px);
+      margin-inline: auto;
+    }
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 95;
+      background: rgba(10, 20, 29, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+    .brand-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(0, 212, 170, 0.15);
+      border: 1px solid var(--accent);
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-family: var(--font-mono);
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.94rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: inherit;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #06131A;
+    }
+    .btn-primary:hover { transform: translateY(-2px); background: #1CE6BE; }
+    .btn-outline {
+      background: var(--surface);
+      color: var(--ink);
+      border-color: var(--border);
+    }
+    .btn-alert {
+      background: var(--alert);
+      color: #fff;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(0, 212, 170, 0.12);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      margin-bottom: 16px;
+    }
+    section {
+      padding: clamp(48px, 6vw, 84px) 0;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      gap: clamp(24px, 4vw, 44px);
+      align-items: center;
+    }
+    h1 {
+      font-size: clamp(2rem, 4vw, 3.35rem);
+      line-height: 1.15;
+      margin-bottom: 18px;
+    }
+    h1 span { color: var(--accent); }
+    .hero-lead {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-bottom: 26px;
+      max-width: 60ch;
+    }
+    .telemetry-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+    .tele-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 14px;
+      border-radius: 14px;
+    }
+    .tele-card strong {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 1.35rem;
+      color: var(--accent);
+    }
+    .tele-card span {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .hero-visual {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+    .hero-visual svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Interactive Radar Simulator */
+    .sim-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 28px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: clamp(18px, 3vw, 32px);
+    }
+    .radar-stage {
+      background: #071018;
+      border-radius: 18px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .radar-stage canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 12px;
+    }
+    .mode-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .ctrl-box {
+      margin-bottom: 16px;
+    }
+    .ctrl-box label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .ctrl-box input[type="range"],
+    .ctrl-box select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--ink);
+      border: 1px solid var(--border);
+      font-family: inherit;
+      accent-color: var(--accent);
+    }
+    .status-log {
+      background: #071018;
+      border-left: 4px solid var(--accent);
+      padding: 14px;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      margin-top: 14px;
+    }
+
+    /* Sensor Ecosystem Grid */
+    .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .sensor-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .sensor-code {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--accent);
+    }
+
+    /* Pinned Scrollytelling */
+    .protocol-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .protocol-sticky {
+      position: sticky;
+      top: 96px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+    }
+    .step-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+    .step-item.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 25px rgba(0, 212, 170, 0.16);
+    }
+
+    /* Pricing & Form */
+    .price-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 22px;
+    }
+    .pkg-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .pkg-card.featured {
+      border-color: var(--accent);
+      background: linear-gradient(180deg, #152C3F 0%, #10202E 100%);
+    }
+    .dual-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 28px;
+    }
+    details.faq {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    details.faq summary { font-weight: 600; cursor: pointer; }
+    details.faq p { margin-top: 8px; color: var(--muted); font-size: 0.92rem; }
+    .contact-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 26px;
+    }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 0.88rem; margin-bottom: 6px; font-weight: 600; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--ink);
+      font-family: inherit;
+    }
+    footer.site-footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0 28px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    @media (max-width: 920px) {
+      .hero-grid, .sim-grid, .protocol-grid, .dual-col {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .protocol-sticky { position: static; }
+    }
+    @media (max-width: 600px) {
+      .telemetry-strip { grid-template-columns: minmax(0, 1fr); }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Chuyển đến nội dung chính</a>
+
+  <header class="site-header">
+    <div class="container nav-bar">
+      <a href="#top" class="brand" aria-label="Trang chủ SafeHome Care">
+        <span class="brand-dot" aria-hidden="true">60G</span>
+        <span>SafeHome Care</span>
+      </a>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a href="#radar-simulator">Mô phỏng Radar mmWave</a>
+        <a href="#he-sinh-thai">Thiết bị cảm biến</a>
+        <a href="#ung-cuu-khan-cap">Giao thức SOS 15s</a>
+        <a href="#bang-gia">Gói lắp đặt</a>
+        <a href="#tu-van">Đặt lịch khảo sát</a>
+      </nav>
+      <a href="#tu-van" class="btn btn-primary">Lắp thử 14 ngày miễn phí</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="top">
+      <div class="container hero-grid">
+        <div>
+          <span class="badge">📡 RADAR MMWAVE 60GHZ • 100% KHÔNG DÙNG CAMERA</span>
+          <h1>Phát hiện té ngã trong phòng tắm & báo động khẩn cấp <span>chính xác 99,4%</span></h1>
+          <p class="hero-lead">
+            72% tai nạn trượt ngã của người cao tuổi xảy ra trong phòng tắm và ban đêm — nơi camera bị từ chối vì lý do riêng tư. SafeHome Care sử dụng sóng Radar Milimet 60GHz xuyên màn hơi nước để phát hiện tư thế ngã và gọi tự động tới 3 số điện thoại con cái sau 15 giây.
+          </p>
+          <div style="display:flex;flex-wrap:wrap;gap:12px;">
+            <a href="#radar-simulator" class="btn btn-primary">Trải nghiệm Quét Radar Thực tế</a>
+            <a href="#he-sinh-thai" class="btn btn-outline">Xem 6 cảm biến an toàn</a>
+          </div>
+          <div class="telemetry-strip">
+            <div class="tele-card">
+              <strong>0 Camera</strong>
+              <span>Bảo mật tuyệt đối hình ảnh nhạy cảm trong phòng tắm</span>
+            </div>
+            <div class="tele-card">
+              <strong>&lt; 3 Giây</strong>
+              <span>Phân biệt cúi nhặt đồ, thú cưng chạy qua và ngã quỵ</span>
+            </div>
+            <div class="tele-card">
+              <strong>Pin Dự Phòng 12h</strong>
+              <span>Hoạt động liên tục qua SIM 4G ngay cả khi mất điện/Wi-Fi</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <svg viewBox="0 0 500 370" role="img" aria-label="Sơ đồ quét sóng Radar mmWave trong phòng tắm và phòng ngủ">
+            <rect width="500" height="370" rx="18" fill="#081119" />
+            <circle cx="250" cy="170" r="135" stroke="#00D4AA" stroke-opacity="0.2" stroke-width="2" fill="none" />
+            <circle cx="250" cy="170" r="95" stroke="#00D4AA" stroke-opacity="0.35" stroke-width="2" stroke-dasharray="6 6" fill="none" />
+            <circle cx="250" cy="170" r="55" stroke="#00D4AA" stroke-opacity="0.6" stroke-width="2" fill="none" />
+            <path d="M250 170 L365 95 A135 135 0 0 1 380 205 Z" fill="#00D4AA" fill-opacity="0.16" />
+            <!-- Posture Points -->
+            <circle cx="250" cy="170" r="8" fill="#00D4AA" />
+            <circle cx="315" cy="145" r="10" fill="#FF6B4A" />
+            <circle cx="185" cy="210" r="7" fill="#00D4AA" />
+            <rect x="24" y="305" width="452" height="44" rx="10" fill="#112130" stroke="#00D4AA" stroke-opacity="0.3" />
+            <text x="42" y="332" fill="#00D4AA" font-family="monospace" font-size="12">NHỊP THỞ: 16 lần/phút • TƯ THẾ: Đang di chuyển an toàn • KHÍ GAS: 0% LEL</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Radar Fall Detection Simulator -->
+    <section id="radar-simulator">
+      <div class="container">
+        <div style="max-width:740px;margin-bottom:32px;">
+          <span class="badge">🎛️ BẢNG ĐIỀU KHIỂN RADAR POINT-CLOUD TƯƠNG TÁC</span>
+          <h2 style="font-size:clamp(1.7rem,3vw,2.5rem);margin-bottom:10px;">Mô phỏng Quét Sóng mmWave & Cấu hình Gói An toàn</h2>
+          <p style="color:var(--muted);">Chuyển đổi kịch bản chuyển động để kiểm tra thuật toán phân biệt người đi bộ, cúi người và ngã quỵ bất động trên sàn phòng tắm.</p>
+        </div>
+
+        <div class="sim-grid">
+          <div class="radar-stage">
+            <div class="mode-btns" role="group" aria-label="Chọn kịch bản mô phỏng Radar">
+              <button type="button" class="btn btn-primary sim-mode" data-mode="walk">🚶 Đi lại bình thường</button>
+              <button type="button" class="btn btn-outline sim-mode" data-mode="sleep">🛌 Đang ngủ (Đo nhịp thở)</button>
+              <button type="button" class="btn btn-alert sim-mode" data-mode="fall">⚠️ Mô phỏng Trượt ngã</button>
+            </div>
+            <canvas id="radarCanvas" width="580" height="330" aria-label="Màn hình quét Radar đám mây điểm 60GHz"></canvas>
+            <div class="status-log" id="radarLog">
+              [TRẠNG THÁI HỆ THỐNG]: Đang quét đám mây điểm 3D (60GHz) — Chiều cao trọng tâm: 1.42m (An toàn)
+            </div>
+          </div>
+
+          <div>
+            <h3 style="font-size:1.3rem;margin-bottom:14px;">Tính số lượng Cảm biến cho Căn hộ / Nhà phố</h3>
+            <div class="ctrl-box">
+              <label for="bathCount">
+                <span>Số phòng tắm người lớn tuổi sử dụng</span>
+                <strong id="bathVal">2 phòng</strong>
+              </label>
+              <input type="range" id="bathCount" min="1" max="5" value="2" />
+            </div>
+
+            <div class="ctrl-box">
+              <label for="bedCount">
+                <span>Số phòng ngủ cần theo dõi nhịp thở đêm</span>
+                <strong id="bedVal">2 phòng</strong>
+              </label>
+              <input type="range" id="bedCount" min="1" max="5" value="2" />
+            </div>
+
+            <div class="ctrl-box">
+              <label for="kitchenPack">Bảo vệ Bếp & Ban công trẻ nhỏ</label>
+              <select id="kitchenPack">
+                <option value="full">Cảm biến Khói quang học + Rò khí Gas + Cửa ban công</option>
+                <option value="gas">Chỉ lắp Cảm biến Khói & Khí Gas tự khóa van</option>
+                <option value="none">Chỉ lắp Radar chống té ngã</option>
+              </select>
+            </div>
+
+            <div style="background:#071018;padding:18px;border-radius:16px;border:1px solid var(--border);margin-top:18px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                <span style="color:var(--muted);">Cấu hình đề xuất:</span>
+                <strong id="cfgSensors" style="color:var(--accent);font-family:var(--font-mono);">4 Radar + 1 Bộ Bếp</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+                <span style="color:var(--muted);">Tổng chi phí trọn gói (lắp đặt 0đ):</span>
+                <strong id="cfgTotal" style="font-size:1.35rem;color:#fff;font-family:var(--font-mono);">8.450.000đ</strong>
+              </div>
+              <a href="#tu-van" class="btn btn-primary" style="width:100%;">Nhận sơ đồ vị trí gắn trần cho nhà bạn</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hệ sinh thái 6 cảm biến -->
+    <section id="he-sinh-thai">
+      <div class="container">
+        <div style="max-width:700px;margin-bottom:32px;">
+          <span class="badge">🛡️ HỆ SINH THÁI PHẦN CỨNG CHUẨN Y TẾ GIA ĐÌNH</span>
+          <h2 style="font-size:clamp(1.7rem,3vw,2.5rem);">Bảo vệ toàn diện Người già & Trẻ nhỏ trong 1 ứng dụng</h2>
+        </div>
+
+        <div class="sensor-grid">
+          <article class="sensor-card">
+            <div>
+              <span class="sensor-code">SH-RADAR-60G • IP65 CHỐNG NƯỚC</span>
+              <h3 style="margin:8px 0;">Radar mmWave Phòng Tắm</h3>
+              <p style="color:var(--muted);font-size:0.92rem;">Gắn góc trần cao 2.2m, xuyên màn hơi nước nóng, phát hiện người nằm bất động trên sàn gạch ướt quá 15 giây.</p>
+            </div>
+            <strong style="color:var(--accent);font-family:var(--font-mono);">1.690.000đ / cảm biến</strong>
+          </article>
+
+          <article class="sensor-card">
+            <div>
+              <span class="sensor-code">SH-SLEEP-PRO • KHÔNG ĐEO DÂY</span>
+              <h3 style="margin:8px 0;">Radar Nhịp Thở & Rời Giường Đêm</h3>
+              <p style="color:var(--muted);font-size:0.92rem;">Bật đèn dẫn đường vàng dịu dưới chân giường khi cụ dậy đi vệ sinh lúc 2h sáng và cảnh báo nếu chưa quay lại sau 15 phút.</p>
+            </div>
+            <strong style="color:var(--accent);font-family:var(--font-mono);">1.790.000đ / cảm biến</strong>
+          </article>
+
+          <article class="sensor-card">
+            <div>
+              <span class="sensor-code">SH-SOS-CORD • DÂY GIẬT KHẨN CẤP</span>
+              <h3 style="margin:8px 0;">Nút bấm & Dây giật SOS Cạnh Bồn Cầu</h3>
+              <p style="color:var(--muted);font-size:0.92rem;">Dây giật đỏ dài chạm sàn để người cao tuổi dễ dàng kéo khi chóng mặt hoặc tụt huyết áp dù đang ngồi thấp.</p>
+            </div>
+            <strong style="color:var(--accent);font-family:var(--font-mono);">450.000đ / nút</strong>
+          </article>
+
+          <article class="sensor-card">
+            <div>
+              <span class="sensor-code">SH-GAS-VALVE • TỰ ĐỘNG KHÓA VAN</span>
+              <h3 style="margin:8px 0;">Cảm biến Rò Gas & Cánh tay Khóa Bình</h3>
+              <p style="color:var(--muted);font-size:0.92rem;">Phòng ngừa chứng hay quên tắt bếp của người lớn tuổi: hú còi 85dB và tự động vặn khóa van gas cơ học trong 5 giây.</p>
+            </div>
+            <strong style="color:var(--accent);font-family:var(--font-mono);">1.250.000đ / bộ</strong>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Scrollytelling Giao thức Ứng cứu 15 giây -->
+    <section id="ung-cuu-khan-cap">
+      <div class="container protocol-grid">
+        <div class="protocol-sticky">
+          <span class="badge">⏱️ GIAO THỨC PHẢN ỨNG KHUNG GIỜ VÀNG</span>
+          <h3 id="protoTitle" style="font-size:1.6rem;margin-bottom:12px;">Giây thứ 00–05: Xác thực tư thế ngã bằng AI</h3>
+          <p id="protoDesc" style="color:var(--muted);margin-bottom:18px;">
+            Khi trọng tâm cơ thể hạ đột ngột xuống dưới 0.5m và không đứng dậy, chip xử lý tại chỗ (Edge AI) loại trừ nhiễu từ quạt trần hoặc thú cưng.
+          </p>
+          <div style="font-family:var(--font-mono);font-size:0.86rem;color:var(--accent);background:#071018;padding:14px;border-radius:12px;" id="protoMeta">
+            ĐỘ TRỄ XỬ LÝ: 420ms • XỬ LÝ OFFLINE TRÊN HUB
+          </div>
+        </div>
+
+        <div>
+          <div class="step-item active" tabindex="0" role="button" data-title="Giây thứ 00–05: Xác thực tư thế ngã bằng AI" data-desc="Khi trọng tâm cơ thể hạ đột ngột xuống dưới 0.5m và không đứng dậy, chip xử lý tại chỗ (Edge AI) loại trừ nhiễu từ quạt trần hoặc thú cưng." data-meta="ĐỘ TRỄ XỬ LÝ: 420ms • XỬ LÝ OFFLINE TRÊN HUB">
+            <strong style="color:var(--accent);font-family:var(--font-mono);">00s – 05s • PHÁT HIỆN ĐỘT NGỘT</strong>
+            <h4 style="margin:6px 0;">Quét đám mây điểm xác định chiều cao trọng tâm</h4>
+            <p style="color:var(--muted);font-size:0.92rem;">Không cần đeo đồng hồ hay vòng cổ vướng víu khi đi tắm.</p>
+          </div>
+
+          <div class="step-item" tabindex="0" role="button" data-title="Giây thứ 05–15: Phát giọng nói hỏi thăm hai chiều tại phòng" data-desc="Loa trung tâm phát giọng nói ấm áp: 'Bác ơi, hệ thống nhận thấy bác vừa ngã, bác có cần gọi cho con trai không ạ?' Nếu chỉ ngồi nghỉ, người nhà có thể nói 'Hủy báo động'." data-meta="CHỐNG BÁO ĐỘNG GIẢ: Đàm thoại trực tiếp qua Hub">
+            <strong style="color:var(--accent);font-family:var(--font-mono);">05s – 15s • XÁC MINH GIỌNG NÓI</strong>
+            <h4 style="margin:6px 0;">Loa thông minh hỏi thăm & cho phép hủy nếu an toàn</h4>
+            <p style="color:var(--muted);font-size:0.92rem;">Tránh làm phiền con cái khi chỉ là cúi nhặt đồ lâu dưới sàn.</p>
+          </div>
+
+          <div class="step-item" tabindex="0" role="button" data-title="Giây thứ 15+: Gọi điện thoại SIM 4G & Mở đàm thoại khẩn cấp" data-desc="Hệ thống tự động gọi vòng lặp tới 3 số điện thoại người thân qua sóng di động 4G (vượt chế độ Không làm phiền) và mở micro đàm thoại hai chiều ngay tại phòng tắm." data-meta="KẾT NỐI ĐỘC LẬP: SIM 4G Đa nhà mạng + Pin 12 giờ">
+            <strong style="color:var(--alert);font-family:var(--font-mono);">15s+ • GỌI KHẨN CẤP ĐA KÊNH</strong>
+            <h4 style="margin:6px 0;">Gọi điện thoại trực tiếp + Mở khóa cửa thông minh cho cấp cứu</h4>
+            <p style="color:var(--muted);font-size:0.92rem;">Gửi kèm tọa độ phòng xảy ra sự cố để người thân xử lý kịp thời trong giờ vàng đột quỵ.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bảng giá -->
+    <section id="bang-gia">
+      <div class="container">
+        <div style="max-width:680px;margin-bottom:32px;">
+          <span class="badge">📦 TRỌN GÓI PHẦN CỨNG & LẮP ĐẶT TẠI NHÀ</span>
+          <h2 style="font-size:clamp(1.7rem,3vw,2.5rem);">Các gói giải pháp SafeHome Care</h2>
+        </div>
+
+        <div class="price-grid">
+          <div class="pkg-card">
+            <div>
+              <span class="sensor-code">GÓI CƠ BẢN CHO 1 CỤ</span>
+              <h3 style="font-size:1.4rem;margin:8px 0;">An Tâm Phòng Tắm</h3>
+              <div style="font-size:1.9rem;font-family:var(--font-mono);color:var(--accent);margin:10px 0;">3.890.000đ</div>
+              <ul style="list-style:none;display:grid;gap:8px;font-size:0.92rem;color:var(--muted);">
+                <li>✓ 01 Trung tâm Hub SIM 4G đàm thoại 2 chiều</li>
+                <li>✓ 01 Radar mmWave 60GHz chống nước phòng tắm</li>
+                <li>✓ 01 Nút giật SOS khẩn cấp cạnh bồn cầu</li>
+                <li>✓ Miễn phí thuê bao gọi khẩn cấp 12 tháng đầu</li>
+              </ul>
+            </div>
+            <a href="#tu-van" class="btn btn-outline">Chọn Gói Cơ Bản</a>
+          </div>
+
+          <div class="pkg-card featured">
+            <div>
+              <span class="sensor-code">BÁN CHẠY NHẤT • BẢO VỆ 24/7</span>
+              <h3 style="font-size:1.4rem;margin:8px 0;">Gia Đình Hiếu Thảo Toàn Diện</h3>
+              <div style="font-size:1.9rem;font-family:var(--font-mono);color:var(--accent);margin:10px 0;">6.790.000đ</div>
+              <ul style="list-style:none;display:grid;gap:8px;font-size:0.92rem;color:var(--ink);">
+                <li>✓ 01 Trung tâm Hub SIM 4G + Pin dự phòng 12h</li>
+                <li>✓ 01 Radar mmWave Phòng tắm + 01 Radar Phòng ngủ</li>
+                <li>✓ 01 Đèn LED cảm biến bước chân ban đêm</li>
+                <li>✓ 01 Bộ Cảm biến Khói & Rò khí Gas nhà bếp</li>
+              </ul>
+            </div>
+            <a href="#tu-van" class="btn btn-primary">Lắp thử 14 ngày tại nhà</a>
+          </div>
+
+          <div class="pkg-card">
+            <div>
+              <span class="sensor-code">NHÀ PHỐ NHIỀU TẦNG</span>
+              <h3 style="font-size:1.4rem;margin:8px 0;">Biệt Thự Đa Thế Hệ</h3>
+              <div style="font-size:1.9rem;font-family:var(--font-mono);color:var(--accent);margin:10px 0;">11.500.000đ</div>
+              <ul style="list-style:none;display:grid;gap:8px;font-size:0.92rem;color:var(--muted);">
+                <li>✓ 03 Radar mmWave (Phòng tắm, Phòng ngủ, Cầu thang)</li>
+                <li>✓ Hệ thống khóa van Gas tự động & Báo cháy liên động</li>
+                <li>✓ Cảm biến giới hạn cửa ban công an toàn cho bé</li>
+                <li>✓ Bảo hành 1 đổi 1 tận nhà trong 36 tháng</li>
+              </ul>
+            </div>
+            <a href="#tu-van" class="btn btn-outline">Chọn Gói Đa Thế Hệ</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ & Form -->
+    <section id="tu-van">
+      <div class="container dual-col">
+        <div>
+          <span class="badge">❓ GIẢI ĐÁP KỸ THUẬT</span>
+          <h2 style="font-size:1.9rem;margin-bottom:18px;">Câu hỏi thường gặp</h2>
+          <details class="faq" open>
+            <summary>Sóng Radar mmWave 60GHz có ảnh hưởng tới máy tạo nhịp tim hoặc sức khỏe ông bà không?</summary>
+            <p>Công suất phát của cảm biến chỉ bằng 1/100 so với điện thoại di động thông thường, đạt chứng nhận an toàn y tế FCC & CE, hoàn toàn an toàn cho người đeo máy trợ tim và trẻ sơ sinh.</p>
+          </details>
+          <details class="faq">
+            <summary>Nhà đang ở hoàn thiện rồi lắp đặt có phải đục tường đi dây không?</summary>
+            <p>Kỹ thuật viên sử dụng nẹp viền siêu mảnh thẩm mỹ và kết nối không dây Zigbee 3.0, lắp xong toàn bộ căn hộ chỉ trong 90 phút không bụi bẩn.</p>
+          </details>
+          <details class="faq">
+            <summary>Khi nhà nuôi chó mèo chạy qua thì cảm biến có báo động nhầm không?</summary>
+            <p>Radar 3D phân tách vùng độ cao từ 0–35cm sát mặt sàn làm vùng miễn trừ thú cưng và robot hút bụi.</p>
+          </details>
+        </div>
+
+        <form class="contact-form" id="safeForm">
+          <h3 style="font-size:1.45rem;margin-bottom:8px;">Đăng ký Khảo sát & Lắp thử 14 ngày</h3>
+          <p style="color:var(--muted);font-size:0.9rem;margin-bottom:16px;">Hoàn tiền 100% nếu gia đình chưa hài lòng về độ nhạy của thiết bị.</p>
+          <div class="field">
+            <label for="sName">Họ và tên người đăng ký</label>
+            <input type="text" id="sName" required placeholder="Trần Quốc Bảo" />
+          </div>
+          <div class="field">
+            <label for="sPhone">Số điện thoại nhận cuộc gọi thử nghiệm</label>
+            <input type="tel" id="sPhone" required placeholder="0912 884 102" />
+          </div>
+          <div class="field">
+            <label for="sPkg">Gói thiết bị muốn trải nghiệm</label>
+            <select id="sPkg">
+              <option value="Gia Đình Hiếu Thảo Toàn Diện">Gia Đình Hiếu Thảo Toàn Diện (6.790.000đ)</option>
+              <option value="An Tâm Phòng Tắm">An Tâm Phòng Tắm (3.890.000đ)</option>
+              <option value="Biệt Thự Đa Thế Hệ">Biệt Thự Đa Thế Hệ (11.500.000đ)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Đặt lịch kỹ thuật viên tới khảo sát</button>
+          <div id="safeMsg" role="status" style="display:none;margin-top:12px;padding:12px;border-radius:10px;background:rgba(0,212,170,0.15);color:var(--accent);font-weight:600;"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+      <div>
+        <strong style="color:#fff;">SafeHome Care Vietnam</strong> — Giải Pháp Cảm Biến Radar mmWave Không Camera Cho Gia Đình.
+      </div>
+      <div>Thiết kế concept — thương hiệu giả định.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Radar Canvas Point-Cloud Simulation
+    const rCanvas = document.getElementById('radarCanvas');
+    const rCtx = rCanvas.getContext('2d');
+    const radarLog = document.getElementById('radarLog');
+    let currentMode = 'walk';
+    let tick = 0;
+
+    document.querySelectorAll('.sim-mode').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentMode = btn.dataset.mode;
+        if (currentMode === 'walk') {
+          radarLog.style.borderLeftColor = '#00D4AA';
+          radarLog.textContent = '[TRẠNG THÁI HỆ THỐNG]: Đang quét đám mây điểm 3D (60GHz) — Chiều cao trọng tâm: 1.42m (Đi lại an toàn)';
+        } else if (currentMode === 'sleep') {
+          radarLog.style.borderLeftColor = '#38BDF8';
+          radarLog.textContent = '[GIÁM SÁT GIẤC NGỦ]: Nhịp thở 15 lần/phút • Nhịp tim ước tính 68 BPM (Ngủ sâu ổn định)';
+        } else {
+          radarLog.style.borderLeftColor = '#FF6B4A';
+          radarLog.textContent = '[CẢNH BÁO KHẨN CẤP SOS]: Phát hiện trọng tâm hạ đột ngột xuống 0.28m tại Phòng tắm! Đang đếm ngược gọi 3 số người thân...';
+        }
+      });
+    });
+
+    function renderRadar() {
+      tick += 0.04;
+      rCtx.fillStyle = '#071018';
+      rCtx.fillRect(0, 0, rCanvas.width, rCanvas.height);
+
+      const cx = rCanvas.width / 2;
+      const cy = rCanvas.height / 2;
+
+      // Radar rings
+      [45, 95, 145].forEach(rad => {
+        rCtx.beginPath();
+        rCtx.arc(cx, cy, rad, 0, Math.PI * 2);
+        rCtx.strokeStyle = 'rgba(0, 212, 170, 0.22)';
+        rCtx.lineWidth = 1;
+        rCtx.stroke();
+      });
+
+      // Sweep line
+      const sweepAngle = tick % (Math.PI * 2);
+      rCtx.beginPath();
+      rCtx.moveTo(cx, cy);
+      rCtx.lineTo(cx + Math.cos(sweepAngle) * 155, cy + Math.sin(sweepAngle) * 155);
+      rCtx.strokeStyle = currentMode === 'fall' ? '#FF6B4A' : '#00D4AA';
+      rCtx.lineWidth = 2;
+      rCtx.stroke();
+
+      // Target cluster
+      const tx = currentMode === 'walk' ? cx + Math.sin(tick) * 65 : cx + 35;
+      const ty = currentMode === 'walk' ? cy + Math.cos(tick * 0.7) * 40 : cy + 20;
+      const color = currentMode === 'fall' ? '#FF6B4A' : (currentMode === 'sleep' ? '#38BDF8' : '#00D4AA');
+
+      for (let i = 0; i < 18; i++) {
+        const spreadX = currentMode === 'fall' ? Math.sin(i * 1.7 + tick) * 28 : Math.sin(i * 2.1 + tick) * 12;
+        const spreadY = currentMode === 'fall' ? Math.cos(i * 1.3 + tick) * 18 : Math.cos(i * 1.9 + tick) * 12;
+        rCtx.beginPath();
+        rCtx.arc(tx + spreadX, ty + spreadY, 3.2, 0, Math.PI * 2);
+        rCtx.fillStyle = color;
+        rCtx.fill();
+      }
+
+      if (currentMode === 'fall') {
+        rCtx.beginPath();
+        rCtx.arc(tx, ty, 36 + Math.sin(tick * 4) * 6, 0, Math.PI * 2);
+        rCtx.strokeStyle = '#FF6B4A';
+        rCtx.lineWidth = 2;
+        rCtx.stroke();
+      }
+      requestAnimationFrame(renderRadar);
+    }
+    renderRadar();
+
+    // Package Configurator
+    const bathInput = document.getElementById('bathCount');
+    const bedInput = document.getElementById('bedCount');
+    const kitchenPack = document.getElementById('kitchenPack');
+
+    function updateSafetyQuote() {
+      const baths = Number(bathInput.value);
+      const beds = Number(bedInput.value);
+      const k = kitchenPack.value;
+      document.getElementById('bathVal').textContent = baths + ' phòng';
+      document.getElementById('bedVal').textContent = beds + ' phòng';
+
+      const kPrice = k === 'full' ? 1650000 : (k === 'gas' ? 1250000 : 0);
+      const total = 1400000 + (baths * 1690000) + (beds * 1490000) + kPrice;
+      document.getElementById('cfgSensors').textContent = `${baths + beds} Radar + ${k === 'none' ? '0' : '1'} Bộ Bếp`;
+      document.getElementById('cfgTotal').textContent = total.toLocaleString('vi-VN') + 'đ';
+    }
+    [bathInput, bedInput, kitchenPack].forEach(el => {
+      el.addEventListener('input', updateSafetyQuote);
+      el.addEventListener('change', updateSafetyQuote);
+    });
+    updateSafetyQuote();
+
+    // Protocol steps
+    document.querySelectorAll('.step-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.step-item').forEach(s => s.classList.remove('active'));
+        item.classList.add('active');
+        document.getElementById('protoTitle').textContent = item.dataset.title;
+        document.getElementById('protoDesc').textContent = item.dataset.desc;
+        document.getElementById('protoMeta').textContent = item.dataset.meta;
+      });
+    });
+
+    // Form submit
+    document.getElementById('safeForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('safeMsg');
+      msg.style.display = 'block';
+      msg.textContent = 'Đã đăng ký khảo sát & lắp thử 14 ngày! Chuyên viên kỹ thuật SafeHome Care sẽ gọi xác nhận lịch hẹn ngay.';
+    });
+  </script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sprout — Nơi những lập trình viên nhí lớn khôn</title>
+<meta name="description" content="Sprout là ứng dụng học lập trình cho trẻ từ 6 đến 10 tuổi: giải đố kéo thả khối lệnh giúp chú robot Pip chạm tới ngôi sao, mười lăm phút mỗi ngày, không quảng cáo.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23FFC93C'/%3E%3Cpath d='M32 34V20' stroke='%2333221A' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M32 24C24 12 12 16 14 22C20 28 28 28 32 24Z' fill='%2343C46B' stroke='%2333221A' stroke-width='3'/%3E%3Cpath d='M32 20C38 8 52 10 50 18C44 24 36 24 32 20Z' fill='%237BDB5A' stroke='%2333221A' stroke-width='3'/%3E%3Crect x='14' y='34' width='36' height='22' rx='9' fill='%235EC8F2' stroke='%2333221A' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Andika:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FFF7E6; --cream2:#FFEFCC; --ink:#33221A; --muted:#6B5446; --green:#1B7F45; --greenD:#1D7A41; --leaf:#7BDB5A; --sun:#FFC93C; --orange:#FF8A4C; --orangeD:#C24E12; --berry:#E5487F; --sky:#5EC8F2; --skyL:#C9EEFC; --skyD:#16679A; --grape:#7B5CD6; --grapeL:#ECE6FF; --mint:#E3F6D8;
+  --disp:"Baloo 2", "Arial Rounded MT Bold", system-ui, sans-serif; --body:"Andika", system-ui, sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1); --bounce:cubic-bezier(.34,1.56,.64,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.6;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:4px solid var(--grape);outline-offset:3px;border-radius:12px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:#fff;padding:10px 16px;z-index:400;border-radius:12px}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1220px,100% - 64px);margin-inline:auto}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:700;margin:0;line-height:1.08;letter-spacing:-.01em}
+h2{font-size:clamp(38px,4.8vw,72px)}
+p{margin:0}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:600;font-size:16px;letter-spacing:.04em;padding:6px 14px;border:3px solid var(--ink);border-radius:999px;background:#fff;box-shadow:0 3px 0 var(--ink)}
+.kick i{width:12px;height:12px;border-radius:50%;background:var(--green);border:2px solid var(--ink)}
+.hl{position:relative;display:inline-block;color:var(--greenD);isolation:isolate}
+.hl::after{content:"";position:absolute;left:-2%;right:-2%;bottom:.04em;height:.22em;background:var(--leaf);border-radius:99px;z-index:-1;opacity:.7}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:0 26px;border:3px solid var(--ink);border-radius:999px;background:var(--sun);color:var(--ink);font-family:var(--disp);font-weight:600;font-size:19px;text-decoration:none;cursor:pointer;box-shadow:0 5px 0 var(--ink);transform:translate(var(--mx),var(--my));transition:transform .35s var(--bounce),box-shadow .2s,background .2s}
+.btn:hover{transform:translate(var(--mx),calc(var(--my) - 2px));box-shadow:0 7px 0 var(--ink)}
+.btn:active{transform:translate(var(--mx),calc(var(--my) + 4px));box-shadow:0 1px 0 var(--ink);transition-duration:.08s}
+.btn.green{background:var(--green);color:#fff}
+.btn.green:hover{background:#176E3C}
+.btn.white{background:#fff}
+.btn.sm{min-height:46px;padding:0 18px;font-size:17px;box-shadow:0 4px 0 var(--ink)}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none;box-shadow:0 2px 0 var(--ink)}
+.btn svg{width:22px;height:22px}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:90;transition:background .4s,box-shadow .4s}
+.nav.solid{background:rgba(255,247,230,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 3px 0 rgba(51,34,26,.08)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:80px;gap:20px}
+.logo{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--disp);font-weight:700;font-size:30px;min-height:44px}
+.logo svg{width:40px;height:40px}
+.nav ul{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;text-decoration:none;font-family:var(--disp);font-weight:500;font-size:17px;transition:background .25s,transform .35s var(--bounce)}
+.nav ul a:hover{background:var(--cream2);transform:translateY(-2px) rotate(-2deg)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:52px;height:52px;border-radius:50%;border:3px solid var(--ink);background:#fff;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 3px 0 var(--ink)}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:3px;border-radius:2px;background:var(--ink);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:7px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-7px) rotate(-90deg)}
+.mmenu{position:fixed;left:12px;right:12px;top:88px;z-index:89;background:#fff;border:3px solid var(--ink);border-radius:28px;padding:12px;display:grid;gap:4px;opacity:0;visibility:hidden;transform:translateY(-12px) scale(.96);transition:opacity .3s,visibility .3s,transform .45s var(--bounce);box-shadow:0 6px 0 var(--ink)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;gap:12px;min-height:58px;padding:0 16px;border-radius:18px;text-decoration:none;font-family:var(--disp);font-weight:600;font-size:24px}
+.mmenu a:hover{background:var(--cream2)}
+.mmenu a i{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:120px 0 60px;display:flex;align-items:center;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center}
+.hero h1{font-size:clamp(46px,6vw,96px);line-height:1.08;margin:24px 0 0}
+.hero h1 .w{display:inline-block;white-space:nowrap}
+.hero h1 .ch{display:inline-block}
+.hero-lead{font-size:21px;color:var(--muted);max-width:40ch;margin:28px 0 34px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.ages{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.ages span{font-family:var(--disp);font-weight:500;font-size:16px;padding:6px 14px;border-radius:999px;background:#fff;border:2px solid rgba(51,34,26,.2)}
+.stage{position:relative;aspect-ratio:1;width:100%;max-width:560px;justify-self:center}
+.sun{position:absolute;right:6%;top:4%;width:22%;aspect-ratio:1;border-radius:50%;background:var(--sun);border:3px solid var(--ink);box-shadow:0 0 0 14px rgba(255,201,60,.35)}
+.hill{position:absolute;left:-6%;right:-6%;bottom:2%;height:38%;background:var(--leaf);border:3px solid var(--ink);border-radius:50% 50% 24px 24px/70% 70% 24px 24px}
+.hill::after{content:"";position:absolute;left:12%;right:30%;top:22%;height:16%;border-radius:99px;background:rgba(255,255,255,.35)}
+.pip-big{position:absolute;left:28%;bottom:18%;width:44%}
+.pip-big svg{width:100%;overflow:visible}
+.pip-big .arm-r{transform-origin:96px 108px}
+.float{position:absolute;display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:3px solid var(--ink);border-radius:14px;font-family:var(--disp);font-weight:600;font-size:18px;box-shadow:0 4px 0 var(--ink);white-space:nowrap}
+.float svg{width:20px;height:20px}
+.f1{left:0;top:16%;background:var(--sky);transform:rotate(-8deg)}
+.f2{right:0;top:40%;background:var(--orange);transform:rotate(6deg)}
+.f3{left:4%;top:44%;background:var(--sun);transform:rotate(4deg)}
+.cloud{position:absolute;height:34px;border-radius:99px;background:#fff;border:3px solid var(--ink)}
+.cloud.c1{left:30%;top:6%;width:110px}
+.cloud.c2{left:8%;top:2%;width:70px;opacity:.8}
+.blink{animation:blink 4s infinite}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.blink{transform-box:fill-box;transform-origin:center}
+
+/* waves */
+.wave{display:block;width:100%;height:60px}
+
+/* puzzle */
+.play{position:relative;background:var(--skyL);padding:40px 0 110px}
+.play-head{display:grid;grid-template-columns:1.1fr 1fr;gap:50px;align-items:end;margin-bottom:34px}
+.play-head p{color:var(--muted);max-width:44ch}
+.levels{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.levels button{display:inline-flex;align-items:center;gap:8px;min-height:50px;padding:0 16px;border:3px solid var(--ink);border-radius:16px;background:#fff;cursor:pointer;font-family:var(--disp);font-weight:600;font-size:17px;box-shadow:0 4px 0 var(--ink);transition:transform .3s var(--bounce)}
+.levels button:hover{transform:translateY(-2px)}
+.levels button[aria-pressed="true"]{background:var(--grape);color:#fff}
+.levels button .stars{display:inline-flex;gap:1px}
+.levels button .stars i{width:12px;height:12px;background:rgba(51,34,26,.18);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)}
+.levels button[aria-pressed="true"] .stars i{background:rgba(255,255,255,.3)}
+.levels button .stars i.on{background:var(--sun)}
+.game{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:28px;align-items:start}
+.board-card{background:#fff;border:3px solid var(--ink);border-radius:28px;padding:18px;box-shadow:0 7px 0 var(--ink)}
+.lvl-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.lvl-title h3{font-size:26px}
+.lvl-title span{font-family:var(--disp);font-weight:500;font-size:16px;color:var(--muted)}
+.board{position:relative;display:grid;grid-template-columns:repeat(6,1fr);border:3px solid var(--ink);border-radius:18px;overflow:hidden;aspect-ratio:1;background:#8EDB6A}
+.cell{position:relative;border:1px solid rgba(51,34,26,.08)}
+.cell.alt{background:rgba(255,255,255,.16)}
+.cell.trail::after{content:"";position:absolute;left:50%;top:50%;width:18%;height:18%;margin:-9% 0 0 -9%;border-radius:50%;background:rgba(51,34,26,.25)}
+.cell.rock::before{content:"";position:absolute;inset:16%;border-radius:40% 46% 34% 42%;background:radial-gradient(circle at 34% 30%,#C9C2BA 0 18%,#9C928A 19%);border:3px solid var(--ink)}
+.cell.water{background:#4FB3E8}
+.cell.water::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(170deg,transparent 0 12px,rgba(255,255,255,.35) 12px 15px)}
+.cell.flower::before{content:"";position:absolute;left:30%;top:30%;width:16%;height:16%;border-radius:50%;background:var(--sun);box-shadow:-7px 0 0 var(--berry),7px 0 0 var(--berry),0 -7px 0 var(--berry),0 7px 0 var(--berry)}
+.star{position:absolute;left:0;top:0;width:calc(100% / 6);aspect-ratio:1;display:grid;place-items:center;pointer-events:none}
+.star svg{width:72%;filter:drop-shadow(0 0 8px rgba(255,201,60,.9))}
+.pip{position:absolute;left:0;top:0;width:calc(100% / 6);aspect-ratio:1;pointer-events:none;z-index:2}
+.pip-in{position:absolute;inset:6%}
+.pip-in svg{width:100%;height:100%;overflow:visible}
+.dir{position:absolute;inset:-4%;pointer-events:none;transition:transform .3s var(--ease)}
+.dir::after{content:"";position:absolute;left:50%;top:-8%;width:0;height:0;margin-left:-8px;border:8px solid transparent;border-bottom:12px solid var(--grape);border-top:0}
+.bubble{position:relative;margin-bottom:18px;padding:14px 18px;border:3px solid var(--ink);border-radius:20px;background:var(--cream);font-family:var(--disp);font-weight:500;font-size:18px;line-height:1.35;min-height:76px}
+.bubble::before{content:"";position:absolute;left:34px;bottom:-14px;width:22px;height:22px;background:var(--cream);border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:rotate(45deg)}
+.bubble.win{background:#FFF1BF}
+.bubble.win::before{background:#FFF1BF}
+.bubble.oops{background:#FFE1E9}
+.bubble.oops::before{background:#FFE1E9}
+.coder{display:grid;gap:16px}
+.panel{background:#fff;border:3px solid var(--ink);border-radius:24px;padding:16px;box-shadow:0 6px 0 var(--ink)}
+.panel h3{font-size:20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.panel h3 small{font-family:var(--body);font-weight:400;font-size:15px;color:var(--muted)}
+.palette{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.blk{display:flex;align-items:center;gap:8px;min-height:52px;padding:0 12px;border:3px solid var(--ink);border-radius:14px;font-family:var(--disp);font-weight:600;font-size:17px;line-height:1.1;color:var(--ink);box-shadow:0 4px 0 var(--ink);user-select:none;-webkit-user-select:none}
+.blk svg{flex:none;width:22px;height:22px}
+.blk.fwd{background:var(--sky)}
+.blk.left,.blk.right{background:var(--orange)}
+.blk.rep{background:var(--sun)}
+.pblk{cursor:grab;touch-action:none;transition:transform .3s var(--bounce)}
+.pblk:hover{transform:translateY(-3px) rotate(-1.5deg)}
+.pblk:active{cursor:grabbing}
+.ghost{position:fixed;left:0;top:0;z-index:300;pointer-events:none;opacity:.92;transform-origin:20% 50%;box-shadow:0 10px 0 rgba(51,34,26,.25)}
+.prog{list-style:none;margin:0;padding:10px;min-height:180px;border:3px dashed rgba(51,34,26,.3);border-radius:18px;background:var(--cream);display:flex;flex-direction:column;gap:8px}
+.prog.over,.rep-body.over{border-color:var(--grape);background:var(--grapeL)}
+.prog .hint{margin:auto;text-align:center;color:var(--muted);font-family:var(--disp);font-weight:500;font-size:17px;padding:20px}
+.pnode{list-style:none;cursor:grab;touch-action:pan-y}
+.grip{flex:none;width:26px;height:34px;margin-left:-4px;border-radius:8px;touch-action:none;cursor:grab;background:radial-gradient(circle,rgba(51,34,26,.55) 2px,transparent 2.5px) 0 0/9px 9px;background-position:4px 4px}
+.pnode>.blk{justify-content:flex-start}
+.pnode .lbl{flex:1}
+.pnode .x{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid var(--ink);background:rgba(255,255,255,.7);cursor:pointer;display:grid;place-items:center;font-weight:700;font-size:18px;line-height:1;padding:0}
+.pnode .x:hover{background:#fff;transform:rotate(90deg);transition:transform .3s var(--bounce)}
+.pnode.on>.blk,.pnode.on>.rep-wrap>.blk{outline:4px solid var(--grape);outline-offset:2px;transform:scale(1.03)}
+.pnode.dragging{opacity:.3}
+.rep-wrap{border:3px solid var(--ink);border-radius:16px;background:var(--sun);box-shadow:0 4px 0 var(--ink);overflow:hidden}
+.rep-wrap>.blk{border:0;border-radius:0;box-shadow:none;flex-wrap:wrap}
+.cnt{display:inline-flex;align-items:center;gap:6px}
+.cnt button{width:36px;height:36px;border-radius:10px;border:2px solid var(--ink);background:#fff;cursor:pointer;font-weight:700;font-size:20px;line-height:1;padding:0;display:grid;place-items:center}
+.cnt b{min-width:22px;text-align:center;font-size:20px}
+.rep-body{list-style:none;margin:0 10px 0 26px;padding:8px;min-height:64px;border:3px dashed rgba(51,34,26,.35);border-radius:12px;background:rgba(255,255,255,.55);display:flex;flex-direction:column;gap:8px}
+.rep-body .hint{margin:auto;font-family:var(--disp);font-weight:500;font-size:15px;color:var(--muted);text-align:center}
+.rep-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 10px 26px}
+.tgt{min-height:40px;padding:0 12px;border-radius:999px;border:2px solid var(--ink);background:#fff;cursor:pointer;font-family:var(--disp);font-weight:500;font-size:15px}
+.tgt[aria-pressed="true"]{background:var(--grape);color:#fff}
+.ph{list-style:none;height:10px;border-radius:99px;background:var(--grape);margin:-1px 0}
+.count{font-family:var(--disp);font-weight:600}
+.count.over{color:#B4232F}
+.runbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.target-note{font-size:15px;color:var(--muted);margin-top:10px}
+.confetti{position:absolute;left:50%;top:50%;width:10px;height:14px;border-radius:3px;pointer-events:none;z-index:5}
+
+/* grow (pinned) */
+.grow{position:relative;background:var(--mint)}
+.grow-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;width:min(1220px,100% - 64px);margin-inline:auto;padding-top:80px}
+.grow h2{margin:18px 0 26px;font-size:clamp(40px,4.6vw,70px)}
+.gsteps{position:relative;height:230px}
+.gstep{position:absolute;inset:0}
+.gstep .tag{display:inline-block;font-family:var(--disp);font-weight:600;font-size:15px;padding:4px 12px;border-radius:999px;border:2px solid var(--ink);background:#fff;margin-bottom:12px}
+.gstep h3{font-size:clamp(30px,3vw,44px);margin-bottom:10px}
+.gstep p{color:var(--muted);max-width:40ch}
+.dots{display:flex;gap:10px;margin-top:10px}
+.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);background:#fff;transition:background .4s,transform .4s var(--bounce)}
+.dots i.on{background:var(--green);transform:scale(1.25)}
+.plant{position:relative;height:min(76vh,680px);display:flex;align-items:flex-end;justify-content:center}
+.plant svg{height:100%;width:auto;overflow:visible}
+
+/* worlds */
+.worlds{padding:120px 0 110px}
+.sec-head{display:grid;grid-template-columns:1.1fr 1fr;gap:50px;align-items:end;margin-bottom:50px}
+.sec-head p{color:var(--muted);max-width:44ch}
+.map{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:20px;padding-top:20px}
+.map svg.trailmap{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.isle{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}
+.isle:nth-child(even){margin-top:90px}
+.isle .blob{width:150px;height:150px;border:3px solid var(--ink);border-radius:46% 54% 50% 50%/56% 46% 54% 44%;display:grid;place-items:center;box-shadow:0 6px 0 var(--ink);transition:transform .5s var(--bounce)}
+.isle:hover .blob{transform:translateY(-8px) rotate(-6deg)}
+.isle .blob svg{width:70px;height:70px}
+.isle .num{font-family:var(--disp);font-weight:600;font-size:15px;color:var(--muted)}
+.isle h3{font-size:28px}
+.isle p{font-size:16px;color:var(--muted);max-width:22ch}
+.isle .chipk{font-family:var(--disp);font-weight:600;font-size:15px;padding:3px 12px;border-radius:999px;border:2px solid var(--ink);background:#fff}
+
+/* parents */
+.parents{background:var(--grapeL);padding:40px 0 120px}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}
+.card{background:#fff;border:3px solid var(--ink);border-radius:28px;padding:28px;box-shadow:0 7px 0 var(--ink);transition:transform .5s var(--bounce)}
+.card:hover{transform:translateY(-5px) rotate(-.6deg)}
+.card h3{font-size:28px;margin-bottom:8px}
+.card p{color:var(--muted)}
+.c-time{grid-column:span 3;display:grid;grid-template-columns:150px 1fr;gap:24px;align-items:center}
+.c-time svg{width:150px;height:150px}
+.c-week{grid-column:span 3}
+.bars{display:flex;align-items:flex-end;gap:10px;height:120px;margin-top:18px}
+.bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bars i{display:block;width:100%;border:3px solid var(--ink);border-radius:10px 10px 4px 4px;background:var(--sky);transform-origin:50% 100%}
+.bars span{font-family:var(--disp);font-weight:500;font-size:14px;color:var(--muted)}
+.c-safe{grid-column:span 2;background:var(--sun)}
+.c-safe p{color:var(--ink)}
+.c-off{grid-column:span 2;background:var(--sky)}
+.c-off p{color:var(--ink)}
+.c-quote{grid-column:span 2;background:var(--berry);color:#fff}
+.c-quote blockquote{margin:0;font-family:var(--disp);font-weight:600;font-size:24px;line-height:1.25}
+.c-quote p{color:#fff;margin-top:14px;font-size:16px}
+.stampk{display:inline-block;margin-top:14px;font-family:var(--disp);font-weight:700;font-size:15px;padding:6px 12px;border:3px solid var(--ink);border-radius:12px;background:#fff;transform:rotate(-4deg)}
+
+/* pricing */
+.price{padding:120px 0 100px}
+.bill{display:inline-flex;gap:4px;padding:5px;border:3px solid var(--ink);border-radius:999px;background:#fff;margin-bottom:36px;box-shadow:0 4px 0 var(--ink)}
+.bill button{min-height:46px;padding:0 20px;border:0;border-radius:999px;background:none;cursor:pointer;font-family:var(--disp);font-weight:600;font-size:17px}
+.bill button[aria-pressed="true"]{background:var(--green);color:#fff}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch}
+.plan{position:relative;background:#fff;border:3px solid var(--ink);border-radius:30px;padding:32px 28px;display:flex;flex-direction:column;gap:14px;box-shadow:0 7px 0 var(--ink);transition:transform .5s var(--bounce)}
+.plan:hover{transform:translateY(-6px)}
+.plan .ic{width:64px;height:64px}
+.plan h3{font-size:32px}
+.plan .amt{font-family:var(--disp);font-weight:700;font-size:52px;line-height:1}
+.plan .amt small{font-family:var(--body);font-weight:400;font-size:16px;color:var(--muted)}
+.plan ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.plan li{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start}
+.plan li::before{content:"";width:20px;height:20px;margin-top:4px;border-radius:50%;border:2px solid var(--ink);background:var(--leaf) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10l3 3 7-7' fill='none' stroke='%2333221A' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+.plan .btn{margin-top:auto}
+.plan.feat{background:var(--green);color:#fff}
+.plan.feat .amt small{color:#EAFBE9}
+.plan.feat .badge{position:absolute;top:-18px;right:24px;font-family:var(--disp);font-weight:700;font-size:16px;padding:6px 14px;border:3px solid var(--ink);border-radius:999px;background:var(--sun);color:var(--ink);transform:rotate(4deg)}
+
+/* faq */
+.faq{padding:30px 0 110px}
+.faq-grid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:60px;align-items:start}
+.qs{display:grid;gap:12px}
+.q{background:#fff;border:3px solid var(--ink);border-radius:22px;box-shadow:0 4px 0 var(--ink);overflow:hidden}
+.q button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;min-height:66px;padding:12px 20px;border:0;background:none;cursor:pointer;text-align:left;font-family:var(--disp);font-weight:600;font-size:20px}
+.q .pm{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid var(--ink);background:var(--sun);display:grid;place-items:center;transition:transform .4s var(--bounce)}
+.q .pm svg{width:16px;height:16px}
+.q.open .pm{transform:rotate(45deg);background:var(--leaf)}
+.q .a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
+.q .a>div{overflow:hidden}
+.q .a p{padding:0 20px 20px;color:var(--muted)}
+.q.open .a{grid-template-rows:1fr}
+.faq-pip{width:220px;margin-top:30px}
+
+/* cta */
+.cta{padding:0 0 110px}
+.cta .box{position:relative;background:var(--green);color:#fff;border:3px solid var(--ink);border-radius:40px;padding:64px 56px;display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center;box-shadow:0 9px 0 var(--ink);overflow:hidden}
+.cta .box::before{content:"";position:absolute;right:-80px;bottom:-120px;width:340px;height:340px;border-radius:50%;background:var(--leaf);border:3px solid var(--ink)}
+.cta h2{color:#fff;position:relative}
+.cta .lead{position:relative;margin-top:16px;max-width:40ch;color:#F2FFF1}
+.cta form{position:relative;display:grid;gap:12px;background:#fff;color:var(--ink);border:3px solid var(--ink);border-radius:26px;padding:22px;box-shadow:0 6px 0 var(--ink)}
+.cta label{font-family:var(--disp);font-weight:600;font-size:17px}
+.cta input{min-height:56px;padding:0 18px;border:3px solid var(--ink);border-radius:16px;background:var(--cream)}
+.cta .ok{min-height:26px;font-family:var(--disp);font-weight:500;font-size:16px;color:var(--greenD)}
+
+footer{padding:56px 0 36px;background:var(--ink);color:var(--cream)}
+footer .top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;padding-bottom:34px}
+footer .logo{color:var(--cream)}
+footer h4{font-family:var(--disp);font-weight:600;font-size:16px;color:var(--sun);margin-bottom:10px}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:38px;text-decoration:none}
+footer li a:hover{color:var(--sun)}
+footer .tl{color:#E6D6C4;max-width:30ch;margin-top:10px;font-size:16px}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:22px;border-top:2px solid rgba(255,247,230,.18);font-size:15px;color:#E6D6C4}
+
+.rm .grow-pin{height:auto;padding:110px 0 90px}
+.rm .gsteps{height:auto;display:grid;gap:26px}
+.rm .gstep{position:static}
+.rm .plant{height:520px}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}}
+
+@media (max-width:1100px){
+  .game{grid-template-columns:1fr}
+  .board-card{max-width:560px;width:100%;justify-self:center}
+}
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero .wrap{grid-template-columns:1fr}
+  .stage{max-width:460px}
+  .play-head,.sec-head,.faq-grid{grid-template-columns:1fr;gap:22px}
+  .grow-pin{grid-template-columns:1fr;grid-template-rows:auto auto;gap:16px;align-content:center;padding-top:80px}
+  .plant{order:-1;height:40vh}
+  .map{grid-template-columns:1fr 1fr;gap:30px 16px}
+  .isle:nth-child(even){margin-top:0}
+  .isle:last-child{grid-column:1/-1}
+  .map svg.trailmap{display:none}
+  .bento{grid-template-columns:1fr 1fr}
+  .c-time,.c-week{grid-column:span 2}
+  .c-safe,.c-off,.c-quote{grid-column:span 1}
+  .c-quote{grid-column:span 2}
+  .plans{grid-template-columns:1fr;max-width:520px}
+  .cta .box{grid-template-columns:1fr;padding:50px 32px}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .wrap,.grow-pin{width:calc(100% - 32px)}
+  body{font-size:17px}
+  .nav .wrap{height:72px}
+  .mmenu{top:80px}
+  .logo{font-size:26px}
+  .hero{padding:104px 0 40px;min-height:0}
+  .hero h1{font-size:clamp(38px,11vw,54px)}
+  .hero-lead{font-size:18px;margin:22px 0 26px}
+  .stage{max-width:350px;margin-top:10px}
+  .float{font-size:15px;padding:7px 11px}
+  .float svg{width:16px;height:16px}
+  .play{padding:30px 0 90px}
+  .levels{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .levels button{padding:0 4px;justify-content:center;flex-direction:column;gap:2px;min-height:58px;font-size:16px}
+  .levels button .lt{display:none}
+  .board-card{padding:12px;border-radius:22px}
+  .lvl-title h3{font-size:22px}
+  .bubble{font-size:16px;min-height:70px}
+  .palette{grid-template-columns:1fr 1fr}
+  .panel{padding:12px}
+  .rep-body{margin-left:14px}
+  .rep-foot{padding-left:14px}
+  .grow-pin{padding-top:76px;gap:10px}
+  .grow .kick{display:none}
+  .grow h2{font-size:32px;margin:0 0 8px}
+  .plant{height:36vh}
+  .gsteps{height:196px}
+  .gstep .tag{margin-bottom:6px;font-size:14px}
+  .gstep h3{font-size:26px;margin-bottom:6px}
+  .gstep p{font-size:16px;line-height:1.5}
+  .worlds{padding:90px 0 80px}
+  .isle .blob{width:120px;height:120px}
+  .isle .blob svg{width:56px;height:56px}
+  .isle h3{font-size:24px}
+  .parents{padding:30px 0 90px}
+  .bento{grid-template-columns:1fr}
+  .c-time,.c-week,.c-safe,.c-off,.c-quote{grid-column:auto}
+  .c-time{grid-template-columns:1fr}
+  .card{padding:22px}
+  .price{padding:90px 0 80px}
+  .q button{font-size:18px;padding:12px 16px}
+  .faq-pip{display:none}
+  .cta .box{padding:40px 20px;border-radius:30px}
+  footer .top{gap:26px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Sprout, trang chủ"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="4" width="56" height="56" rx="18" fill="#FFC93C" stroke="#33221A" stroke-width="3"/><path d="M32 34V22" stroke="#33221A" stroke-width="4" stroke-linecap="round"/><path d="M32 26C24 14 13 18 15 24C21 30 28 30 32 26Z" fill="#43C46B" stroke="#33221A" stroke-width="3"/><path d="M32 22C38 10 51 12 49 20C43 26 36 26 32 22Z" fill="#7BDB5A" stroke="#33221A" stroke-width="3"/><rect x="16" y="34" width="32" height="18" rx="8" fill="#5EC8F2" stroke="#33221A" stroke-width="3"/></svg>Sprout</a>
+    <nav aria-label="Điều hướng chính"><ul><li><a href="#play">Chơi giải đố</a></li><li><a href="#grow">Cách hoạt động</a></li><li><a href="#worlds">Thế giới</a></li><li><a href="#parents">Phụ huynh</a></li><li><a href="#pricing">Bảng giá</a></li></ul></nav>
+    <div class="nav-r">
+      <a class="btn sm mag" href="#start">Học miễn phí</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#play"><i style="background:#5EC8F2"></i>Chơi giải đố</a><a href="#grow"><i style="background:#7BDB5A"></i>Cách hoạt động</a><a href="#worlds"><i style="background:#FF8A4C"></i>Thế giới</a><a href="#parents"><i style="background:#7B5CD6"></i>Phụ huynh</a><a href="#pricing"><i style="background:#FFC93C"></i>Bảng giá</a><a href="#start"><i style="background:#E5487F"></i>Học miễn phí</a>
+</div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="wrap">
+    <div>
+      <p class="kick hf"><i></i>Lập trình cho trẻ từ 6 đến 10 tuổi</p>
+      <h1 id="hero-h" aria-label="Lập trình nhí lớn khôn tại đây."><span class="w" aria-hidden="true">Lập</span> <span class="w" aria-hidden="true">trình</span> <span class="w" aria-hidden="true">nhí</span><br><span class="w hl" aria-hidden="true">lớn</span> <span class="w hl" aria-hidden="true">khôn</span> <span class="w" aria-hidden="true">tại</span> <span class="w" aria-hidden="true">đây.</span></h1>
+      <p class="hero-lead hf">Sprout biến lập trình thành những câu đố vui nhộn cho đôi tay nhỏ: kéo vài khối lệnh, nhấn nút chạy và giúp chú robot Pip chạm tới ngôi sao. Không cần gõ phím, không quảng cáo, mười lăm phút mỗi ngày.</p>
+      <div class="hero-cta hf"><a class="btn green mag" href="#play">Chơi thử câu đố ngay <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg></a><a class="btn white mag" href="#parents">Dành cho phụ huynh</a></div>
+      <div class="ages hf"><span>Chưa biết đọc vẫn chơi được</span><span>300+ câu đố</span><span>Máy tính bảng &amp; laptop</span></div>
+    </div>
+    <div class="stage" id="stage" aria-hidden="true">
+      <span class="cloud c2"></span><span class="cloud c1"></span>
+      <span class="sun"></span>
+      <div class="hill"></div>
+      <div class="pip-big" id="pipBig"></div>
+      <span class="float f1"><svg viewBox="0 0 24 24"><path d="M12 20V5M5 11l7-7 7 7" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Đi tới</span>
+      <span class="float f2"><svg viewBox="0 0 24 24"><path d="M6 18V11a5 5 0 0 1 5-5h7M14 2l4 4-4 4" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Rẽ hướng</span>
+      <span class="float f3"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5M20 12a8 8 0 0 1-14 5M18 3v4h-4M6 21v-4h4" fill="none" stroke="#33221A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Lặp lại 3</span>
+    </div>
+  </div>
+</section>
+
+<section class="play" id="play" aria-labelledby="play-h">
+  <svg class="wave" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" style="position:absolute;top:-58px;left:0"><path d="M0 60V30C120 0 240 0 360 30S600 60 720 30 960 0 1080 30 1320 60 1440 30V60Z" fill="#C9EEFC"/></svg>
+  <div class="wrap">
+    <div class="play-head"><div><p class="kick"><i style="background:#5EC8F2"></i>Chơi thử ngay</p><h2 id="play-h" class="split" style="margin-top:18px">Giúp Pip<br>tìm ngôi sao</h2></div><p class="rv">Kéo các khối lệnh vào chương trình của Pip (hoặc chạm vào khối lệnh), sau đó nhấn Chạy. Năm câu đố khu vườn giống hệt những bài bé chơi trong ngày đầu tiên. Lỡ đụng phải tảng đá ư? Đó chính là cách các lập trình viên học hỏi.</p></div>
+    <div class="levels" id="levels" role="group" aria-label="Chọn màn chơi"></div>
+    <div class="game">
+      <div class="board-card">
+        <div class="lvl-title"><h3 id="lvlName">Những bước đầu tiên</h3><span id="lvlLimit">Không giới hạn số khối lệnh</span></div>
+        <p class="bubble" id="bubble" role="status" aria-live="polite"></p>
+        <div class="board" id="board" aria-hidden="true"></div>
+      </div>
+      <div class="coder">
+        <div class="panel">
+          <h3>Khối lệnh <small>kéo hoặc chạm</small></h3>
+          <div class="palette" id="palette">
+            <button type="button" class="blk fwd pblk" data-t="fwd" aria-label="Thêm khối Đi tới"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V5M5 11l7-7 7 7" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Đi tới</button>
+            <button type="button" class="blk left pblk" data-t="left" aria-label="Thêm khối Rẽ trái"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 18V11a5 5 0 0 0-5-5H6M10 2L6 6l4 4" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Rẽ trái</button>
+            <button type="button" class="blk right pblk" data-t="right" aria-label="Thêm khối Rẽ phải"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18V11a5 5 0 0 1 5-5h7M14 2l4 4-4 4" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Rẽ phải</button>
+            <button type="button" class="blk rep pblk" data-t="rep" aria-label="Thêm khối Lặp lại"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5M20 12a8 8 0 0 1-14 5M18 3v4h-4M6 21v-4h4" fill="none" stroke="#33221A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Lặp lại</button>
+          </div>
+          <p class="target-note" id="targetNote">Chạm vào khối lệnh sẽ thêm vào cuối chương trình của Pip.</p>
+        </div>
+        <div class="panel">
+          <h3>Chương trình của Pip <small class="count" id="count">0 khối lệnh</small></h3>
+          <ol class="prog" id="prog" data-zone="main" aria-label="Chương trình của Pip"></ol>
+        </div>
+        <div class="runbar">
+          <button type="button" class="btn green" id="goBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg>Chạy thôi, Pip!</button>
+          <button type="button" class="btn white sm" id="resetBtn">Về vạch xuất phát</button>
+          <button type="button" class="btn white sm" id="clearBtn">Xóa khối lệnh</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="grow" id="grow" aria-labelledby="grow-h">
+  <div class="grow-pin" id="growPin">
+    <div>
+      <p class="kick"><i></i>Cách Sprout hoạt động</p>
+      <h2 id="grow-h">Từ hạt mầm<br>đến <span class="hl">đóa hoa</span></h2>
+      <div class="gsteps">
+        <article class="gstep"><span class="tag">Hạt mầm · 6+ tuổi</span><h3>Thứ tự rất quan trọng</h3><p>Pip chỉ làm chính xác những gì khối lệnh chỉ dẫn. Trẻ học cách lên trình tự từng bước, chạy thử và sửa lỗi. Đó chính là gỡ lỗi (debugging), và bé sẽ hào hứng làm việc đó năm mươi lần trước bữa trưa.</p></article>
+        <article class="gstep"><span class="tag">Chồi non · vòng lặp</span><h3>Chỉ cần nói một lần</h3><p>Sao phải kéo mười khối “Đi tới” khi chỉ cần một khối Lặp lại? Vòng lặp là ý tưởng lớn đầu tiên, và là lần đầu trẻ thấy mình thật thông minh khi rút ngắn thao tác.</p></article>
+        <article class="gstep"><span class="tag">Nụ hoa · rẽ nhánh</span><h3>Nếu, thì, ngược lại</h3><p>Nếu gặp vũng nước thì nhảy qua. Nếu cổng đóng thì chờ. Pip bắt đầu biết đưa ra quyết định, và trẻ bắt đầu tư duy theo điều kiện logic.</p></article>
+        <article class="gstep"><span class="tag">Nở hoa · 9–10 tuổi</span><h3>Tự tạo màn chơi riêng</h3><p>Trong Xưởng sáng tạo, trẻ tự thiết kế màn chơi đố bạn bè, rồi lật bất kỳ khối lệnh nào để xem dòng code thực sự bên dưới. Nhiều bé thích thú đến mức chẳng muốn lật lại nữa.</p></article>
+      </div>
+      <div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="plant" aria-hidden="true"><svg id="plantSvg" viewBox="0 0 400 640"></svg></div>
+  </div>
+</section>
+
+<section class="worlds" id="worlds" aria-labelledby="worlds-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick"><i style="background:#FF8A4C"></i>Năm thế giới</p><h2 id="worlds-h" class="split" style="margin-top:18px">Bản đồ những<br>ý tưởng lớn</h2></div><p class="rv">Mỗi thế giới giới thiệu thêm một khái niệm mới cùng khoảng sáu mươi câu đố để rèn luyện. Trẻ tiến bước theo nhịp độ của riêng mình; không ai bị bí quá lâu vì Pip sẽ thả gợi ý sau lần thử thứ ba.</p></div>
+    <div class="map" id="map"></div>
+  </div>
+</section>
+
+<section class="parents" id="parents" aria-labelledby="parents-h">
+  <svg class="wave" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" style="position:relative;top:-99px;margin-bottom:-60px"><path d="M0 60V30C160 60 320 60 480 30S800 0 960 30 1280 60 1440 30V60Z" fill="#ECE6FF"/></svg>
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick"><i style="background:#7B5CD6"></i>Dành cho phụ huynh</p><h2 id="parents-h" class="split" style="margin-top:18px">Thời gian màn hình<br>khiến bạn an tâm</h2></div><p class="rv">Chúng tôi cũng là những bậc cha mẹ và giáo viên. Sprout được thiết kế để trẻ biết dừng lại đúng lúc: phiên chơi ngắn, điểm kết thúc rõ ràng, không có bất kỳ chiêu trò gây nghiện nào giữ chân một đứa trẻ bảy tuổi.</p></div>
+    <div class="bento">
+      <article class="card c-time rv"><svg viewBox="0 0 150 150" aria-hidden="true"><circle cx="75" cy="75" r="62" fill="#FFF7E6" stroke="#33221A" stroke-width="4"/><circle id="ring" cx="75" cy="75" r="50" fill="none" stroke="#2FAE60" stroke-width="14" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="0" transform="rotate(-90 75 75)"/><text x="75" y="84" text-anchor="middle" font-family="Fredoka, sans-serif" font-weight="700" font-size="28" fill="#33221A">15:00</text></svg><div><h3>Mười lăm phút, rồi khép lại nhẹ nhàng</h3><p>Phiên học luôn kết thúc trọn vẹn sau một câu đố, không bao giờ ngắt ngang giữa chừng. Bạn toàn quyền chọn thời lượng trong phần cài đặt phụ huynh.</p></div></article>
+      <article class="card c-week rv"><h3>Thư tổng kết gửi bạn mỗi Chủ nhật</h3><p>Bé đã rèn luyện kỹ năng gì, gặp khó ở đâu, và một câu đố vui để cả nhà cùng giải.</p><div class="bars" id="bars"></div></article>
+      <article class="card c-safe rv"><h3>Không quảng cáo. Không chat. Không mua hàng phát sinh.</h3><p>Hồ sơ chỉ dùng tên gọi và hình đại diện ngộ nghĩnh. Chúng tôi không bao giờ bán hay chia sẻ dữ liệu của con bạn.</p><span class="stampk">An toàn cho trẻ từ gốc</span></article>
+      <article class="card c-off rv"><h3>Chơi không cần mạng</h3><p>Tải sẵn một thế giới trước chuyến đi xa. Tiến độ sẽ tự động đồng bộ khi có mạng trở lại.</p></article>
+      <article class="card c-quote rv"><blockquote>“Con bé giải thích cho tôi nghe về vòng lặp ngay trong bữa sáng. Bé mới bảy tuổi.”</blockquote><p>Hana O., phụ huynh một bé học Sprout</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="price" id="pricing" aria-labelledby="price-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick"><i style="background:#FFC93C"></i>Bảng giá</p><h2 id="price-h" class="split" style="margin-top:18px">Bắt đầu miễn phí,<br>nâng cấp khi sẵn sàng</h2></div><p class="rv">Toàn bộ thế giới Khu vườn đầu tiên miễn phí mãi mãi. Chỉ nâng cấp khi bé hào hứng hỏi phía bên kia bờ ao có gì.</p></div>
+    <div class="bill" role="group" aria-label="Chu kỳ thanh toán"><button type="button" aria-pressed="true" data-b="m">Theo tháng</button><button type="button" aria-pressed="false" data-b="y">Theo năm · tiết kiệm 30%</button></div>
+    <div class="plans">
+      <article class="plan rv"><svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 54V34" stroke="#33221A" stroke-width="4" stroke-linecap="round"/><path d="M32 40C22 26 10 32 12 38C18 44 28 44 32 40Z" fill="#7BDB5A" stroke="#33221A" stroke-width="3"/><ellipse cx="32" cy="56" rx="18" ry="5" fill="#C98B5B" stroke="#33221A" stroke-width="3"/></svg><h3>Hạt mầm</h3><p class="amt">Miễn phí</p><ul><li>Trọn vẹn thế giới Khu vườn: 60 câu đố</li><li>Một hồ sơ cho bé</li><li>Không cần thẻ ngân hàng</li></ul><a class="btn white" href="#start">Gieo hạt mầm</a></article>
+      <article class="plan feat rv"><span class="badge">Phổ biến nhất</span><svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 56V22" stroke="#33221A" stroke-width="4" stroke-linecap="round"/><path d="M32 36C22 22 8 28 10 34C16 42 28 40 32 36Z" fill="#7BDB5A" stroke="#33221A" stroke-width="3"/><path d="M32 30C42 16 56 22 54 28C48 36 36 34 32 30Z" fill="#43C46B" stroke="#33221A" stroke-width="3"/><circle cx="32" cy="16" r="9" fill="#FFC93C" stroke="#33221A" stroke-width="3"/></svg><h3>Gia đình</h3><p class="amt"><span class="pv" data-m="$6.99" data-y="$4.99">$6.99</span><small> / tháng</small></p><ul><li>Trọn bộ 5 thế giới, hơn 300 câu đố</li><li>Tối đa 4 hồ sơ cho bé</li><li>Thư tổng kết Chủ nhật cho phụ huynh</li><li>Chế độ chơi ngoại tuyến</li></ul><a class="btn" href="#start">Dùng thử miễn phí 14 ngày</a></article>
+      <article class="plan rv"><svg class="ic" viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="14" width="48" height="34" rx="6" fill="#5EC8F2" stroke="#33221A" stroke-width="3"/><path d="M18 26h28M18 34h18" stroke="#33221A" stroke-width="3" stroke-linecap="round"/><path d="M22 56h20M32 48v8" stroke="#33221A" stroke-width="3" stroke-linecap="round"/></svg><h3>Lớp học</h3><p class="amt"><span class="pv" data-m="$3" data-y="$2">$3</span><small> / học sinh / tháng</small></p><ul><li>Bảng quản lý cho giáo viên</li><li>Giáo án cho từng thế giới</li><li>Miễn phí học kỳ đầu tiên</li></ul><a class="btn white" href="#start">Dành cho trường học</a></article>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="faq" aria-labelledby="faq-h">
+  <div class="wrap faq-grid">
+    <div><p class="kick"><i style="background:#E5487F"></i>Câu hỏi thường gặp</p><h2 id="faq-h" class="split" style="margin-top:18px">Thắc mắc từ<br>phụ huynh</h2><div class="faq-pip" id="faqPip" aria-hidden="true"></div></div>
+    <div class="qs" id="qs"></div>
+  </div>
+</section>
+
+<section class="cta" id="start" aria-labelledby="cta-h">
+  <div class="wrap">
+    <div class="box rv">
+      <div><h2 id="cta-h">Gieo hạt mầm<br>đầu tiên</h2><p class="lead">Thế giới Khu vườn hoàn toàn miễn phí mãi mãi. Hãy để lại email và chúng tôi sẽ gửi liên kết tải ứng dụng cho máy tính bảng hoặc laptop của bạn.</p></div>
+      <form id="ctaForm" novalidate>
+        <label for="ctaE">Email của phụ huynh</label>
+        <input id="ctaE" type="email" placeholder="ban@vidu.com" autocomplete="email">
+        <button class="btn" type="submit">Gửi liên kết cho tôi</button>
+        <p class="ok" id="ctaOk" role="status"></p>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo" href="#top"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="4" y="4" width="56" height="56" rx="18" fill="#FFC93C" stroke="#33221A" stroke-width="3"/><path d="M32 34V22" stroke="#33221A" stroke-width="4" stroke-linecap="round"/><path d="M32 26C24 14 13 18 15 24C21 30 28 30 32 26Z" fill="#43C46B" stroke="#33221A" stroke-width="3"/><path d="M32 22C38 10 51 12 49 20C43 26 36 26 32 22Z" fill="#7BDB5A" stroke="#33221A" stroke-width="3"/><rect x="16" y="34" width="32" height="18" rx="8" fill="#5EC8F2" stroke="#33221A" stroke-width="3"/></svg>Sprout</a><p class="tl">Câu đố nhỏ, tư duy lớn. Dành cho trẻ em từ 6 đến 10 tuổi và những người lớn ngồi học cùng con.</p></div>
+      <div><h4>Trò chơi</h4><ul><li><a href="#play">Thử giải đố</a></li><li><a href="#worlds">Các thế giới</a></li><li><a href="#grow">Cách hoạt động</a></li></ul></div>
+      <div><h4>Người lớn</h4><ul><li><a href="#parents">Phụ huynh</a></li><li><a href="#pricing">Trường học</a></li><li><a href="#faq">An toàn</a></li></ul></div>
+      <div><h4>Sprout</h4><ul><li><a href="#pricing">Bảng giá</a></li><li><a href="#faq">Trợ giúp</a></li><li><a href="#start">Tải ứng dụng</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Sprout Learning</span><span>Thiết kế concept — thương hiệu giả định.</span></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v))
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t) }
+$('#yr').textContent = new Date().getFullYear()
+
+/* ================= Pip, the mascot (no ids inside: it is drawn several times) ================= */
+function pipSVG(full) {
+  const body = full ? `<g class="arm-l"><path d="M24 108C10 104 6 92 10 84" fill="none" stroke="#33221A" stroke-width="7" stroke-linecap="round"/><circle cx="10" cy="82" r="7" fill="#FF8A4C" stroke="#33221A" stroke-width="3"/></g>
+    <g class="arm-r"><path d="M96 108C110 100 114 88 112 78" fill="none" stroke="#33221A" stroke-width="7" stroke-linecap="round"/><circle cx="112" cy="76" r="7" fill="#FF8A4C" stroke="#33221A" stroke-width="3"/></g>
+    <rect x="28" y="96" width="64" height="38" rx="14" fill="#5EC8F2" stroke="#33221A" stroke-width="4"/><circle cx="60" cy="114" r="7" fill="#FF8A4C" stroke="#33221A" stroke-width="3"/><path d="M40 106h8M72 106h8" stroke="#33221A" stroke-width="3" stroke-linecap="round"/>
+    <rect x="34" y="132" width="18" height="12" rx="5" fill="#33221A"/><rect x="68" y="132" width="18" height="12" rx="5" fill="#33221A"/>` : ''
+  return `<svg viewBox="0 ${full ? -4 : 0} 120 ${full ? 152 : 104}" aria-hidden="true">
+    <path d="M60 36V20" stroke="#33221A" stroke-width="5" stroke-linecap="round"/>
+    <path d="M60 26C50 8 30 12 32 22C40 30 52 30 60 26Z" fill="#43C46B" stroke="#33221A" stroke-width="3.5" stroke-linejoin="round"/>
+    <path d="M60 21C70 3 92 6 90 17C82 25 68 25 60 21Z" fill="#7BDB5A" stroke="#33221A" stroke-width="3.5" stroke-linejoin="round"/>
+    ${body}
+    <rect x="14" y="34" width="92" height="66" rx="28" fill="#FFC93C" stroke="#33221A" stroke-width="4"/>
+    <rect x="26" y="46" width="68" height="42" rx="18" fill="#2C2140"/>
+    <g class="eyes"><ellipse class="blink" cx="47" cy="64" rx="7" ry="8" fill="#7CF0C0"/><ellipse class="blink" cx="73" cy="64" rx="7" ry="8" fill="#7CF0C0"/></g>
+    <path d="M51 76q9 7 18 0" stroke="#7CF0C0" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <circle cx="20" cy="66" r="5" fill="#FF8A4C" stroke="#33221A" stroke-width="3"/><circle cx="100" cy="66" r="5" fill="#FF8A4C" stroke="#33221A" stroke-width="3"/>
+  </svg>`
+}
+$('#pipBig').innerHTML = pipSVG(true)
+$('#faqPip').innerHTML = pipSVG(true)
+const STAR = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="#FFC93C" stroke="#33221A" stroke-width="2.6" stroke-linejoin="round"/></svg>'
+
+/* ================= the puzzle ================= */
+const N = 6
+const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]] // N E S W
+const LEVELS = [
+  { name: 'Những bước đầu', start: [0, 2, 1], star: [3, 2], rocks: [], water: [], flowers: [[1, 0], [4, 4], [5, 1]], limit: 0, hint: 'Pip cần tiến ba bước để chạm tới ngôi sao. Hãy thử ghép ba khối Đi tới nhé.' },
+  { name: 'Rẽ qua góc vườn', start: [0, 4, 1], star: [3, 1], rocks: [[1, 3], [2, 3], [2, 2], [4, 4], [4, 1]], water: [], flowers: [[5, 5], [0, 0]], limit: 0, hint: 'Đi thẳng rồi rẽ hướng. Khối “Rẽ trái” sẽ xoay Pip sang phía tay trái của chính Pip.' },
+  { name: 'Vòng lặp diệu kỳ', start: [0, 3, 1], star: [5, 3], rocks: [[2, 2], [3, 4]], water: [], flowers: [[1, 1], [4, 1], [1, 5], [5, 5]], limit: 2, hint: 'Chỉ được dùng tối đa 2 khối lệnh! Hãy đặt một khối Đi tới vào trong khối Lặp lại và chỉnh số lần thành 5.' },
+  { name: 'Bậc thang zíc-zắc', start: [0, 5, 1], star: [3, 2], rocks: [[2, 5], [0, 4], [1, 3], [3, 4], [2, 2]], water: [], flowers: [[5, 0], [4, 5]], limit: 5, hint: 'Bước tới, rẽ lên, bước tới, rẽ sang… Bốn khối lệnh giống hệt nhau lặp lại ba lần. Dùng khối Lặp lại ngay thôi!' },
+  { name: 'Vòng quanh bờ ao', start: [0, 0, 1], star: [5, 5], rocks: [], water: [[1, 1], [2, 1], [3, 1], [4, 1], [1, 2], [2, 2], [3, 2], [4, 2], [1, 3], [2, 3], [3, 3], [4, 3], [1, 4], [2, 4], [3, 4], [4, 4]], flowers: [[5, 0]], limit: 5, hint: 'Pip không biết bơi đâu. Hãy đi men theo bờ ao: một đoạn dài, rẽ một lần, rồi đi thêm một đoạn dài nữa.' },
+]
+const NAMES = { fwd: 'Đi tới', left: 'Rẽ trái', right: 'Rẽ phải', rep: 'Lặp lại' }
+const ICON = {
+  fwd: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V5M5 11l7-7 7 7" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  left: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 18V11a5 5 0 0 0-5-5H6M10 2L6 6l4 4" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  right: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18V11a5 5 0 0 1 5-5h7M14 2l4 4-4 4" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  rep: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5M20 12a8 8 0 0 1-14 5M18 3v4h-4M6 21v-4h4" fill="none" stroke="#33221A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+}
+let lvl = 0, prog = [], uid = 0, target = 'main', running = false, best = LEVELS.map(() => 0)
+let pos = { x: 0, y: 0, d: 1 }
+const board = $('#board'), progEl = $('#prog'), bubble = $('#bubble')
+const say = (t, cls = '') => { bubble.textContent = t; bubble.className = 'bubble ' + cls; if (anim) G.fromTo(bubble, { scale: .94 }, { scale: 1, duration: .5, ease: 'elastic.out(1,.5)' }) }
+
+function renderLevels() {
+  $('#levels').innerHTML = LEVELS.map((L, i) => `<button type="button" data-l="${i}" aria-pressed="${i === lvl}" aria-label="Màn ${i + 1}: ${L.name}${best[i] ? `, ${best[i]} sao` : ''}"><span>${i + 1}<span class="lt">. ${L.name}</span></span><span class="stars" aria-hidden="true">${[1, 2, 3].map((k) => `<i class="${best[i] >= k ? 'on' : ''}"></i>`).join('')}</span></button>`).join('')
+}
+const key = (x, y) => x + ',' + y
+let blocked = new Set(), wet = new Set()
+function renderBoard() {
+  const L = LEVELS[lvl]
+  blocked = new Set(L.rocks.map(([x, y]) => key(x, y))); wet = new Set(L.water.map(([x, y]) => key(x, y)))
+  const fl = new Set(L.flowers.map(([x, y]) => key(x, y)))
+  if (G) G.killTweensOf('#star')
+  let h = ''
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const k = key(x, y); h += `<div class="cell${(x + y) % 2 ? ' alt' : ''}${blocked.has(k) ? ' rock' : ''}${wet.has(k) ? ' water' : ''}${fl.has(k) ? ' flower' : ''}" data-c="${k}"></div>` }
+  h += `<div class="star" id="star">${STAR}</div><div class="pip" id="pip"><div class="pip-in"><span class="dir" id="dir"></span>${pipSVG(false)}</div></div>`
+  board.innerHTML = h
+  $('#star').style.transform = `translate(${L.star[0] * 100}%,${L.star[1] * 100}%)`
+  if (anim) G.to('#star', { rotation: 12, scale: 1.08, duration: 1.2, yoyo: true, repeat: -1, ease: 'sine.inOut' })
+}
+function place(instant) {
+  const p = $('#pip')
+  $('#dir').style.transform = `rotate(${pos.d * 90}deg)`
+  $$('#pip .eyes ellipse').forEach((e) => e.setAttribute('transform', `translate(${DIRS[pos.d][0] * 3} ${DIRS[pos.d][1] * 3})`))
+  if (!anim || instant) { if (G) G.set(p, { xPercent: pos.x * 100, yPercent: pos.y * 100 }); else p.style.transform = `translate(${pos.x * 100}%,${pos.y * 100}%)`; return }
+  G.to(p, { xPercent: pos.x * 100, yPercent: pos.y * 100, duration: .36, ease: 'back.out(1.8)' })
+  G.fromTo('#pip .pip-in', { scaleY: .82, scaleX: 1.12 }, { scaleY: 1, scaleX: 1, duration: .4, ease: 'elastic.out(1,.45)' })
+}
+function resetPip() {
+  const L = LEVELS[lvl]
+  pos = { x: L.start[0], y: L.start[1], d: L.start[2] }
+  $$('.cell.trail', board).forEach((c) => c.classList.remove('trail'))
+  $$('.pnode.on').forEach((n) => n.classList.remove('on'))
+  place(true)
+}
+function setLevel(i) {
+  if (running) return
+  lvl = i; prog = []; target = 'main'
+  const L = LEVELS[i]
+  $('#lvlName').textContent = `${i + 1}. ${L.name}`
+  $('#lvlLimit').textContent = L.limit ? `Dùng tối đa ${L.limit} khối lệnh` : 'Không giới hạn số khối lệnh'
+  renderLevels(); renderBoard(); resetPip(); renderProg()
+  say(L.hint)
+}
+
+/* program model */
+const size = (list) => list.reduce((a, n) => a + 1 + (n.t === 'rep' ? size(n.body) : 0), 0)
+function findList(zone) { if (zone === 'main') return prog; const n = prog.find((m) => m.id === zone); return n ? n.body : prog }
+function removeNode(id) {
+  for (const list of [prog, ...prog.filter((n) => n.t === 'rep').map((n) => n.body)]) { const i = list.findIndex((n) => n.id === id); if (i >= 0) return list.splice(i, 1)[0] }
+  return null
+}
+function insertNode(node, zone, index) {
+  if (node.t === 'rep' && zone !== 'main') { const pi = prog.findIndex((n) => n.id === zone); prog.splice(pi + 1, 0, node); return }
+  const list = findList(zone)
+  list.splice(index == null ? list.length : Math.min(index, list.length), 0, node)
+}
+const mk = (t) => (t === 'rep' ? { id: 'n' + ++uid, t, n: 3, body: [] } : { id: 'n' + ++uid, t })
+function nodeHTML(n) {
+  if (n.t !== 'rep') return `<li class="pnode" data-id="${n.id}"><div class="blk ${n.t}"><span class="grip" aria-hidden="true"></span>${ICON[n.t]}<span class="lbl">${NAMES[n.t]}</span><button type="button" class="x" data-x="${n.id}" aria-label="Xóa khối ${NAMES[n.t]}">×</button></div></li>`
+  return `<li class="pnode" data-id="${n.id}"><div class="rep-wrap"><div class="blk rep"><span class="grip" aria-hidden="true"></span>${ICON.rep}<span class="lbl">Lặp lại</span><span class="cnt"><button type="button" data-dec="${n.id}" aria-label="Giảm số lần lặp">−</button><b aria-live="polite">${n.n}</b><button type="button" data-inc="${n.id}" aria-label="Tăng số lần lặp">+</button></span><span aria-hidden="true">lần</span><button type="button" class="x" data-x="${n.id}" aria-label="Xóa khối Lặp lại ${n.n} lần">×</button></div>
+    <ol class="rep-body" data-zone="${n.id}" aria-label="Bên trong khối Lặp lại ${n.n} lần">${n.body.length ? n.body.map(nodeHTML).join('') : '<li class="hint">Thả khối lệnh vào đây</li>'}</ol>
+    <div class="rep-foot"><button type="button" class="tgt" data-tgt="${n.id}" aria-pressed="${target === n.id}">${target === n.id ? 'Đang chạm thêm vào đây ✓' : 'Chạm để thêm khối vào đây'}</button></div></div></li>`
+}
+function renderProg() {
+  if (target !== 'main' && !prog.some((n) => n.id === target)) target = 'main'
+  progEl.innerHTML = prog.length ? prog.map(nodeHTML).join('') : '<li class="hint">Kéo khối lệnh vào đây,<br>hoặc chạm để thêm</li>'
+  const L = LEVELS[lvl], s = size(prog)
+  const c = $('#count'); c.textContent = L.limit ? `${s} / ${L.limit} khối lệnh` : `${s} khối lệnh`
+  c.classList.toggle('over', !!L.limit && s > L.limit)
+  $('#targetNote').textContent = target === 'main' ? 'Chạm vào khối lệnh sẽ thêm vào cuối chương trình của Pip.' : 'Chạm vào khối lệnh sẽ thêm vào bên trong khối Lặp lại.'
+}
+function add(t, zone = target, index) {
+  if (running) return
+  const node = mk(t)
+  insertNode(node, zone, index)
+  if (t === 'rep') target = node.id
+  renderProg()
+  const el = $(`[data-id="${node.id}"]`)
+  if (anim && el) G.from(el, { scale: .6, opacity: 0, duration: .5, ease: 'back.out(2.4)', clearProps: 'all' })
+}
+progEl.addEventListener('click', (e) => {
+  if (running) return
+  const b = e.target.closest('button'); if (!b) return
+  if (b.dataset.x) { removeNode(b.dataset.x); renderProg(); return }
+  if (b.dataset.inc || b.dataset.dec) { const n = prog.find((m) => m.id === (b.dataset.inc || b.dataset.dec)); n.n = clamp(n.n + (b.dataset.inc ? 1 : -1), 2, 9); renderProg(); const nb = $(`[data-${b.dataset.inc ? 'inc' : 'dec'}="${n.id}"]`); if (nb) nb.focus(); return }
+  if (b.dataset.tgt) { target = target === b.dataset.tgt ? 'main' : b.dataset.tgt; renderProg(); const nb = $(`[data-tgt="${b.dataset.tgt}"]`); if (nb) nb.focus() }
+})
+
+/* drag and drop (pointer + touch); a tap without movement falls through to click = add */
+let pend = null, drag = null, swallowClick = false
+const palette = $('#palette')
+palette.addEventListener('click', (e) => { const b = e.target.closest('.pblk'); if (!b) return; if (swallowClick) { swallowClick = false; return } add(b.dataset.t) })
+function down(e, src, el) {
+  if (running || e.button > 0) return
+  pend = { x: e.clientX, y: e.clientY, src, el }
+}
+palette.addEventListener('pointerdown', (e) => { const b = e.target.closest('.pblk'); if (b) down(e, { t: b.dataset.t }, b) })
+progEl.addEventListener('pointerdown', (e) => {
+  if (e.target.closest('button')) return
+  if (e.pointerType === 'touch' && !e.target.closest('.grip')) return
+  const li = e.target.closest('.pnode'); if (!li) return
+  e.stopPropagation()
+  down(e, { id: li.dataset.id }, li.querySelector('.blk, .rep-wrap'))
+})
+function zoneAt(x, y) {
+  const el = document.elementFromPoint(x, y)
+  return el ? el.closest('[data-zone]') : null
+}
+function placeholder(zoneEl, y) {
+  $$('.ph').forEach((p) => p.remove())
+  $$('.over').forEach((z) => z.classList.remove('over'))
+  if (!zoneEl) return null
+  zoneEl.classList.add('over')
+  const kids = [...zoneEl.children].filter((c) => c.classList.contains('pnode') && !c.classList.contains('dragging'))
+  let idx = kids.findIndex((c) => { const r = c.getBoundingClientRect(); return y < r.top + r.height / 2 })
+  if (idx < 0) idx = kids.length
+  const ph = document.createElement('li'); ph.className = 'ph'; ph.setAttribute('aria-hidden', 'true')
+  const hint = zoneEl.querySelector(':scope > .hint'); if (hint) hint.style.display = 'none'
+  zoneEl.insertBefore(ph, kids[idx] || null)
+  return idx
+}
+addEventListener('pointermove', (e) => {
+  if (!pend && !drag) return
+  if (pend && !drag) {
+    if (Math.hypot(e.clientX - pend.x, e.clientY - pend.y) < 7) return
+    const r = pend.el.getBoundingClientRect()
+    const g = pend.el.cloneNode(true); g.classList.add('ghost'); g.style.width = r.width + 'px'; g.removeAttribute('id')
+    $$('[id]', g).forEach((n) => n.removeAttribute('id'))
+    document.body.appendChild(g)
+    drag = { ...pend, g, ox: pend.x - r.left, oy: pend.y - r.top }
+    if (pend.src.id) $(`[data-id="${pend.src.id}"]`).classList.add('dragging')
+    pend = null
+    if (anim) G.fromTo(g, { rotation: 0, scale: 1 }, { rotation: -4, scale: 1.06, duration: .25, ease: 'back.out(3)' })
+  }
+  e.preventDefault()
+  drag.g.style.left = (e.clientX - drag.ox) + 'px'; drag.g.style.top = (e.clientY - drag.oy) + 'px'
+  drag.zone = zoneAt(e.clientX, e.clientY)
+  drag.idx = placeholder(drag.zone, e.clientY)
+}, { passive: false })
+function up(e) {
+  // touch taps add on pointerup: some browsers drop the click that follows a recent drag
+  if (pend && !drag && pend.src.t && e.type === 'pointerup' && e.pointerType !== 'mouse') { add(pend.src.t); swallowClick = true; setTimeout(() => { swallowClick = false }, 450) }
+  pend = null
+  if (!drag) return
+  const d = drag; drag = null
+  swallowClick = true; setTimeout(() => { swallowClick = false }, 60)
+  $$('.ph').forEach((p) => p.remove()); $$('.over').forEach((z) => z.classList.remove('over'))
+  d.g.remove()
+  const zone = d.zone ? d.zone.dataset.zone : null
+  if (d.src.t) { if (zone) add(d.src.t, zone, d.idx) ; else renderProg(); return }
+  // moving an existing block: drop outside the program to throw it away
+  const node = removeNode(d.src.id)
+  if (node && zone && !(node.t === 'rep' && zone === node.id)) insertNode(node, zone, d.idx)
+  renderProg()
+  if (!zone) say('Vù, đã bỏ khối lệnh ra ngoài.')
+}
+addEventListener('pointerup', up); addEventListener('pointercancel', up)
+
+/* running the program */
+function flatten(list, out = []) {
+  for (const n of list) {
+    if (n.t === 'rep') { for (let k = 0; k < n.n; k++) n.body.forEach((b) => out.push({ t: b.t, id: b.id, rep: n.id, k: k + 1, of: n.n })); if (!n.body.length) out.push({ t: 'empty', id: n.id }) }
+    else out.push({ t: n.t, id: n.id })
+  }
+  return out
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+function lock(on) {
+  running = on
+  $$('#palette button, #prog button, #resetBtn, #clearBtn, #levels button').forEach((b) => { b.disabled = on })
+  $('#goBtn').disabled = on
+}
+async function go() {
+  if (running) return
+  const steps = flatten(prog)
+  if (!steps.length) { say('Pip đang đợi chỉ dẫn của bạn. Hãy thêm khối Đi tới trước nhé!', 'oops'); return }
+  resetPip(); lock(true)
+  const L = LEVELS[lvl], T = anim ? 430 : 120
+  say('Bắt đầu chạy nào…')
+  let result = 'short'
+  for (const s of steps.slice(0, 120)) {
+    $$('.pnode.on').forEach((n) => n.classList.remove('on'))
+    const el = $(`[data-id="${s.id}"]`); if (el) el.classList.add('on')
+    if (s.rep) { const r = $(`[data-id="${s.rep}"]`); if (r) r.classList.add('on') }
+    if (s.t === 'empty') { result = 'empty'; break }
+    if (s.t === 'left' || s.t === 'right') {
+      pos.d = (pos.d + (s.t === 'left' ? 3 : 1)) % 4; place()
+      if (anim) G.fromTo('#pip .pip-in', { rotation: s.t === 'left' ? 14 : -14 }, { rotation: 0, duration: .4, ease: 'elastic.out(1,.4)' })
+    } else {
+      const nx = pos.x + DIRS[pos.d][0], ny = pos.y + DIRS[pos.d][1], k = key(nx, ny)
+      if (nx < 0 || ny < 0 || nx >= N || ny >= N) { result = 'edge'; break }
+      if (blocked.has(k)) { result = 'rock'; break }
+      if (wet.has(k)) { result = 'water'; break }
+      const prev = $(`[data-c="${key(pos.x, pos.y)}"]`, board); if (prev) prev.classList.add('trail')
+      pos.x = nx; pos.y = ny; place()
+      if (nx === L.star[0] && ny === L.star[1]) { result = 'win'; await sleep(T); break }
+    }
+    await sleep(T)
+  }
+  if (result !== 'win' && result !== 'short' && result !== 'empty' && anim) G.fromTo('#pip .pip-in', { x: DIRS[pos.d][0] * 10, y: DIRS[pos.d][1] * 10 }, { x: 0, y: 0, duration: .6, ease: 'elastic.out(1.2,.3)' })
+  const s = size(prog)
+  if (result === 'win') {
+    const stars = !L.limit || s <= L.limit ? 3 : 2
+    best[lvl] = Math.max(best[lvl], stars); renderLevels()
+    const last = lvl === LEVELS.length - 1
+    say(stars === 3 ? (last ? 'Bạn đã hoàn thành thế giới Khu vườn! Mọi câu đố trong Sprout đều vui như thế, và còn tới 300 màn nữa đang chờ.' : `Chạm ngôi sao rồi! ${s} khối lệnh. Đạt 3 sao! Sẵn sàng qua màn ${lvl + 2} chưa?`) : `Chạm ngôi sao rồi! Bạn đã dùng ${s} khối lệnh. Bạn có thể giải với tối đa ${L.limit} khối để lấy đủ 3 sao không?`, 'win')
+    confetti()
+    if (!last && stars === 3) { lock(false); const nb = $(`#levels [data-l="${lvl + 1}"]`); if (nb) nb.classList.add('next'); return }
+  } else if (result === 'rock') say('Cốp! Có tảng đá chắn ngang đường. Hãy thử rẽ hướng trước khi đụng đá nhé.', 'oops')
+  else if (result === 'water') say('Ùm! Pip không biết bơi đâu. Hãy tìm đường vòng quanh bờ ao nhé.', 'oops')
+  else if (result === 'edge') say('Ối, tới sát mép vườn rồi. Pip vừa kịp quay đầu lại.', 'oops')
+  else if (result === 'empty') say('Khối Lặp lại đang trống trơn. Hãy thả một khối lệnh vào bên trong nó nhé.', 'oops')
+  else { const dx = Math.abs(L.star[0] - pos.x) + Math.abs(L.star[1] - pos.y); say(`Hết khối lệnh rồi! Ngôi sao còn cách ${dx} bước nữa. Hãy thêm vài khối lệnh nhé.`, 'oops') }
+  lock(false)
+}
+function confetti() {
+  if (!anim) return
+  const cols = ['#FFC93C', '#E5487F', '#5EC8F2', '#7BDB5A', '#FF8A4C', '#7B5CD6']
+  for (let i = 0; i < 36; i++) {
+    const c = document.createElement('span'); c.className = 'confetti'; c.style.background = cols[i % cols.length]
+    board.appendChild(c)
+    const a = Math.random() * Math.PI * 2, r = 80 + Math.random() * 160
+    G.fromTo(c, { x: 0, y: 0, rotation: 0, opacity: 1 }, { x: Math.cos(a) * r, y: Math.sin(a) * r + 60, rotation: Math.random() * 720 - 360, opacity: 0, duration: 1.4 + Math.random() * .6, ease: 'power2.out', onComplete: () => c.remove() })
+  }
+  G.fromTo('#star', { scale: 1.6 }, { scale: 1, duration: .8, ease: 'elastic.out(1,.4)', overwrite: false })
+}
+$('#goBtn').addEventListener('click', go)
+$('#resetBtn').addEventListener('click', () => { resetPip(); say('Đã về vạch xuất phát. Pip luôn sẵn sàng cùng bạn.') })
+$('#clearBtn').addEventListener('click', () => { prog = []; target = 'main'; renderProg(); resetPip(); say(LEVELS[lvl].hint) })
+$('#levels').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setLevel(+b.dataset.l) })
+setLevel(0)
+
+/* ================= worlds map ================= */
+const WORLDS = [
+  ['Khu vườn', 'Trình tự', 'Từng bước một: Đi tới, Rẽ hướng, lên lộ trình.', '#7BDB5A', '<path d="M35 60V30" stroke="#33221A" stroke-width="4" stroke-linecap="round"/><path d="M35 40C24 24 10 30 12 38C18 46 30 44 35 40Z" fill="#43C46B" stroke="#33221A" stroke-width="3"/><path d="M35 34C46 18 60 24 58 32C52 40 40 38 35 34Z" fill="#FFF7E6" stroke="#33221A" stroke-width="3"/>'],
+  ['Ao súng', 'Vòng lặp', 'Khối Lặp lại, nhận diện quy luật và nhảy qua lá súng.', '#5EC8F2', '<ellipse cx="35" cy="44" rx="26" ry="12" fill="#FFF7E6" stroke="#33221A" stroke-width="3"/><path d="M20 30a15 15 0 0 1 28-4M48 18v8h-8" fill="none" stroke="#33221A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'],
+  ['Vườn cây', 'Điều kiện', 'Nếu-thì-ngược lại: thu hoạch táo chín, bỏ qua táo sâu.', '#FF8A4C', '<circle cx="35" cy="40" r="18" fill="#FFF7E6" stroke="#33221A" stroke-width="3"/><path d="M35 22c0-6 4-10 10-10" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round"/><path d="M28 40l5 5 9-10" fill="none" stroke="#33221A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>'],
+  ['Bầu trời đêm', 'Sự kiện', 'Khi ngôi sao nhấp nháy, Pip vẫy tay. Biến số giúp đếm sao.', '#7B5CD6', '<path d="M44 16a20 20 0 1 0 12 30A16 16 0 0 1 44 16Z" fill="#FFF7E6" stroke="#33221A" stroke-width="3" stroke-linejoin="round"/><circle cx="20" cy="20" r="3" fill="#FFF7E6"/><circle cx="56" cy="20" r="2.5" fill="#FFF7E6"/>'],
+  ['Xưởng sáng tạo', 'Tự tạo màn chơi', 'Thiết kế câu đố cho bạn bè, hé nhìn dòng code thực thụ.', '#E5487F', '<rect x="14" y="20" width="42" height="30" rx="6" fill="#FFF7E6" stroke="#33221A" stroke-width="3"/><path d="M26 30l-6 5 6 5M44 30l6 5-6 5M38 28l-5 14" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'],
+]
+$('#map').innerHTML = `<svg class="trailmap" aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 1000 400"><path id="mapPath" d="M100 95C190 95 210 185 300 185S410 95 500 95 610 185 700 185 810 95 900 95" fill="none" stroke="#33221A" stroke-width="4" stroke-dasharray="2 14" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>` +
+  WORLDS.map(([n, k, d, c, ic], i) => `<article class="isle"><div class="blob" style="background:${c}"><svg viewBox="0 0 70 70" aria-hidden="true">${ic}</svg></div><span class="num">Thế giới ${i + 1}</span><h3>${n}</h3><span class="chipk">${k}</span><p>${d}</p></article>`).join('')
+
+/* parents: weekly bars + faq */
+const WEEK = [['T2', 12], ['T3', 15], ['T4', 6], ['T5', 15], ['T6', 9], ['T7', 15], ['CN', 4]]
+$('#bars').innerHTML = WEEK.map(([d, m], i) => `<div><i style="height:${(m / 15 * 100).toFixed(0)}%;background:${['#5EC8F2', '#7BDB5A', '#FFC93C', '#FF8A4C', '#E5487F', '#7B5CD6', '#5EC8F2'][i]}"></i><span>${d}</span></div>`).join('')
+$('#bars').setAttribute('aria-label', 'Ví dụ số phút học trong tuần: ' + WEEK.map(([d, m]) => `${d} ${m} phút`).join(', '))
+$('#bars').setAttribute('role', 'img')
+const FAQ = [
+  ['Sprout phù hợp với độ tuổi nào?', 'Từ sáu đến mười tuổi. Các bé nhỏ hơn thích khám phá thế giới Khu vườn cùng bố mẹ ngồi cạnh; các anh chị lớn hơn thường lướt nhanh tới Xưởng sáng tạo và bắt đầu tự thiết kế màn chơi đố bạn bè.'],
+  ['Con tôi chưa biết đọc có chơi được không?', 'Hoàn toàn được. Mọi hướng dẫn đều được Pip đọc thành tiếng và mỗi khối lệnh đều có ký hiệu hình ảnh trực quan. Biết đọc sẽ giúp ích về sau ở Xưởng sáng tạo, nhưng không bao giờ là yêu cầu bắt buộc.'],
+  ['Đây có phải là lập trình thật sự không?', 'Đúng vậy: trình tự, vòng lặp, điều kiện rẽ nhánh, sự kiện và biến số chính là những khái niệm cốt lõi trong mọi ngôn ngữ lập trình. Trong Xưởng sáng tạo, bé có thể lật bất kỳ khối lệnh nào để xem dòng code thực sự bên dưới.'],
+  ['Mỗi ngày bé dùng màn hình bao lâu?', 'Mỗi phiên học được thiết kế gọn trong mười lăm phút và khép lại tự nhiên sau khi giải xong một câu đố. Bạn có thể rút ngắn hoặc kéo dài thời lượng trong cài đặt phụ huynh, hoặc tắt hẳn vào các ngày trong tuần.'],
+  ['Ứng dụng có an toàn cho trẻ không?', 'Không quảng cáo, không phòng chat, không liên kết dẫn ra ngoài và không có giao dịch mua hàng trong ứng dụng. Hồ sơ của bé chỉ dùng tên gọi và hình đại diện, đồng thời chúng tôi không bao giờ bán hay chia sẻ dữ liệu.'],
+]
+$('#qs').innerHTML = FAQ.map(([q, a], i) => `<div class="q"><button type="button" aria-expanded="false" aria-controls="qa${i}" id="qq${i}">${q}<span class="pm" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 2v12M2 8h12" stroke="#33221A" stroke-width="2.6" stroke-linecap="round"/></svg></span></button><div class="a" id="qa${i}" role="region" aria-labelledby="qq${i}"><div><p>${a}</p></div></div></div>`).join('')
+$('#qs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const q = b.parentElement, on = !q.classList.contains('open'); q.classList.toggle('open', on); b.setAttribute('aria-expanded', on) })
+$('.bill').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  $$('.bill button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  $$('.pv').forEach((p) => { p.textContent = p.dataset[b.dataset.b]; if (anim) G.fromTo(p, { scale: .6 }, { scale: 1, duration: .6, ease: 'elastic.out(1,.45)' }) })
+})
+
+/* ================= growing plant (pinned) ================= */
+{
+  const stem = 'M200 590C200 520 170 470 190 410S240 330 210 260 180 160 200 100'
+  const leaves = [[190, 470, -1, 1], [196, 400, 1, 1.15], [212, 320, -1, 1.25], [206, 240, 1, 1.3], [192, 170, -1, 1.1]]
+  const cols = ['#7BDB5A', '#43C46B', '#7BDB5A', '#43C46B', '#7BDB5A']
+  $('#plantSvg').innerHTML = `<ellipse cx="200" cy="626" rx="150" ry="10" fill="rgba(51,34,26,.12)"/>
+    <path d="M120 560h160l-18 66H138Z" fill="#E07A45" stroke="#33221A" stroke-width="4" stroke-linejoin="round"/><rect x="108" y="544" width="184" height="26" rx="10" fill="#FF8A4C" stroke="#33221A" stroke-width="4"/>
+    <ellipse cx="200" cy="560" rx="80" ry="8" fill="#5B3A29"/>
+    <path id="stemPath" d="${stem}" fill="none" stroke="#2E8B57" stroke-width="12" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+    ${leaves.map(([x, y, s, k], i) => `<g class="leaf" transform="translate(${x} ${y})"><g class="lf"><path d="M0 0C${s * 40} -30 ${s * 92} -14 ${s * 104} 6C${s * 70} 30 ${s * 26} 24 0 0Z" transform="scale(${k})" fill="${cols[i]}" stroke="#33221A" stroke-width="4" stroke-linejoin="round"/><path d="M0 0C${s * 30} 0 ${s * 60} 2 ${s * 90} 6" transform="scale(${k})" fill="none" stroke="#33221A" stroke-width="2.5" stroke-linecap="round" opacity=".5"/></g></g>`).join('')}
+    <g id="bloom" transform="translate(200 96)"><g id="bloomIn">${Array.from({ length: 8 }, (_, i) => `<ellipse rx="22" ry="40" cy="-38" transform="rotate(${i * 45})" fill="${i % 2 ? '#E5487F' : '#FF7AA8'}" stroke="#33221A" stroke-width="4"/>`).join('')}<circle r="26" fill="#FFC93C" stroke="#33221A" stroke-width="4"/><circle cx="-8" cy="-4" r="3.5" fill="#33221A"/><circle cx="8" cy="-4" r="3.5" fill="#33221A"/><path d="M-9 7q9 8 18 0" fill="none" stroke="#33221A" stroke-width="3" stroke-linecap="round"/></g></g>
+    <g id="seed" transform="translate(200 552)"><ellipse rx="14" ry="10" fill="#C98B5B" stroke="#33221A" stroke-width="3"/></g>`
+}
+const lfs = $$('#plantSvg .lf'), at = [.12, .3, .48, .64, .78]
+function plantAt(p) {
+  $('#stemPath').setAttribute('stroke-dashoffset', (1 - clamp(p / .9)).toFixed(4))
+  lfs.forEach((l, i) => { const k = smooth(at[i] - .04, at[i] + .1, p); l.setAttribute('transform', `scale(${k.toFixed(3)}) rotate(${((1 - k) * 30).toFixed(1)})`) })
+  const b = smooth(.84, 1, p)
+  $('#bloomIn').setAttribute('transform', `scale(${b.toFixed(3)}) rotate(${((1 - b) * -120).toFixed(1)})`)
+  $('#seed').setAttribute('opacity', (1 - smooth(0, .08, p)).toFixed(2))
+}
+const dots = $$('.dots i')
+
+/* ================= nav, menu, form ================= */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+$('#ctaForm').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#ctaE').value.trim(); $('#ctaOk').textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Đã gieo hạt mầm! Hãy kiểm tra hộp thư của bạn (bản concept: không gửi email thật).' : 'Ồ, địa chỉ email này có vẻ chưa đúng định dạng.' })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .1 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t, { offset: 0 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .2}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .3}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+if (!anim) { plantAt(1); dots.forEach((d) => d.classList.add('on')); return }
+
+/* ================= motion ================= */
+const h1 = $('#hero-h')
+$$('.w', h1).forEach((w) => { w.innerHTML = [...w.textContent].map((c) => `<span class="ch">${c}</span>`).join('') })
+G.set('.hero h1 .ch', { yPercent: -160, opacity: 0, rotation: () => G.utils.random(-30, 30) })
+G.set('.hf', { autoAlpha: 0, y: 20 })
+G.set('#pipBig', { y: -500, rotation: -10 })
+G.set('.stage .float', { scale: 0 })
+G.set('.stage .hill', { yPercent: 60 })
+G.set('.stage .sun', { scale: 0 })
+G.set('.stage .cloud', { x: -60, opacity: 0 })
+G.timeline({ delay: .1 })
+  .to('.stage .hill', { yPercent: 0, duration: .8, ease: 'back.out(1.6)' }, 0)
+  .to('.stage .sun', { scale: 1, duration: .8, ease: 'back.out(2.5)' }, .1)
+  .to('.stage .cloud', { x: 0, opacity: 1, duration: 1, stagger: .1, ease: 'power3.out' }, .1)
+  .to('.hero h1 .ch', { yPercent: 0, opacity: 1, rotation: 0, duration: .9, stagger: .035, ease: 'bounce.out' }, .15)
+  .to('#pipBig', { y: 0, rotation: 0, duration: 1, ease: 'bounce.out' }, .35)
+  .fromTo('#pipBig svg', { scaleY: 1, scaleX: 1 }, { scaleY: .86, scaleX: 1.1, duration: .12, yoyo: true, repeat: 1, transformOrigin: '50% 100%' }, .78)
+  .to('.stage .float', { scale: 1, duration: .7, stagger: .12, ease: 'back.out(3)' }, .8)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .7, stagger: .07, ease: 'back.out(1.6)' }, .55)
+  .add(() => {
+    G.to('.stage .f1', { y: -12, duration: 1.8, yoyo: true, repeat: -1, ease: 'sine.inOut' })
+    G.to('.stage .f2', { y: 10, duration: 2.2, yoyo: true, repeat: -1, ease: 'sine.inOut' })
+    G.to('.stage .f3', { y: -8, duration: 2, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: .4 })
+    G.to('#pipBig .arm-r', { rotation: -24, duration: .35, yoyo: true, repeat: 5, ease: 'sine.inOut', transformOrigin: '96px 108px' })
+  })
+const stage = $('#stage')
+stage.addEventListener('pointerenter', () => G.fromTo('#pipBig .arm-r', { rotation: 0 }, { rotation: -26, duration: .3, yoyo: true, repeat: 3, ease: 'sine.inOut', transformOrigin: '96px 108px' }))
+if (matchMedia('(hover:hover)').matches) {
+  $('.hero').addEventListener('pointermove', (e) => { const dx = e.clientX / innerWidth - .5; G.to('#pipBig', { x: dx * 30, rotation: dx * 6, duration: .8, ease: 'power3.out' }) })
+}
+$$('.hero h1 .ch').forEach((c) => c.addEventListener('pointerenter', () => G.fromTo(c, { y: 0 }, { y: -18, duration: .25, yoyo: true, repeat: 1, ease: 'power2.out' })))
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span style="display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em"><span style="display:block">${l}</span></span>`).join('')
+  const lines = h.querySelectorAll(':scope>span>span'); G.set(lines, { yPercent: 115, rotation: 4 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, rotation: 0, duration: .9, stagger: .1, ease: 'back.out(1.6)' }) })
+})
+G.set('.rv', { autoAlpha: 0, y: 40 })
+ScrollTrigger.batch('.rv', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: .8, stagger: .08, ease: 'back.out(1.5)', clearProps: 'transform' }) })
+G.set('.isle', { autoAlpha: 0, y: 60, scale: .8 })
+ScrollTrigger.create({ trigger: '#map', start: 'top 85%', once: true, onEnter: () => G.to('.isle', { autoAlpha: 1, y: 0, scale: 1, duration: .8, stagger: .1, ease: 'back.out(2)', clearProps: 'transform' }) })
+G.set('#bars i', { scaleY: 0 })
+ScrollTrigger.create({ trigger: '#bars', start: 'top 90%', once: true, onEnter: () => G.to('#bars i', { scaleY: 1, duration: .8, stagger: .07, ease: 'elastic.out(1,.5)' }) })
+G.set('#ring', { attr: { 'stroke-dashoffset': 100 } })
+ScrollTrigger.create({ trigger: '.c-time', start: 'top 90%', once: true, onEnter: () => G.to('#ring', { attr: { 'stroke-dashoffset': 0 }, duration: 1.6, ease: 'power2.out' }) })
+G.set('.board-card, .coder .panel', { autoAlpha: 0, y: 50, rotation: (i) => (i % 2 ? 2 : -2) })
+ScrollTrigger.create({ trigger: '.game', start: 'top 85%', once: true, onEnter: () => G.to('.board-card, .coder .panel', { autoAlpha: 1, y: 0, rotation: 0, duration: .9, stagger: .1, ease: 'back.out(1.6)', clearProps: 'transform' }) })
+
+// pinned plant: stem and leaves scrub with the scroll; the copy swaps on the clock
+const gsteps = $$('.gstep')
+let curS = -1, sTw = []
+function setStep(i) {
+  if (i === curS) return
+  const prev = curS; curS = i
+  dots.forEach((d, k) => d.classList.toggle('on', k <= i))
+  sTw.forEach((t) => t.kill()); sTw = []
+  gsteps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) sTw.push(G.to(gsteps[prev], { autoAlpha: 0, y: -20, duration: .3, ease: 'power2.in' }))
+  sTw.push(G.fromTo(gsteps[i], { autoAlpha: 0, y: 30, rotation: -2 }, { autoAlpha: 1, y: 0, rotation: 0, duration: .7, delay: prev >= 0 ? .2 : 0, ease: 'back.out(1.8)' }))
+}
+G.set(gsteps, { autoAlpha: 0 })
+plantAt(0); setStep(0)
+ScrollTrigger.create({
+  trigger: '.grow', start: 'top top', end: '+=260%', pin: '#growPin', scrub: true,
+  onUpdate(self) { const p = self.progress; plantAt(p); setStep(p < .24 ? 0 : p < .5 ? 1 : p < .76 ? 2 : 3) },
+})
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

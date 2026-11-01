@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmartPark AI Barrier — Hệ thống Bãi đỗ xe Thông minh Nhận diện Biển số AI & Thu phí Không dừng</title>
+<meta name="description" content="SmartPark AI Barrier cung cấp giải pháp bãi đỗ xe thông minh cho Tòa nhà, TTTM và Khu đô thị: nhận diện biển số ANPR 0.1 giây, thu phí không dừng ETC/VietQR và cảm biến báo ô trống.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B0F14'/%3E%3Crect x='10' y='14' width='44' height='36' rx='6' fill='none' stroke='%2322C55E' stroke-width='3'/%3E%3Cpath d='M24 40 V24 H34 C38 24 40 26 40 29 C40 32 38 34 34 34 H24' fill='none' stroke='%23F59E0B' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0F14;
+  --bg2:#151D26;
+  --bg3:#06090C;
+  --paper:#F1F5F9;
+  --ink:#0B0F14;
+  --pri:#22C55E;
+  --sec:#F59E0B;
+  --red:#EF4444;
+  --text:#F8FAFC;
+  --muted:#94A3B8;
+  --mutedD:#475569;
+  --line:rgba(34,197,94,.24);
+  --head:"Chakra Petch", sans-serif;
+  --body:"Be Vietnam Pro", sans-serif;
+  --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:700;border-radius:6px}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.01em}
+h2{font-size:clamp(34px,4.5vw,60px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--pri);background:rgba(34,197,94,.09);border:1px solid var(--line);padding:6px 12px;border-radius:99px}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sec);box-shadow:0 0 10px 2px rgba(245,158,11,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;border-radius:8px;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .35s var(--ease),background .25s}
+.btn:hover{background:#4ADE80;border-color:#4ADE80}
+.btn.ghost{background:rgba(21,29,38,.8);color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--sec);color:var(--sec)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(11,15,20,.93);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--head);font-size:24px;font-weight:700;color:var(--text)}
+.logo span{color:var(--pri)}
+.logo svg{width:34px;height:34px;flex-shrink:0}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 13px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:122px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 78% 24%,rgba(34,197,94,.16),transparent 70%),radial-gradient(ellipse 50% 50% at 15% 82%,rgba(245,158,11,.13),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(38px,5.3vw,70px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:52ch;color:var(--muted);font-size:17.5px;margin-top:18px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3);cursor:pointer}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+/* Pinned 0.1s ANPR & Ultrasonic Bay Guidance */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:245px;margin-top:22px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--sec)}
+.pstep h3{font-size:clamp(24px,2.5vw,36px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:46ch}
+.pr-vis{background:var(--bg3);border:1px solid var(--line);border-radius:16px;padding:18px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive B1-B2 Underground Parking Map Widget */
+.widget{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.w-shell{display:grid;grid-template-columns:1.16fr .84fr;gap:28px;align-items:start}
+.w-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.w-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3)}
+.w-controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.sl-row label b{color:var(--pri)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.w-panel{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:16px}
+.mode-tabs{display:grid;gap:10px}
+.m-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+.m-btn .mono{font-size:10.5px;color:var(--sec);display:block}
+.m-btn b{font-family:var(--head);font-size:18.5px;display:block;margin-top:2px}
+.m-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(34,197,94,.15)}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px}
+.kpi-card span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.kpi-card strong{font-family:var(--head);font-size:22px;color:var(--pri)}
+.park-note{padding:14px;background:rgba(245,158,11,.12);border-left:3px solid var(--sec);border-radius:6px;font-size:14.5px;color:var(--text)}
+
+/* Hardware & Software Ecosystem (Light Contrast) */
+.hardware{padding:116px 0;background:var(--paper);color:var(--ink)}
+.hardware .kick{color:#15803D;background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.25)}
+.hardware h2 em{color:#16A34A}
+.hardware .sec-head p{color:var(--mutedD)}
+.hw-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.hcard{background:#fff;border:1px solid rgba(11,15,20,.1);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.hcard .mono{color:#15803D;font-weight:600}
+.hcard h3{font-size:21px;color:var(--ink)}
+.hcard p{color:var(--mutedD);font-size:15px}
+
+/* Security & Revenue Anti-Leakage */
+.security{padding:116px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.sec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.scard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.scard .mono{color:var(--sec)}
+.scard h3{font-size:23px}
+.scard p{color:var(--muted);font-size:15px}
+
+/* CTA */
+.cta{padding:116px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(34,197,94,.2),transparent 70%),var(--bg);border-top:1px solid var(--line)}
+.cta-box{max-width:860px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--pri)}
+
+footer{background:var(--bg3);border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-nav a:hover{color:var(--pri)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.w-shell,.sec-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .hw-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.w-controls,.kpi-grid,.hw-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 18px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="SmartPark AI Barrier Trang chủ">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="8" fill="#151D26" stroke="#22C55E" stroke-width="2"/><path d="M13 24 V12 H20 C23 12 24 13.5 24 15.5 C24 17.5 23 19 20 19 H13" fill="none" stroke="#F59E0B" stroke-width="2.8" stroke-linecap="round"/></svg>
+      SmartPark<span>.AI</span>
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Nhận Diện Biển Số 0.1s</a></li>
+        <li><a href="#basement">Sơ Đồ Hầm Đỗ Xe B1–B2</a></li>
+        <li><a href="#hardware">Thiết Bị & Cảm Biến</a></li>
+        <li><a href="#security">Chống Thất Thoát Vé</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#quote">Khảo Sát Hầm Đỗ Xe</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Camera AI ANPR & Thu Phí Không Dừng ETC</a>
+  <a href="#basement">Sơ Đồ Bãi Đỗ Xe Tầng Hầm B1–B2 Tương Tác</a>
+  <a href="#hardware">Barrier Tốc Độ Cao & Cảm Biến Siêu Âm</a>
+  <a href="#security">Đối Soát Hóa Đơn Điện Tử & Chống Gian Lận</a>
+  <a href="#quote">Nhận Báo Giá Lắp Đặt Trọn Gói</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">AI LPR 99.8% · Non-Stop ETC & Ultrasonic Parking Guidance</p>
+        <h1 id="hero-h"><span class="mask"><span>Mở cổng trong 0.1 giây,</span></span><span class="mask"><span>xóa sổ ùn tắc <em>tầng hầm giờ cao điểm.</em></span></span></h1>
+        <p class="hero-lead hf">SmartPark AI Barrier tích hợp thuật toán thị giác máy tính đọc biển số xe máy và ô tô Việt Nam bị mờ, bùn đất hoặc góc nghiêng 45°, kết hợp thu phí không dừng qua thẻ ETC (ePass/VETC), mã VietQR động và hệ thống đèn cảm biến dẫn đường tới đúng ô đỗ còn trống.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#basement">Điều Khiển Sơ Đồ Hầm B1–B2</a>
+          <a class="btn ghost" href="#process">Xem Công Nghệ Đọc Biển Số Mờ</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>0.1 Giây</strong><span>Tốc độ AI nhận diện biển số xe VN</span></div>
+          <div><strong>99.85%</strong><span>Chính xác cả biển số gãy, mờ, ngược sáng</span></div>
+          <div><strong>100%</strong><span>Minh bạch doanh thu vé lượt & vé tháng</span></div>
+        </div>
+      </div>
+      <div class="hero-stage hf">
+        <canvas id="heroC" width="600" height="420" role="img" aria-label="Màn hình Camera AI nhận diện biển số ô tô và xe máy kèm trạng thái mở cổng Barrier tự động"></canvas>
+        <div class="hero-meta">
+          <span>Bấm hoặc di chuột để thử quét phương tiện mới qua làn Barrier</span>
+          <span style="color:var(--pri)">EDGE AI BOX · OFFLINE FAILSAFE</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Tự động hóa từ dốc hầm đến vị trí đỗ</p>
+        <h2 id="pr-h">Bốn trạm thông minh<br><em>vận hành không cần bảo vệ quẹt thẻ</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Trạm 01 · Camera AI ANPR Chống Ngược Sáng WDR 140dB</p>
+            <h3>Đọc chính xác biển số 1 dòng, 2 dòng, biển vàng, biển ngoại giao</h3>
+            <p>Mô hình Deep Learning huấn luyện trên 15 triệu ảnh biển số thực tế tại Việt Nam, tự động đối chiếu đồng thời ảnh khuôn mặt người lái xe máy và màu sơn/hãng xe ô tô.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Trạm 02 · Thu Phí Không Dừng ETC & Thanh Toán QR Động</p>
+            <h3>Trừ tiền trực tiếp tài khoản VETC/ePass hoặc quét VietQR tại trụ</h3>
+            <p>Xe cư dân và xe đăng ký ETC đi qua cổng Barrier tự động mở trong 0.6 giây mà không cần hạ kính. Khách vãng lai quét mã QR động in trên màn hình LED và tự động nhận hóa đơn điện tử.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Trạm 03 · Cảm Biến Siêu Âm & Đèn LED Dẫn Đường Từng Ô Đỗ</p>
+            <h3>Đèn Xanh (Còn trống) – Đèn Đỏ (Đã có xe) – Đèn Tím (Ưu tiên VIP/EV)</h3>
+            <p>Bảng điện tử tại mỗi ngã rẽ tầng hầm hiển thị số chỗ trống theo thời gian thực, giúp tài xế tìm được vị trí đỗ nhanh gấp 3 lần và giảm khí thải CO trong hầm.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Trạm 04 · Kiosk Tìm Xe Thông Minh & Quản Trị Cloud Đa Điểm</p>
+            <h3>Nhập 4 số cuối biển số để xem bản đồ dẫn đường tới đúng cột hầm</h3>
+            <p>Khách hàng đi TTTM chỉ cần nhập biển số tại Kiosk thang máy hoặc trên Zalo Mini App để biết xe mình đang đỗ ở cột nào (ví dụ: Hầm B2 – Khu C – Ô C14).</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Trạm xử lý: <b id="pSt">01 · Camera AI đọc biển số</b></span>
+          <span>Thời gian mở: <b id="pSpd">0.6 Giây / Xe</b></span>
+          <span>Độ chính xác: <b id="pAcc">99.85% (Cả đêm/mưa)</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="widget" id="basement" aria-labelledby="w-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Trung tâm điều hành bãi đỗ xe thời gian thực</p>
+          <h2 id="w-h" style="margin-top:16px">Sơ đồ Bãi đỗ xe tầng hầm B1–B2 &<br><em>Mô phỏng Cảm biến Ô trống, Doanh thu</em></h2>
+        </div>
+        <p class="rv">Chọn chế độ vận hành trong ngày (Giờ cao điểm sáng / Giờ tan tầm / Cuối tuần TTTM), kéo tỷ lệ lấp đầy bãi đỗ (25%–95%) để xem trạng thái đèn cảm biến xanh/đỏ từng ô đỗ, cổng Barrier nhận diện biển số và doanh thu vé trên canvas.</p>
+      </div>
+      <div class="w-shell">
+        <div class="w-stage">
+          <canvas id="parkC" width="680" height="410" role="img" aria-label="Sơ đồ bãi đỗ xe tầng hầm B1 B2 với đèn cảm biến xanh đỏ, cổng Barrier AI và bảng doanh thu"></canvas>
+          <div class="w-controls">
+            <div class="sl-row">
+              <label for="occR"><span>Tỷ lệ lấp đầy tầng hầm (Occupancy)</span><b id="vOcc">68% (Đông vừa)</b></label>
+              <input id="occR" type="range" min="25" max="95" step="5" value="68">
+            </div>
+            <div class="sl-row">
+              <label for="laneR"><span>Số làn cổng Barrier đảo chiều mở</span><b id="vLane">04 làn tự động</b></label>
+              <input id="laneR" type="range" min="2" max="6" step="1" value="4">
+            </div>
+          </div>
+        </div>
+        <div class="w-panel">
+          <span class="mono" style="color:var(--pri)">Chọn kịch bản lưu lượng giao thông</span>
+          <div class="mode-tabs" id="modeTabs" role="group" aria-label="Chọn chế độ vận hành bãi đỗ xe">
+            <button type="button" class="m-btn" data-m="0" aria-pressed="true">
+              <span class="mono">07:30 – 09:00 · ƯU TIÊN LÀN VÀO NHANH</span>
+              <b>Giờ cao điểm sáng (Văn phòng & Cư dân)</b>
+            </button>
+            <button type="button" class="m-btn" data-m="1" aria-pressed="false">
+              <span class="mono">17:00 – 19:00 · ĐẢO CHIỀU LÀN RA + THU ETC</span>
+              <b>Giờ tan tầm chiều (Xả xe tốc độ cao)</b>
+            </button>
+            <button type="button" class="m-btn" data-m="2" aria-pressed="false">
+              <span class="mono">THỨ 7 & CHỦ NHẬT · VÉ LƯỢT VIETQR + TÌM XE</span>
+              <b>Cuối tuần Trung tâm Thương mại</b>
+            </button>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span>Số ô đỗ còn trống (Đèn xanh)</span>
+              <strong id="kFree">102 / 320 ô</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Thông lượng qua cổng</span>
+              <strong id="kFlow">1.440 xe/giờ</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Thời gian qua trạm TB</span>
+              <strong id="kSec">1.2 giây/xe</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Doanh thu vé lượt ngày</span>
+              <strong id="kRev" style="color:var(--sec)">42.8 Triệu VNĐ</strong>
+            </div>
+          </div>
+          <div class="park-note" id="wStatus" role="status" aria-live="polite">
+            <strong>Điều phối AI tự động:</strong> Chế độ <em>Giờ cao điểm sáng</em> đang mở <b>3 làn Vào – 1 làn Ra</b>. Bảng LED dốc hầm điều hướng xe mới xuống thẳng <b>Khu B (còn 64 ô trống)</b>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hardware" id="hardware" aria-labelledby="hw-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Đồng bộ phần cứng công nghiệp bền bỉ 24/7</p>
+          <h2 id="hw-h" style="margin-top:16px">Thiết kế cho môi trường <em>nóng ẩm tầng hầm</em></h2>
+        </div>
+        <p class="rv">Vận hành độc lập trên máy chủ Edge AI tại chỗ ngay cả khi mất kết nối Internet bên ngoài.</p>
+      </div>
+      <div class="hw-grid">
+        <article class="hcard rv">
+          <span class="mono">01 · Brushless Servo Barrier</span>
+          <h3>Barrier Động Cơ Không Chổi Than</h3>
+          <p>Tốc độ nâng hạ cần 0.6s – 0.9s, tuổi thọ 10 triệu lần đóng mở liên tục, tích hợp cảm biến radar chống đập vào phương tiện.</p>
+        </article>
+        <article class="hcard rv">
+          <span class="mono">02 · Dual-Lens AI LPR Camera</span>
+          <h3>Cụm Camera Kép Chuyên Dụng</h3>
+          <p>Kết hợp đèn trợ sáng LED Strobe không gây chói mắt tài xế, đọc chuẩn cả biển số phản quang lẫn biển số bị che khuất một góc.</p>
+        </article>
+        <article class="hcard rv">
+          <span class="mono">03 · Ultrasonic & Camera PGS</span>
+          <h3>Cảm Biến Báo Đầy & Tìm Xe</h3>
+          <p>Lắp đặt phía trên mỗi ô đỗ để cập nhật bản đồ số tầng hầm theo thời gian thực và ghi hình bảo vệ phương tiện chống trầy xước.</p>
+        </article>
+        <article class="hcard rv">
+          <span class="mono">04 · EV Charger Integration</span>
+          <h3>Quản Lý Trạm Sạc Xe Điện</h3>
+          <p>Khóa chống xe xăng chiếm chỗ trạm sạc EV; gộp chung phí sạc điện và phí đỗ xe vào một lần thanh toán QR duy nhất khi ra cổng.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="security" id="security" aria-labelledby="sec-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Bảo vệ tài sản & Minh bạch tài chính cho Chủ đầu tư</p>
+          <h2 id="sec-h" style="margin-top:16px">Triệt tiêu 100% <em>thất thoát tiền mặt</em></h2>
+        </div>
+        <p class="rv">Tích hợp sẵn với các phần mềm quản lý tòa nhà BMS/PMS và cổng hóa đơn điện tử khởi tạo từ máy tính tiền.</p>
+      </div>
+      <div class="sec-grid">
+        <article class="scard rv">
+          <span class="mono">Chống gian lận mở cổng thủ công</span>
+          <h3>Kiểm Soát 100% Lượt Nâng Cần</h3>
+          <p>Mọi thao tác bấm nút mở Barrier khẩn cấp hoặc miễn phí đều bị chụp ảnh tự động từ 2 góc camera và báo cáo ngay về điện thoại Ban quản lý.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">Cảnh báo tráo biển số & Mất trộm xe</span>
+          <h3>Đối Chiếu Đa Lớp: Biển Số + Khuôn Mặt + Dáng Xe</h3>
+          <p>Nếu kẻ gian tháo biển số xe khác gắn vào, AI sẽ phát hiện sự sai lệch về màu xe, chủng loại xe và khuôn mặt người điều khiển lúc vào để khóa cổng ngay.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">Hóa đơn điện tử Tổng cục Thuế</span>
+          <h3>Tự Động Kết Xuất Hóa Đơn Từng Lượt</h3>
+          <p>Đáp ứng quy định bắt buộc về xuất hóa đơn điện tử khởi tạo từ máy tính tiền đối với dịch vụ trông giữ phương tiện tại sân bay, bệnh viện, TTTM.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="quote" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Nâng cấp bãi đỗ xe thông minh không gián đoạn vận hành</p>
+        <h2 id="cta-h" style="margin-top:14px">Đăng Ký Khảo Sát Tầng Hầm &<br><em>Nhận Bản Vẽ Bố Trí Làn Xe CAD Miễn Phí</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="pName">Họ tên & Chức vụ</label>
+            <input id="pName" type="text" placeholder="Ngô Tuấn Kiệt — Trưởng Ban Quản lý Tòa nhà" required>
+          </div>
+          <div>
+            <label for="pEmail">Số điện thoại / Email nhận dự toán</label>
+            <input id="pEmail" type="email" placeholder="kiet.ngo@propertymanagement.vn" required>
+          </div>
+          <div>
+            <label for="pType">Loại hình công trình</label>
+            <select id="pType">
+              <option value="mall">Chung cư Cao tầng / Trung tâm Thương mại</option>
+              <option value="hosp">Bệnh viện / Trường Đại học / Sân bay</option>
+              <option value="ind">Nhà máy Khu công nghiệp / Bãi xe Logistics</option>
+            </select>
+          </div>
+          <div>
+            <label for="pLanes">Số lượng làn xe dự kiến lắp đặt</label>
+            <select id="pLanes">
+              <option value="l1">Từ 2 – 4 làn (Hầm tòa nhà văn phòng / chung cư)</option>
+              <option value="l2">Từ 6 – 12 làn + Báo chỗ trống tầng hầm</option>
+              <option value="l3">Hệ thống đa cổng khu đô thị + Thu phí không dừng ETC</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Yêu Cầu Kỹ Sư Khảo Sát & Báo Giá Trọn Gói</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">SmartPark<span>.AI</span></a>
+      <ul class="f-nav">
+        <li><a href="#process">Nhận Diện 0.1s</a></li>
+        <li><a href="#basement">Sơ Đồ Hầm B1–B2</a></li>
+        <li><a href="#hardware">Thiết Bị & Cảm Biến</a></li>
+        <li><a href="#security">Chống Thất Thoát</a></li>
+        <li><a href="#quote">Nhận Báo Giá</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> SmartPark AI Mobility Systems Vietnam · Giải pháp Bãi đỗ xe Thông minh & Thu phí ETC</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  // 1. Hero Canvas: AI License Plate Recognition (ANPR) & High-Speed Barrier Gate
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  const PLATES = [
+    { plate: '30K - 889.68', type: 'Ô tô SUV · Vé tháng Cư dân B2', fee: 'MIỄN PHÍ (ETC)', time: '0.08s' },
+    { plate: '51H - 642.19', type: 'Sedan · Khách vãng lai TTTM', fee: '25.000đ (VietQR)', time: '0.11s' },
+    { plate: '29E2 - 715.04', type: 'Xe máy Honda · Nghiêng 32°', fee: '5.000đ (Ví MoMo)', time: '0.09s' }
+  ];
+  let curPlateIdx = 0;
+
+  function drawHero(idx = 0) {
+    const w = 600, h = 420;
+    const p = PLATES[idx % PLATES.length];
+    heroX.fillStyle = '#06090C';
+    heroX.fillRect(0, 0, w, h);
+
+    // Camera viewfinder frame
+    heroX.strokeStyle = 'rgba(34,197,94,0.35)';
+    heroX.lineWidth = 1.5;
+    heroX.strokeRect(22, 22, 556, 376);
+
+    // Top HUD bar
+    heroX.fillStyle = '#151D26';
+    heroX.fillRect(24, 24, 552, 38);
+    heroX.fillStyle = '#22C55E';
+    heroX.font = '700 11.5px "JetBrains Mono", monospace';
+    heroX.fillText(`CAM LPR LÀN RA 01 · TỐC ĐỘ XỬ LÝ: ${p.time} · ĐỘ TIN CẬY: 99.9%`, 38, 48);
+
+    // Simulated Vehicle Front & Bounding Box
+    heroX.fillStyle = '#111820';
+    heroX.strokeStyle = '#334155';
+    heroX.fillRect(58, 92, 275, 200);
+    heroX.strokeRect(58, 92, 275, 200);
+
+    // Headlights
+    heroX.fillStyle = '#F8FAFC';
+    heroX.fillRect(76, 155, 48, 22);
+    heroX.fillRect(268, 155, 48, 22);
+
+    // License Plate Bounding Box (Green AI target)
+    heroX.fillStyle = '#F8FAFC';
+    heroX.fillRect(128, 208, 136, 42);
+    heroX.strokeStyle = '#22C55E';
+    heroX.lineWidth = 2.5;
+    heroX.strokeRect(120, 200, 152, 58);
+
+    heroX.fillStyle = '#0B0F14';
+    heroX.font = '800 14px "JetBrains Mono", monospace';
+    heroX.fillText(p.plate, 140, 234);
+
+    // Right side: Barrier Arm OPEN + Electronic Receipt
+    heroX.fillStyle = '#151D26';
+    heroX.fillRect(352, 92, 204, 200);
+    heroX.strokeStyle = '#F59E0B';
+    heroX.strokeRect(352, 92, 204, 200);
+
+    heroX.fillStyle = '#F59E0B';
+    heroX.font = '700 11px "JetBrains Mono", monospace';
+    heroX.fillText('TRẠNG THÁI BARRIER:', 368, 122);
+    heroX.fillStyle = '#22C55E';
+    heroX.font = '700 16px "Chakra Petch", sans-serif';
+    heroX.fillText('▲ ĐÃ MỞ CỔNG (0.6s)', 368, 148);
+
+    heroX.fillStyle = '#F8FAFC';
+    heroX.font = '600 11.5px "Be Vietnam Pro", sans-serif';
+    heroX.fillText(p.type, 368, 186);
+    heroX.fillStyle = '#F59E0B';
+    heroX.font = '700 13px "JetBrains Mono", monospace';
+    heroX.fillText(`PHÍ: ${p.fee}`, 368, 222);
+    heroX.fillStyle = '#94A3B8';
+    heroX.font = '500 10.5px "JetBrains Mono", monospace';
+    heroX.fillText('Khớp 100% ảnh lúc vào 08:14', 368, 258);
+
+    // Bottom status bar
+    heroX.fillStyle = '#151D26';
+    heroX.fillRect(24, 316, 552, 64);
+    heroX.fillStyle = '#22C55E';
+    heroX.font = '700 12px "JetBrains Mono", monospace';
+    heroX.fillText(`BIỂN SỐ NHẬN DIỆN: [${p.plate}] — ĐÃ XUẤT HÓA ĐƠN ĐIỆN TỬ TỰ ĐỘNG`, 38, 344);
+    heroX.fillStyle = '#94A3B8';
+    heroX.font = '500 11.5px "Be Vietnam Pro", sans-serif';
+    heroX.fillText('Bấm vào màn hình để chuyển sang phương tiện tiếp theo trong hàng đợi.', 38, 366);
+  }
+  drawHero(0);
+  heroC.addEventListener('click', () => {
+    curPlateIdx = (curPlateIdx + 1) % PLATES.length;
+    drawHero(curPlateIdx);
+  });
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    const idx = Math.floor(((e.clientX - r.left) / r.width) * 3);
+    drawHero(Math.max(0, Math.min(2, idx)));
+  });
+
+  // 2. Pinned 4-Stage Smart Parking Journey Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const P_INFO = [
+    ['01 · Camera AI đọc biển số', '0.1 Giây / Xe', '99.85% (Cả đêm/mưa)'],
+    ['02 · Thu phí không dừng ETC/QR', '0.6 Giây mở cần', 'Không dùng tiền mặt'],
+    ['03 · Cảm biến Siêu âm dẫn đường', 'Đèn Xanh / Đỏ', 'Giảm 70% thời gian tìm'],
+    ['04 · Kiosk Tìm xe theo biển số', 'Bản đồ vị trí cột', 'Tích hợp Zalo Mini App']
+  ];
+  function renderPin(p) {
+    const w = 660, h = 440;
+    const step = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3;
+    pinX.fillStyle = '#06090C';
+    pinX.fillRect(0, 0, w, h);
+
+    for (let i = 0; i < 4; i++) {
+      const x = 48 + i * 145;
+      pinX.fillStyle = i <= step ? '#22C55E' : '#151D26';
+      pinX.fillRect(x, 38, 125, 8);
+      pinX.fillStyle = i === step ? '#F59E0B' : '#94A3B8';
+      pinX.font = '600 11px "JetBrains Mono", monospace';
+      pinX.fillText(`TRẠM 0${i + 1}`, x, 28);
+    }
+
+    if (step === 0) {
+      // Multi-angle distorted plate recognition
+      pinX.strokeStyle = '#22C55E';
+      pinX.lineWidth = 2;
+      pinX.strokeRect(65, 92, 530, 245);
+      pinX.fillStyle = '#22C55E';
+      pinX.font = '700 15px "JetBrains Mono", monospace';
+      pinX.fillText('THUẬT TOÁN HIỆU CHỈNH GÓC NGHIÊNG & KHỬ CHÓI ĐÈN PHA', 90, 136);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Đọc biển số xe máy 2 dòng bị cong, trầy xước hoặc dính bùn mưa', 90, 184);
+      pinX.fillText('• Nhận diện đồng thời лого hãng xe (Toyota, VinFast, Mazda, Mercedes)', 90, 220);
+      pinX.fillStyle = '#F59E0B';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('XỬ LÝ TRỰC TIẾP TRÊN CHIP NPU TẠI CỔNG (KHÔNG PHỤ THUỘC MẠNG)', 90, 278);
+    } else if (step === 1) {
+      // Non-stop ETC & Dynamic QR
+      pinX.fillStyle = '#151D26';
+      pinX.fillRect(65, 92, 530, 245);
+      pinX.fillStyle = '#F59E0B';
+      pinX.font = '700 15px "JetBrains Mono", monospace';
+      pinX.fillText('ĐẦU ĐỌC RFID ETC (920MHz) & MÀN HÌNH VIETQR ĐỘNG TẠI LÀN RA', 88, 136);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Kết nối liên thông tài khoản giao thông VETC / ePass toàn quốc', 88, 184);
+      pinX.fillText('• Tự động khấu trừ giờ đỗ miễn phí khi khách có hóa đơn mua sắm TTTM', 88, 220);
+      pinX.fillStyle = '#22C55E';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('THÔNG LƯỢNG ĐẠT 1.500 XE/GIỜ · XÓA SỔ ÙN TẮC DỐC LÊN TẦNG HẦM', 88, 278);
+    } else if (step === 2) {
+      // Ultrasonic LED Bay Guidance
+      for (let i = 0; i < 6; i++) {
+        const x = 68 + i * 88;
+        const free = i === 1 || i === 4;
+        pinX.fillStyle = '#151D26';
+        pinX.strokeStyle = free ? '#22C55E' : '#EF4444';
+        pinX.lineWidth = 2.5;
+        pinX.fillRect(x, 120, 74, 160);
+        pinX.strokeRect(x, 120, 74, 160);
+        pinX.fillStyle = free ? '#22C55E' : '#EF4444';
+        pinX.beginPath(); pinX.arc(x + 37, 102, 7, 0, Math.PI * 2); pinX.fill();
+        pinX.font = '700 10.5px "JetBrains Mono", monospace';
+        pinX.fillText(free ? 'TRỐNG' : 'CÓ XE', x + 15, 205);
+      }
+      pinX.fillStyle = '#22C55E';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('CẢM BIẾN SIÊU ÂM TRẦN HẦM BÁO ĐÈN XANH VỊ TRÍ TRỐNG TỪ KHOẢNG CÁCH 80M', 68, 345);
+    } else {
+      // Find My Car Kiosk
+      pinX.fillStyle = '#151D26';
+      pinX.strokeStyle = '#22C55E';
+      pinX.lineWidth = 2;
+      pinX.fillRect(65, 92, 530, 245);
+      pinX.strokeRect(65, 92, 530, 245);
+      pinX.fillStyle = '#22C55E';
+      pinX.font = '700 15px "JetBrains Mono", monospace';
+      pinX.fillText('KIOSK TÌM XE TẦNG HẦM · KẾT QUẢ TRA CỨU BIỂN SỐ "889.68"', 88, 138);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Vị trí đỗ hiện tại: Tầng hầm B2 — Phân khu C — Cột C14 (Gần thang máy Sảnh Đông)', 88, 185);
+      pinX.fillText('• Thời gian đã gửi: 02 giờ 15 phút · Phí tạm tính: 30.000 VNĐ', 88, 222);
+      pinX.fillStyle = '#F59E0B';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('QUÉT QR ĐỂ THANH TOÁN TRƯỚC TRÊN ĐIỆN THOẠI TRƯỚC KHI LẤY XE RA CỔNG', 88, 280);
+    }
+
+    $('#pSt').textContent = P_INFO[step][0];
+    $('#pSpd').textContent = P_INFO[step][1];
+    $('#pAcc').textContent = P_INFO[step][2];
+  }
+  renderPin(0.2);
+
+  // 3. Signature Interactive Widget: Underground B1-B2 Parking Map & Revenue Simulator
+  const MODES = [
+    {
+      name: 'Giờ cao điểm sáng',
+      laneSplit: (n) => `${Math.max(1, n - 1)} làn Vào – 1 làn Ra`,
+      baseRev: 34.5,
+      zoneMsg: 'B2 Khu B & C'
+    },
+    {
+      name: 'Giờ tan tầm chiều',
+      laneSplit: (n) => `1 làn Vào – ${Math.max(1, n - 1)} làn Ra (ETC)`,
+      baseRev: 48.2,
+      zoneMsg: 'B1 Khu A (Gần dốc ra)'
+    },
+    {
+      name: 'Cuối tuần Trung tâm Thương mại',
+      laneSplit: (n) => `${Math.floor(n / 2)} làn Vào – ${Math.ceil(n / 2)} làn Ra`,
+      baseRev: 76.8,
+      zoneMsg: 'B2 Khu D (Sạc xe điện EV)'
+    }
+  ];
+
+  const parkC = $('#parkC'), parkX = parkC.getContext('2d');
+  let curMode = 0, occPct = 68, openLanes = 4;
+
+  function renderPark() {
+    const w = 680, h = 410;
+    const m = MODES[curMode];
+    parkX.fillStyle = '#06090C';
+    parkX.fillRect(0, 0, w, h);
+
+    const totalSpots = 320;
+    const freeSpots = Math.round(totalSpots * (1 - occPct / 100));
+    const flowPerHr = openLanes * 360;
+    const secPerCar = +(4.2 / openLanes).toFixed(1);
+    const revMillion = +(m.baseRev * (occPct / 65)).toFixed(1);
+
+    $('#vOcc').textContent = `${occPct}% (${occPct > 80 ? 'Sắp đầy' : occPct > 50 ? 'Đông vừa' : 'Thông thoáng'})`;
+    $('#vLane').textContent = `0${openLanes} làn tự động`;
+    $('#kFree').textContent = `${freeSpots} / ${totalSpots} ô`;
+    $('#kFlow').textContent = `${flowPerHr.toLocaleString('vi-VN')} xe/giờ`;
+    $('#kSec').textContent = `${secPerCar} giây/xe`;
+    $('#kRev').textContent = `${revMillion} Triệu VNĐ`;
+
+    $('#wStatus').innerHTML = `<strong>Điều phối AI tự động:</strong> Chế độ <em>${m.name}</em> đang cấu hình <b>${m.laneSplit(openLanes)}</b>. Hệ thống đèn LED dẫn hướng xe mới vào <b>${m.zoneMsg} (còn ${freeSpots} chỗ trống)</b>.`;
+
+    // Top Header
+    parkX.fillStyle = '#F8FAFC';
+    parkX.font = '600 11.5px "JetBrains Mono", monospace';
+    parkX.fillText(`SƠ ĐỒ CẢM BIẾN HẦM B1–B2 (${freeSpots} Ô TRỐNG — ĐÈN XANH | ĐÃ ĐỖ — ĐÈN ĐỎ)`, 28, 30);
+
+    // Draw 32 Parking Bays (4 rows x 8 cols) representing the 320 bays
+    const totalCells = 32;
+    const occupiedCells = Math.round((occPct / 100) * totalCells);
+
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 8; c++) {
+        const idx = r * 8 + c;
+        const x = 32 + c * 52;
+        const y = 54 + r * 68 + (r >= 2 ? 16 : 0);
+        // Deterministic pseudo-random occupancy pattern
+        const isOccupied = ((idx * 7 + curMode * 3) % totalCells) < occupiedCells;
+
+        parkX.fillStyle = isOccupied ? 'rgba(239,68,68,0.18)' : 'rgba(34,197,94,0.16)';
+        parkX.strokeStyle = isOccupied ? '#EF4444' : '#22C55E';
+        parkX.lineWidth = 1.6;
+        parkX.fillRect(x, y, 42, 54);
+        parkX.strokeRect(x, y, 42, 54);
+
+        // Ultrasonic LED indicator dot at top of bay
+        parkX.fillStyle = isOccupied ? '#EF4444' : '#22C55E';
+        parkX.beginPath(); parkX.arc(x + 21, y + 10, 4, 0, Math.PI * 2); parkX.fill();
+
+        parkX.fillStyle = '#F8FAFC';
+        parkX.font = '600 9.5px "JetBrains Mono", monospace';
+        parkX.fillText(`${String.fromCharCode(65 + r)}0${c + 1}`, x + 10, y + 32);
+        parkX.fillStyle = isOccupied ? '#FCA5A5' : '#86EFAC';
+        parkX.fillText(isOccupied ? 'FULL' : 'FREE', x + 9, y + 46);
+      }
+    }
+
+    // Center Driveway Guidance Arrows
+    parkX.fillStyle = '#F59E0B';
+    parkX.font = '700 11px "JetBrains Mono", monospace';
+    parkX.fillText('═══► LUỒNG DẪN ĐƯỜNG LED TỚI Ô ĐỖ TRỐNG ═══►', 75, 198);
+
+    // Right Panel: Live Barrier Gate Lanes & ANPR Feed
+    const rx = 464;
+    parkX.fillStyle = '#151D26';
+    parkX.strokeStyle = 'rgba(34,197,94,0.35)';
+    parkX.fillRect(rx, 54, 190, 286);
+    parkX.strokeRect(rx, 54, 190, 286);
+
+    parkX.fillStyle = '#F59E0B';
+    parkX.font = '700 11px "JetBrains Mono", monospace';
+    parkX.fillText(`CỔNG BARRIER (${openLanes} LÀN)`, rx + 14, 80);
+
+    for (let l = 0; l < 6; l++) {
+      const ly = 96 + l * 38;
+      const active = l < openLanes;
+      parkX.fillStyle = active ? '#0B0F14' : 'rgba(11,15,20,0.4)';
+      parkX.strokeStyle = active ? '#22C55E' : '#334155';
+      parkX.fillRect(rx + 14, ly, 162, 30);
+      parkX.strokeRect(rx + 14, ly, 162, 30);
+
+      parkX.fillStyle = active ? '#22C55E' : '#64748B';
+      parkX.font = '600 10px "JetBrains Mono", monospace';
+      parkX.fillText(
+        active ? `LÀN 0${l + 1}: MỞ TỰ ĐỘNG ETC` : `LÀN 0${l + 1}: ĐÓNG DỰ PHÒNG`,
+        rx + 22,
+        ly + 19
+      );
+    }
+
+    parkX.fillStyle = '#22C55E';
+    parkX.font = '600 11px "JetBrains Mono", monospace';
+    parkX.fillText('● XANH: CÒN CHỖ TRỐNG   ● ĐỎ: ĐÃ CÓ XE ĐỖ   ● CAM: THU PHÍ KHÔNG DỪNG ETC', 32, 384);
+  }
+
+  function selectMode(idx) {
+    curMode = idx;
+    $$('#modeTabs .m-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === idx));
+    renderPark();
+  }
+  selectMode(0);
+
+  $('#modeTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.m-btn');
+    if (b) selectMode(+b.dataset.m);
+  });
+  $('#occR').addEventListener('input', (e) => {
+    occPct = +e.target.value;
+    renderPark();
+  });
+  $('#laneR').addEventListener('input', (e) => {
+    openLanes = +e.target.value;
+    renderPark();
+  });
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#pName').value.trim();
+    $('#ctaOk').textContent = n
+      ? `Cảm ơn ${n}! Kỹ sư giải pháp của SmartPark AI sẽ liên hệ trong 2 giờ làm việc để khảo sát tầng hầm và gửi bản vẽ bố trí làn xe CAD.`
+      : 'Vui lòng nhập họ tên và số điện thoại/email để nhận báo giá trọn gói.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.32 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.42, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

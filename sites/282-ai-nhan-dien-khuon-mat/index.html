@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VisionEdge AI Vietnam — Giải pháp Camera AI Nhận diện Khuôn mặt, Đếm lưu lượng & Cảnh báo An ninh</title>
+<meta name="description" content="VisionEdge AI Vietnam cung cấp giải pháp Edge AI Box biến camera IP sẵn có thành mắt thần thông minh: chấm công khuôn mặt 0.08s, bản đồ nhiệt bán lẻ và cảnh báo xâm nhập vành đai.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23070B12'/%3E%3Crect x='12' y='12' width='40' height='40' rx='8' fill='none' stroke='%2310B981' stroke-width='2.5' stroke-dasharray='10 6'/%3E%3Ccircle cx='32' cy='32' r='11' fill='none' stroke='%23F59E0B' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%2310B981'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070B12; --bg2:#101826; --card:#141E30; --ink:#070B12;
+  --pri:#10B981; --acc:#F59E0B; --text:#F1F5F9; --muted:#94A3B8;
+  --line:rgba(16,185,129,.22);
+  --head:"Space Grotesk", sans-serif; --body:"Be Vietnam Pro", sans-serif; --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:600}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.4vw,60px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pri)}
+.kick::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px 2px rgba(245,158,11,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;cursor:pointer;transition:transform .35s var(--ease),background .3s}
+.btn:hover{background:#34D399;border-color:#34D399;transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--pri);color:var(--pri)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(7,11,18,.92);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:22px;font-weight:700;color:var(--text)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 75% 25%,rgba(16,185,129,.18),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(245,158,11,.12),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(38px,5.2vw,72px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:50ch;color:var(--muted);font-size:17.5px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-box{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-box canvas{width:100%;height:auto;border-radius:10px;cursor:crosshair}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Pinned Edge AI Flow */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:240px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--acc)}
+.pstep h3{font-size:clamp(24px,2.4vw,34px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:44ch}
+.pr-vis{background:#05080E;border:1px solid var(--line);border-radius:16px;padding:20px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive Widget */
+.sim{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.sim-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.sim-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.sim-stage canvas{width:100%;height:auto;border-radius:10px;background:#05080E;cursor:crosshair}
+.sim-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.sim-info{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:18px}
+.mode-tabs{display:grid;grid-template-columns:1fr;gap:10px}
+.m-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left;transition:border-color .25s,background .25s}
+.m-btn .mono{font-size:10px;color:var(--acc);display:block}
+.m-btn b{font-family:var(--head);font-size:18px}
+.m-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(16,185,129,.14)}
+.quote-box{padding:16px;background:rgba(245,158,11,.1);border-left:3px solid var(--acc);border-radius:6px;font-size:14.5px;display:grid;gap:6px}
+.quote-box strong{font-family:var(--head);font-size:22px;color:var(--pri)}
+
+/* Specs & Hardware */
+.specs{padding:110px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.scard .mono{color:var(--acc)}
+.scard h3{font-size:22px}
+.scard p{color:var(--muted);font-size:15px}
+
+/* Industry Use Cases */
+.cases{padding:110px 0;background:var(--bg);border-top:1px solid var(--line)}
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ccard{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.ccard .mono{color:var(--pri)}
+.ccard h3{font-size:23px}
+.ccard p{color:var(--muted);font-size:15px}
+
+/* CTA */
+.cta{padding:110px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(16,185,129,.2),transparent 70%),var(--bg2);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--pri)}
+
+footer{background:#04070C;border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.sim-shell,.case-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .spec-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.sim-controls,.spec-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="VisionEdge AI Vietnam Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="6" fill="none" stroke="#10B981" stroke-width="2" stroke-dasharray="6 3"/><circle cx="16" cy="16" r="6" fill="none" stroke="#F59E0B" stroke-width="2"/><circle cx="16" cy="16" r="2.5" fill="#10B981"/></svg>
+      VisionEdge AI
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Luồng Edge AI</a></li>
+        <li><a href="#sim">Mô phỏng Camera</a></li>
+        <li><a href="#specs">Phần cứng AI Box</a></li>
+        <li><a href="#cases">Ứng dụng Thực tế</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#trial">Đặt Lịch Demo Tại Chỗ</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Luồng xử lý Edge AI 0.08s</a>
+  <a href="#sim">Mô phỏng Camera & Tính cấu hình</a>
+  <a href="#specs">Thiết bị Phần cứng Edge Box</a>
+  <a href="#cases">Giải pháp Nhà máy & Chuỗi bán lẻ</a>
+  <a href="#trial">Đặt lịch Demo miễn phí</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Thị giác Máy tính Biên · Chuẩn Bảo mật Nghị định 13</p>
+        <h1 id="hero-h"><span class="mask"><span>Biến camera sẵn có</span></span><span class="mask"><span>thành <em>mắt thần AI 0.08s.</em></span></span></h1>
+        <p class="hero-lead hf">VisionEdge AI nâng cấp tức thì hệ thống camera RTSP/ONVIF hiện hữu tại tòa nhà, nhà máy và chuỗi siêu thị bằng thiết bị xử lý tại biên (Edge AI Box) — nhận diện khuôn mặt chấm công, phân tích bản đồ nhiệt mua sắm và báo động xâm nhập thời gian thực.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#sim">Mô phỏng Luồng Camera & Báo giá</a>
+          <a class="btn ghost" href="#process">Xem Kiến trúc Edge AI</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>0.08 Giây</strong><span>Độ trễ nhận diện tại biên</span></div>
+          <div><strong>99.78%</strong><span>Chính xác ngược sáng & khẩu trang</span></div>
+          <div><strong>-75%</strong><span>Chi phí băng thông Cloud</span></div>
+        </div>
+      </div>
+      <div class="hero-box hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Màn hình giám sát Camera AI nhận diện khuôn mặt và tọa độ вектор thời gian thực"></canvas>
+        <div class="hero-meta">
+          <span>Di chuột lên khung hình để khóa mục tiêu AI</span>
+          <span style="color:var(--pri)">STREAM: RTSP_CAM_01 · 60 FPS</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Kiến trúc Xử lý Tại Biên</p>
+        <h2 id="pr-h">Từ luồng RTSP thô đến<br><em>quyết định tức thì 80ms</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Bước 01 · Thu nhận Luồng RTSP & Khử nhiễu NPU</p>
+            <h3>Giải mã phần cứng 32 luồng Full HD đồng thời</h3>
+            <p>Edge AI Box kết nối trực tiếp với camera Hikvision, Dahua, KBVision, Hanwha qua mạng LAN nội bộ, tự động cân bằng sáng WDR mà không cần thay mới mắt camera.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 02 · Nhận diện Khuôn mặt Chấm công Không chạm</p>
+            <h3>Chấm công 4 người cùng lúc khi đang bước đi</h3>
+            <p>Mô hình ArcFace tối ưu hóa cho khuôn mặt người Việt, chống giả mạo bằng ảnh chụp/video điện thoại (Liveness Detection) và mở khóa cửa từ trong 0.08 giây.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 03 · Bản đồ nhiệt (Heatmap) & Đếm khách Bán lẻ</p>
+            <h3>Phân tích hành trình mua sắm & quầy kệ hút khách</h3>
+            <p>Loại trừ nhân viên cửa hàng bằng đồng phục, thống kê tỷ lệ chuyển đổi theo khung giờ, độ tuổi, giới tính và thời gian dừng chân trước từng quầy trưng bày.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Bước 04 · Hàng rào Ảo & Cảnh báo An ninh Vành đai</p>
+            <h3>Báo động xâm nhập vùng cấm & Quên đồ bảo hộ PPE</h3>
+            <p>Tự động kích hoạt còi hú, đèn chớp tại chỗ và gửi ảnh chụp qua Zalo OA / Telegram cho đội bảo vệ ngay khi phát hiện người leo rào hoặc thiếu mũ bảo hộ.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Tác vụ NPU: <b id="pTask">Giải mã luồng RTSP</b></span>
+          <span>Độ trễ: <b id="pLat">80 ms</b></span>
+          <span>Tiến trình xử lý: <b id="pPct">25%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sim" id="sim" aria-labelledby="sim-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Công cụ cấu hình trực quan</p>
+          <h2 id="sim-h" style="margin-top:16px">Mô phỏng Camera AI &<br><em>Tính cấu hình Edge Server</em></h2>
+        </div>
+        <p class="rv">Chọn bài toán nghiệp vụ, kéo thanh trượt số lượng mắt camera và ngưỡng nhạy AI để quan sát trực tiếp thuật toán vẽ Bounding Box, Heatmap trên canvas kèm cấu hình phần cứng đề xuất.</p>
+      </div>
+      <div class="sim-shell">
+        <div class="sim-stage">
+          <canvas id="simC" width="680" height="400" role="img" aria-label="Mô phỏng phân tích hình ảnh AI Bounding Box và Heatmap"></canvas>
+          <div class="sim-controls">
+            <div class="sl-row">
+              <label for="camR"><span>Số lượng mắt Camera IP</span><b id="vCam">16 mắt</b></label>
+              <input id="camR" type="range" min="4" max="128" step="4" value="16">
+            </div>
+            <div class="sl-row">
+              <label for="confR"><span>Ngưỡng độ nhạy AI (Confidence)</span><b id="vConf">92%</b></label>
+              <input id="confR" type="range" min="75" max="99" step="1" value="92">
+            </div>
+          </div>
+        </div>
+        <div class="sim-info">
+          <span class="mono" style="color:var(--pri)">Chọn bài toán thị giác máy tính</span>
+          <div class="mode-tabs" id="modeTabs" role="group" aria-label="Chọn bài toán AI">
+            <button type="button" class="m-btn" data-m="0" aria-pressed="true">
+              <span class="mono">Văn phòng & Nhà máy · Liveness 3D</span>
+              <b>Chấm công FaceID & Kiểm soát cửa</b>
+            </button>
+            <button type="button" class="m-btn" data-m="1" aria-pressed="false">
+              <span class="mono">Chuỗi Siêu thị & Showroom · Retail AI</span>
+              <b>Đếm lưu lượng & Heatmap quầy kệ</b>
+            </button>
+            <button type="button" class="m-btn" data-m="2" aria-pressed="false">
+              <span class="mono">Kho bãi & Khu công nghiệp · 24/7</span>
+              <b>Cảnh báo xâm nhập vành đai & Bảo hộ PPE</b>
+            </button>
+          </div>
+          <div>
+            <span class="mono" style="color:var(--acc)" id="sHw">Thiết bị đề xuất: 01 × VisionEdge Box NPU-32 (32 TOPS)</span>
+            <h3 id="sTitle" style="font-size:24px;margin:6px 0 8px">Nhận diện nhân sự 0.08s & Tích hợp HRM</h3>
+            <p id="sDesc" style="color:var(--muted);font-size:15px">Đồng bộ dữ liệu chấm công trực tiếp sang Base.vn, 1Office, SAP và kiểm soát cổng xoay Tripod/Flap Barrier mà không cần thẻ từ.</p>
+          </div>
+          <div class="quote-box" id="sQuote" role="status" aria-live="polite">
+            <span class="mono">Chi phí đầu tư ước tính (Trọn gói phần cứng + License):</span>
+            <strong id="qPrice">28.800.000 VNĐ</strong>
+            <span id="qSub" style="color:var(--muted);font-size:13px">Băng thông LAN tiêu thụ: 64 Mbps · Lưu trữ sự kiện tại biên: 180 ngày</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="specs" id="specs" aria-labelledby="sp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Phần cứng Chuyên dụng Công nghiệp</p>
+          <h2 id="sp-h" style="margin-top:16px">Thiết bị Edge AI Box <em>bền bỉ 24/7</em></h2>
+        </div>
+        <p class="rv">Thiết kế tản nhiệt không quạt (Fanless) chịu nhiệt độ môi trường nhà xưởng Việt Nam lên tới 60°C, hoạt động độc lập cả khi mất kết nối Internet.</p>
+      </div>
+      <div class="spec-grid">
+        <article class="scard rv">
+          <span class="mono">NPU 32 – 128 TOPS</span>
+          <h3>Chip AI Jetson & Hailo-8</h3>
+          <p>Vi xử lý thần kinh chuyên dụng giúp tiết kiệm 80% điện năng so với máy chủ GPU truyền thống.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">ONVIF / RTSP Ready</span>
+          <h3>Tương thích 99% Camera</h3>
+          <p>Cắm là chạy với mọi dòng camera IP Hikvision, Dahua, Imou, Ezviz, Axis đang lắp đặt sẵn.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">Bảo mật Nghị định 13</span>
+          <h3>Mã hóa Vector AES-256</h3>
+          <p>Dữ liệu sinh trắc học được chuyển thành chuỗi vector 512 chiều ngay tại biên, không lưu ảnh thô lên đám mây.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">Webhook & REST API</span>
+          <h3>Mở khóa Cửa & Báo động</h3>
+          <p>Tích hợp sẵn cổng Relay I/O, Wiegand 26/34 điều khiển khóa từ, cổng xoay và tổng đài IP PBX.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cases" id="cases" aria-labelledby="ca-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Triển khai thực chiến tại Việt Nam</p>
+          <h2 id="ca-h" style="margin-top:16px">Hơn 450 doanh nghiệp tin dùng</h2>
+        </div>
+        <p class="rv">Từ khu công nghiệp Bắc Ninh, Bình Dương đến các chuỗi bán lẻ thời trang và tòa nhà văn phòng hạng A tại Hà Nội & TP.HCM.</p>
+      </div>
+      <div class="case-grid">
+        <article class="ccard rv">
+          <span class="mono">01 · Khu Công Nghiệp & Nhà Máy</span>
+          <h3>Chấm công 5.000 công nhân trong 12 phút</h3>
+          <p>Xóa bỏ hoàn toàn cảnh ùn tắc quẹt thẻ vân tay giờ vào ca, đồng thời tự động phát hiện công nhân quên đội mũ bảo hộ hoặc đi vào vùng cẩu trục nguy hiểm.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">02 · Chuỗi Siêu Thị & Showroom</span>
+          <h3>Tăng 24% doanh thu nhờ Heatmap trưng bày</h3>
+          <p>Đo lường chính xác lưu lượng khách thực tế vào từng cửa hàng, nhận diện khách VIP quay lại và tối ưu hóa vị trí đặt quầy hàng khuyến mãi.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">03 · Tòa Nhà Văn Phòng & Ngân Hàng</span>
+          <h3>Kiểm soát Thang máy & Danh sách đen</h3>
+          <p>Tự động phân tầng thang máy cho nhân viên, cấp mã QR khách mời liên kết FaceID và cảnh báo ngầm cho quầy giao dịch khi phát hiện đối tượng khả nghi.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="trial" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Trải nghiệm Thực tế Miễn phí 14 Ngày</p>
+        <h2 id="cta-h" style="margin-top:14px">Đăng ký Mượn Thiết bị Edge AI Box &<br><em>Khảo sát Hệ thống Camera Tận Nơi</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="cName">Họ và tên người liên hệ</label>
+            <input id="cName" type="text" placeholder="Nguyễn Minh Hoàng — Giám đốc CNTT" required>
+          </div>
+          <div>
+            <label for="cPhone">Số điện thoại / Zalo</label>
+            <input id="cPhone" type="tel" placeholder="0903 882 119" required>
+          </div>
+          <div>
+            <label for="cScale">Quy mô hệ thống Camera hiện tại</label>
+            <select id="cScale">
+              <option value="s1">Từ 4 – 16 mắt camera (1 điểm)</option>
+              <option value="s2">Từ 20 – 64 mắt camera (Nhà máy / Tòa nhà)</option>
+              <option value="s3">Chuỗi đa điểm trên 100 mắt camera</option>
+            </select>
+          </div>
+          <div>
+            <label for="cGoal">Bài toán ưu tiên triển khai</label>
+            <select id="cGoal">
+              <option value="g1">Chấm công khuôn mặt & Kiểm soát ra vào</option>
+              <option value="g2">Đếm lưu lượng khách & Bản đồ nhiệt bán lẻ</option>
+              <option value="g3">Cảnh báo xâm nhập vành đai & An toàn lao động</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Yêu Cầu Kỹ Sư Mang AI Box Tới Demo</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">VisionEdge AI Vietnam</a>
+      <ul class="f-nav">
+        <li><a href="#process">Luồng Edge AI</a></li>
+        <li><a href="#sim">Tính Cấu Hình</a></li>
+        <li><a href="#specs">Thiết Bị AI Box</a></li>
+        <li><a href="#cases">Khách Hàng</a></li>
+        <li><a href="#trial">Đăng Ký Demo</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> VisionEdge AI Vietnam · Giải pháp Thị giác Máy tính Biên</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  function drawScene(ctx, w, h, mode = 0, camCount = 16, conf = 92, focusX = w / 2, focusY = h / 2) {
+    ctx.fillStyle = '#05080E';
+    ctx.fillRect(0, 0, w, h);
+
+    // Subtle perspective grid
+    ctx.strokeStyle = 'rgba(16,185,129,0.12)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 40) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 40) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+
+    if (mode === 1) {
+      // Retail Heatmap blobs
+      const pts = [[180, 190, 95], [350, 220, 120], [490, 170, 85], [focusX, focusY, 90]];
+      pts.forEach(([px, py, r]) => {
+        const g = ctx.createRadialGradient(px, py, 8, px, py, r);
+        g.addColorStop(0, 'rgba(245,158,11,0.55)');
+        g.addColorStop(0.5, 'rgba(16,185,129,0.28)');
+        g.addColorStop(1, 'rgba(5,8,14,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+      });
+    }
+
+    if (mode === 2) {
+      // Restricted perimeter polygon
+      ctx.fillStyle = 'rgba(245,158,11,0.12)';
+      ctx.strokeStyle = '#F59E0B';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(390, 70); ctx.lineTo(640, 70); ctx.lineTo(640, 350); ctx.lineTo(350, 350);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#F59E0B';
+      ctx.font = '600 11px "JetBrains Mono", monospace';
+      ctx.fillText('VÙNG CẤM XÂM NHẬP · ZONE A2', 410, 94);
+    }
+
+    // Simulated detected persons / bounding boxes
+    const targets = [
+      { x: 110, y: 120, bw: 92, bh: 170, label: 'NV_018 · Lê Minh', ok: true },
+      { x: 265, y: 135, bw: 88, bh: 165, label: 'NV_042 · Trần Hà', ok: true },
+      { x: 435, y: 125, bw: 94, bh: 175, label: mode === 2 ? 'CẢNH BÁO: XÂM NHẬP' : 'KHÁCH VIP #89', ok: mode !== 2 }
+    ];
+
+    targets.forEach((t, idx) => {
+      const col = t.ok ? '#10B981' : '#F59E0B';
+      // Person silhouette
+      ctx.fillStyle = 'rgba(148,163,184,0.18)';
+      ctx.beginPath();
+      ctx.arc(t.x + t.bw / 2, t.y + 34, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(t.x + 18, t.y + 60, t.bw - 36, t.bh - 68);
+
+      // Bounding box corners
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(t.x, t.y, t.bw, t.bh);
+
+      // Facial landmark mesh points
+      ctx.fillStyle = col;
+      [[-7, -4], [7, -4], [0, 3], [-6, 10], [6, 10]].forEach(([dx, dy]) => {
+        ctx.fillRect(t.x + t.bw / 2 + dx - 1.5, t.y + 34 + dy - 1.5, 3, 3);
+      });
+
+      // Tag header
+      ctx.fillStyle = col;
+      ctx.fillRect(t.x, t.y - 22, t.bw + 46, 20);
+      ctx.fillStyle = '#05080E';
+      ctx.font = '600 10px "JetBrains Mono", monospace';
+      ctx.fillText(`${t.label} (${Math.min(99, conf + idx)}%)`, t.x + 5, t.y - 8);
+    });
+
+    // Crosshair HUD on pointer
+    ctx.strokeStyle = 'rgba(16,185,129,0.65)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(focusX, focusY, 24, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Top HUD bar
+    ctx.fillStyle = 'rgba(16,24,38,0.88)';
+    ctx.fillRect(14, 14, w - 28, 34);
+    ctx.fillStyle = '#10B981';
+    ctx.font = '600 11px "JetBrains Mono", monospace';
+    ctx.fillText(`LUỒNG ĐỒNG THỜI: ${camCount} CAM · CONFIDENCE >= ${conf}% · LATENCY: 0.08s`, 26, 35);
+  }
+
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  drawScene(heroX, 580, 420, 0, 16, 96, 290, 210);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    const fx = ((e.clientX - r.left) / r.width) * 580;
+    const fy = ((e.clientY - r.top) / r.height) * 420;
+    drawScene(heroX, 580, 420, 0, 16, 96, fx, fy);
+  });
+
+  // Pinned Scroll Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const STAGES = [
+    ['Giải mã luồng RTSP', '45 ms', 0],
+    ['Chấm công FaceID 3D', '80 ms', 0],
+    ['Phân tích Heatmap Bán lẻ', '75 ms', 1],
+    ['Cảnh báo Vành đai An ninh', '60 ms', 2]
+  ];
+  function renderPin(p) {
+    const step = p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3;
+    const st = STAGES[step];
+    drawScene(pinX, 660, 440, st[2], 32, 95, 160 + p * 360, 210);
+    $('#pTask').textContent = st[0];
+    $('#pLat').textContent = st[1];
+    $('#pPct').textContent = `${Math.round(p * 100)}%`;
+  }
+  renderPin(0.5);
+
+  // Interactive Simulator
+  const MODES = [
+    {
+      title: 'Nhận diện nhân sự 0.08s & Tích hợp HRM',
+      desc: 'Đồng bộ dữ liệu chấm công trực tiếp sang Base.vn, 1Office, SAP và kiểm soát cổng xoay Tripod/Flap Barrier mà không cần thẻ từ.'
+    },
+    {
+      title: 'Đếm lượt khách & Vẽ bản đồ nhiệt cửa hàng',
+      desc: 'Phân biệt chính xác khách mua hàng với nhân viên thu ngân, đo tỷ lệ dừng chân tại từng quầy kệ và báo cáo giờ cao điểm.'
+    },
+    {
+      title: 'Hàng rào ảo chống đột nhập & Kiểm tra đồ bảo hộ',
+      desc: 'Phát hiện người leo tường rào ban đêm, cảnh báo công nhân quên mũ bảo hộ/áo phản quang và kích hoạt loa báo động tức thì.'
+    }
+  ];
+
+  const simC = $('#simC'), simX = simC.getContext('2d');
+  let curMode = 0, curCams = 16, curConf = 92, pX = 340, pY = 200;
+
+  function updateSim() {
+    drawScene(simX, 680, 400, curMode, curCams, curConf, pX, pY);
+    const boxes = Math.ceil(curCams / 16);
+    const tops = boxes * 32;
+    const price = boxes * 24500000 + curCams * 260000;
+    $('#sHw').textContent = `Thiết bị đề xuất: 0${boxes} × VisionEdge Box NPU-32 (${tops} TOPS)`;
+    $('#sTitle').textContent = MODES[curMode].title;
+    $('#sDesc').textContent = MODES[curMode].desc;
+    $('#qPrice').textContent = `${price.toLocaleString('vi-VN')} VNĐ`;
+    $('#qSub').textContent = `Băng thông LAN tiêu thụ: ${curCams * 4} Mbps · Lưu trữ sự kiện tại biên: 180 ngày`;
+  }
+
+  $$('#modeTabs .m-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curMode = +btn.dataset.m;
+      $$('#modeTabs .m-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === curMode));
+      updateSim();
+    });
+  });
+  $('#camR').addEventListener('input', (e) => {
+    curCams = +e.target.value;
+    $('#vCam').textContent = `${curCams} mắt`;
+    updateSim();
+  });
+  $('#confR').addEventListener('input', (e) => {
+    curConf = +e.target.value;
+    $('#vConf').textContent = `${curConf}%`;
+    updateSim();
+  });
+  simC.addEventListener('pointermove', (e) => {
+    const r = simC.getBoundingClientRect();
+    pX = ((e.clientX - r.left) / r.width) * 680;
+    pY = ((e.clientY - r.top) / r.height) * 400;
+    updateSim();
+  });
+  updateSim();
+
+  // Nav & Mobile Menu
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#cName').value.trim();
+    $('#ctaOk').textContent = n ? `Cảm ơn ${n}! Kỹ sư giải pháp VisionEdge AI sẽ liên hệ qua Zalo trong 15 phút để xếp lịch mang thiết bị demo.` : 'Vui lòng nhập họ tên và số điện thoại liên hệ.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.8, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

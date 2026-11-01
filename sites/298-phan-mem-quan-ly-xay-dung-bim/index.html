@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BuildTrack BIM & Tiến Độ — Phần mềm Quản lý Dự án Xây dựng, Nhật ký Công trường & BIM 4D</title>
+<meta name="description" content="BuildTrack BIM kết nối hiện trường thi công với Ban giám đốc: nhật ký công trường số chống sửa lùi ngày, nghiệm thu gắn tọa độ mô hình BIM 3D và kiểm soát hao hụt sắt thép, bê tông.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23101318'/%3E%3Cpolygon points='32,10 52,22 52,44 32,54 12,44 12,22' fill='none' stroke='%23FACC15' stroke-width='3'/%3E%3Cpath d='M32 10 V54 M12 22 L52 44 M52 22 L12 44' stroke='%2338BDF8' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#101318;
+  --bg2:#1B2028;
+  --bg3:#0A0C0F;
+  --paper:#F4F4F5;
+  --ink:#101318;
+  --pri:#FACC15;
+  --sec:#38BDF8;
+  --ok:#22C55E;
+  --warn:#F97316;
+  --text:#F8FAFC;
+  --muted:#9CA3AF;
+  --mutedD:#4B5563;
+  --line:rgba(250,204,21,.24);
+  --head:"Oswald", sans-serif;
+  --body:"Be Vietnam Pro", sans-serif;
+  --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:700;border-radius:6px}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:.01em;text-transform:uppercase}
+h2{font-size:clamp(34px,4.5vw,60px)}
+h1 em,h2 em{font-style:normal;color:var(--pri)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--pri);background:rgba(250,204,21,.09);border:1px solid var(--line);padding:6px 12px;border-radius:99px}
+.kick::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--sec);box-shadow:0 0 10px 2px rgba(56,189,248,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{--mx:0px;--my:0px;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--pri);background:var(--pri);color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;border-radius:6px;cursor:pointer;transform:translate(var(--mx),var(--my));transition:transform .35s var(--ease),background .25s}
+.btn:hover{background:#FDE047;border-color:#FDE047}
+.btn.ghost{background:rgba(27,32,40,.8);color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--sec);color:var(--sec)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(16,19,24,.93);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--head);font-size:24px;font-weight:700;color:var(--text);letter-spacing:.03em}
+.logo span{color:var(--pri)}
+.logo svg{width:34px;height:34px;flex-shrink:0}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 13px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:6px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--pri)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:122px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 78% 24%,rgba(250,204,21,.14),transparent 70%),radial-gradient(ellipse 50% 50% at 15% 82%,rgba(56,189,248,.13),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(38px,5.4vw,72px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:52ch;color:var(--muted);font-size:17.5px;margin-top:18px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:34px;color:var(--pri)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3);cursor:crosshair}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+/* Pinned Site Photo to BIM 3D & Material Control */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:245px;margin-top:22px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--pri)}
+.pstep h3{font-size:clamp(24px,2.5vw,36px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:46ch}
+.pr-vis{background:var(--bg3);border:1px solid var(--line);border-radius:16px;padding:18px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive 4D BIM Construction Progress Simulator */
+.widget{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.w-shell{display:grid;grid-template-columns:1.16fr .84fr;gap:28px;align-items:start}
+.w-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.w-stage canvas{width:100%;height:auto;border-radius:10px;background:var(--bg3)}
+.w-controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.sl-row label b{color:var(--pri)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--pri);cursor:pointer}
+.w-panel{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:24px;display:grid;gap:16px}
+.proj-tabs{display:grid;gap:10px}
+.p-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left;transition:border-color .2s,background .2s}
+.p-btn .mono{font-size:10.5px;color:var(--sec);display:block}
+.p-btn b{font-family:var(--head);font-size:19px;display:block;margin-top:2px;letter-spacing:.02em}
+.p-btn[aria-pressed="true"]{border-color:var(--pri);background:rgba(250,204,21,.14)}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px}
+.kpi-card span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.kpi-card strong{font-family:var(--head);font-size:23px;color:var(--pri)}
+.bim-note{padding:14px;background:rgba(56,189,248,.12);border-left:3px solid var(--sec);border-radius:6px;font-size:14.5px;color:var(--text)}
+
+/* Core Construction Modules (Light Contrast) */
+.modules{padding:116px 0;background:var(--paper);color:var(--ink)}
+.modules .kick{color:#B45309;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3)}
+.modules h2 em{color:#D97706}
+.modules .sec-head p{color:var(--mutedD)}
+.mod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.mcard{background:#fff;border:1px solid rgba(16,19,24,.1);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.mcard .mono{color:#B45309;font-weight:600}
+.mcard h3{font-size:22px;color:var(--ink)}
+.mcard p{color:var(--mutedD);font-size:15px}
+
+/* CDE & ISO 19650 Compliance */
+.cde{padding:116px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.cde-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ccard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.ccard .mono{color:var(--pri)}
+.ccard h3{font-size:24px}
+.ccard p{color:var(--muted);font-size:15px}
+
+/* CTA */
+.cta{padding:116px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(250,204,21,.18),transparent 70%),var(--bg);border-top:1px solid var(--line)}
+.cta-box{max-width:860px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--pri)}
+
+footer{background:var(--bg3);border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-nav a:hover{color:var(--pri)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.w-shell,.cde-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .mod-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.w-controls,.kpi-grid,.mod-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 18px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="BuildTrack BIM & Tiến Độ Trang chủ">
+      <svg viewBox="0 0 36 36" aria-hidden="true"><polygon points="18,4 32,12 32,26 18,33 4,26 4,12" fill="#1B2028" stroke="#FACC15" stroke-width="2"/><path d="M18 4 V33 M4 12 L32 26 M32 12 L4 26" stroke="#38BDF8" stroke-width="1.5"/></svg>
+      BUILDTRACK<span>.BIM</span>
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Nghiệm Thu Gắn BIM</a></li>
+        <li><a href="#bim4d">Mô Hình Tiến Độ 4D</a></li>
+        <li><a href="#modules">Kiểm Soát Vật Tư</a></li>
+        <li><a href="#cde">Chuẩn CDE ISO 19650</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#demo">Demo Ban QLDA</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Nhật Ký Công Trường Số & Nghiệm Thu BIM</a>
+  <a href="#bim4d">Mô Hình Tiến Độ Công Trường 4D BIM</a>
+  <a href="#modules">Kiểm Soát Hao Hụt Sắt Thép & Bê Tông</a>
+  <a href="#cde">Môi Trường Dữ Liệu Chung CDE ISO 19650</a>
+  <a href="#demo">Đăng Ký Tư Vấn Cho Chủ Đầu Tư / Tổng Thầu</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">CDE ISO 19650 · 4D BIM Progress & Material Control</p>
+        <h1 id="hero-h"><span class="mask"><span>Công trường minh bạch,</span></span><span class="mask"><span>kiểm soát từng tấn <em>sắt thép.</em></span></span></h1>
+        <p class="hero-lead hf">Chấm dứt tình trạng báo cáo tiến độ chậm trễ qua nhóm chat rời rạc. Kỹ sư hiện trường chụp ảnh nghiệm thu cốt thép trên điện thoại gắn thẳng vào tọa độ trục dầm sàn BIM 3D; Ban giám đốc theo dõi thực tế thi công so với biểu đồ Gantt và định mức BOQ tức thì.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#bim4d">Tương Tác Mô Hình 4D BIM</a>
+          <a class="btn ghost" href="#process">Xem Quy Trình Nghiệm Thu Số</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>-4.5%</strong><span>Tỷ lệ hao hụt thép & bê tông thương phẩm</span></div>
+          <div><strong>100%</strong><span>Nhật ký thi công đóng dấu GPS & Thời gian</span></div>
+          <div><strong>120+</strong><span>Dự án Cao tầng & Khu công nghiệp tại VN</span></div>
+        </div>
+      </div>
+      <div class="hero-stage hf">
+        <canvas id="heroC" width="600" height="420" role="img" aria-label="Mô hình khung kết cấu BIM 3D tòa nhà cao tầng kèm điểm gắn thẻ ảnh nghiệm thu hiện trường"></canvas>
+        <div class="hero-meta">
+          <span>Di chuột lên tòa tháp để soi kết cấu tầng & biên bản nghiệm thu</span>
+          <span style="color:var(--pri)">REVIT / IFC 4.3 · LIVE SITE SYNC</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Đồng bộ hiện trường & phòng điều hành</p>
+        <h2 id="pr-h">Bốn chốt chặn chống<br><em>chậm tiến độ & đội vốn dự án</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Chốt 01 · Chụp Ảnh Nghiệm Thu Hiện Trường Gắn Tọa Độ BIM</p>
+            <h3>Chống làm giả ảnh cũ nhờ đóng dấu GPS, Góc phương vị & Giờ Server</h3>
+            <p>Kỹ sư giám sát chụp ảnh thép sàn tầng 12 bằng ứng dụng di động; bức ảnh tự động neo đúng vào cấu kiện dầm `B12-08` trên mô hình BIM 3D để Tư vấn giám sát ký duyệt từ xa.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Chốt 02 · Đối Chiếu Tiến Độ Thực Tế Với Kế Hoạch Gantt (4D BIM)</p>
+            <h3>Tô màu trực quan cấu kiện: Đã nghiệm thu (Xanh) – Đang làm (Vàng) – Trễ (Đỏ)</h3>
+            <p>Liên kết lịch trình MS Project / Primavera P6 với mô hình 3D, tự động tính toán đường găng (Critical Path) và cảnh báo sớm các gói thầu cơ điện MEP có nguy cơ chồng chéo.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Chốt 03 · Kiểm Soát Nhập – Xuất – Tồn Kho Vật Tư & Trạm Cân</p>
+            <h3>Tự động cảnh báo khi lượng bê tông / thép xuất vượt định mức BOQ</h3>
+            <p>Kết nối camera AI đọc biển số xe bồn bê tông và phiếu cân điện tử tại cổng công trường, đối chiếu khối lượng đổ thực tế với thể tích hình học của cấu kiện BIM.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Chốt 04 · Tự Động Lập Hồ Sơ Thanh Quyết Toán Giai Đoạn (IPC)</p>
+            <h3>Rút ngắn thời gian bảo vệ khối lượng thanh toán với Chủ đầu tư 70%</h3>
+            <p>Mọi cấu kiện đã được Tư vấn giám sát bấm nghiệm thu trên BIM sẽ tự động tổng hợp thành Bảng xác nhận khối lượng hoàn thành kèm đầy đủ biên bản ký số pháp lý.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Nghiệp vụ: <b id="pTask">01 · Nghiệm thu Thép sàn GPS</b></span>
+          <span>Độ lệch tiến độ: <b id="pVar">0.0 Ngày (Đúng hạn)</b></span>
+          <span>Hao hụt thép: <b id="pLoss">1.1% (Định mức ≤ 2%)</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="widget" id="bim4d" aria-labelledby="w-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Công cụ điều hành của Chủ đầu tư & Tổng thầu</p>
+          <h2 id="w-h" style="margin-top:16px">Mô hình Tiến độ Công trường 4D BIM &<br><em>Kiểm soát Tồn kho Sắt thép, Bê tông</em></h2>
+        </div>
+        <p class="rv">Chọn loại hình dự án xây dựng, kéo thanh thời gian thi công từ Tháng 1 (Móng cọc) đến Tháng 18 (Bàn giao) để xem mô hình tòa nhà 3D mọc lên từng tầng trên canvas cùng báo cáo giải ngân và vật tư tiêu hao.</p>
+      </div>
+      <div class="w-shell">
+        <div class="w-stage">
+          <canvas id="bimC" width="680" height="410" role="img" aria-label="Mô hình 4D BIM tòa nhà xây dựng theo từng tháng và biểu đồ tiêu hao vật tư sắt thép"></canvas>
+          <div class="w-controls">
+            <div class="sl-row">
+              <label for="monthR"><span>Tiến độ thời gian thi công (Tháng 1–18)</span><b id="vMonth">Tháng 11 / 18</b></label>
+              <input id="monthR" type="range" min="1" max="18" step="1" value="11">
+            </div>
+            <div class="sl-row">
+              <label for="crewR"><span>Nhân lực thi công trên công trường</span><b id="vCrew">280 công nhân</b></label>
+              <input id="crewR" type="range" min="80" max="500" step="20" value="280">
+            </div>
+          </div>
+        </div>
+        <div class="w-panel">
+          <span class="mono" style="color:var(--pri)">Chọn loại hình dự án mô phỏng</span>
+          <div class="proj-tabs" id="projTabs" role="group" aria-label="Chọn loại dự án xây dựng">
+            <button type="button" class="p-btn" data-p="0" aria-pressed="true">
+              <span class="mono">30 TẦNG NỔI + 3 HẦM · TỔNG MỨC ĐẦU TƯ 920 TỶ</span>
+              <b>Tòa tháp Chung cư & Thương mại 30 tầng</b>
+            </button>
+            <button type="button" class="p-btn" data-p="1" aria-pressed="false">
+              <span class="mono">KẾT CẤU THÉP TIỀN CHẾ · SÀN BÊ TÔNG SIÊU PHẲNG</span>
+              <b>Nhà máy Công nghiệp FDI (45.000 m²)</b>
+            </button>
+            <button type="button" class="p-btn" data-p="2" aria-pressed="false">
+              <span class="mono">HẠ TẦNG ĐỒNG BỘ · 85 CĂN BIỆT THỰ VEN SÔNG</span>
+              <b>Khu Đô thị Biệt thự Sinh thái</b>
+            </button>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span>Hạng mục đang thi công</span>
+              <strong id="kPhase">Kết cấu Tầng 19</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Khối lượng Thép đã lắp</span>
+              <strong id="kSteel">3.420 Tấn</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Bê tông thương phẩm</span>
+              <strong id="kConc">24.800 m³</strong>
+            </div>
+            <div class="kpi-card">
+              <span>Giải ngân lũy kế IPC</span>
+              <strong id="kBudget" style="color:var(--sec)">61.2% Dự toán</strong>
+            </div>
+          </div>
+          <div class="bim-note" id="wLog" role="status" aria-live="polite">
+            <strong>Nhật ký BIM [Tháng 11]:</strong> Đang đổ bê tông dầm sàn <b>Tầng 19/30</b> và lắp đặt ống gió MEP từ Tầng 5–12. Tồn kho thép CB500-V tại bãi đạt chuẩn an toàn cho 14 ngày tới.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="modules" id="modules" aria-labelledby="mod-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Chuyên sâu cho ngành Xây dựng Việt Nam</p>
+          <h2 id="mod-h" style="margin-top:16px">Quản trị chặt chẽ <em>Chất lượng – Tiến độ – Chi phí</em></h2>
+        </div>
+        <p class="rv">Được thiết kế sát với quy trình nghiệm thu theo Nghị định 06/2021/NĐ-CP và quy chuẩn xây dựng Việt Nam.</p>
+      </div>
+      <div class="mod-grid">
+        <article class="mcard rv">
+          <span class="mono">01 · Digital Site Diary</span>
+          <h3>Nhật Ký Công Trường Số</h3>
+          <p>Tự động lấy dữ liệu thời tiết từng ca, số lượng công nhân theo tổ đội, máy móc thiết bị và ký số xác nhận giữa Chỉ huy trưởng & TVGS.</p>
+        </article>
+        <article class="mcard rv">
+          <span class="mono">02 · RFI & Defect Snagging</span>
+          <h3>Quản Lý Lỗi Thi Công (Punch List)</h3>
+          <p>Khoanh vùng vị trí nứt tường, thấm sàn trực tiếp trên bản vẽ 2D/3D, giao hạn sửa chữa cho nhà thầu phụ và bắt buộc chụp ảnh nghiệm thu lại.</p>
+        </article>
+        <article class="mcard rv">
+          <span class="mono">03 · BOQ & Subcontractor IPC</span>
+          <h3>Kiểm Soát Hợp Đồng Thầu Phụ</h3>
+          <p>Theo dõi tạm ứng, giữ lại bảo hành 5%, khấu trừ vật tư cấp phát và chặn hoàn toàn việc thanh toán vượt khối lượng hợp đồng.</p>
+        </article>
+        <article class="mcard rv">
+          <span class="mono">04 · AI HSE Safety Vision</span>
+          <h3>Giám Sát An Toàn Lao Động AI</h3>
+          <p>Phân tích luồng camera công trường để cảnh báo tức thì công nhân không đội mũ bảo hộ, không đeo dây an toàn khi làm việc trên cao.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cde" id="cde" aria-labelledby="cde-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Chuẩn hóa theo lộ trình BIM của Bộ Xây Dựng</p>
+          <h2 id="cde-h" style="margin-top:16px">Môi trường dữ liệu chung <em>CDE ISO 19650</em></h2>
+        </div>
+        <p class="rv">Đáp ứng quy định áp dụng BIM bắt buộc đối với công trình cấp I, cấp II theo Quyết định 258/QĐ-TTg.</p>
+      </div>
+      <div class="cde-grid">
+        <article class="ccard rv">
+          <span class="mono">Chống thi công nhầm bản vẽ cũ</span>
+          <h3>Kiểm Soát Phiên Bản Bản Vẽ QR</h3>
+          <p>Mỗi bản vẽ giấy in ra công trường đều có mã QR. Kỹ sư quét mã để biết ngay bản vẽ đó còn hiệu lực (Published) hay đã có bản sửa đổi mới.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Xem mô hình IFC 3D trên trình duyệt</span>
+          <h3>Không Cần Máy Trạm Cấu Hình Cao</h3>
+          <p>Nén và hiển thị mượt mà mô hình Revit (.rvt), Navisworks (.nwd), IFC nặng hàng Gigabyte ngay trên iPad và điện thoại tại công trường.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Bàn giao Hồ sơ Hoàn công Số (Digital Twin)</span>
+          <h3>Phục Vụ Vận Hành Tòa Nhà BMS</h3>
+          <p>Toàn bộ thông số thiết bị cơ điện, lịch bảo trì thang máy, điều hòa Chiller được gắn liền vào mô hình BIM bàn giao cho Ban quản lý tòa nhà.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="demo" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Số hóa công trường chỉ trong 48 giờ</p>
+        <h2 id="cta-h" style="margin-top:14px">Đăng Ký Tải Thử Mô Hình BIM Dự Án Của Bạn &<br><em>Nhận Bộ Quy Trình CDE Chuẩn ISO 19650</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="bName">Họ tên & Chức vụ</label>
+            <input id="bName" type="text" placeholder="KS. Lê Hoàng Bách — Giám đốc Dự án" required>
+          </div>
+          <div>
+            <label for="bEmail">Email công việc / Số điện thoại</label>
+            <input id="bEmail" type="email" placeholder="bach.le@buildcorp.vn" required>
+          </div>
+          <div>
+            <label for="bRole">Vai trò đơn vị của bạn</label>
+            <select id="bRole">
+              <option value="owner">Chủ đầu tư Bất động sản / Ban Quản lý Dự án</option>
+              <option value="gc">Tổng thầu Thiết kế & Thi công (Design & Build / EPC)</option>
+              <option value="pm">Tư vấn Quản lý dự án & Tư vấn Giám sát (PM/CMC)</option>
+            </select>
+          </div>
+          <div>
+            <label for="bScale">Quy mô dự án đang chuẩn bị triển khai</label>
+            <select id="bScale">
+              <option value="s1">Nhà máy Công nghiệp / Kho vận Logistics</option>
+              <option value="s2">Chung cư Cao tầng / Tổ hợp Thương mại – Khách sạn</option>
+              <option value="s3">Khu đô thị / Hạ tầng Giao thông & Cầu đường</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Yêu Cầu Kỹ Sư BIM Demo Trực Tiếp</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">BUILDTRACK<span>.BIM</span></a>
+      <ul class="f-nav">
+        <li><a href="#process">Nghiệm Thu BIM</a></li>
+        <li><a href="#bim4d">Mô Hình 4D</a></li>
+        <li><a href="#modules">Kiểm Soát Vật Tư</a></li>
+        <li><a href="#cde">Chuẩn ISO 19650</a></li>
+        <li><a href="#demo">Đăng Ký Demo</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> BuildTrack Construction Technologies Vietnam · Giải pháp Quản lý Xây dựng & BIM 4D</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  // Helper: Draw isometric 3D floor slab
+  function drawIsoSlab(ctx, cx, cy, w, d, h, fillTop, strokeCol) {
+    ctx.fillStyle = fillTop;
+    ctx.strokeStyle = strokeCol;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - d);
+    ctx.lineTo(cx + w, cy);
+    ctx.lineTo(cx, cy + d);
+    ctx.lineTo(cx - w, cy);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Side thickness
+    ctx.beginPath();
+    ctx.moveTo(cx - w, cy);
+    ctx.lineTo(cx, cy + d);
+    ctx.lineTo(cx + w, cy);
+    ctx.lineTo(cx + w, cy + h);
+    ctx.lineTo(cx, cy + d + h);
+    ctx.lineTo(cx - w, cy + h);
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  // 1. Hero Canvas: Interactive 3D Isometric Structural Tower + Site Photo Pin
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  function drawHero(hoverFloor = 9) {
+    const w = 600, h = 420;
+    heroX.fillStyle = '#0A0C0F';
+    heroX.fillRect(0, 0, w, h);
+
+    // Blueprint grid
+    heroX.strokeStyle = 'rgba(56,189,248,0.08)';
+    for (let x = 30; x < w; x += 35) { heroX.beginPath(); heroX.moveTo(x, 0); heroX.lineTo(x, h); heroX.stroke(); }
+    for (let y = 30; y < h; y += 35) { heroX.beginPath(); heroX.moveTo(0, y); heroX.lineTo(w, y); heroX.stroke(); }
+
+    // Draw 12 floors of Isometric BIM Tower
+    const cx = 215, baseY = 345;
+    for (let f = 0; f < 12; f++) {
+      const y = baseY - f * 22;
+      const isHover = f === hoverFloor;
+      const isDone = f <= 8;
+      const fill = isHover
+        ? 'rgba(250,204,21,0.45)'
+        : isDone
+          ? 'rgba(34,197,94,0.22)'
+          : 'rgba(56,189,248,0.14)';
+      const stroke = isHover ? '#FACC15' : isDone ? '#22C55E' : '#38BDF8';
+      drawIsoSlab(heroX, cx, y, 108, 44, 7, fill, stroke);
+    }
+
+    // Tower Crane on top
+    heroX.strokeStyle = '#FACC15';
+    heroX.lineWidth = 2.5;
+    heroX.beginPath();
+    heroX.moveTo(cx, baseY - 12 * 22);
+    heroX.lineTo(cx, 32);
+    heroX.lineTo(cx + 125, 32);
+    heroX.stroke();
+
+    // Right side Inspection Photo Tag Card linked to hovered floor
+    const fy = baseY - hoverFloor * 22;
+    heroX.strokeStyle = '#FACC15';
+    heroX.lineWidth = 1.5;
+    heroX.beginPath();
+    heroX.moveTo(cx + 80, fy);
+    heroX.lineTo(355, 130);
+    heroX.stroke();
+
+    heroX.fillStyle = '#1B2028';
+    heroX.fillRect(355, 72, 222, 260);
+    heroX.strokeRect(355, 72, 222, 260);
+
+    heroX.fillStyle = '#FACC15';
+    heroX.font = '700 12px "JetBrains Mono", monospace';
+    heroX.fillText(`TẦNG ${hoverFloor + 1} · DẦM SÀN B${hoverFloor + 1}-04`, 370, 100);
+    heroX.fillStyle = '#38BDF8';
+    heroX.font = '600 10.5px "JetBrains Mono", monospace';
+    heroX.fillText('GPS: 10.7769°N, 106.7009°E', 370, 122);
+
+    // Simulated Rebar Grid Photo inside card
+    heroX.fillStyle = '#101318';
+    heroX.fillRect(370, 136, 192, 105);
+    heroX.strokeStyle = '#9CA3AF';
+    for (let i = 0; i < 6; i++) {
+      heroX.beginPath(); heroX.moveTo(378 + i * 32, 142); heroX.lineTo(378 + i * 32, 235); heroX.stroke();
+      heroX.beginPath(); heroX.moveTo(375, 148 + i * 16); heroX.lineTo(556, 148 + i * 16); heroX.stroke();
+    }
+    heroX.fillStyle = '#22C55E';
+    heroX.fillText('✔ ĐÃ NGHIỆM THU CỐT THÉP D25', 370, 265);
+    heroX.fillStyle = '#F8FAFC';
+    heroX.font = '500 11px "Be Vietnam Pro", sans-serif';
+    heroX.fillText('TVGS: KS. Trần Quốc Bảo ký số', 370, 288);
+    heroX.fillText('Bê tông Mác M400: 145 m³', 370, 310);
+
+    heroX.fillStyle = '#9CA3AF';
+    heroX.font = '600 11px "JetBrains Mono", monospace';
+    heroX.fillText('■ XANH: ĐÃ ĐỔ BÊ TÔNG   ■ VÀNG: ĐANG LẮP CỐT THÉP   ■ LAM: KẾ HOẠCH BIM', 28, 396);
+  }
+  drawHero(9);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    const my = ((e.clientY - r.top) / r.height) * 420;
+    const fl = Math.max(0, Math.min(11, Math.round((345 - my) / 22)));
+    drawHero(fl);
+  });
+
+  // 2. Pinned 4-Step Site-to-Boardroom Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const P_INFO = [
+    ['01 · Nghiệm thu Thép sàn GPS', '0.0 Ngày (Đúng hạn)', '1.1% (Định mức ≤ 2%)'],
+    ['02 · Đồng bộ Tiến độ 4D Gantt', 'Sớm 02 Ngày', 'Đường găng an toàn'],
+    ['03 · Trạm cân AI & Tồn kho Thép', 'Khớp 99.6% BOQ', 'Chống thất thoát'],
+    ['04 · Thanh quyết toán IPC Tự động', 'Duyệt trong 24h', '100% Ký số pháp lý']
+  ];
+  function renderPin(p) {
+    const w = 660, h = 440;
+    const step = p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3;
+    pinX.fillStyle = '#0A0C0F';
+    pinX.fillRect(0, 0, w, h);
+
+    for (let i = 0; i < 4; i++) {
+      const x = 48 + i * 145;
+      pinX.fillStyle = i <= step ? '#FACC15' : '#1B2028';
+      pinX.fillRect(x, 38, 125, 8);
+      pinX.fillStyle = i === step ? '#FACC15' : '#9CA3AF';
+      pinX.font = '600 11px "JetBrains Mono", monospace';
+      pinX.fillText(`CHỐT 0${i + 1}`, x, 28);
+    }
+
+    if (step === 0) {
+      // Geo-tagged Mobile Inspection to BIM Element
+      pinX.strokeStyle = '#FACC15';
+      pinX.lineWidth = 2;
+      pinX.strokeRect(65, 92, 530, 245);
+      pinX.fillStyle = '#FACC15';
+      pinX.font = '700 15px "JetBrains Mono", monospace';
+      pinX.fillText('BIÊN BẢN NGHIỆM THU ĐIỆN TỬ #NT-2026-841 · GẮN TỌA ĐỘ BIM', 90, 136);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Cấu kiện: Dầm sàn Tầng 12 (Trục X4-X8 / Y2-Y5) — Mã GUID: 3x9F_82A', 90, 182);
+      pinX.fillText('• Kiểm tra khoảng cách cốt đai D10a150 & lớp bê tông bảo vệ 25mm: ĐẠT', 90, 218);
+      pinX.fillStyle = '#22C55E';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('ĐÃ KHÓA CHỈNH SỬA LÙI NGÀY · CHỮ KÝ SỐ CA HỢP LỆ', 90, 276);
+    } else if (step === 1) {
+      // Gantt vs Actual 4D Bars
+      const tasks = [
+        ['Thi công Cọc khoan nhồi & Tường vây', 100, 100],
+        ['Kết cấu Thân ngầm B1 - B3 (Top-down)', 100, 100],
+        ['Kết cấu Thân tháp Tầng 1 - Tầng 20', 84, 80],
+        ['Hệ thống Cơ điện MEP & Phòng cháy', 52, 48]
+      ];
+      tasks.forEach((t, i) => {
+        const y = 102 + i * 62;
+        pinX.fillStyle = '#F8FAFC';
+        pinX.font = '600 12px "Be Vietnam Pro", sans-serif';
+        pinX.fillText(t[0], 65, y);
+        pinX.fillStyle = '#38BDF8';
+        pinX.fillRect(65, y + 10, t[2] * 4.6, 10);
+        pinX.fillStyle = '#22C55E';
+        pinX.fillRect(65, y + 23, t[1] * 4.6, 10);
+        pinX.fillStyle = '#FACC15';
+        pinX.font = '600 11px "JetBrains Mono", monospace';
+        pinX.fillText(`Thực tế ${t[1]}%`, 545, y + 28);
+      });
+    } else if (step === 2) {
+      // Rebar & Concrete Material Reconciliation
+      pinX.fillStyle = '#1B2028';
+      pinX.fillRect(65, 92, 530, 245);
+      pinX.fillStyle = '#38BDF8';
+      pinX.font = '700 15px "JetBrains Mono", monospace';
+      pinX.fillText('ĐỐI SOÁT KHỐI LƯỢNG VẬT TƯ THEO MÔ HÌNH BIM (BOQ VS THỰC XUẤT)', 88, 136);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Thép Hòa Phát CB500-V: Định mức BIM 2.450 Tấn | Thực xuất: 2.476 Tấn (+1.06%)', 88, 185);
+      pinX.fillText('• Bê tông thương phẩm M400: Định mức 18.200 m³ | Trạm cân: 18.340 m³ (+0.76%)', 88, 222);
+      pinX.fillStyle = '#FACC15';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('TIẾT KIỆM 4,2 TỶ VNĐ NHỜ KIỂM SOÁT ĐẦU MẨU THÉP CẮT CNC', 88, 280);
+    } else {
+      // Automated Payment Certificate (IPC)
+      pinX.fillStyle = '#1B2028';
+      pinX.strokeStyle = '#22C55E';
+      pinX.lineWidth = 2;
+      pinX.fillRect(65, 92, 530, 245);
+      pinX.strokeRect(65, 92, 530, 245);
+      pinX.fillStyle = '#22C55E';
+      pinX.font = '700 15px "JetBrains Mono", monospace';
+      pinX.fillText('HỒ SƠ THANH TOÁN ĐỢT 08 (IPC #08) · TRÍCH XUẤT TỰ ĐỘNG TỪ BIM', 88, 138);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '500 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText('• Tổng số cấu kiện đã nghiệm thu đạt trong kỳ: 428 cấu kiện dầm/cột/sàn', 88, 185);
+      pinX.fillText('• Giá trị đề nghị giải ngân đợt 08: 46.850.000.000 VNĐ (Đã trừ tạm ứng)', 88, 220);
+      pinX.fillStyle = '#FACC15';
+      pinX.font = '600 13px "JetBrains Mono", monospace';
+      pinX.fillText('ĐÍNH KÈM 1.240 ẢNH NGHIỆM THU GẮN TỌA ĐỘ · SẴN SÀNG KIỂM TOÁN', 88, 280);
+    }
+
+    $('#pTask').textContent = P_INFO[step][0];
+    $('#pVar').textContent = P_INFO[step][1];
+    $('#pLoss').textContent = P_INFO[step][2];
+  }
+  renderPin(0.2);
+
+  // 3. Signature Interactive Widget: 4D BIM Construction Timeline Simulator
+  const PROJECTS = [
+    {
+      name: 'Tòa tháp Chung cư & Thương mại 30 tầng',
+      maxFloors: 14, // visual slabs representing 30 floors
+      totalSteel: 5800,
+      totalConc: 42000,
+      phases: [
+        'Thi công Tường vây & Cọc khoan nhồi',
+        'Đào đất & Kết cấu 3 tầng hầm B1–B3',
+        'Kết cấu Khối đế Thương mại Tầng 1–6',
+        'Thi công Thân tháp điển hình & Cơ điện MEP',
+        'Cất nóc, Lắp dựng kính Mặt dựng & Hoàn thiện'
+      ]
+    },
+    {
+      name: 'Nhà máy Công nghiệp FDI (45.000 m²)',
+      maxFloors: 6,
+      totalSteel: 3900,
+      totalConc: 28500,
+      phases: [
+        'San lấp mặt bằng & Ép cọc đại trà',
+        'Đài móng & Hệ thống thoát nước ngầm',
+        'Lắp dựng Khung kèo thép tiền chế khẩu độ lớn',
+        'Đổ sàn bê tông siêu phẳng Laser Screed & Mái',
+        'Lắp đặt Phòng sạch, Trạm biến áp & Nghiệm thu PCCC'
+      ]
+    },
+    {
+      name: 'Khu Đô thị Biệt thự Sinh thái (85 căn)',
+      maxFloors: 8,
+      totalSteel: 4400,
+      totalConc: 34000,
+      phases: [
+        'Hạ tầng kỹ thuật ngầm & Kè bờ sông',
+        'Thi công Móng & Khung kết cấu Phân khu A',
+        'Xây tô, Lợp mái ngói & Cảnh quan cây xanh',
+        'Hoàn thiện mặt ngoài & Bến du thuyền nội khu',
+        'Nghiệm thu từng căn trên App & Bàn giao sổ'
+      ]
+    }
+  ];
+
+  const bimC = $('#bimC'), bimX = bimC.getContext('2d');
+  let curProj = 0, curMonth = 11, crewSize = 280;
+
+  function renderBIM4D() {
+    const w = 680, h = 410;
+    const pr = PROJECTS[curProj];
+    bimX.fillStyle = '#0A0C0F';
+    bimX.fillRect(0, 0, w, h);
+
+    const progress = curMonth / 18;
+    const phaseIdx = Math.min(4, Math.floor(progress * 4.99));
+    const builtSlabs = Math.max(1, Math.round(progress * pr.maxFloors));
+    const steelUsed = Math.round(pr.totalSteel * Math.pow(progress, 0.92));
+    const concUsed = Math.round(pr.totalConc * Math.pow(progress, 0.95));
+    const budgetPct = +(progress * 96.5).toFixed(1);
+
+    $('#vMonth').textContent = `Tháng ${curMonth} / 18`;
+    $('#vCrew').textContent = `${crewSize} công nhân`;
+    $('#kPhase').textContent = curMonth === 18 ? 'Đã bàn giao' : `Tháng ${curMonth} (${Math.round(progress * 100)}%)`;
+    $('#kSteel').textContent = `${steelUsed.toLocaleString('vi-VN')} Tấn`;
+    $('#kConc').textContent = `${concUsed.toLocaleString('vi-VN')} m³`;
+    $('#kBudget').textContent = `${budgetPct}% Dự toán`;
+
+    $('#wLog').innerHTML = `<strong>Nhật ký 4D BIM [Tháng ${curMonth}/18]:</strong> Hạng mục trọng tâm: <em>${pr.phases[phaseIdx]}</em> với <b>${crewSize} công nhân</b>. Đã lắp dựng <b>${steelUsed.toLocaleString('vi-VN')}/${pr.totalSteel.toLocaleString('vi-VN')} tấn thép</b>.`;
+
+    // Left Side of Canvas: 3D Isometric Building growing floor by floor
+    bimX.fillStyle = '#F8FAFC';
+    bimX.font = '600 11.5px "JetBrains Mono", monospace';
+    bimX.fillText(`MÔ HÌNH 4D BIM THÁNG ${curMonth}/18 — ${pr.name.toUpperCase()}`, 28, 30);
+
+    const cx = 195, baseY = 348;
+    const slabW = curProj === 1 ? 135 : 98;
+    const slabD = curProj === 1 ? 52 : 38;
+    const stepH = curProj === 0 ? 18 : 26;
+
+    // Ghost wireframe of full planned building
+    for (let f = 0; f < pr.maxFloors; f++) {
+      const y = baseY - f * stepH;
+      const done = f < builtSlabs;
+      const activeFloor = f === builtSlabs - 1 && curMonth < 18;
+      const fill = activeFloor
+        ? 'rgba(250,204,21,0.52)'
+        : done
+          ? 'rgba(34,197,94,0.28)'
+          : 'rgba(56,189,248,0.05)';
+      const stroke = activeFloor ? '#FACC15' : done ? '#22C55E' : 'rgba(56,189,248,0.22)';
+      drawIsoSlab(bimX, cx, y, slabW, slabD, 6, fill, stroke);
+    }
+
+    // Right Side of Canvas: Material Inventory & S-Curve Progress
+    const rx = 385;
+    bimX.fillStyle = '#1B2028';
+    bimX.strokeStyle = 'rgba(250,204,21,0.3)';
+    bimX.fillRect(rx, 58, 268, 305);
+    bimX.strokeRect(rx, 58, 268, 305);
+
+    bimX.fillStyle = '#FACC15';
+    bimX.font = '700 11.5px "JetBrains Mono", monospace';
+    bimX.fillText('BIỂU ĐỒ ĐƯỜNG CONG S (S-CURVE)', rx + 16, 86);
+
+    // S-Curve Planned (Cyan) vs Actual (Yellow)
+    bimX.strokeStyle = '#38BDF8';
+    bimX.lineWidth = 2;
+    bimX.beginPath();
+    for (let m = 1; m <= 18; m++) {
+      const x = rx + 20 + ((m - 1) / 17) * 225;
+      const sVal = 1 / (1 + Math.exp(-(m - 9.5) * 0.45));
+      const y = 215 - sVal * 105;
+      m === 1 ? bimX.moveTo(x, y) : bimX.lineTo(x, y);
+    }
+    bimX.stroke();
+
+    // Actual up to curMonth
+    bimX.strokeStyle = '#FACC15';
+    bimX.lineWidth = 3;
+    bimX.beginPath();
+    for (let m = 1; m <= curMonth; m++) {
+      const x = rx + 20 + ((m - 1) / 17) * 225;
+      const sVal = 1 / (1 + Math.exp(-(m - 9.2) * 0.45));
+      const y = 215 - sVal * 105;
+      m === 1 ? bimX.moveTo(x, y) : bimX.lineTo(x, y);
+    }
+    bimX.stroke();
+
+    // Material Stock Bars inside panel
+    const steelPct = Math.round((steelUsed / pr.totalSteel) * 100);
+    const concPct = Math.round((concUsed / pr.totalConc) * 100);
+    bimX.fillStyle = '#F8FAFC';
+    bimX.font = '600 11px "JetBrains Mono", monospace';
+    bimX.fillText(`THÉP XÂY DỰNG ĐÃ LẮP: ${steelPct}%`, rx + 16, 255);
+    bimX.fillStyle = '#101318';
+    bimX.fillRect(rx + 16, 264, 234, 16);
+    bimX.fillStyle = '#FACC15';
+    bimX.fillRect(rx + 16, 264, (steelPct / 100) * 234, 16);
+
+    bimX.fillStyle = '#F8FAFC';
+    bimX.fillText(`BÊ TÔNG ĐÃ ĐỔ: ${concPct}%`, rx + 16, 306);
+    bimX.fillStyle = '#101318';
+    bimX.fillRect(rx + 16, 315, 234, 16);
+    bimX.fillStyle = '#38BDF8';
+    bimX.fillRect(rx + 16, 315, (concPct / 100) * 234, 16);
+
+    bimX.fillStyle = '#22C55E';
+    bimX.fillText('● ĐÃ NGHIỆM THU   ● ĐANG THI CÔNG   ◌ KẾ HOẠCH BIM', 28, 388);
+  }
+
+  function selectProj(idx) {
+    curProj = idx;
+    $$('#projTabs .p-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === idx));
+    renderBIM4D();
+  }
+  selectProj(0);
+
+  $('#projTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.p-btn');
+    if (b) selectProj(+b.dataset.p);
+  });
+  $('#monthR').addEventListener('input', (e) => {
+    curMonth = +e.target.value;
+    renderBIM4D();
+  });
+  $('#crewR').addEventListener('input', (e) => {
+    crewSize = +e.target.value;
+    renderBIM4D();
+  });
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#bName').value.trim();
+    $('#ctaOk').textContent = n
+      ? `Cảm ơn ${n}! Chuyên gia BIM & Quản lý dự án của BuildTrack sẽ liên hệ trong 2 giờ làm việc kèm tài khoản CDE dùng thử.`
+      : 'Vui lòng nhập họ tên và thông tin liên hệ để nhận lịch Demo trực tiếp.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.32 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.42, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

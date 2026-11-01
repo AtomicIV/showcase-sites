@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PropFlow CRM — Phần mềm Quản lý Giỏ hàng Bất động sản, Phễu khách hàng & Tính hoa hồng</title>
+<meta name="description" content="PropFlow CRM giúp Chủ đầu tư và Sàn giao dịch Bất động sản đồng bộ bảng hàng trực tuyến thời gian thực, khóa căn giữ chỗ chống trùng lặp và tính hoa hồng tự động.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230B1528'/%3E%3Crect x='14' y='18' width='16' height='32' rx='3' fill='%2338BDF8'/%3E%3Crect x='34' y='12' width='16' height='38' rx='3' fill='%23FBBF24'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B1528; --bg2:#152542; --card:#1B2E52;
+  --pri:#38BDF8; --acc:#FBBF24; --text:#F8FAFC; --muted:#94A3B8;
+  --line:rgba(56,189,248,.22);
+  --head:"Plus Jakarta Sans", sans-serif; --body:"Be Vietnam Pro", sans-serif; --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--text);font-family:var(--body);font-size:16.5px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pri);color:var(--bg);padding:10px 16px;z-index:400;font-weight:600}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.4vw,58px)}
+h1 em,h2 em{font-style:normal;color:var(--acc)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--pri)}
+.kick::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 12px 2px rgba(251,191,36,.85)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 24px;border:1px solid var(--acc);background:var(--acc);color:#0B1528;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;cursor:pointer;transition:transform .35s var(--ease),background .3s}
+.btn:hover{background:#FCD34D;border-color:#FCD34D;transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--pri);color:var(--pri)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(11,21,40,.93);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:22px;font-weight:800;color:var(--text)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--pri)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:8px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--text);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:48px;padding:0 12px;font-family:var(--head);font-size:18px;border-bottom:1px solid rgba(255,255,255,.07)}
+.mmenu a:last-child{border:0;color:var(--acc)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 60% 50% at 75% 25%,rgba(56,189,248,.18),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(251,191,36,.12),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+.hero h1{font-size:clamp(38px,5vw,68px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:50ch;color:var(--muted);font-size:17.5px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--acc)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-box{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.85)}
+.hero-box canvas{width:100%;height:auto;border-radius:10px;cursor:pointer}
+.hero-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Pinned Booking Flow */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:44px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:240px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--acc)}
+.pstep h3{font-size:clamp(24px,2.4vw,34px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:44ch}
+.pr-vis{background:#070E1C;border:1px solid var(--line);border-radius:16px;padding:20px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--pri)}
+
+/* Interactive Matrix & Commission Widget */
+.sim{padding:120px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:44px}
+.sec-head p{color:var(--muted)}
+.sim-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.sim-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.sim-stage canvas{width:100%;height:auto;border-radius:10px;background:#070E1C;cursor:pointer}
+.sim-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--acc);cursor:pointer}
+.sim-info{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:18px}
+.mode-tabs{display:grid;grid-template-columns:1fr;gap:10px}
+.m-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left}
+.m-btn .mono{font-size:10px;color:var(--pri);display:block}
+.m-btn b{font-family:var(--head);font-size:18px}
+.m-btn[aria-pressed="true"]{border-color:var(--acc);background:rgba(251,191,36,.13)}
+.comm-box{padding:16px;background:rgba(56,189,248,.1);border-left:3px solid var(--pri);border-radius:6px;display:grid;gap:6px;font-size:14.5px}
+.comm-box strong{font-family:var(--head);font-size:22px;color:var(--acc)}
+
+/* Features & Modules */
+.specs{padding:110px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.spec-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.scard .mono{color:var(--acc)}
+.scard h3{font-size:21px}
+.scard p{color:var(--muted);font-size:15px}
+
+.cases{padding:110px 0;background:var(--bg);border-top:1px solid var(--line)}
+.case-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ccard{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.ccard .mono{color:var(--pri)}
+.ccard h3{font-size:22px}
+.ccard p{color:var(--muted);font-size:15px}
+
+/* CTA */
+.cta{padding:110px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(56,189,248,.22),transparent 70%),var(--bg2);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:44px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;color:var(--text)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--acc)}
+
+footer{background:#060C18;border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.sim-shell,.case-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .spec-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.sim-controls,.spec-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="PropFlow CRM Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="8" width="10" height="20" rx="2" fill="#38BDF8"/><rect x="18" y="4" width="10" height="24" rx="2" fill="#FBBF24"/></svg>
+      PropFlow CRM
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Luồng Ráp Căn</a></li>
+        <li><a href="#sim">Bảng Hàng & Hoa Hồng</a></li>
+        <li><a href="#specs">Tính Năng Sàn</a></li>
+        <li><a href="#cases">Dự Án Tiêu Biểu</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#trial">Dùng Thử Cho Sàn</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Quy trình Booking & Ráp căn</a>
+  <a href="#sim">Bảng hàng trực tiếp & Tính hoa hồng</a>
+  <a href="#specs">Phân quyền Phễu khách hàng</a>
+  <a href="#cases">Sàn giao dịch & Chủ đầu tư</a>
+  <a href="#trial">Đăng ký Dùng thử 14 ngày</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Nền tảng PropTech cho Chủ đầu tư & Sàn F1/F2</p>
+        <h1 id="hero-h"><span class="mask"><span>Khóa căn thời gian thực,</span></span><span class="mask"><span>chia hoa hồng <em>chính xác 100%.</em></span></span></h1>
+        <p class="hero-lead hf">Chấm dứt tình trạng trùng căn trên group Zalo hay lệch bảng hàng Excel trong ngày mở bán. PropFlow CRM đồng bộ bảng hàng trực tuyến cho 500+ nhân viên kinh doanh cùng lúc với tốc độ 0.1 giây và tự động tính hoa hồng 3 cấp.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#sim">Trải nghiệm Bảng hàng & Tính Hoa hồng</a>
+          <a class="btn ghost" href="#process">Xem Quy trình Mở bán</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>500+ Sales</strong><span>Truy cập bảng hàng cùng lúc</span></div>
+          <div><strong>0%</strong><span>Trùng lặp giữ chỗ (Lock căn)</span></div>
+          <div><strong>3 Cấp</strong><span>Tự động chia hoa hồng Sàn/Team</span></div>
+        </div>
+      </div>
+      <div class="hero-box hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Ma trận bảng hàng căn hộ trực tuyến cập nhật trạng thái trống, đang giữ chỗ và đã đặt cọc"></canvas>
+        <div class="hero-meta">
+          <span>Nhấp vào ô căn hộ để đổi trạng thái Giữ chỗ (Lock)</span>
+          <span style="color:var(--acc)">LIVE INVENTORY · THÁP RUBY A</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Chu trình Giao dịch Khép kín</p>
+        <h2 id="pr-h">Từ phễu Lead quảng cáo<br><em>đến ký HĐMB & giải ngân</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Giai đoạn 01 · Thu thập Lead Đa kênh & Chống trùng khách</p>
+            <h3>Tự động chia khách từ Facebook Ads, TikTok & Landing Page</h3>
+            <p>Hệ thống tự động kiểm tra số điện thoại khách hàng để bảo vệ quyền lợi Sales phát sinh trước, cảnh báo ngay khi khách không được chăm sóc sau 15 phút.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Giai đoạn 02 · Giữ chỗ Có hoàn lại (Booking) & Ráp căn</p>
+            <h3>Đồng hồ đếm ngược khóa căn 15 phút trong sự kiện mở bán</h3>
+            <p>Sales bấm Lock căn trực tiếp trên ứng dụng di động, tự động tạo mã QR chuyển khoản tiền cọc về tài khoản định danh của Chủ đầu tư.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Giai đoạn 03 · Phiếu tính giá & Lịch thanh toán Vay ngân hàng</p>
+            <h3>Xuất báo giá PDF chuẩn chính sách chiết khấu trong 5 giây</h3>
+            <p>Tự động áp dụng chiết khấu thanh toán sớm, quà tặng tân gia, ân hạn nợ gốc 24 tháng và tính dòng tiền trả góp hàng tháng cho khách xem tại bàn tư vấn.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Giai đoạn 04 · Đối soát Công nợ & Chia Hoa hồng 3 cấp</p>
+            <h3>Tự động giải ngân thưởng nóng & hoa hồng theo tiến độ</h3>
+            <p>Tính toán minh bạch hoa hồng cho Chuyên viên tư vấn, Trưởng phòng kinh doanh, Giám đốc sàn và đại lý F2 ngay khi khách vào đủ 15% giá trị Hợp đồng.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Trạng thái giỏ hàng: <b id="pStage">Thu phễu Lead</b></span>
+          <span>Tốc độ đồng bộ: <b id="pSync">Realtime WebSocket</b></span>
+          <span>Tiến độ sự kiện: <b id="pPct">25%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sim" id="sim" aria-labelledby="sim-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Công cụ Tương tác Trực tiếp</p>
+          <h2 id="sim-h" style="margin-top:16px">Bảng hàng (Inventory Matrix) &<br><em>Máy tính Hoa hồng 3 Cấp</em></h2>
+        </div>
+        <p class="rv">Chọn phân khu sản phẩm, kéo thanh trượt giá trị giao dịch và tỷ lệ phí môi giới để xem ma trận giỏ hàng trực tiếp trên canvas và bảng phân bổ hoa hồng tự động.</p>
+      </div>
+      <div class="sim-shell">
+        <div class="sim-stage">
+          <canvas id="simC" width="680" height="400" role="img" aria-label="Bảng hàng trực tuyến phân khu bất động sản và biểu đồ chia hoa hồng"></canvas>
+          <div class="sim-controls">
+            <div class="sl-row">
+              <label for="valR"><span>Giá trị căn giao dịch (Tỷ VNĐ)</span><b id="vVal">5.2 Tỷ</b></label>
+              <input id="valR" type="range" min="2.0" max="35.0" step="0.5" value="5.2">
+            </div>
+            <div class="sl-row">
+              <label for="rateR"><span>Tỷ lệ Tổng Hoa hồng Đại lý (%)</span><b id="vRate">3.5%</b></label>
+              <input id="rateR" type="range" min="1.5" max="8.0" step="0.5" value="3.5">
+            </div>
+          </div>
+        </div>
+        <div class="sim-info">
+          <span class="mono" style="color:var(--acc)">Chọn phân khu bảng hàng mở bán</span>
+          <div class="mode-tabs" id="zoneTabs" role="group" aria-label="Chọn phân khu">
+            <button type="button" class="m-btn" data-z="0" aria-pressed="true">
+              <span class="mono">Tháp Diamond · Tầng 05 – 35</span>
+              <b>Căn hộ Cao tầng Hạng Sang</b>
+            </button>
+            <button type="button" class="m-btn" data-z="1" aria-pressed="false">
+              <span class="mono">Đại lộ Thương mại · Khu Phố Đông</span>
+              <b>Shophouse Khối đế & Nhà phố</b>
+            </button>
+            <button type="button" class="m-btn" data-z="2" aria-pressed="false">
+              <span class="mono">Phân khu Ocean Lagoon · Nghỉ dưỡng</span>
+              <b>Biệt thự Biển Đơn lập (Villas)</b>
+            </button>
+          </div>
+          <div>
+            <span class="mono" style="color:var(--pri)" id="zMeta">Tình trạng giỏ hàng: 18 căn Trống · 09 căn Đang Lock · 13 căn Đã Cọc</span>
+            <h3 id="zTitle" style="font-size:23px;margin:6px 0 8px">Tự động chia hoa hồng 3 cấp minh bạch</h3>
+            <p id="zDesc" style="color:var(--muted);font-size:15px">Nhấp trực tiếp vào bất kỳ ô căn hộ nào trên bảng hàng bên trái để khóa căn (Lock) và xem phiếu tính hoa hồng tức thì.</p>
+          </div>
+          <div class="comm-box" id="commBox" role="status" aria-live="polite">
+            <span class="mono">Tổng phí hoa hồng phát sinh:</span>
+            <strong id="cTotal">182.000.000 VNĐ</strong>
+            <span id="cSplit" style="color:var(--muted);font-size:13.5px">Sales chốt (65%): 118,3 Tr · Trưởng phòng (15%): 27,3 Tr · Sàn giữ lại (20%): 36,4 Tr</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="specs" id="specs" aria-labelledby="sp-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Vũ khí Chốt đơn cho Sàn BĐS</p>
+          <h2 id="sp-h" style="margin-top:16px">Tối ưu vận hành từ <em>Marketing đến Kế toán</em></h2>
+        </div>
+        <p class="rv">Được thiết kế chuyên biệt cho đặc thù thị trường Bất động sản Việt Nam: hỗ trợ nhiều chính sách bán hàng, ráp căn sự kiện và quản lý đại lý F1/F2.</p>
+      </div>
+      <div class="spec-grid">
+        <article class="scard rv">
+          <span class="mono">01 · Sa bàn Ảo VR 360</span>
+          <h3>Gắn giỏ hàng lên mặt bằng 3D</h3>
+          <p>Khách hàng xem trực tiếp hướng ban công, tầm nhìn sông/hồ và tình trạng căn trống ngay trên sa bàn số.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">02 · Bảo mật Data Khách</span>
+          <h3>Ẩn số điện thoại thông minh</h3>
+          <p>Sales gọi điện trực tiếp qua tổng đài IP trên App mà không lộ danh sách khách hàng VIP khi nhân sự nghỉ việc.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">03 · QR Đặt cọc Định danh</span>
+          <h3>Khớp lệnh cọc trong 3 giây</h3>
+          <p>Tích hợp VietQR ngân hàng giúp tự động chuyển màu căn sang Đã Đặt Cọc (Đỏ) ngay khi tiền về tài khoản CĐT.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">04 · App Mobile iOS/Android</span>
+          <h3>Tư vấn mọi lúc tại dự án</h3>
+          <p>Sales tra cứu mặt bằng căn, xuất phiếu tính giá vay ngân hàng và tạo lệnh giữ chỗ chỉ bằng 2 chạm trên điện thoại.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cases" id="cases" aria-labelledby="ca-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Hiệu quả Thực tế</p>
+          <h2 id="ca-h" style="margin-top:16px">Đồng hành cùng 180+ Sàn giao dịch</h2>
+        </div>
+        <p class="rv">Vận hành trơn tru hàng trăm sự kiện mở bán tập trung quy mô hàng nghìn khách hàng tại Hà Nội, TP.HCM, Đà Nẵng và Phú Quốc.</p>
+      </div>
+      <div class="case-grid">
+        <article class="ccard rv">
+          <span class="mono">Chủ đầu tư Khu Đô Thị</span>
+          <h3>Quản lý 24 đại lý F1 phân phối</h3>
+          <p>Phân bổ giỏ hàng độc quyền theo từng đại lý, thu hồi căn tự động và theo dõi tốc độ hấp thụ dự án theo thời gian thực.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Sàn Phân Phối F1 Quy Mô Lớn</span>
+          <h3>Tiết kiệm 85% thời gian Admin Sàn</h3>
+          <p>Không còn cảnh Admin phải nhập tay từng lệnh lock căn trên nhóm chat hay thức đêm đối soát bảng tính hoa hồng Excel.</p>
+        </article>
+        <article class="ccard rv">
+          <span class="mono">Môi Giới Thổ Cư & Cho Thuê</span>
+          <h3>Kho nguồn hàng 50.000 căn nội đô</h3>
+          <p>Tìm kiếm nhanh theo quận, diện tích, tầm tài chính, pháp lý sổ đỏ và chống lộ địa chỉ nhà chủ cho đến khi dẫn khách đi xem.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="trial" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Khởi tạo Không gian Sàn Số trong 5 Phút</p>
+        <h2 id="cta-h" style="margin-top:14px">Nhận Tài khoản Dùng thử PropFlow CRM &<br><em>Demo Sự kiện Mở bán Giả lập</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="pName">Họ và tên lãnh đạo sàn / CĐT</label>
+            <input id="pName" type="text" placeholder="Trần Quốc Tuấn — Giám đốc Sàn" required>
+          </div>
+          <div>
+            <label for="pPhone">Số điện thoại liên hệ</label>
+            <input id="pPhone" type="tel" placeholder="0918 556 789" required>
+          </div>
+          <div>
+            <label for="pSize">Quy mô đội ngũ kinh doanh</label>
+            <select id="pSize">
+              <option value="s1">Từ 20 – 50 nhân viên Sales</option>
+              <option value="s2">Từ 50 – 200 nhân viên Sales</option>
+              <option value="s3">Chủ đầu tư / Hệ thống trên 200 Sales</option>
+            </select>
+          </div>
+          <div>
+            <label for="pType">Loại hình Bất động sản chính</label>
+            <select id="pType">
+              <option value="t1">Dự án Căn hộ chung cư & Khu đô thị</option>
+              <option value="t2">Bất động sản Nghỉ dưỡng & Đất nền</option>
+              <option value="t3">Nhà phố Thổ cư & Cho thuê văn phòng</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Kích Hoạt Tài Khoản Demo Ngay</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">PropFlow CRM</a>
+      <ul class="f-nav">
+        <li><a href="#process">Quy Trình Mở Bán</a></li>
+        <li><a href="#sim">Bảng Hàng & Hoa Hồng</a></li>
+        <li><a href="#specs">Tính Năng</a></li>
+        <li><a href="#cases">Khách Hàng</a></li>
+        <li><a href="#trial">Dùng Thử</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> PropFlow CRM Vietnam · Giải pháp Quản trị Sàn Giao dịch Bất động sản</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  // State of 32 units: 0 = Available (Sky), 1 = Locked (Amber), 2 = Sold/Deposited (Coral)
+  const units = Array.from({ length: 32 }, (_, i) => (i % 5 === 0 ? 2 : i % 3 === 0 ? 1 : 0));
+  let selectedUnit = 5;
+
+  function drawMatrix(ctx, w, h, zone = 0, val = 5.2, rate = 3.5) {
+    ctx.fillStyle = '#070E1C';
+    ctx.fillRect(0, 0, w, h);
+
+    // Header legend
+    ctx.fillStyle = '#152542';
+    ctx.fillRect(16, 14, w - 32, 36);
+    const prefixes = ['A', 'SH', 'VL'];
+    const pfx = prefixes[zone] || 'A';
+    ctx.font = '600 11px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#38BDF8';
+    ctx.fillText('■ TRỐNG (AVAILABLE)', 28, 36);
+    ctx.fillStyle = '#FBBF24';
+    ctx.fillText('■ ĐANG LOCK (15P)', 185, 36);
+    ctx.fillStyle = '#F43F5E';
+    ctx.fillText('■ ĐÃ CỌC (SOLD)', 335, 36);
+
+    const cols = 8, rows = 4;
+    const padX = 20, padY = 66;
+    const cellW = (w - padX * 2 - (cols - 1) * 8) / cols;
+    const cellH = 62;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const idx = r * cols + c;
+        const st = units[idx];
+        const x = padX + c * (cellW + 8);
+        const y = padY + r * (cellH + 10);
+
+        ctx.fillStyle = st === 0 ? 'rgba(56,189,248,0.16)' : st === 1 ? 'rgba(251,191,36,0.22)' : 'rgba(244,63,94,0.22)';
+        ctx.strokeStyle = idx === selectedUnit ? '#FFFFFF' : st === 0 ? '#38BDF8' : st === 1 ? '#FBBF24' : '#F43F5E';
+        ctx.lineWidth = idx === selectedUnit ? 2.5 : 1.2;
+        ctx.beginPath();
+        ctx.roundRect(x, y, cellW, cellH, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#F8FAFC';
+        ctx.font = '700 12px "Plus Jakarta Sans", sans-serif';
+        const code = `${pfx}${12 - r}0${c + 1}`;
+        ctx.fillText(code, x + 8, y + 24);
+
+        ctx.fillStyle = st === 0 ? '#38BDF8' : st === 1 ? '#FBBF24' : '#FDA4AF';
+        ctx.font = '500 10px "JetBrains Mono", monospace';
+        ctx.fillText(st === 0 ? `${val.toFixed(1)} Tỷ` : st === 1 ? 'LOCK 14:22' : 'ĐÃ CỌC', x + 8, y + 46);
+      }
+    }
+
+    // Bottom commission split bar
+    const barY = h - 42;
+    const barW = w - 40;
+    ctx.fillStyle = '#38BDF8';
+    ctx.fillRect(20, barY, barW * 0.65, 14);
+    ctx.fillStyle = '#FBBF24';
+    ctx.fillRect(20 + barW * 0.65, barY, barW * 0.15, 14);
+    ctx.fillStyle = '#818CF8';
+    ctx.fillRect(20 + barW * 0.8, barY, barW * 0.2, 14);
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '500 10px "JetBrains Mono", monospace';
+    ctx.fillText(`PHÂN BỔ HOA HỒNG (${rate}%): SALES 65% · TRƯỞNG PHÒNG 15% · SÀN F1 20%`, 20, barY - 6);
+  }
+
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  drawMatrix(heroX, 580, 420, 0, 5.2, 3.5);
+  heroC.addEventListener('click', () => {
+    selectedUnit = (selectedUnit + 1) % 32;
+    units[selectedUnit] = (units[selectedUnit] + 1) % 3;
+    drawMatrix(heroX, 580, 420, 0, 5.2, 3.5);
+  });
+
+  // Pinned Scroll Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const STAGES = ['Thu phễu Lead Đa kênh', 'Khóa căn (Booking 15p)', 'Xuất Phiếu tính giá PDF', 'Đối soát & Chia hoa hồng'];
+  function renderPin(p) {
+    const step = p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3;
+    drawMatrix(pinX, 660, 440, step % 3, 4.5 + step * 2.2, 3.5);
+    $('#pStage').textContent = STAGES[step];
+    $('#pPct').textContent = `${Math.round(p * 100)}%`;
+  }
+  renderPin(0.5);
+
+  // Interactive Simulator
+  const simC = $('#simC'), simX = simC.getContext('2d');
+  let curZone = 0, curVal = 5.2, curRate = 3.5;
+
+  function updateSim() {
+    drawMatrix(simX, 680, 400, curZone, curVal, curRate);
+    const avail = units.filter((u) => u === 0).length;
+    const locked = units.filter((u) => u === 1).length;
+    const sold = units.filter((u) => u === 2).length;
+    $('#zMeta').textContent = `Tình trạng giỏ hàng: ${avail} căn Trống · ${locked} căn Đang Lock · ${sold} căn Đã Cọc`;
+
+    const totalTrieu = curVal * 1000 * (curRate / 100);
+    const sSales = (totalTrieu * 0.65).toFixed(1);
+    const sLead = (totalTrieu * 0.15).toFixed(1);
+    const sAgency = (totalTrieu * 0.20).toFixed(1);
+    $('#cTotal').textContent = `${Math.round(totalTrieu * 1000000).toLocaleString('vi-VN')} VNĐ`;
+    $('#cSplit').textContent = `Sales chốt (65%): ${sSales} Tr · Trưởng phòng (15%): ${sLead} Tr · Sàn giữ lại (20%): ${sAgency} Tr`;
+  }
+
+  $$('#zoneTabs .m-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      curZone = +btn.dataset.z;
+      const defaults = [5.2, 14.5, 26.0];
+      curVal = defaults[curZone];
+      $('#valR').value = curVal;
+      $('#vVal').textContent = `${curVal.toFixed(1)} Tỷ`;
+      $$('#zoneTabs .m-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === curZone));
+      updateSim();
+    });
+  });
+
+  $('#valR').addEventListener('input', (e) => {
+    curVal = +e.target.value;
+    $('#vVal').textContent = `${curVal.toFixed(1)} Tỷ`;
+    updateSim();
+  });
+  $('#rateR').addEventListener('input', (e) => {
+    curRate = +e.target.value;
+    $('#vRate').textContent = `${curRate.toFixed(1)}%`;
+    updateSim();
+  });
+  simC.addEventListener('click', (e) => {
+    const r = simC.getBoundingClientRect();
+    const cx = ((e.clientX - r.left) / r.width) * 680;
+    const cy = ((e.clientY - r.top) / r.height) * 400;
+    const col = Math.floor((cx - 20) / 80);
+    const row = Math.floor((cy - 66) / 72);
+    if (col >= 0 && col < 8 && row >= 0 && row < 4) {
+      const idx = row * 8 + col;
+      selectedUnit = idx;
+      units[idx] = (units[idx] + 1) % 3;
+      updateSim();
+    }
+  });
+  updateSim();
+
+  // Nav & Mobile Menu
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#pName').value.trim();
+    $('#ctaOk').textContent = n ? `Cảm ơn ${n}! Tài khoản dùng thử PropFlow CRM kèm bảng hàng mẫu đã được kích hoạt.` : 'Vui lòng nhập họ tên và số điện thoại liên hệ.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.05, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.8, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 26, duration: 0.85, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1843 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kịch bản — Trợ Lý Lan</title>
+<meta name="description" content="Trợ Lý Lan — quản trị chatbot AI: kéo nối node hội thoại trên khung vẽ, chat thử chạy theo kịch bản, thống kê ý định. Thiết kế concept — thương hiệu giả định.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c3aed'/%3E%3Cstop offset='1' stop-color='%23db2777'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M4 6a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H13l-7 6v-6H8a4 4 0 0 1-4-4z' fill='url(%23g)'/%3E%3Cpath d='M12 8v10h7' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+try { var t = localStorage.getItem('trolylan-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t } catch (e) {}
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('rm')
+</script>
+<style>
+:root{--bg:#0b0815;--bg2:#120d22;--panel:#151024;--panel2:#1c1630;--glass:rgba(17,12,31,.82);--node:rgba(25,19,44,.94);--line:#272040;--line2:#3a3060;--text:#ece8f7;--mute:#a59cc0;--ink:#fff;--v:#a78bfa;--p:#f472b6;--vs:rgba(167,139,250,.14);--ps:rgba(244,114,182,.14);--dot:rgba(167,139,250,.16);--ok:#34d399;--oks:rgba(52,211,153,.14);--warn:#fbbf24;--warns:rgba(251,191,36,.14);--bad:#fb7185;--bads:rgba(251,113,133,.15);--c-start:#34d399;--c-msg:#a78bfa;--c-intent:#f472b6;--c-ask:#60a5fa;--c-lookup:#fbbf24;--c-handoff:#fb7185;--c-end:#94a3b8;--sh:0 18px 50px rgba(0,0,0,.5);--nsh:0 8px 24px rgba(0,0,0,.42);--au1:rgba(124,58,237,.28);--au2:rgba(219,39,119,.2);--grad:linear-gradient(120deg,#7c3aed,#db2777);--gtext:linear-gradient(100deg,#c4b5fd,#f9a8d4);--focus:#f9a8d4}
+[data-theme=light]{--bg:#f6f3fb;--bg2:#eee8f8;--panel:#fff;--panel2:#f8f5fd;--glass:rgba(255,255,255,.86);--node:rgba(255,255,255,.97);--line:#e7dff3;--line2:#d4c7ea;--text:#2a2140;--mute:#665c80;--ink:#170f2b;--v:#7c3aed;--p:#db2777;--vs:rgba(124,58,237,.09);--ps:rgba(219,39,119,.09);--dot:rgba(124,58,237,.2);--ok:#047857;--oks:rgba(5,150,105,.1);--warn:#b45309;--warns:rgba(217,119,6,.12);--bad:#e11d48;--bads:rgba(225,29,72,.09);--c-start:#059669;--c-msg:#7c3aed;--c-intent:#db2777;--c-ask:#2563eb;--c-lookup:#c26a05;--c-handoff:#e11d48;--c-end:#64748b;--sh:0 18px 50px rgba(60,30,110,.16);--nsh:0 6px 18px rgba(60,30,110,.1);--au1:rgba(167,139,250,.24);--au2:rgba(244,114,182,.18);--gtext:linear-gradient(100deg,#6d28d9,#be185d);--focus:#7c3aed}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 'Be Vietnam Pro',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+body[data-view=kich-ban]{height:100dvh;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+h1,h2,h3{line-height:1.2;margin:0;color:var(--ink);font-weight:700}
+.mono{font-family:'IBM Plex Mono',monospace}
+.num{font-variant-numeric:tabular-nums}
+kbd{white-space:nowrap;font:500 12px 'IBM Plex Mono',monospace;border:1px solid var(--line2);border-radius:6px;padding:1px 6px;color:var(--mute);background:var(--panel2)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:absolute;left:-999px;top:8px;z-index:99;background:var(--panel);padding:8px 12px;border-radius:10px}
+.skip:focus{left:8px}
+.anc{position:fixed;top:0;left:0;width:0;height:0}
+svg.ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.gt{background:var(--gtext);-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 14px;border-radius:11px;border:1px solid var(--line2);background:var(--panel2);font-weight:600;font-size:13.5px;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--v)}
+.btn.pri{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 6px 18px rgba(219,39,119,.25)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.dang{color:var(--bad)}
+.btn.sm{min-height:32px;padding:0 10px;font-size:12.5px;border-radius:9px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.ib{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;color:var(--mute);position:relative;flex:none}
+.ib:hover{background:var(--vs);color:var(--ink)}
+.dotb{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--p);box-shadow:0 0 0 2px var(--bg)}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--vs);color:var(--v)}
+.chip.ok{background:var(--oks);color:var(--ok)}.chip.warn{background:var(--warns);color:var(--warn)}.chip.bad{background:var(--bads);color:var(--bad)}.chip.mu{background:var(--panel2);color:var(--mute);border:1px solid var(--line)}
+.inp{width:100%;min-height:40px;padding:8px 12px;border-radius:11px;border:1px solid var(--line2);background:var(--bg2);color:var(--text);outline:0;transition:border-color .15s,box-shadow .15s}
+.inp:focus{border-color:var(--v);box-shadow:0 0 0 3px var(--vs)}
+.inp.bad{border-color:var(--bad);box-shadow:0 0 0 3px var(--bads)}
+textarea.inp{resize:vertical;min-height:84px;line-height:1.5}
+select.inp{padding-right:30px}
+.fld{display:grid;gap:5px;margin-bottom:14px}
+.fld>label,.lbl{font-size:12.5px;font-weight:600;color:var(--mute)}
+.err{font-size:12.5px;color:var(--bad);min-height:0}
+.err:empty{display:none}
+.hint{font-size:12px;color:var(--mute)}
+/* top bar */
+.top{position:sticky;top:0;z-index:40;height:58px;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:800;font-size:16px;white-space:nowrap}
+.logo{width:32px;height:32px;border-radius:10px;background:var(--grad);display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:0 4px 14px rgba(219,39,119,.35)}
+.ws{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mute);padding:4px 10px;border:1px solid var(--line);border-radius:99px;white-space:nowrap}
+.ws i{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.tabs{position:relative;display:flex;gap:2px;margin:0 auto;padding:4px;border-radius:14px;background:var(--panel2);border:1px solid var(--line)}
+.tabs a{position:relative;z-index:1;display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:10px;color:var(--mute);text-decoration:none;font-weight:600;font-size:13.5px;white-space:nowrap}
+.tabs a[aria-current=page]{color:#fff}
+.tabs a .n{font:600 12px 'IBM Plex Mono',monospace;padding:0 6px;border-radius:99px;background:var(--ps);color:var(--p)}
+.tabs a[aria-current=page] .n{background:rgba(255,255,255,.22);color:#fff}
+.tind{position:absolute;z-index:0;top:4px;bottom:4px;left:0;width:0;border-radius:10px;background:var(--grad);transition:left .3s cubic-bezier(.3,.8,.3,1),width .3s cubic-bezier(.3,.8,.3,1)}
+.rm .tind{transition:none}
+.tr{display:flex;align-items:center;gap:4px}
+.srch{display:flex;align-items:center;gap:8px;height:38px;padding:0 10px 0 12px;border-radius:11px;border:1px solid var(--line);color:var(--mute);font-size:13px;white-space:nowrap}
+.srch:hover{border-color:var(--v)}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#fbcfe8,#c4b5fd);color:#3b0764;font-weight:700;font-size:13px;flex:none}
+.burger{display:none}
+.pop{position:absolute;z-index:60;top:52px;right:10px;width:330px;max-width:calc(100vw - 20px);background:var(--panel);border:1px solid var(--line2);border-radius:16px;box-shadow:var(--sh);padding:10px;display:none}
+.pop.on{display:block}
+.pop h3{font-size:13px;padding:6px 8px 8px}
+.ntf{display:flex;gap:10px;padding:9px 8px;border-radius:10px;font-size:13px}
+.ntf:hover{background:var(--vs)}
+.ntf i{width:8px;height:8px;margin-top:6px;border-radius:50%;flex:none;background:var(--p)}
+.ntf small{display:block;color:var(--mute);font-size:12px}
+.acct p{margin:4px 8px;font-size:12.5px;color:var(--mute)}
+.mline{display:flex;align-items:center;gap:10px;width:100%;padding:10px;border-radius:10px;text-align:left;font-weight:600;min-height:40px}
+.mline:hover{background:var(--vs)}
+/* mobile nav drawer */
+.mnav{position:fixed;z-index:70;top:0;left:0;bottom:0;width:min(310px,86vw);background:var(--panel);border-right:1px solid var(--line2);padding:16px;transform:translateX(-105%);transition:transform .28s ease;display:flex;flex-direction:column;gap:6px;box-shadow:var(--sh)}
+.mnav.on{transform:none}
+.mnav a{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 12px;border-radius:12px;color:var(--text);text-decoration:none;font-weight:600}
+.mnav a[aria-current=page]{background:var(--grad);color:#fff}
+.mnav p{margin-top:auto;font-size:12px;color:var(--mute)}
+.scrim{position:fixed;inset:0;z-index:65;background:rgba(8,4,20,.5);opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+/* views */
+.view{display:none}
+.view.on{display:block}
+.page{max-width:1320px;margin:0 auto;padding:26px 24px 60px}
+.crumb{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--mute);flex-wrap:wrap}
+.crumb b{color:var(--text);font-weight:600}
+.ph{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 20px}
+.ph h1{font-size:28px;letter-spacing:-.01em}
+.ph p{margin:4px 0 0;color:var(--mute)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}
+.card h2{font-size:15px}
+.foot{margin-top:28px;font-size:12px;color:var(--mute);text-align:center}
+/* builder */
+#v-kich-ban.on{display:flex;flex-direction:column;height:calc(100dvh - 58px)}
+.bbar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--bg);flex-wrap:nowrap;min-height:58px}
+.flow{min-width:0}
+.flow h1{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flow .crumb{flex-wrap:nowrap;white-space:nowrap}
+.bst{display:flex;align-items:center;gap:8px;margin-left:auto}
+.bst .chip{font-family:'IBM Plex Mono',monospace;font-weight:500}
+.cnt{min-width:20px;height:20px;padding:0 6px;border-radius:99px;display:inline-grid;place-items:center;font:600 12px 'IBM Plex Mono',monospace;background:var(--warns);color:var(--warn)}
+.cnt.bad{background:var(--bads);color:var(--bad)}
+.cnt.ok{background:var(--oks);color:var(--ok)}
+.bmain{position:relative;flex:1;display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:0}
+.cvw{position:relative;overflow:hidden;min-width:0;background:var(--bg)}
+.cvw::before{content:"";position:absolute;inset:-20%;pointer-events:none;background:radial-gradient(40% 45% at 22% 30%,var(--au1),transparent 70%),radial-gradient(35% 40% at 78% 75%,var(--au2),transparent 70%)}
+#cv{position:absolute;inset:0;touch-action:none;cursor:grab;background-image:radial-gradient(circle,var(--dot) 1.15px,transparent 1.5px);background-size:22px 22px;outline:0}
+#cv:focus-visible{box-shadow:inset 0 0 0 2px var(--focus)}
+#cv.pan{cursor:grabbing}
+#world{position:absolute;left:0;top:0;transform-origin:0 0}
+#wires{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}
+.wire{color:var(--c-msg)}
+.wire .w{fill:none;stroke:currentColor;stroke-width:2;opacity:.62;transition:opacity .2s}
+.wire .wh{fill:none;stroke:transparent;stroke-width:16;pointer-events:stroke;cursor:pointer}
+.wire:hover .w{opacity:1}
+.wire.sel .w{stroke-width:3.2;opacity:1}
+.wire.hot{color:var(--p)}
+.wire.hot .w{opacity:.95;stroke-width:2.6}
+.wire.live .w{stroke-dasharray:9 7;animation:flow .7s linear infinite;stroke-width:3}
+.rm .wire.live .w{animation:none}
+@keyframes flow{to{stroke-dashoffset:-16}}
+#tmpWire{fill:none;stroke:var(--p);stroke-width:2.4;stroke-dasharray:6 6}
+.nd{position:absolute;width:224px;border-radius:15px;background:var(--node);border:1px solid var(--line2);box-shadow:var(--nsh);user-select:none;-webkit-user-select:none;cursor:grab;--c:var(--c-msg);outline:0;transition:box-shadow .2s,border-color .2s}
+.nd::before{content:"";position:absolute;left:14px;right:14px;top:-1px;height:3px;border-radius:0 0 4px 4px;background:var(--c)}
+.nd.t-intent::before{background:var(--grad);left:0;right:0;border-radius:15px 15px 0 0;top:-1px}
+.nd.t-start{--c:var(--c-start)}.nd.t-intent{--c:var(--c-intent);width:236px}.nd.t-ask{--c:var(--c-ask)}.nd.t-lookup{--c:var(--c-lookup)}.nd.t-handoff{--c:var(--c-handoff)}.nd.t-end{--c:var(--c-end)}
+.nd:focus-visible{box-shadow:0 0 0 2px var(--focus),var(--nsh)}
+.nd.sel{border-color:var(--v);box-shadow:0 0 0 2px var(--v),0 10px 30px rgba(124,58,237,.3)}
+.nd.seen{border-color:color-mix(in srgb,var(--p) 55%,var(--line2))}
+.nd.cur{box-shadow:0 0 0 2px var(--p),0 0 34px color-mix(in srgb,var(--p) 45%,transparent)}
+.nd.drop{box-shadow:0 0 0 3px var(--ok)}
+.nd-h{display:flex;align-items:center;gap:8px;padding:11px 12px 5px}
+.nd-ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 18%,transparent);color:var(--c);flex:none}
+.nd-ic svg.ic{width:15px;height:15px}
+.nd-t{min-width:0}
+.nd-t b{display:block;font-size:13px;color:var(--ink);line-height:1.35}
+.nd-t small{display:block;font-size:12px;color:var(--c);font-weight:600;text-transform:uppercase;letter-spacing:.03em;line-height:1.3}
+.nd-id{margin-left:auto;font:500 12px 'IBM Plex Mono',monospace;color:var(--mute);align-self:flex-start;padding-top:2px}
+.nd-b{padding:3px 12px 11px;font-size:12.5px;line-height:1.5;color:var(--mute);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.nd-b .var{font:500 12px 'IBM Plex Mono',monospace;color:var(--c-ask)}
+.po{display:flex;align-items:center;justify-content:flex-end;gap:8px;height:29px;padding-left:12px;border-top:1px solid var(--line);font-size:12px;font-weight:500;color:var(--text)}
+.po .pd{width:8px;height:8px;border-radius:50%;flex:none;margin-right:auto}
+.po span{white-space:nowrap}
+.pt{width:16px;height:16px;border-radius:50%;border:2.5px solid var(--c);background:var(--bg);flex:none;position:relative;cursor:crosshair;margin-right:-8px;touch-action:none}
+.pt::after{content:"";position:absolute;inset:-9px;border-radius:50%}
+.pt.on{background:var(--c)}
+.pt:hover{scale:1.25}
+.pin{position:absolute;left:-8px;top:18px;margin:0;cursor:default}
+.nd.t-start .pin{display:none}
+.iss{position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 12px 'IBM Plex Mono',monospace;color:#fff;background:var(--warn);box-shadow:0 0 0 3px var(--bg)}
+.iss.bad{background:var(--bad)}
+#edgeDel{position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;background:var(--bad);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 3px var(--bg)}
+#edgeDel[hidden]{display:none}
+.tray{position:absolute;z-index:5;left:14px;top:14px;width:196px;padding:12px;border-radius:18px;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line2);box-shadow:var(--sh);max-height:calc(100% - 86px);overflow:auto}
+.tray h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin:2px 4px 8px;font-weight:700}
+.titem{display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px;border-radius:11px;text-align:left;min-height:44px;cursor:grab;touch-action:none}
+.titem:hover{background:var(--vs)}
+.titem b{display:block;font-size:13px;font-weight:600;line-height:1.3}
+.titem small{display:block;font-size:12px;color:var(--mute);line-height:1.3}
+.titem .nd-ic{width:30px;height:30px}
+.tray p{margin:8px 4px 0;font-size:12px;color:var(--mute);line-height:1.45}
+.ghost-nd{position:fixed;z-index:90;pointer-events:none;padding:8px 12px;border-radius:12px;background:var(--grad);color:#fff;font-weight:600;font-size:13px;box-shadow:var(--sh)}
+.zbar{position:absolute;z-index:5;left:14px;bottom:14px;display:flex;align-items:center;gap:2px;padding:4px;border-radius:14px;background:var(--glass);border:1px solid var(--line2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.zbar .ib{width:36px;height:36px}
+.zbar output{font:500 12px 'IBM Plex Mono',monospace;color:var(--mute);min-width:44px;text-align:center}
+#mini{position:absolute;z-index:5;left:196px;bottom:14px;width:176px;height:112px;border-radius:14px;background:var(--glass);border:1px solid var(--line2);cursor:pointer}
+.help{position:absolute;z-index:4;right:14px;top:14px;font-size:12px;color:var(--mute);padding:6px 10px;border-radius:10px;background:var(--glass);border:1px solid var(--line);display:flex;gap:10px;align-items:center}
+/* side panel */
+.side{display:flex;flex-direction:column;min-height:0;border-left:1px solid var(--line);background:var(--panel)}
+.stabs{display:flex;gap:4px;padding:10px 12px 0;border-bottom:1px solid var(--line)}
+.stabs button{flex:1;min-height:40px;padding:0 10px;border-radius:10px 10px 0 0;font-weight:600;color:var(--mute);border-bottom:2px solid transparent;display:flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
+.stabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--p)}
+.stabs .x{flex:0 0 40px;display:none}
+.spane{display:none;flex:1;min-height:0;flex-direction:column}
+.spane.on{display:flex}
+.chead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.bav{width:36px;height:36px;border-radius:12px;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+.chead b{display:block;font-size:14px;color:var(--ink)}
+.chead small{display:block;font-size:12px;color:var(--mute)}
+.tog{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mute);margin-left:auto;white-space:nowrap;min-height:40px}
+.tog input{accent-color:var(--p);width:16px;height:16px}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.rm .msgs{scroll-behavior:auto}
+.bub{max-width:86%;padding:9px 12px;border-radius:16px;font-size:13.5px;line-height:1.5;word-wrap:break-word}
+.bub.bot{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:5px}
+.bub.me{align-self:flex-end;background:var(--grad);color:#fff;border-bottom-right-radius:5px}
+.meta{font:500 12px 'IBM Plex Mono',monospace;color:var(--mute);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.meta.me{align-self:flex-end}
+.meta button{color:var(--v);text-decoration:underline;font:inherit}
+.sys{align-self:center;max-width:94%;text-align:center;font-size:12px;color:var(--mute);padding:5px 12px;border-radius:99px;border:1px dashed var(--line2)}
+.sys.warn{color:var(--warn);border-color:var(--warn)}
+.sys.ok{color:var(--ok);border-color:var(--ok)}
+.sys button{color:var(--v);font-weight:600;text-decoration:underline;margin-left:4px}
+.typing{align-self:flex-start;display:flex;gap:4px;padding:12px 14px;border-radius:16px;background:var(--panel2)}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--mute);animation:tp 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tp{50%{opacity:.25}}
+.qr{display:flex;gap:6px;padding:0 14px 8px;overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+.qr button{flex:none;padding:6px 11px;border-radius:99px;border:1px solid var(--line2);font-size:12.5px;color:var(--text);white-space:nowrap;min-height:34px}
+.qr button:hover{border-color:var(--p);color:var(--p)}
+.cform{display:flex;gap:8px;padding:10px 14px 14px;border-top:1px solid var(--line)}
+.cform .inp{border-radius:99px;padding-left:16px}
+.cform .btn{border-radius:99px;width:44px;padding:0;flex:none}
+.cerr{padding:0 18px 8px;font-size:12px;color:var(--bad)}
+.cerr:empty{display:none}
+.ins{flex:1;overflow-y:auto;padding:16px}
+.ins .empty{text-align:center;color:var(--mute);padding:40px 10px}
+.ins h3{font-size:15px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.insf{position:sticky;bottom:-16px;margin:8px -16px -16px;padding:12px 16px;background:var(--panel);border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.conn{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;margin-bottom:14px}
+.conn label{font-size:12.5px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.conn label i{width:8px;height:8px;border-radius:50%}
+.ilist{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:6px}
+.ilist li{display:flex;align-items:center;gap:8px;font-size:13px;padding:7px 10px;border-radius:10px;background:var(--panel2)}
+.ilist li i{width:9px;height:9px;border-radius:50%}
+.ilist li span{margin-left:auto;font:500 12px 'IBM Plex Mono',monospace;color:var(--mute)}
+.bdock{display:none}
+.chkpop{top:auto;right:auto}
+.issue{display:flex;gap:10px;align-items:flex-start;padding:9px 8px;border-radius:10px;font-size:13px}
+.issue:hover{background:var(--vs)}
+.issue i{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none;background:var(--warn)}
+.issue i.bad{background:var(--bad)}
+.issue div{flex:1;min-width:0}
+.issue small{display:block;color:var(--mute);font-size:12px}
+/* table view */
+.sumbar{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);border-radius:18px;background:var(--panel);margin-bottom:16px;overflow:hidden}
+.sumbar div{flex:1 1 160px;padding:14px 18px;border-right:1px solid var(--line)}
+.sumbar div:last-child{border-right:0}
+.sumbar small{display:block;font-size:12px;color:var(--mute)}
+.sumbar b{font-size:24px;color:var(--ink);font-weight:700}
+.filt{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.sbox{position:relative;flex:1 1 240px}
+.sbox svg{position:absolute;left:12px;top:11px;color:var(--mute)}
+.sbox .inp{padding-left:38px}
+.filt select.inp{width:auto;flex:0 1 auto}
+.bulk{display:none;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;margin-bottom:10px;border-radius:14px;background:var(--grad);color:#fff}
+.bulk.on{display:flex}
+.bulk .btn{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff}
+.bulk b{margin-right:auto;padding-left:6px}
+.tbl-w{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:12px;color:var(--mute);font-weight:600;padding:0 12px;height:44px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel2)}
+th .sb{display:inline-flex;align-items:center;gap:4px;font-weight:600;color:inherit;min-height:32px}
+th .sb:hover{color:var(--ink)}
+th[aria-sort=ascending] .sb::after{content:"↑";color:var(--p)}
+th[aria-sort=descending] .sb::after{content:"↓";color:var(--p)}
+td{padding:0 12px;height:52px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr{cursor:pointer;transition:background .12s}
+tbody tr:hover{background:var(--vs)}
+tbody tr.chk{background:var(--ps)}
+tbody tr:last-child td{border-bottom:0}
+td.cb,th.cb{width:44px;padding-right:0}
+.cbx{width:18px;height:18px;accent-color:var(--p);cursor:pointer;vertical-align:middle}
+.who{display:flex;align-items:center;gap:10px}
+.who .av{width:30px;height:30px;font-size:12px}
+.who b{font-weight:600;display:block}
+.who small{font-size:12px;color:var(--mute)}
+.unseen::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--p);margin-left:6px;vertical-align:middle}
+.ch{display:inline-flex;align-items:center;gap:6px;font-size:12.5px}
+.ch i{width:18px;height:18px;border-radius:6px;display:grid;place-items:center;font:700 12px 'Be Vietnam Pro';color:#fff;font-style:normal}
+.idot{display:inline-flex;align-items:center;gap:7px}
+.idot i{width:8px;height:8px;border-radius:50%}
+.cf{display:flex;align-items:center;gap:8px;font:500 12.5px 'IBM Plex Mono',monospace}
+.cf span{display:block;width:54px;height:5px;border-radius:9px;background:var(--line);overflow:hidden}
+.cf span i{display:block;height:100%;border-radius:9px;background:var(--grad)}
+.cf.lo span i{background:var(--warn)}
+.pager{display:flex;align-items:center;gap:6px;padding:10px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.pager .info{margin-right:auto;font-size:12.5px;color:var(--mute)}
+.pager button{min-width:36px;height:36px;border-radius:10px;font:500 13px 'IBM Plex Mono',monospace;color:var(--mute)}
+.pager button[aria-current=page]{background:var(--grad);color:#fff}
+.pager button:disabled{opacity:.4;cursor:default}
+.empty-st{display:none;text-align:center;padding:48px 20px;color:var(--mute)}
+.empty-st.on{display:block}
+.empty-st b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+.msort{display:none}
+/* drawer */
+.drw{position:fixed;z-index:75;top:0;right:0;bottom:0;width:min(460px,100vw);background:var(--panel);border-left:1px solid var(--line2);box-shadow:var(--sh);transform:translateX(105%);transition:transform .28s ease;display:flex;flex-direction:column}
+.drw.on{transform:none;box-shadow:0 0 0 100vmax rgba(8,4,20,.45)}
+.dh{display:flex;align-items:flex-start;gap:12px;padding:16px;border-bottom:1px solid var(--line)}
+.dh h2{font-size:17px}
+.dh p{margin:2px 0 0;font-size:12.5px;color:var(--mute)}
+.dh .ib{margin-left:auto}
+.db{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.df{padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.df select{flex:1 1 160px;width:auto}
+/* modal & palette */
+.modal{position:fixed;inset:0;z-index:80;display:none;place-items:center;padding:16px;background:rgba(8,4,20,.55)}
+.modal.on{display:grid}
+.mc{width:min(520px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--line2);border-radius:20px;box-shadow:var(--sh)}
+.mc header{padding:18px 20px 6px}
+.mc header h2{font-size:18px}
+.mc header p{margin:4px 0 0;color:var(--mute);font-size:13px}
+.mb{padding:12px 20px}
+.mf{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.pstat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.pstat div{padding:10px;border-radius:12px;background:var(--panel2);text-align:center}
+.pstat b{display:block;font-size:20px;color:var(--ink)}
+.pstat small{font-size:12px;color:var(--mute)}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw label{position:relative}
+.sw input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.sw span{display:block;width:32px;height:32px;border-radius:10px;border:2px solid transparent}
+.sw input:checked+span{border-color:var(--ink);box-shadow:0 0 0 2px var(--bg) inset}
+.sw input:focus-visible+span{outline:2px solid var(--focus);outline-offset:2px}
+#pal{align-items:start;padding-top:12vh}
+.palc{width:min(600px,100%);background:var(--panel);border:1px solid var(--line2);border-radius:18px;box-shadow:var(--sh);overflow:hidden}
+.palc .sbox{margin:0;border-bottom:1px solid var(--line)}
+.palc .sbox .inp{border:0;border-radius:0;min-height:54px;background:transparent;box-shadow:none;padding-left:42px;font-size:15px}
+.palc .sbox svg{top:18px;left:15px}
+#palL{list-style:none;margin:0;padding:8px;max-height:min(420px,60vh);overflow:auto}
+#palL li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;cursor:pointer;min-height:44px}
+#palL li[aria-selected=true]{background:var(--vs)}
+#palL li small{margin-left:auto;font-size:12px;color:var(--mute);white-space:nowrap}
+#palL .grp{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);padding:8px 12px 4px;min-height:0;cursor:default}
+.palf{display:flex;gap:14px;padding:9px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--mute);flex-wrap:wrap}
+/* toasts */
+#toasts{position:fixed;z-index:95;top:70px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;width:max-content;max-width:calc(100vw - 24px);pointer-events:none}
+body[data-view=kich-ban] #toasts{top:128px}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:10px 10px 10px 16px;border-radius:14px;background:#1d1433;color:#f3effc;border:1px solid #3f3366;box-shadow:var(--sh);font-size:13.5px;max-width:100%}
+.toast::before{content:"";width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#f472b6);flex:none}
+.toast button{color:#f9a8d4;font-weight:700;padding:6px 8px;border-radius:8px;white-space:nowrap}
+.toast button:hover{background:rgba(255,255,255,.08)}
+.toast .tx{color:#a59cc0;width:30px;height:30px;padding:0;display:grid;place-items:center}
+/* stats view */
+.hello{font-size:13px;color:var(--mute);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;padding:4px;gap:2px;border-radius:13px;background:var(--panel2);border:1px solid var(--line)}
+.seg button{min-height:34px;padding:0 13px;border-radius:9px;font-weight:600;font-size:13px;color:var(--mute);white-space:nowrap}
+.seg button[aria-pressed=true]{background:var(--grad);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:18px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kpi{padding:16px 18px 16px 0}
+.kpi+.kpi{padding-left:18px;border-left:1px solid var(--line)}
+.kpi small{display:block;font-size:12.5px;color:var(--mute)}
+.kpi b{display:block;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.kpi em{font-style:normal;font-size:12.5px;color:var(--mute)}
+.bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.c8{grid-column:span 8}.c4{grid-column:span 4}.c7{grid-column:span 7}.c5{grid-column:span 5}.c12{grid-column:span 12}
+.chd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.chd p{margin:2px 0 0;font-size:12.5px;color:var(--mute)}
+.lg{display:flex;gap:12px;font-size:12px;color:var(--mute);flex-wrap:wrap}
+.lg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.lg i{width:10px;height:10px;border-radius:3px}
+.chartw{position:relative}
+#area{display:block;width:100%;height:260px;touch-action:pan-y}
+#area text{font:500 11px 'IBM Plex Mono',monospace;fill:var(--mute)}
+#area .gl{stroke:var(--line);stroke-width:1}
+.tip{position:absolute;z-index:6;pointer-events:none;min-width:170px;padding:10px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line2);box-shadow:var(--sh);font-size:12.5px;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+.tip b{display:block;margin-bottom:4px;color:var(--ink)}
+.tip div{display:flex;justify-content:space-between;gap:16px}
+.tip div span{display:inline-flex;align-items:center;gap:6px}
+.tip i{width:8px;height:8px;border-radius:2px}
+.donut{display:grid;place-items:center;position:relative;margin:4px auto 8px;width:190px;height:190px}
+.donut svg{width:190px;height:190px;transform:rotate(-90deg)}
+.donut circle{fill:none;stroke-width:20;transition:stroke-dasharray .7s cubic-bezier(.3,.8,.3,1),stroke-dashoffset .7s cubic-bezier(.3,.8,.3,1)}
+.rm .donut circle{transition:none}
+.donut .mid{position:absolute;text-align:center}
+.donut .mid b{display:block;font-size:30px;font-weight:800;line-height:1.2}
+.donut .mid small{font-size:12px;color:var(--mute)}
+.dl{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.dl li{display:flex;align-items:center;gap:8px;font-size:13px}
+.dl li i{width:10px;height:10px;border-radius:3px}
+.dl li b{margin-left:auto;font:500 12.5px 'IBM Plex Mono',monospace;color:var(--ink)}
+.bars{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.bars li button{display:grid;grid-template-columns:118px 1fr 92px;align-items:center;gap:10px;width:100%;min-height:46px;padding:3px 6px;border-radius:10px;text-align:left}
+.bars li button:hover{background:var(--vs)}
+.bars .bn{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bars .bt{height:12px;border-radius:99px;background:var(--panel2);overflow:hidden}
+.bars .bt i{display:block;height:100%;width:100%;border-radius:99px;transform-origin:0 50%;transition:transform .7s cubic-bezier(.3,.8,.3,1)}
+.rm .bars .bt i{transition:none}
+.bars .bv{text-align:right;font:500 12.5px 'IBM Plex Mono',monospace;color:var(--mute);white-space:nowrap}
+.bars .bv b{color:var(--ink);font-weight:600}
+.unm{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.unm li{display:grid;grid-template-columns:1fr auto;gap:8px 10px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line)}
+.unm q{font-size:13.5px;quotes:"“" "”";color:var(--ink)}
+.unm small{font:500 12px 'IBM Plex Mono',monospace;color:var(--mute);white-space:nowrap}
+.unm .as{grid-column:1/-1;display:flex;gap:8px}
+.unm .as select{flex:1;min-height:36px;padding-top:4px;padding-bottom:4px}
+.icards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.icard{padding:14px;border-radius:16px;border:1px solid var(--line);background:var(--panel2);position:relative;overflow:hidden}
+.icard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ic)}
+.icard h3{font-size:14px;display:flex;align-items:center;gap:8px}
+.icard h3 span{margin-left:auto;font:500 12px 'IBM Plex Mono',monospace;color:var(--mute)}
+.phr{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}
+.phr span{font-size:12px;padding:2px 8px;border-radius:8px;background:var(--panel);border:1px solid var(--line);color:var(--mute)}
+/* settings */
+.sgrid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+.sec{margin-bottom:16px}
+.sec h2{margin-bottom:4px}
+.sec>p{margin:0 0 14px;font-size:12.5px;color:var(--mute)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+.rad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rad label{position:relative;display:block;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);cursor:pointer;font-size:13px;min-height:44px}
+.rad label b{display:block;font-weight:600;color:var(--ink)}
+.rad label small{color:var(--mute);font-size:12px}
+.rad input{position:absolute;opacity:0}
+.rad label:has(input:checked){border-color:var(--p);background:var(--ps)}
+.rad label:has(input:focus-visible){outline:2px solid var(--focus);outline-offset:2px}
+.rng{display:flex;align-items:center;gap:12px}
+.rng input{flex:1;accent-color:var(--p);min-height:40px}
+.rng output{font:600 14px 'IBM Plex Mono',monospace;min-width:48px;text-align:right}
+.chks{display:grid;gap:8px}
+.chks label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);cursor:pointer;min-height:44px}
+.chks label small{margin-left:auto;color:var(--mute);font-size:12px}
+.sbar{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;gap:10px;padding:12px 16px;margin-top:6px;border-radius:16px;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line2)}
+.sbar span{margin-right:auto;font-size:13px;color:var(--mute)}
+.sbar span.dirty{color:var(--warn)}
+.prev{position:sticky;top:80px}
+.wdg{border-radius:22px;overflow:hidden;border:1px solid var(--line2);background:var(--panel);box-shadow:var(--sh)}
+.wdg header{background:var(--grad);color:#fff;padding:16px;display:flex;gap:12px;align-items:center}
+.wdg header .bav{background:rgba(255,255,255,.22)}
+.wdg header small{display:block;opacity:.85;font-size:12px}
+.wdg .wb{padding:16px;display:flex;flex-direction:column;gap:8px;min-height:200px;background:var(--bg2)}
+.wdg footer{padding:10px 16px;font-size:12px;color:var(--mute);border-top:1px solid var(--line)}
+/* responsive */
+@media (max-width:1240px){.srch .t{display:none}.ws{display:none}}
+@media (max-width:1099px){
+  .tabs{display:none}.burger{display:grid}.srch{display:none}
+  .top .tr{margin-left:auto}
+  .bmain{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;z-index:72;top:58px;right:0;bottom:0;width:min(400px,100vw);transform:translateX(105%);transition:transform .28s ease;box-shadow:var(--sh);border-left:1px solid var(--line2)}
+  .side.on{transform:none}
+  .stabs .x{display:grid}
+  #mini{display:none}
+  .bdock{display:flex;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--panel)}
+  .bdock button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:50px;border-radius:12px;font-size:12px;font-weight:600;color:var(--mute)}
+  .bdock button:hover,.bdock button.hi{color:var(--ink);background:var(--vs)}
+  .bdock .add{display:none}
+  .help{display:none}
+  .c8,.c4,.c7,.c5{grid-column:span 12}
+  .sgrid{grid-template-columns:1fr}
+  .prev{position:static}
+}
+@media (max-width:767px){
+  .page{padding:18px 16px 50px}
+  .ph h1{font-size:23px}
+  .brand{font-size:15px}
+  .bbar{padding:8px 12px;gap:8px}
+  .bbar .crumb{display:none}
+  .bst .chip{display:none}
+  .bst .btn .t{display:none}
+  .bst .btn{padding:0 11px}
+  .tray{left:0;right:0;top:auto;bottom:0;width:auto;max-height:70%;border-radius:20px 20px 0 0;transform:translateY(105%);transition:transform .28s ease;z-index:72;position:fixed;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+  .tray.on{transform:none}
+  .tray .tl{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .bdock .add{display:flex}
+  .side{top:auto;left:0;width:auto;height:min(78dvh,640px);border-radius:20px 20px 0 0;transform:translateY(105%);border-left:0;border-top:1px solid var(--line2)}
+  .zbar{left:10px;bottom:10px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpi:nth-child(3){padding-left:0;border-left:0}
+  .kpi:nth-child(n+3){border-top:1px solid var(--line)}
+  .kpi b{font-size:28px}
+  .bars li button{grid-template-columns:96px 1fr 82px;gap:8px}
+  .row2,.rad{grid-template-columns:1fr}
+  .sumbar div{flex:1 1 45%;border-bottom:1px solid var(--line)}
+  .sumbar div:nth-child(2n){border-right:0}
+  .filt select.inp{flex:1 1 40%}
+  .msort{display:block}
+  table,tbody,tr,td{display:block}
+  thead{display:none}
+  .tbl-w{border:0;background:none;overflow:visible}
+  tbody{display:grid;gap:10px}
+  tbody tr{position:relative;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:12px 14px 12px 48px}
+  tbody tr:last-child td,td{border:0;height:auto;padding:2px 0;white-space:normal}
+  td.cb{position:absolute;left:14px;top:14px;width:auto}
+  tbody tr{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+  td.c-who{grid-column:1/-1}
+  td[data-l]{display:flex;flex-direction:column;gap:1px;font-size:13px;min-width:0}
+  td[data-l="Mã"]{position:absolute;right:14px;top:12px;font-size:12px!important;color:var(--mute)}
+  td[data-l]::before{content:attr(data-l);color:var(--mute);font-size:12px}
+  td.c-who{margin-bottom:2px;padding-right:62px}
+  .pager{border:1px solid var(--line);border-radius:16px;background:var(--panel);margin-top:10px}
+  .pager .info{flex-basis:100%}
+  td[data-l="Mã"]::before{display:none}
+}
+/* touch: controls reach 40px. Output ports keep their 16px dot; the hit area is 44 screen px at any zoom,
+   except vertically in multi-output nodes where it stops at the row (29px) so neighbouring ports stay reachable */
+@media (pointer:coarse){
+  .brand{min-height:40px}
+  .btn,.seg button,.qr button,th .sb{min-height:40px}
+  .btn.sm{min-height:40px}
+  .zbar .ib,.pager button{width:40px;min-width:40px;height:40px}
+  th .sb{min-width:40px}
+  .pt::after{inset:calc(8px - 22px * var(--iz, 1))}
+  .nd:has(.po + .po) .pt::after{inset:max(calc(8px - 22px * var(--iz, 1)), -6.5px) calc(8px - 22px * var(--iz, 1))}
+  .cbx{position:relative}
+  .cbx::before{content:"";position:absolute;inset:-11px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Bỏ qua đến nội dung</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+  <symbol id="i-msg" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.7 1.8 1.8.7-1.8.7L19 20l-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="i-ask" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-7z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-flow" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 8.5v7M8.5 6c5 0 4 6 7 6M8.5 18c5 0 4-6 7-6"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H6a2 2 0 0 1-2-2z"/><path d="M8 9h8M8 12.5h5"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V11M10 20V5M16 20v-7M21 20H3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+</svg>
+
+<header class="top">
+  <button class="ib burger" id="burger" type="button" aria-label="Mở menu điều hướng" aria-expanded="false" aria-controls="mnav"><svg class="ic"><use href="#i-menu"/></svg></button>
+  <a class="brand" href="#kich-ban" aria-label="Trợ Lý Lan — về trang kịch bản"><span class="logo">L</span><span class="t">Trợ Lý Lan</span></a>
+  <span class="ws"><i></i>Tiệm bánh Mây Hồng</span>
+  <nav class="tabs" id="tabs" aria-label="Điều hướng chính"><span class="tind" id="tind"></span></nav>
+  <div class="tr">
+    <button class="srch" id="srchBtn" type="button" aria-label="Mở bảng lệnh"><svg class="ic"><use href="#i-search"/></svg><span class="t">Tìm hoặc chạy lệnh</span><kbd>Ctrl K</kbd></button>
+    <button class="ib" id="bellBtn" type="button" aria-label="Thông báo" aria-expanded="false" aria-controls="bellPop"><svg class="ic"><use href="#i-bell"/></svg><span class="dotb" id="bellDot"></span></button>
+    <button class="ib" id="themeBtn" type="button" aria-label="Đổi giao diện sáng/tối"><svg class="ic"><use href="#i-sun" id="themeIc"/></svg></button>
+    <button class="ib" id="acctBtn" type="button" aria-label="Tài khoản" aria-expanded="false" aria-controls="acctPop"><span class="av">HQ</span></button>
+  </div>
+  <div class="pop" id="bellPop" role="dialog" aria-label="Thông báo"><h3>Thông báo</h3><div id="bellL"></div></div>
+  <div class="pop acct" id="acctPop" role="dialog" aria-label="Tài khoản">
+    <div class="who" style="padding:6px 8px 10px"><span class="av">HQ</span><div><b>Hà Như Quỳnh</b><small>Quản trị viên · Mây Hồng</small></div></div>
+    <button class="mline" type="button" data-go="cai-dat"><svg class="ic"><use href="#i-gear"/></svg>Cài đặt trợ lý</button>
+    <button class="mline" type="button" id="acctTheme"><svg class="ic"><use href="#i-moon"/></svg>Đổi giao diện sáng/tối</button>
+    <p>Trợ Lý Lan · bản 4.2. Thiết kế concept — thương hiệu giả định.</p>
+  </div>
+</header>
+<nav class="mnav" id="mnav" aria-label="Điều hướng (di động)" aria-hidden="true">
+  <a class="brand" href="#kich-ban" tabindex="-1"><span class="logo">L</span>Trợ Lý Lan</a>
+  <div id="mnavL" style="display:grid;gap:4px;margin-top:12px"></div>
+  <button class="mline" type="button" id="mnSearch" tabindex="-1"><svg class="ic"><use href="#i-search"/></svg>Tìm hoặc chạy lệnh</button>
+  <p>Tiệm bánh Mây Hồng · Trợ Lý Lan. Thiết kế concept — thương hiệu giả định.</p>
+</nav>
+<div class="scrim" id="scrim"></div>
+
+<div aria-hidden="true"><i class="anc" id="kich-ban"></i><i class="anc" id="hoi-thoai"></i><i class="anc" id="y-dinh"></i><i class="anc" id="cai-dat"></i></div>
+<main id="main">
+<!-- ===== Kịch bản (node builder) ===== -->
+<section class="view" id="v-kich-ban" aria-labelledby="bH">
+  <div class="bbar">
+    <div class="flow">
+      <div class="crumb">Mây Hồng <span aria-hidden="true">/</span> Kịch bản <span aria-hidden="true">/</span> <b>Chăm sóc khách hàng</b></div>
+      <h1 id="bH">Chăm sóc khách hàng</h1>
+    </div>
+    <div class="bst">
+      <span class="chip mu" id="verChip">v13 · bản nháp</span>
+      <button class="btn" type="button" id="chkBtn" aria-expanded="false" aria-controls="chkPop"><svg class="ic"><use href="#i-check"/></svg><span class="t">Kiểm tra</span><span class="cnt" id="chkN">0</span></button>
+      <button class="btn pri" type="button" id="pubBtn"><svg class="ic"><use href="#i-send"/></svg><span class="t">Xuất bản</span></button>
+    </div>
+  </div>
+  <div class="pop chkpop" id="chkPop" role="dialog" aria-label="Kết quả kiểm tra kịch bản"><h3 id="chkH">Kiểm tra kịch bản</h3><div id="chkL"></div></div>
+  <div class="bmain">
+    <div class="cvw">
+      <div id="cv" tabindex="0" role="application" aria-roledescription="khung vẽ" aria-label="Khung vẽ kịch bản. Kéo nền để di chuyển, cuộn để thu phóng, Tab để chọn node, mũi tên để dời node.">
+        <div id="world"><svg id="wires" aria-hidden="true"><g id="wg"></g><path id="tmpWire" d="" /></svg><div id="nodes"></div><button id="edgeDel" type="button" hidden aria-label="Xóa đường nối đang chọn"><svg class="ic" style="width:14px;height:14px"><use href="#i-x"/></svg></button></div>
+      </div>
+      <aside class="tray" id="tray" aria-labelledby="trH">
+        <h2 id="trH">Khối hội thoại</h2>
+        <div class="tl" id="trayL"></div>
+        <p>Kéo khối vào khung, hoặc nhấn để thêm vào giữa màn hình. Kéo từ chấm tròn bên phải node để nối.</p>
+      </aside>
+      <div class="help"><span><kbd>Del</kbd> xóa</span><span><kbd>Ctrl D</kbd> nhân bản</span><span><kbd>0</kbd> vừa khung</span></div>
+      <div class="zbar" role="group" aria-label="Thu phóng">
+        <button class="ib" type="button" id="zOut" aria-label="Thu nhỏ"><svg class="ic"><use href="#i-minus"/></svg></button>
+        <output id="zLbl" aria-live="polite">100%</output>
+        <button class="ib" type="button" id="zIn" aria-label="Phóng to"><svg class="ic"><use href="#i-plus"/></svg></button>
+        <button class="ib" type="button" id="zFit" aria-label="Vừa khung"><svg class="ic"><use href="#i-fit"/></svg></button>
+      </div>
+      <canvas id="mini" width="176" height="112" aria-label="Bản đồ thu nhỏ — nhấn để nhảy tới vùng đó" role="img"></canvas>
+    </div>
+    <aside class="side" id="side" aria-label="Chat thử và thuộc tính node">
+      <div class="stabs" role="tablist" aria-label="Bảng bên">
+        <button type="button" role="tab" id="tabChat" aria-selected="true" aria-controls="paneChat"><svg class="ic"><use href="#i-chat"/></svg>Chat thử</button>
+        <button type="button" role="tab" id="tabIns" aria-selected="false" aria-controls="paneIns"><svg class="ic"><use href="#i-sliders"/></svg>Thuộc tính</button>
+        <button type="button" class="ib x" id="sideX" aria-label="Đóng bảng bên"><svg class="ic"><use href="#i-x"/></svg></button>
+      </div>
+      <div class="spane on" id="paneChat" role="tabpanel" aria-labelledby="tabChat">
+        <div class="chead"><span class="bav" id="chatAv">L</span><div><b id="chatName">Lan · chat thử</b><small id="chatSub">Theo bản nháp hiện tại</small></div>
+          <label class="tog"><input type="checkbox" id="follow" checked>Theo node</label>
+          <button class="ib" type="button" id="chatReset" aria-label="Bắt đầu phiên chat mới"><svg class="ic"><use href="#i-refresh"/></svg></button></div>
+        <div class="msgs" id="msgs" aria-live="polite"></div>
+        <div class="qr" id="qr" aria-label="Câu gợi ý"></div>
+        <form class="cform" id="cform" novalidate><label class="sr" for="cin">Tin nhắn thử</label><input class="inp" id="cin" autocomplete="off" placeholder="Nhắn thử như khách hàng…" maxlength="200"><button class="btn pri" type="submit" aria-label="Gửi tin nhắn thử"><svg class="ic"><use href="#i-send"/></svg></button></form>
+        <div class="cerr" id="cerr" role="alert"></div>
+      </div>
+      <div class="spane" id="paneIns" role="tabpanel" aria-labelledby="tabIns"><div class="ins" id="ins"></div></div>
+    </aside>
+  </div>
+  <nav class="bdock" aria-label="Công cụ kịch bản">
+    <button type="button" class="add" id="dAdd" aria-expanded="false" aria-controls="tray"><svg class="ic"><use href="#i-plus"/></svg>Thêm khối</button>
+    <button type="button" id="dIns"><svg class="ic"><use href="#i-sliders"/></svg>Thuộc tính</button>
+    <button type="button" id="dChat"><svg class="ic"><use href="#i-chat"/></svg>Chat thử</button>
+    <button type="button" id="dFit"><svg class="ic"><use href="#i-fit"/></svg>Vừa khung</button>
+  </nav>
+</section>
+
+<!-- ===== Hội thoại ===== -->
+<section class="view" id="v-hoi-thoai" aria-labelledby="hH">
+  <div class="page">
+    <div class="crumb">Mây Hồng <span aria-hidden="true">/</span> <b>Hội thoại</b></div>
+    <div class="ph"><div><h1 id="hH">Hội thoại</h1><p>Mọi cuộc trò chuyện Lan đã xử lý trong 3 ngày gần nhất trên Zalo, Messenger và web.</p></div><span class="chip" id="liveChip">Đang cập nhật trực tiếp</span></div>
+    <div class="sumbar" id="sumbar"></div>
+    <div class="filt">
+      <div class="sbox"><svg class="ic"><use href="#i-search"/></svg><label class="sr" for="q">Tìm hội thoại</label><input class="inp" id="q" placeholder="Tìm theo tên khách, mã, nội dung (không cần dấu)" autocomplete="off"></div>
+      <label class="sr" for="fCh">Lọc kênh</label><select class="inp" id="fCh"><option value="">Mọi kênh</option><option value="zalo">Zalo</option><option value="mess">Messenger</option><option value="web">Website</option></select>
+      <label class="sr" for="fSt">Lọc trạng thái</label><select class="inp" id="fSt"><option value="">Mọi trạng thái</option><option value="bot">Bot giải quyết</option><option value="nv">Chuyển nhân viên</option><option value="bo">Khách bỏ dở</option></select>
+      <label class="sr" for="fIt">Lọc ý định</label><select class="inp" id="fIt"></select>
+      <label class="sr" for="mSort">Sắp xếp</label><select class="inp msort" id="mSort"><option value="t:desc">Mới nhất</option><option value="t:asc">Cũ nhất</option><option value="conf:desc">Tin cậy cao</option><option value="conf:asc">Tin cậy thấp</option><option value="turns:desc">Nhiều lượt nhất</option></select>
+    </div>
+    <div class="bulk" id="bulk" role="region" aria-label="Thao tác hàng loạt"><b id="bulkN">0 đã chọn</b>
+      <button class="btn sm" type="button" data-bulk="seen"><svg class="ic"><use href="#i-eye"/></svg>Đánh dấu đã xem</button>
+      <button class="btn sm" type="button" data-bulk="nv"><svg class="ic"><use href="#i-user"/></svg>Chuyển nhân viên</button>
+      <button class="btn sm" type="button" data-bulk="del"><svg class="ic"><use href="#i-trash"/></svg>Xóa</button>
+      <button class="btn sm" type="button" data-bulk="clear">Bỏ chọn</button>
+    </div>
+    <div class="tbl-w">
+      <table id="tbl">
+        <thead><tr><th class="cb"><input type="checkbox" class="cbx" id="all" aria-label="Chọn tất cả trên trang"></th>
+          <th data-k="id" aria-sort="none"><button class="sb" type="button" data-k="id">Mã</button></th>
+          <th data-k="name" aria-sort="none"><button class="sb" type="button" data-k="name">Khách hàng</button></th>
+          <th data-k="ch" aria-sort="none"><button class="sb" type="button" data-k="ch">Kênh</button></th>
+          <th data-k="it" aria-sort="none"><button class="sb" type="button" data-k="it">Ý định</button></th>
+          <th data-k="conf" aria-sort="none"><button class="sb" type="button" data-k="conf">Tin cậy</button></th>
+          <th data-k="st" aria-sort="none"><button class="sb" type="button" data-k="st">Trạng thái</button></th>
+          <th data-k="turns" aria-sort="none"><button class="sb" type="button" data-k="turns">Lượt</button></th>
+          <th data-k="t" aria-sort="descending"><button class="sb" type="button" data-k="t">Thời gian</button></th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty-st" id="empty"><b>Không có hội thoại nào khớp</b>Thử bỏ dấu, đổi từ khóa hoặc <button class="btn sm" type="button" id="clearF" style="margin-left:6px">Xóa bộ lọc</button></div>
+      <div class="pager" id="pager"></div>
+    </div>
+    <p class="foot">Trợ Lý Lan · Tiệm bánh Mây Hồng. Thiết kế concept — thương hiệu giả định.</p>
+  </div>
+</section>
+
+<!-- ===== Ý định & thống kê ===== -->
+<section class="view" id="v-y-dinh" aria-labelledby="yH">
+  <div class="page">
+    <div class="crumb">Mây Hồng <span aria-hidden="true">/</span> <b>Ý định &amp; thống kê</b></div>
+    <div class="ph"><div><h1 id="yH">Ý định &amp; thống kê</h1><p class="hello" id="hello"></p></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><div class="seg" id="rng" role="group" aria-label="Khoảng thời gian"><button type="button" data-r="7" aria-pressed="false">7 ngày</button><button type="button" data-r="30" aria-pressed="true">30 ngày</button><button type="button" data-r="90" aria-pressed="false">90 ngày</button></div>
+      <button class="btn pri" type="button" id="addInt"><svg class="ic"><use href="#i-plus"/></svg>Thêm ý định</button></div></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="bento">
+      <section class="card c8" aria-labelledby="aH">
+        <div class="chd"><div><h2 id="aH">Hội thoại mỗi ngày</h2><p>Chồng theo kết quả, đến hết hôm qua — số hôm nay nằm ở ô Hội thoại phía trên.</p></div>
+          <div class="lg"><span><i style="background:var(--v)"></i>Bot giải quyết</span><span><i style="background:var(--p)"></i>Chuyển nhân viên</span><span><i style="background:var(--warn)"></i>Bỏ dở</span></div></div>
+        <div class="chartw" id="areaW"><svg id="area" role="img" aria-label="Biểu đồ vùng số hội thoại theo ngày"></svg><div class="tip" id="aTip"></div></div>
+      </section>
+      <section class="card c4" aria-labelledby="dH">
+        <div class="chd"><div><h2 id="dH">Tỉ lệ tự giải quyết</h2><p id="dSub">30 ngày gần nhất</p></div></div>
+        <div class="donut"><svg viewBox="0 0 190 190" aria-hidden="true"><circle cx="95" cy="95" r="76" stroke="var(--line)"/><circle id="dg0" cx="95" cy="95" r="76" stroke="var(--v)"/><circle id="dg1" cx="95" cy="95" r="76" stroke="var(--p)"/><circle id="dg2" cx="95" cy="95" r="76" stroke="var(--warn)"/></svg><div class="mid"><b class="gt num" id="dPct">0%</b><small>Lan tự xử lý</small></div></div>
+        <ul class="dl" id="dLeg"></ul>
+      </section>
+      <section class="card c7" aria-labelledby="iH">
+        <div class="chd"><div><h2 id="iH">Phân bố ý định</h2><p>Nhấn một ý định để xem các hội thoại tương ứng.</p></div></div>
+        <ul class="bars" id="bars"></ul>
+      </section>
+      <section class="card c5" aria-labelledby="uH">
+        <div class="chd"><div><h2 id="uH">Câu Lan chưa hiểu</h2><p>Gán vào ý định để Lan học thêm câu mẫu.</p></div><span class="chip warn" id="unmN">0</span></div>
+        <ul class="unm" id="unm"></ul>
+      </section>
+      <section class="card c12" aria-labelledby="icH">
+        <div class="chd"><div><h2 id="icH">Thư viện ý định</h2><p>Mỗi ý định là một nhánh của node “Nhận diện ý định” trong kịch bản.</p></div></div>
+        <div class="icards" id="icards"></div>
+      </section>
+    </div>
+    <p class="foot">Trợ Lý Lan · Tiệm bánh Mây Hồng. Thiết kế concept — thương hiệu giả định.</p>
+  </div>
+</section>
+
+<!-- ===== Cài đặt ===== -->
+<section class="view" id="v-cai-dat" aria-labelledby="sH">
+  <div class="page">
+    <div class="crumb">Mây Hồng <span aria-hidden="true">/</span> <b>Cài đặt trợ lý</b></div>
+    <div class="ph"><div><h1 id="sH">Cài đặt trợ lý</h1><p>Tính cách, giờ hỗ trợ và ngưỡng chuyển cho nhân viên.</p></div></div>
+    <div class="sgrid">
+      <form id="sform" novalidate>
+        <section class="card sec" aria-labelledby="s1"><h2 id="s1">Tính cách</h2><p>Khách sẽ thấy tên và lời chào này khi mở khung chat.</p>
+          <div class="row2"><div class="fld"><label for="sName">Tên trợ lý</label><input class="inp" id="sName" maxlength="24"><span class="err" id="eName"></span></div>
+          <div class="fld"><label for="sHot">Hotline chuyển máy</label><input class="inp" id="sHot" inputmode="tel"><span class="err" id="eHot"></span></div></div>
+          <div class="fld"><label for="sGreet">Lời chào trên website <span class="hint" id="gCnt"></span></label><textarea class="inp" id="sGreet" maxlength="200"></textarea><span class="err" id="eGreet"></span></div>
+          <div class="fld" role="radiogroup" aria-labelledby="toneL"><span class="lbl" id="toneL">Giọng điệu</span>
+            <div class="rad"><label><input type="radio" name="tone" value="than"><b>Thân thiện</b><small>Gần gũi, có “nha”, “ạ”</small></label><label><input type="radio" name="tone" value="lich"><b>Lịch sự</b><small>Trang trọng, rõ ràng</small></label><label><input type="radio" name="tone" value="gon"><b>Ngắn gọn</b><small>Trả lời thẳng ý</small></label></div></div>
+        </section>
+        <section class="card sec" aria-labelledby="s2"><h2 id="s2">Chuyển cho nhân viên</h2><p>Ngoài giờ hỗ trợ, Lan ghi nhận yêu cầu và hẹn nhắn lại.</p>
+          <div class="row2"><div class="fld"><label for="sFrom">Giờ bắt đầu (HH:MM)</label><input class="inp mono" id="sFrom" inputmode="numeric" maxlength="5"><span class="err" id="eFrom"></span></div>
+          <div class="fld"><label for="sTo">Giờ kết thúc (HH:MM)</label><input class="inp mono" id="sTo" inputmode="numeric" maxlength="5"><span class="err" id="eTo"></span></div></div>
+          <div class="fld"><label for="sThr">Ngưỡng tin cậy tối thiểu</label><div class="rng"><input type="range" id="sThr" min="40" max="95" step="1"><output id="thrO" for="sThr">60%</output></div><span class="hint">Câu có độ tin cậy thấp hơn ngưỡng sẽ đi vào nhánh “Không hiểu”.</span></div>
+          <div class="fld"><label for="sMail">Email nhận báo cáo tuần</label><input class="inp" id="sMail" inputmode="email"><span class="err" id="eMail"></span></div>
+        </section>
+        <section class="card sec" aria-labelledby="s3"><h2 id="s3">Kênh kết nối</h2><p>Tắt một kênh thì Lan ngừng trả lời ở kênh đó.</p>
+          <div class="chks"><label><input type="checkbox" class="cbx" name="chn" value="zalo">Zalo OA<small>Mây Hồng Bakery</small></label><label><input type="checkbox" class="cbx" name="chn" value="mess">Messenger<small>fb/mayhongbakery</small></label><label><input type="checkbox" class="cbx" name="chn" value="web">Khung chat website<small>mayhong.vn</small></label></div>
+          <span class="err" id="eChn"></span>
+        </section>
+        <div class="sbar"><span id="dirty">Chưa có thay đổi</span><button class="btn" type="button" id="sCancel">Hủy thay đổi</button><button class="btn pri" type="submit">Lưu cài đặt</button></div>
+      </form>
+      <aside class="prev" aria-labelledby="pvH">
+        <h2 id="pvH" class="lbl" style="margin:0 0 8px;font-size:12.5px">Xem trước khung chat</h2>
+        <div class="wdg"><header><span class="bav" id="pvAv">L</span><div><b id="pvName">Lan</b><small id="pvSt">Đang trực</small></div></header>
+          <div class="wb"><div class="bub bot" id="pvGreet"></div><div class="bub bot" id="pvTone"></div><div class="bub me">Mấy giờ tiệm đóng cửa ạ?</div></div>
+          <footer id="pvFoot"></footer></div>
+      </aside>
+    </div>
+    <p class="foot">Trợ Lý Lan · Tiệm bánh Mây Hồng. Thiết kế concept — thương hiệu giả định.</p>
+  </div>
+</section>
+</main>
+
+<aside class="drw" id="convD" role="dialog" aria-modal="true" aria-labelledby="cdH"></aside>
+
+<div class="modal" id="pubM" role="dialog" aria-modal="true" aria-labelledby="pubH"><div class="mc">
+  <header><h2 id="pubH">Xuất bản kịch bản</h2><p id="pubP"></p></header>
+  <div class="mb" id="pubB"></div>
+  <div class="mf"><button class="btn" type="button" data-close>Để sau</button><button class="btn pri" type="button" id="pubGo">Xuất bản</button></div>
+</div></div>
+
+<div class="modal" id="intM" role="dialog" aria-modal="true" aria-labelledby="intH"><form class="mc" id="intF" novalidate>
+  <header><h2 id="intH">Thêm ý định</h2><p>Ý định mới sẽ xuất hiện thành một nhánh trên node “Nhận diện ý định”.</p></header>
+  <div class="mb">
+    <div class="fld"><label for="iName">Tên ý định</label><input class="inp" id="iName" maxlength="30" placeholder="VD: Hỏi khuyến mãi"><span class="err" id="eIName"></span></div>
+    <div class="fld" role="radiogroup" aria-labelledby="iColL"><span class="lbl" id="iColL">Màu nhánh</span><div class="sw" id="iCol"></div></div>
+    <div class="fld"><label for="iPh">Câu mẫu (mỗi dòng một câu, tối thiểu 3)</label><textarea class="inp" id="iPh" rows="4" placeholder="Tháng này có khuyến mãi gì không&#10;Có mã giảm giá không shop&#10;Đang giảm giá bánh nào vậy"></textarea><span class="err" id="eIPh"></span></div>
+  </div>
+  <div class="mf"><button class="btn" type="button" data-close>Hủy</button><button class="btn pri" type="submit">Thêm ý định</button></div>
+</form></div>
+
+<div class="modal" id="pal" role="dialog" aria-modal="true" aria-label="Bảng lệnh"><div class="palc">
+  <div class="sbox"><svg class="ic"><use href="#i-search"/></svg><label class="sr" for="palI">Tìm lệnh, màn hình, hội thoại</label><input class="inp" id="palI" placeholder="Gõ lệnh, tên màn hình hoặc tên khách…" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="palL"></div>
+  <ul id="palL" role="listbox" aria-label="Kết quả"></ul>
+  <div class="palf"><span><kbd>↑</kbd> <kbd>↓</kbd> chọn</span><span><kbd>Enter</kbd> chạy</span><span><kbd>Esc</kbd> đóng</span></div>
+</div></div>
+
+<div id="toasts" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script>
+'use strict'
+const STATIC = /\bstatic\b/.test(location.search)
+const RM = () => document.documentElement.classList.contains('rm')
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim()
+const ic = (n, cls = '') => `<svg class="ic ${cls}"><use href="#i-${n}"/></svg>`
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+const pick = (r, a) => a[Math.floor(r() * a.length)]
+const NOW = new Date()
+const nf = (n) => Math.round(n).toLocaleString('vi-VN')
+const pad = (n) => String(n).padStart(2, '0')
+const hm = (d) => pad(d.getHours()) + ':' + pad(d.getMinutes())
+const dm = (d) => pad(d.getDate()) + '/' + pad(d.getMonth() + 1)
+const DOW = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+function ago(t) {
+  const m = Math.max(0, Math.round((Date.now() - t) / 60000))
+  if (m < 1) return 'vừa xong'
+  if (m < 60) return m + ' phút trước'
+  const d = new Date(t), today = new Date(); today.setHours(0, 0, 0, 0)
+  if (t >= today.getTime()) return Math.floor(m / 60) + ' giờ trước'
+  if (t >= today.getTime() - 864e5) return 'hôm qua ' + hm(d)
+  return dm(d) + ' ' + hm(d)
+}
+const gsapOk = () => window.gsap && !RM()
+
+/* ---------- toasts & layers ---------- */
+const layers = []
+function pushLayer(el, close) { popLayer(el); layers.push({ el, close }) }
+function popLayer(el) { const i = layers.findIndex((l) => l.el === el); if (i >= 0) layers.splice(i, 1) }
+function toast(msg, undo) {
+  const box = $('#toasts')
+  while (box.children.length >= 2) box.firstElementChild.remove()
+  const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status')
+  t.innerHTML = `<span>${esc(msg)}</span>`
+  if (undo) { const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Hoàn tác'; b.onclick = () => { t.remove(); undo(); toast('Đã hoàn tác') }; t.append(b) }
+  const x = document.createElement('button'); x.type = 'button'; x.className = 'tx'; x.setAttribute('aria-label', 'Đóng thông báo'); x.innerHTML = ic('x'); x.onclick = () => t.remove(); t.append(x)
+  box.append(t)
+  setTimeout(() => t.remove(), undo ? 7000 : 3500)
+}
+
+/* ---------- theme ---------- */
+function setTheme(th, save) {
+  document.documentElement.dataset.theme = th
+  $('#themeIc').setAttribute('href', th === 'dark' ? '#i-sun' : '#i-moon')
+  if (save) try { localStorage.setItem('trolylan-theme', th) } catch (e) {}
+  if (built) drawMini()
+  if (statsBuilt) drawArea()
+}
+const toggleTheme = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark', true)
+
+/* ---------- intents & settings (shared) ---------- */
+const INTENTS = [
+  { k: 'gia', name: 'Hỏi giá', c: '#a78bfa', kw: ['gia', 'bao nhieu', 'bang gia', 'bao nhieu tien', 'tien'], ph: ['Bánh kem 16cm giá bao nhiêu ạ?', 'Cho mình xin bảng giá', 'Tiramisu bao nhiêu tiền'] },
+  { k: 'dat', name: 'Đặt bánh', c: '#f472b6', kw: ['dat', 'dat banh', 'order', 'dat truoc', 'sinh nhat', 'muon mua', 'mua'], ph: ['Mình muốn đặt bánh sinh nhật', 'Đặt trước cho thứ bảy', 'Order bánh bông lan'] },
+  { k: 'gio', name: 'Giờ mở cửa', c: '#60a5fa', kw: ['gio', 'may gio', 'mo cua', 'dong cua', 'chu nhat'], ph: ['Tiệm mở cửa mấy giờ?', 'Chủ nhật có mở không', 'Mấy giờ đóng cửa'] },
+  { k: 'don', name: 'Theo dõi đơn', c: '#34d399', kw: ['don', 'ma don', 'tra', 'giao toi dau', 'chua giao', 'don hang', 'tra don'], ph: ['Tra giúp mình đơn MH1024', 'Đơn giao tới đâu rồi', 'Sao chưa giao đơn'] },
+  { k: 'ship', name: 'Phí giao hàng', c: '#fbbf24', kw: ['ship', 'phi', 'giao hang', 'van chuyen', 'tan noi', 'phi ship'], ph: ['Ship về Thủ Đức bao nhiêu?', 'Có giao tận nơi không', 'Phí vận chuyển nội thành'] },
+  { k: 'khieu', name: 'Khiếu nại', c: '#fb7185', kw: ['khieu nai', 'mop', 'tre', 'that vong', 'hong', 'gap nhan vien', 'nhan vien', 'buc minh'], ph: ['Bánh giao tới bị móp', 'Giao trễ 1 tiếng', 'Cho mình gặp nhân viên'] },
+]
+const ELSE = { k: 'else', name: 'Không hiểu', c: '#94a3b8' }
+const itById = (k) => INTENTS.find((i) => i.k === k) || ELSE
+const SET = { name: 'Lan', hot: '0909 246 135', greet: 'Chào bạn, mình là Lan của tiệm bánh Mây Hồng. Bạn cần hỏi giá, đặt bánh hay tra đơn ạ?', tone: 'than', from: '08:00', to: '21:00', thr: 60, mail: 'quynh.ha@mayhong.vn', chn: ['zalo', 'mess', 'web'] }
+const toMin = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m }
+function inHours(d = new Date()) { const m = d.getHours() * 60 + d.getMinutes(); return m >= toMin(SET.from) && m < toMin(SET.to) }
+
+function classify(text) {
+  const t = ' ' + norm(text) + ' '
+  const sc = INTENTS.map((it) => {
+    let s = 0
+    for (const k of it.kw) if (t.includes(' ' + k + ' ')) s++
+    if (it.k === 'don' && /mh ?\d{3,4}/.test(t)) s += 2
+    return { it, s }
+  }).sort((a, b) => b.s - a.s)
+  const [a, b] = sc
+  if (!a.s) return { it: ELSE, conf: 18 + (norm(text).length % 17) }
+  const conf = Math.min(97, 52 + 15 * Math.min(a.s, 3) + 6 * Math.min(a.s - b.s, 3))
+  return { it: a.it, conf }
+}
+
+/* ---------- graph ---------- */
+const TYPES = {
+  start: { name: 'Bắt đầu', ic: 'play', d: 'Khi khách nhắn tin' },
+  msg: { name: 'Tin nhắn', ic: 'msg', d: 'Bot gửi một câu' },
+  intent: { name: 'Nhận diện ý định', ic: 'spark', d: 'Rẽ nhánh theo ý định' },
+  ask: { name: 'Hỏi thông tin', ic: 'ask', d: 'Hỏi và lưu vào biến' },
+  lookup: { name: 'Tra cứu đơn', ic: 'search', d: 'Tìm đơn theo mã' },
+  handoff: { name: 'Chuyển nhân viên', ic: 'user', d: 'Giao cho người thật' },
+  end: { name: 'Kết thúc', ic: 'flag', d: 'Chào và đóng phiên' },
+}
+const G = { ver: 13, pubAt: Date.now() - 2 * 864e5 - 3 * 36e5, nodes: [
+  { id: 'n1', type: 'start', x: 40, y: 240, title: 'Khách nhắn tin' },
+  { id: 'n2', type: 'msg', x: 310, y: 222, title: 'Lời chào', text: 'Chào bạn, mình là Lan của tiệm bánh Mây Hồng. Bạn cần hỏi giá, đặt bánh hay tra đơn ạ?' },
+  { id: 'n3', type: 'intent', x: 590, y: 150, title: 'Khách cần gì?' },
+  { id: 'n4', type: 'msg', x: 910, y: -20, title: 'Báo giá', text: 'Bánh kem 16cm từ 280.000 ₫, 20cm từ 390.000 ₫. Mousse và tiramisu từ 320.000 ₫ nha.' },
+  { id: 'n5', type: 'ask', x: 910, y: 128, title: 'Hỏi ngày nhận', text: 'Bạn muốn nhận bánh ngày nào ạ? (VD: thứ bảy, 20/11)', var: 'ngay' },
+  { id: 'n6', type: 'msg', x: 1200, y: 60, title: 'Xác nhận đặt', text: 'Lan đã ghi nhận đơn nhận ngày {ngay}. Nhân viên sẽ gọi xác nhận trong 15 phút.' },
+  { id: 'n7', type: 'msg', x: 910, y: 272, title: 'Giờ mở cửa', text: 'Tiệm mở cửa 7:00–21:00 mỗi ngày, kể cả chủ nhật và ngày lễ.' },
+  { id: 'n8', type: 'ask', x: 910, y: 410, title: 'Hỏi mã đơn', text: 'Bạn cho Lan xin mã đơn nhé (VD: MH1024).', var: 'ma_don' },
+  { id: 'n9', type: 'lookup', x: 1200, y: 420, title: 'Tra đơn hàng', var: 'ma_don' },
+  { id: 'n11', type: 'msg', x: 1490, y: 330, title: 'Báo trạng thái', text: 'Đơn {ma_don}: {trang_thai}.' },
+  { id: 'n16', type: 'msg', x: 910, y: 560, title: 'Phí giao hàng', text: 'Nội thành dưới 5 km phí 20.000 ₫, đơn từ 500.000 ₫ được miễn phí giao.' },
+  { id: 'n13', type: 'handoff', x: 1490, y: 520, title: 'Gặp chăm sóc khách', team: 'CSKH ca ngày', text: 'Lan chuyển bạn sang nhân viên ngay nhé.' },
+  { id: 'n14', type: 'msg', x: 310, y: 520, title: 'Chưa hiểu', text: 'Xin lỗi, Lan chưa hiểu ý bạn. Bạn hỏi lại theo cách khác giúp Lan nhé?' },
+  { id: 'n10', type: 'end', x: 1490, y: 110, title: 'Chào tạm biệt', text: 'Cảm ơn bạn đã nhắn Mây Hồng. Chúc bạn một ngày ngọt ngào!' },
+  { id: 'n18', type: 'end', x: 1200, y: 250, title: 'Hết câu hỏi', text: 'Bạn cần gì thêm cứ nhắn Lan nhé!' },
+  { id: 'n17', type: 'msg', x: 1200, y: -110, title: 'Khuyến mãi tháng', text: 'Tháng này giảm 15% bánh mousse khi đặt trước 2 ngày.' },
+], edges: [
+  { f: 'n1', p: 'next', t: 'n2' }, { f: 'n2', p: 'next', t: 'n3' }, { f: 'n3', p: 'gia', t: 'n4' }, { f: 'n3', p: 'dat', t: 'n5' }, { f: 'n3', p: 'gio', t: 'n7' },
+  { f: 'n3', p: 'don', t: 'n8' }, { f: 'n3', p: 'ship', t: 'n16' }, { f: 'n3', p: 'khieu', t: 'n13' }, { f: 'n3', p: 'else', t: 'n14' }, { f: 'n14', p: 'next', t: 'n3' },
+  { f: 'n4', p: 'next', t: 'n18' }, { f: 'n5', p: 'next', t: 'n6' }, { f: 'n6', p: 'next', t: 'n10' }, { f: 'n7', p: 'next', t: 'n18' }, { f: 'n8', p: 'next', t: 'n9' },
+  { f: 'n9', p: 'ok', t: 'n11' }, { f: 'n9', p: 'no', t: 'n13' }, { f: 'n11', p: 'next', t: 'n10' }, { f: 'n16', p: 'next', t: 'n18' }, { f: 'n17', p: 'next', t: 'n10' },
+] }
+const ORDERS = (() => { const d = new Date(Date.now() + 2 * 36e5); return { MH1024: 'đang được giao, shipper Tuấn sẽ tới trong khoảng 15 phút', MH1031: 'bếp đang hoàn thiện bánh, dự kiến giao lúc ' + hm(d), MH0998: 'đã giao thành công hôm qua' } })()
+const byId = (id) => G.nodes.find((n) => n.id === id)
+const edgeOf = (id, p) => G.edges.find((e) => e.f === id && e.p === p)
+function outPorts(n) {
+  if (n.type === 'intent') return INTENTS.map((i) => ({ k: i.k, label: i.name, c: i.c })).concat([{ k: 'else', label: 'Không hiểu', c: ELSE.c }])
+  if (n.type === 'lookup') return [{ k: 'ok', label: 'Tìm thấy' }, { k: 'no', label: 'Không thấy' }]
+  if (n.type === 'handoff' || n.type === 'end') return []
+  return [{ k: 'next', label: 'Tiếp theo' }]
+}
+const snap = () => JSON.stringify({ nodes: G.nodes, edges: G.edges })
+function restore(s) { const o = JSON.parse(s); G.nodes = o.nodes; G.edges = o.edges; if (sel.n && !byId(sel.n)) sel.n = null; sel.e = null; renderGraph(); renderIns() }
+
+/* ---------- builder ---------- */
+let built = false
+const V = { x: 0, y: 0, z: 1 }
+const sel = { n: null, e: null }
+function nodeBody(n) {
+  const v = (s) => `<span class="var">{${esc(s)}}</span>`
+  switch (n.type) {
+    case 'start': return 'Khi khách gửi tin đầu tiên qua Zalo, Messenger hoặc web'
+    case 'intent': return `${INTENTS.length} ý định · ngưỡng ${SET.thr}%`
+    case 'ask': return esc(n.text) + ' → ' + v(n.var)
+    case 'lookup': return 'Tìm đơn theo mã trong ' + v(n.var)
+    case 'handoff': return 'Nhóm: ' + esc(n.team)
+    default: return esc(n.text || '').replace(/\{(\w+)\}/g, (m, k) => v(k))
+  }
+}
+function nodeHTML(n) {
+  const T = TYPES[n.type]
+  const ports = outPorts(n).map((p) => `<div class="po" data-port="${p.k}">${p.c ? `<i class="pd" style="background:${p.c}"></i>` : ''}<span>${esc(p.label)}</span><button type="button" class="pt pt-out${edgeOf(n.id, p.k) ? ' on' : ''}" data-port="${p.k}" aria-label="Kéo để nối đầu ra ${esc(p.label)} của ${esc(n.title)}" tabindex="-1"${p.c ? ` style="--c:${p.c}"` : ''}></button></div>`).join('')
+  return `<div class="nd t-${n.type}" id="nd-${n.id}" data-id="${n.id}" tabindex="0" role="group" aria-label="${esc(T.name)}: ${esc(n.title)}" style="left:${n.x}px;top:${n.y}px">
+    <span class="pt pin" aria-hidden="true"></span>
+    <div class="nd-h"><span class="nd-ic">${ic(T.ic)}</span><div class="nd-t"><small>${T.name}</small><b>${esc(n.title)}</b></div><span class="nd-id">#${n.id}</span></div>
+    <div class="nd-b">${nodeBody(n)}</div>${ports}</div>`
+}
+function renderGraph() {
+  $('#nodes').innerHTML = G.nodes.map(nodeHTML).join('')
+  applySel(); drawWires(); runCheck(); markSim(); drawMini()
+}
+function portPos(id, k) {
+  const n = byId(id), el = $('#nd-' + id)
+  if (!el) return [n.x, n.y]
+  if (k === 'in') return [n.x, n.y + 26]
+  const row = el.querySelector(`.po[data-port="${k}"]`)
+  return row ? [n.x + el.offsetWidth, n.y + row.offsetTop + row.offsetHeight / 2] : [n.x + el.offsetWidth, n.y + 26]
+}
+function bez(a, b) {
+  const dx = Math.max(70, Math.abs(b[0] - a[0]) / 2)
+  if (b[0] < a[0] + 30) { // back link: loop outward instead of cutting through nodes
+    const dy = Math.max(80, Math.abs(b[1] - a[1]) / 2)
+    return `M${a[0]},${a[1]} C${a[0] + 120},${a[1] + dy * .2} ${b[0] - 120},${b[1] - dy * .2} ${b[0]},${b[1]}`
+  }
+  return `M${a[0]},${a[1]} C${a[0] + dx},${a[1]} ${b[0] - dx},${b[1]} ${b[0]},${b[1]}`
+}
+function wireColor(e) {
+  const n = byId(e.f)
+  if (n.type === 'intent') return itById(e.p).c
+  return `var(--c-${n.type})`
+}
+function drawWires() {
+  $('#wg').innerHTML = G.edges.map((e, i) => {
+    const d = bez(portPos(e.f, e.p), portPos(e.t, 'in'))
+    const key = e.f + ':' + e.p
+    return `<g class="wire${sel.e === key ? ' sel' : ''}${SIM.hot.has(key) ? ' hot' : ''}${SIM.live === key ? ' live' : ''}" data-e="${key}" style="color:${wireColor(e)}"><path class="w" d="${d}"/><path class="wh" d="${d}"/></g>`
+  }).join('')
+  const del = $('#edgeDel')
+  if (sel.e) {
+    const [f, p] = sel.e.split(':'), e = edgeOf(f, p)
+    if (!e) { sel.e = null; del.hidden = true; return }
+    const a = portPos(e.f, e.p), b = portPos(e.t, 'in')
+    del.style.left = (a[0] + b[0]) / 2 + 'px'; del.style.top = (a[1] + b[1]) / 2 + 'px'; del.hidden = false
+  } else del.hidden = true
+}
+function applyView() {
+  $('#world').style.transform = `translate(${V.x}px,${V.y}px) scale(${V.z})`
+  $('#world').style.setProperty('--iz', 1 / V.z) // lets touch hit areas stay 40 screen px at any zoom
+  const cv = $('#cv'), s = 22 * V.z
+  cv.style.backgroundSize = `${s}px ${s}px`; cv.style.backgroundPosition = `${V.x}px ${V.y}px`
+  $('#zLbl').textContent = Math.round(V.z * 100) + '%'
+  drawMini()
+}
+function zoomAt(cx, cy, z) {
+  z = Math.min(1.6, Math.max(.26, z))
+  const r = $('#cv').getBoundingClientRect(), px = cx - r.left, py = cy - r.top
+  const wx = (px - V.x) / V.z, wy = (py - V.y) / V.z
+  V.z = z; V.x = px - wx * z; V.y = py - wy * z; applyView()
+}
+function bbox(nodes = G.nodes) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9
+  for (const n of nodes) { const el = $('#nd-' + n.id); const w = el ? el.offsetWidth : 224, h = el ? el.offsetHeight : 100; x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x + w); y1 = Math.max(y1, n.y + h) }
+  return { x0, y0, x1, y1 }
+}
+function cvInsets() {
+  const cv = $('#cv'), W = cv.clientWidth, H = cv.clientHeight
+  const tray = $('#tray'), trayOn = getComputedStyle(tray).position === 'absolute'
+  return { W, H, l: trayOn ? tray.offsetWidth + 30 : 14, b: $("#mini").offsetParent ? 140 : 64 }
+}
+function fit(anim, first) {
+  const b = bbox(), I = cvInsets()
+  const w = I.W - I.l - 24, h = I.H - 30 - I.b
+  let z = Math.min(1.05, w / (b.x1 - b.x0), h / (b.y1 - b.y0))
+  z = Math.max(first ? (I.W >= 1000 ? .76 : I.W >= 700 ? .66 : .56) : .26, z)
+  const to = { z, x: I.l + Math.max(0, (w - (b.x1 - b.x0) * z) / 2) - b.x0 * z, y: 20 + Math.max(0, (h - (b.y1 - b.y0) * z) / 2) - b.y0 * z }
+  if (anim && gsapOk()) gsap.to(V, { ...to, duration: .45, ease: 'power2.out', onUpdate: applyView })
+  else { Object.assign(V, to); applyView() }
+}
+function centerOn(id, anim) {
+  const n = byId(id), el = $('#nd-' + id); if (!n || !el) return
+  const I = cvInsets()
+  const to = { x: (I.l + (I.W - I.l) / 2) - (n.x + el.offsetWidth / 2) * V.z, y: I.H / 2 - (n.y + el.offsetHeight / 2) * V.z }
+  if (anim && gsapOk()) gsap.to(V, { ...to, duration: .45, ease: 'power2.out', onUpdate: applyView })
+  else { Object.assign(V, to); applyView() }
+}
+function nodeVisible(id) {
+  const el = $('#nd-' + id); if (!el) return true
+  const r = el.getBoundingClientRect(), c = $('#cv').getBoundingClientRect()
+  return r.left > c.left + 10 && r.right < c.right - 10 && r.top > c.top + 10 && r.bottom < c.bottom - 10
+}
+function drawMini() {
+  const c = $('#mini'); if (!c || !built || !c.offsetParent) return
+  const x = c.getContext('2d'), W = c.width, H = c.height, b = bbox(), I = cvInsets()
+  const vx0 = -V.x / V.z, vy0 = -V.y / V.z, vx1 = vx0 + I.W / V.z, vy1 = vy0 + I.H / V.z
+  const X0 = Math.min(b.x0, vx0) - 40, Y0 = Math.min(b.y0, vy0) - 40, X1 = Math.max(b.x1, vx1) + 40, Y1 = Math.max(b.y1, vy1) + 40
+  const s = Math.min(W / (X1 - X0), H / (Y1 - Y0)), ox = (W - (X1 - X0) * s) / 2, oy = (H - (Y1 - Y0) * s) / 2
+  c._m = { X0, Y0, s, ox, oy }
+  x.clearRect(0, 0, W, H)
+  const cs = getComputedStyle(document.documentElement)
+  for (const n of G.nodes) {
+    const el = $('#nd-' + n.id); x.fillStyle = cs.getPropertyValue('--c-' + n.type).trim() || '#a78bfa'; x.globalAlpha = .85
+    x.fillRect(ox + (n.x - X0) * s, oy + (n.y - Y0) * s, Math.max(3, (el ? el.offsetWidth : 224) * s), Math.max(3, (el ? el.offsetHeight : 90) * s))
+  }
+  x.globalAlpha = 1; x.strokeStyle = cs.getPropertyValue('--p').trim(); x.lineWidth = 1.5
+  x.strokeRect(ox + (vx0 - X0) * s, oy + (vy0 - Y0) * s, (vx1 - vx0) * s, (vy1 - vy0) * s)
+}
+function applySel() {
+  $$('.nd').forEach((el) => el.classList.toggle('sel', el.dataset.id === sel.n))
+  $('#dIns').classList.toggle('hi', !!sel.n)
+}
+function select(id, open) {
+  sel.n = id; sel.e = null; applySel(); drawWires(); renderIns()
+  if (open && id) openSide('ins')
+}
+function toWorld(cx, cy) { const r = $('#cv').getBoundingClientRect(); return [(cx - r.left - V.x) / V.z, (cy - r.top - V.y) / V.z] }
+const snapG = (v) => Math.round(v / 10) * 10
+function newId() { return 'n' + (Math.max(...G.nodes.map((n) => +n.id.slice(1))) + 1) }
+const DEF = {
+  msg: { title: 'Tin nhắn mới', text: 'Nhập nội dung Lan sẽ gửi cho khách.' },
+  ask: { title: 'Câu hỏi mới', text: 'Bạn cho Lan xin thông tin nhé?', var: 'thong_tin' },
+  intent: { title: 'Nhận diện ý định' },
+  lookup: { title: 'Tra cứu đơn', var: 'ma_don' },
+  handoff: { title: 'Chuyển nhân viên', team: 'CSKH ca ngày', text: 'Lan chuyển bạn sang nhân viên nhé.' },
+  end: { title: 'Kết thúc', text: 'Cảm ơn bạn đã nhắn tin!' },
+}
+function addNode(type, wx, wy) {
+  const s = snap()
+  if (wx == null) { const I = cvInsets(); [wx, wy] = [((I.l + (I.W - I.l) / 2) - V.x) / V.z - 112, (I.H / 2 - V.y) / V.z - 50] }
+  let x = snapG(wx), y = snapG(wy)
+  while (G.nodes.some((n) => Math.abs(n.x - x) < 30 && Math.abs(n.y - y) < 30)) { x += 30; y += 30 }
+  const n = { id: newId(), type, x, y, ...JSON.parse(JSON.stringify(DEF[type])) }
+  G.nodes.push(n); renderGraph(); select(n.id)
+  const el = $('#nd-' + n.id)
+  if (gsapOk()) gsap.from(el, { scale: .85, opacity: 0, duration: .3, ease: 'back.out(2)', clearProps: 'scale,opacity,transform' })
+  el.focus({ preventScroll: true })
+  toast(`Đã thêm khối “${TYPES[type].name}”`, () => restore(s))
+  closeTray()
+}
+function delNode(id) {
+  const n = byId(id); if (!n) return
+  if (n.type === 'start') { toast('Không thể xóa node Bắt đầu — kịch bản cần một điểm vào'); return }
+  const s = snap()
+  G.nodes = G.nodes.filter((x) => x.id !== id); G.edges = G.edges.filter((e) => e.f !== id && e.t !== id)
+  if (sel.n === id) sel.n = null
+  renderGraph(); renderIns(); $('#cv').focus({ preventScroll: true })
+  toast(`Đã xóa “${n.title}”`, () => restore(s))
+}
+function dupNode(id) {
+  const n = byId(id); if (!n || n.type === 'start') return
+  const s = snap(), c = JSON.parse(JSON.stringify(n)); c.id = newId(); c.x += 40; c.y += 40; c.title = n.title + ' (bản sao)'
+  G.nodes.push(c); renderGraph(); select(c.id); $('#nd-' + c.id).focus({ preventScroll: true })
+  toast('Đã nhân bản node', () => restore(s))
+}
+function connect(f, p, t, quiet) {
+  if (f === t || byId(t).type === 'start') { if (!quiet) toast('Không thể nối vào chính nó hoặc vào node Bắt đầu'); return false }
+  const s = snap(), old = edgeOf(f, p)
+  G.edges = G.edges.filter((e) => !(e.f === f && e.p === p)); G.edges.push({ f, p, t })
+  renderGraph(); renderIns()
+  if (!quiet) toast(old ? `Đã nối lại sang “${byId(t).title}”` : `Đã nối tới “${byId(t).title}”`, () => restore(s))
+  return true
+}
+function delEdge(key) {
+  const [f, p] = key.split(':'), s = snap()
+  G.edges = G.edges.filter((e) => !(e.f === f && e.p === p)); sel.e = null
+  renderGraph(); renderIns(); toast('Đã xóa đường nối', () => restore(s))
+}
+
+/* checks */
+let ISSUES = []
+function runCheck() {
+  const reach = new Set(), st = G.nodes.find((n) => n.type === 'start'), q = st ? [st.id] : []
+  while (q.length) { const id = q.shift(); if (reach.has(id)) continue; reach.add(id); G.edges.filter((e) => e.f === id).forEach((e) => q.push(e.t)) }
+  ISSUES = []
+  for (const n of G.nodes) {
+    for (const p of outPorts(n)) if (!edgeOf(n.id, p.k)) ISSUES.push({ lvl: 'bad', n: n.id, msg: `Đầu ra “${p.label}” chưa nối` })
+    if (!reach.has(n.id)) ISSUES.push({ lvl: 'warn', n: n.id, msg: 'Không có đường nào từ Bắt đầu tới node này' })
+    if ((n.type === 'msg' || n.type === 'ask') && !String(n.text || '').trim()) ISSUES.push({ lvl: 'bad', n: n.id, msg: 'Nội dung đang trống' })
+  }
+  const bad = ISSUES.filter((i) => i.lvl === 'bad').length, cnt = $('#chkN')
+  cnt.textContent = ISSUES.length; cnt.className = 'cnt' + (bad ? ' bad' : ISSUES.length ? '' : ' ok')
+  $('#chkBtn').setAttribute('aria-label', `Kiểm tra kịch bản: ${bad} lỗi, ${ISSUES.length - bad} cảnh báo`)
+  $$('.nd .iss').forEach((x) => x.remove())
+  const per = {}
+  ISSUES.forEach((i) => { per[i.n] = per[i.n] || { bad: 0, n: 0, msg: [] }; per[i.n].n++; if (i.lvl === 'bad') per[i.n].bad++; per[i.n].msg.push(i.msg) })
+  for (const [id, v] of Object.entries(per)) { const el = $('#nd-' + id); if (el) el.insertAdjacentHTML('beforeend', `<span class="iss${v.bad ? ' bad' : ''}" title="${esc(v.msg.join('; '))}">!</span>`) }
+  if ($('#chkPop').classList.contains('on')) renderChk()
+}
+function renderChk() {
+  const bad = ISSUES.filter((i) => i.lvl === 'bad').length
+  $('#chkH').textContent = ISSUES.length ? `${bad} lỗi · ${ISSUES.length - bad} cảnh báo` : 'Kịch bản không có lỗi'
+  $('#chkL').innerHTML = ISSUES.length ? ISSUES.map((i) => `<div class="issue"><i class="${i.lvl}"></i><div><b>${esc(byId(i.n).title)}</b><small>${esc(i.msg)}</small></div><button class="btn sm" type="button" data-goto="${i.n}">Đi tới</button></div>`).join('') : '<p style="margin:4px 8px 8px;color:var(--mute);font-size:13px">Mọi đầu ra đều đã nối và mọi node đều đi tới được từ Bắt đầu.</p>'
+}
+function openChk() {
+  const pop = $('#chkPop'), b = $('#chkBtn').getBoundingClientRect()
+  renderChk(); pop.classList.add('on'); $('#chkBtn').setAttribute('aria-expanded', 'true')
+  pop.style.position = 'fixed'; pop.style.top = b.bottom + 8 + 'px'; pop.style.left = Math.max(10, Math.min(innerWidth - pop.offsetWidth - 10, b.right - pop.offsetWidth)) + 'px'
+  pushLayer(pop, closeChk)
+}
+function closeChk() { $('#chkPop').classList.remove('on'); $('#chkBtn').setAttribute('aria-expanded', 'false'); popLayer($('#chkPop')) }
+
+/* inspector */
+function renderIns() {
+  const box = $('#ins'), n = sel.n && byId(sel.n)
+  if (!n) { box.innerHTML = `<div class="empty">${ic('sliders')}<p>Chọn một node trên khung để sửa nội dung và đường nối.</p><p class="hint">Mẹo: Tab để đi qua các node, Enter để mở thuộc tính.</p></div>`; return }
+  const T = TYPES[n.type], others = G.nodes.filter((x) => x.id !== n.id && x.type !== 'start')
+  const vars = [...new Set(G.nodes.filter((x) => x.type === 'ask').map((x) => x.var))]
+  let f = `<form id="insF" novalidate><h3><span class="nd-ic" style="--c:var(--c-${n.type})">${ic(T.ic)}</span>${T.name} <span class="chip mu mono">#${n.id}</span></h3>
+    <div class="fld"><label for="fTitle">Tên node</label><input class="inp" id="fTitle" maxlength="40" value="${esc(n.title)}"><span class="err" id="eTitle"></span></div>`
+  if (n.type === 'msg' || n.type === 'end' || n.type === 'handoff') f += `<div class="fld"><label for="fText">${n.type === 'msg' ? 'Nội dung tin nhắn' : 'Lời nhắn cho khách'}</label><textarea class="inp" id="fText" maxlength="300">${esc(n.text || '')}</textarea><span class="hint">Dùng biến: {ngay}, {ma_don}, {trang_thai}</span><span class="err" id="eText"></span></div>`
+  if (n.type === 'ask') f += `<div class="fld"><label for="fText">Câu hỏi</label><textarea class="inp" id="fText" maxlength="300">${esc(n.text)}</textarea><span class="err" id="eText"></span></div><div class="fld"><label for="fVar">Lưu câu trả lời vào biến</label><input class="inp mono" id="fVar" maxlength="20" value="${esc(n.var)}"><span class="hint">Chữ thường không dấu và dấu gạch dưới, VD: ma_don</span><span class="err" id="eVar"></span></div>`
+  if (n.type === 'lookup') f += `<div class="fld"><label for="fVar">Lấy mã đơn từ biến</label><select class="inp mono" id="fVar">${vars.map((v) => `<option${v === n.var ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></div>`
+  if (n.type === 'handoff') f += `<div class="fld"><label for="fTeam">Gửi tới nhóm</label><select class="inp" id="fTeam">${['CSKH ca ngày', 'Bếp & sản xuất', 'Quản lý cửa hàng'].map((v) => `<option${v === n.team ? ' selected' : ''}>${v}</option>`).join('')}</select></div>`
+  if (n.type === 'intent') f += `<p class="lbl" style="margin:0 0 8px">Nhánh theo ý định (ngưỡng ${SET.thr}%)</p><ul class="ilist">${INTENTS.map((i) => `<li><i style="background:${i.c}"></i>${esc(i.name)}<span>${i.kw.length} từ khóa</span></li>`).join('')}<li><i style="background:${ELSE.c}"></i>Không hiểu<span>dưới ngưỡng</span></li></ul><a class="btn sm" href="#y-dinh" style="margin-bottom:14px;text-decoration:none">${ic('chart')}Quản lý ý định</a>`
+  const ports = outPorts(n)
+  if (ports.length) f += `<p class="lbl" style="margin:4px 0 8px">Đường nối đầu ra</p><div class="conn">${ports.map((p) => { const e = edgeOf(n.id, p.k); return `<label for="cn-${p.k}">${p.c ? `<i style="background:${p.c}"></i>` : ''}${esc(p.label)}</label><select class="inp" id="cn-${p.k}" data-port="${p.k}"><option value="">— Chưa nối —</option>${others.map((o) => `<option value="${o.id}"${e && e.t === o.id ? ' selected' : ''}>${esc(o.title)} (#${o.id})</option>`).join('')}</select>` }).join('')}</div>`
+  f += `<div class="insf"><button class="btn pri" type="submit">Lưu node</button>${n.type !== 'start' ? `<button class="btn" type="button" id="insDup">${ic('copy')}Nhân bản</button><button class="btn dang" type="button" id="insDel">${ic('trash')}Xóa</button>` : ''}</div></form>`
+  box.innerHTML = f
+  $('#insF').onsubmit = (ev) => {
+    ev.preventDefault()
+    let ok = true; const setE = (id, m) => { const e = $('#' + id); if (e) e.textContent = m; if (m) ok = false }
+    const title = $('#fTitle').value.trim()
+    setE('eTitle', !title ? 'Nhập tên node' : title.length < 2 ? 'Tên node cần ít nhất 2 ký tự' : ''); $('#fTitle').classList.toggle('bad', !title || title.length < 2)
+    const tx = $('#fText')
+    if (tx) { const v = tx.value.trim(); setE('eText', !v && n.type !== 'end' ? 'Nội dung không được để trống' : v.length > 280 ? 'Tối đa 280 ký tự' : ''); tx.classList.toggle('bad', !!$('#eText').textContent) }
+    const fv = $('#fVar')
+    if (fv && n.type === 'ask') { const v = fv.value.trim(); setE('eVar', !/^[a-z][a-z0-9_]{1,19}$/.test(v) ? 'Tên biến chỉ gồm chữ thường không dấu, số và _, bắt đầu bằng chữ' : ''); fv.classList.toggle('bad', !!$('#eVar').textContent) }
+    if (!ok) { box.querySelector('.inp.bad')?.focus(); return }
+    const s = snap()
+    n.title = title; if (tx) n.text = tx.value.trim(); if (fv) n.var = fv.value.trim(); if ($('#fTeam')) n.team = $('#fTeam').value
+    $$('#insF select[data-port]').forEach((sl) => { const p = sl.dataset.port; G.edges = G.edges.filter((e) => !(e.f === n.id && e.p === p)); if (sl.value) G.edges.push({ f: n.id, p, t: sl.value }) })
+    renderGraph(); renderIns(); toast(`Đã lưu “${n.title}”`, () => restore(s))
+  }
+  $('#insDup') && ($('#insDup').onclick = () => dupNode(n.id))
+  $('#insDel') && ($('#insDel').onclick = () => delNode(n.id))
+}
+
+/* side panel / tray (overlay on small screens) */
+const isOverlay = () => innerWidth < 1100
+function setTab(w) {
+  $('#tabChat').setAttribute('aria-selected', w === 'chat'); $('#tabIns').setAttribute('aria-selected', w === 'ins')
+  $('#paneChat').classList.toggle('on', w === 'chat'); $('#paneIns').classList.toggle('on', w === 'ins')
+  if (w === 'chat') scrollMsgs()
+}
+function openSide(w) {
+  setTab(w)
+  if (!isOverlay()) return
+  const s = $('#side'); s.classList.add('on'); pushLayer(s, closeSide)
+  setTimeout(() => (w === 'chat' ? $('#cin') : s.querySelector('#fTitle, .stabs button[aria-selected=true]'))?.focus({ preventScroll: true }), 60)
+}
+function closeSide() { $('#side').classList.remove('on'); popLayer($('#side')) }
+function openTray() { const t = $('#tray'); t.classList.add('on'); $('#dAdd').setAttribute('aria-expanded', 'true'); pushLayer(t, closeTray); setTimeout(() => t.querySelector('.titem')?.focus(), 60) }
+function closeTray() { const t = $('#tray'); if (!t.classList.contains('on')) return; t.classList.remove('on'); $('#dAdd').setAttribute('aria-expanded', 'false'); popLayer(t) }
+
+function buildBuilder() {
+  if (built) return
+  built = true
+  $('#trayL').innerHTML = Object.entries(TYPES).filter(([k]) => k !== 'start').map(([k, T]) => `<button type="button" class="titem" data-type="${k}" style="--c:var(--c-${k})"><span class="nd-ic">${ic(T.ic)}</span><span><b>${T.name}</b><small>${T.d}</small></span></button>`).join('')
+  renderGraph(); renderIns()
+  fit(false, true)
+  const cv = $('#cv')
+  const ptrs = new Map(); let drag = null, pinch = null
+  cv.addEventListener('pointerdown', (e) => {
+    if (e.button > 0 || e.target.closest('#edgeDel')) return
+    ptrs.set(e.pointerId, [e.clientX, e.clientY])
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: V.z }; drag = null; return }
+    const pt = e.target.closest('.pt-out'), nd = e.target.closest('.nd'), wire = e.target.closest('.wire')
+    try { cv.setPointerCapture(e.pointerId) } catch (er) {}
+    if (pt) { const id = nd.dataset.id; drag = { k: 'wire', f: id, p: pt.dataset.port, a: portPos(id, pt.dataset.port) }; e.preventDefault(); return }
+    if (nd) { const n = byId(nd.dataset.id); drag = { k: 'node', id: n.id, sx: e.clientX, sy: e.clientY, ox: n.x, oy: n.y, moved: false }; return }
+    if (wire) { sel.e = wire.dataset.e; sel.n = null; applySel(); drawWires(); renderIns(); drag = null; return }
+    drag = { k: 'pan', sx: e.clientX, sy: e.clientY, px: V.x, py: V.y, moved: false }; cv.classList.add('pan')
+  })
+  cv.addEventListener('pointermove', (e) => {
+    if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, [e.clientX, e.clientY])
+    if (pinch && ptrs.size === 2) { const [a, b] = [...ptrs.values()]; zoomAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d); return }
+    if (!drag) return
+    if (drag.k === 'node') {
+      const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy
+      if (!drag.moved && Math.hypot(dx, dy) < 4) return
+      drag.moved = true
+      const n = byId(drag.id); n.x = snapG(drag.ox + dx / V.z); n.y = snapG(drag.oy + dy / V.z)
+      const el = $('#nd-' + n.id); el.style.left = n.x + 'px'; el.style.top = n.y + 'px'; drawWires()
+    } else if (drag.k === 'pan') {
+      const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy
+      if (!drag.moved && Math.hypot(dx, dy) < 4) return
+      drag.moved = true; V.x = drag.px + dx; V.y = drag.py + dy; applyView()
+    } else if (drag.k === 'wire') {
+      const w = toWorld(e.clientX, e.clientY); $('#tmpWire').setAttribute('d', bez(drag.a, w))
+      const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('.nd')
+      $$('.nd.drop').forEach((x) => x !== over && x.classList.remove('drop'))
+      if (over && over.dataset.id !== drag.f) over.classList.add('drop')
+    }
+  })
+  const up = (e) => {
+    ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null
+    cv.classList.remove('pan')
+    if (!drag) return
+    const d = drag; drag = null
+    if (d.k === 'wire') {
+      $('#tmpWire').setAttribute('d', ''); $$('.nd.drop').forEach((x) => x.classList.remove('drop'))
+      const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('.nd')
+      if (over && over.dataset.id !== d.f) connect(d.f, d.p, over.dataset.id)
+    } else if (d.k === 'node') {
+      if (d.moved) drawMini(); else { select(d.id, false); setTab('ins') }
+    } else if (d.k === 'pan' && !d.moved) { sel.n = null; sel.e = null; applySel(); drawWires(); renderIns() }
+  }
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up)
+  cv.addEventListener('dblclick', (e) => { const nd = e.target.closest('.nd'); if (nd) select(nd.dataset.id, true) })
+  cv.addEventListener('wheel', (e) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, V.z * Math.exp(-e.deltaY * .0015)) }, { passive: false })
+  cv.addEventListener('keydown', (e) => {
+    if (e.target.closest('input,textarea,select')) return
+    const nd = e.target.closest('.nd')
+    if (nd) {
+      const n = byId(nd.dataset.id), st = e.shiftKey ? 50 : 10
+      const mv = { ArrowLeft: [-st, 0], ArrowRight: [st, 0], ArrowUp: [0, -st], ArrowDown: [0, st] }[e.key]
+      if (mv) { e.preventDefault(); n.x += mv[0]; n.y += mv[1]; nd.style.left = n.x + 'px'; nd.style.top = n.y + 'px'; drawWires(); drawMini(); return }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(n.id, true); if (!isOverlay()) setTimeout(() => $('#fTitle')?.focus(), 30); return }
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); delNode(n.id); return }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') { e.preventDefault(); dupNode(n.id); return }
+    }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && sel.e) { e.preventDefault(); delEdge(sel.e); return }
+    if (e.key === '+' || e.key === '=') { const r = cv.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, V.z * 1.2) }
+    if (e.key === '-') { const r = cv.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, V.z / 1.2) }
+    if (e.key === '0') fit(true)
+  })
+  cv.addEventListener('focusin', (e) => { const nd = e.target.closest('.nd'); if (nd && nd.matches(':focus-visible') && !nodeVisible(nd.dataset.id)) centerOn(nd.dataset.id, true) })
+  $('#edgeDel').onclick = () => sel.e && delEdge(sel.e)
+  const zc = (f) => { const r = cv.getBoundingClientRect(); zoomAt(r.left + r.width / 2, r.top + r.height / 2, V.z * f) }
+  $('#zIn').onclick = () => zc(1.2); $('#zOut').onclick = () => zc(1 / 1.2); $('#zFit').onclick = () => fit(true); $('#dFit').onclick = () => fit(true)
+  $('#mini').onclick = (e) => {
+    const m = $('#mini')._m; if (!m) return
+    const r = $('#mini').getBoundingClientRect(), wx = m.X0 + (e.clientX - r.left - m.ox) / m.s, wy = m.Y0 + (e.clientY - r.top - m.oy) / m.s, I = cvInsets()
+    V.x = I.W / 2 - wx * V.z; V.y = I.H / 2 - wy * V.z; applyView()
+  }
+  // tray: click adds at centre, drag drops where released
+  let tdrag = null, skipClick = false
+  $('#trayL').addEventListener('pointerdown', (e) => { const b = e.target.closest('.titem'); if (!b || e.button > 0) return; tdrag = { type: b.dataset.type, sx: e.clientX, sy: e.clientY, g: null }; try { b.setPointerCapture(e.pointerId) } catch (er) {} })
+  $('#trayL').addEventListener('pointermove', (e) => {
+    if (!tdrag) return
+    if (!tdrag.g && Math.hypot(e.clientX - tdrag.sx, e.clientY - tdrag.sy) > 6) { tdrag.g = document.createElement('div'); tdrag.g.className = 'ghost-nd'; tdrag.g.textContent = TYPES[tdrag.type].name; document.body.append(tdrag.g) }
+    if (tdrag.g) { tdrag.g.style.left = e.clientX + 8 + 'px'; tdrag.g.style.top = e.clientY + 8 + 'px' }
+  })
+  const tup = (e) => {
+    if (!tdrag) return
+    const d = tdrag; tdrag = null
+    if (!d.g) return
+    d.g.remove(); skipClick = true; setTimeout(() => (skipClick = false), 50)
+    const over = document.elementFromPoint(e.clientX, e.clientY)
+    if (over && over.closest('#cv')) { const [wx, wy] = toWorld(e.clientX, e.clientY); addNode(d.type, wx - 20, wy - 20) }
+  }
+  $('#trayL').addEventListener('pointerup', tup); $('#trayL').addEventListener('pointercancel', tup)
+  $('#trayL').addEventListener('click', (e) => { const b = e.target.closest('.titem'); if (b && !skipClick) addNode(b.dataset.type) })
+  $('#chkBtn').onclick = () => ($('#chkPop').classList.contains('on') ? closeChk() : openChk())
+  $('#chkL').addEventListener('click', (e) => { const b = e.target.closest('[data-goto]'); if (!b) return; closeChk(); select(b.dataset.goto, false); centerOn(b.dataset.goto, true); $('#nd-' + b.dataset.goto)?.focus({ preventScroll: true }) })
+  $('#pubBtn').onclick = openPub
+  $('#tabChat').onclick = () => setTab('chat'); $('#tabIns').onclick = () => setTab('ins')
+  $('#sideX').onclick = closeSide
+  $('#dChat').onclick = () => openSide('chat'); $('#dIns').onclick = () => openSide('ins'); $('#dAdd').onclick = openTray
+  // chat
+  $('#qr').innerHTML = ['Bánh kem 20cm giá bao nhiêu?', 'Tra đơn MH1024', 'Mấy giờ tiệm mở cửa?', 'Bánh giao tới bị móp', 'Có bánh cho người ăn kiêng không?'].map((t) => `<button type="button">${esc(t)}</button>`).join('')
+  $('#qr').onclick = (e) => { const b = e.target.closest('button'); if (b) simUser(b.textContent) }
+  $('#cform').onsubmit = (e) => { e.preventDefault(); const v = $('#cin').value.trim(); if (!v) { $('#cerr').textContent = 'Nhập tin nhắn trước khi gửi'; $('#cin').classList.add('bad'); $('#cin').focus(); return } $('#cerr').textContent = ''; $('#cin').classList.remove('bad'); $('#cin').value = ''; simUser(v) }
+  $('#cin').oninput = () => { $('#cerr').textContent = ''; $('#cin').classList.remove('bad') }
+  $('#chatReset').onclick = () => { simReset(false); toast('Đã bắt đầu phiên chat mới') }
+  simReset(true).then(() => simUser('Bánh kem 20cm giá bao nhiêu vậy?', true))
+  // intro: nodes rise in, wires fade in
+  if (gsapOk()) {
+    gsap.from('.nd', { opacity: 0, y: 14, duration: .45, stagger: .035, ease: 'power2.out', clearProps: 'opacity,transform' })
+    gsap.from('#wg', { opacity: 0, duration: .5, delay: .45, clearProps: 'opacity' })
+    gsap.from(innerWidth >= 768 ? ['.tray', '.zbar', '#mini'] : ['.zbar'], { opacity: 0, y: 10, duration: .4, stagger: .06, delay: .1, clearProps: 'opacity,transform' })
+  }
+  updVer()
+}
+function updVer() { $('#verChip').textContent = `v${G.ver} · xuất bản ${ago(G.pubAt)}` }
+
+/* publish */
+function openPub() {
+  const bad = ISSUES.filter((i) => i.lvl === 'bad'), warn = ISSUES.length - bad.length
+  $('#pubP').textContent = `Phiên bản v${G.ver + 1} sẽ thay thế v${G.ver} trên cả 3 kênh ngay lập tức.`
+  $('#pubB').innerHTML = `<div class="pstat"><div><b>${G.nodes.length}</b><small>node</small></div><div><b>${G.edges.length}</b><small>đường nối</small></div><div><b>${INTENTS.length}</b><small>ý định</small></div></div>` +
+    (bad.length ? `<p class="chip bad" style="white-space:normal">Còn ${bad.length} lỗi — sửa trước khi xuất bản.</p><ul style="margin:10px 0 0;padding-left:18px;font-size:13px">${bad.slice(0, 5).map((i) => `<li>${esc(byId(i.n).title)}: ${esc(i.msg)}</li>`).join('')}</ul>` : warn ? `<p class="chip warn" style="white-space:normal">${warn} cảnh báo — vẫn xuất bản được.</p>` : '<p class="chip ok">Không có lỗi nào.</p>')
+  $('#pubGo').disabled = !!bad.length
+  openModal('#pubM')
+}
+$('#pubGo').onclick = () => {
+  const pv = G.ver, pa = G.pubAt
+  G.ver++; G.pubAt = Date.now(); updVer(); closeModal('#pubM')
+  toast(`Đã xuất bản v${G.ver} lên Zalo, Messenger và web`, () => { G.ver = pv; G.pubAt = pa; updVer() })
+}
+
+/* ---------- chat simulation ---------- */
+const SIM = { cur: null, wait: null, vars: {}, hot: new Set(), live: null, seen: new Set(), tok: 0, steps: 0, ended: false }
+const sleep = (ms, inst) => new Promise((r) => (inst || RM() ? r() : setTimeout(r, ms)))
+function scrollMsgs() { const m = $('#msgs'); m.scrollTop = m.scrollHeight }
+function addMsg(html, cls) { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; $('#msgs').append(d); scrollMsgs(); return d }
+const fillVars = (t) => String(t || '').replace(/\{(\w+)\}/g, (m, k) => SIM.vars[k] || '(chưa có)')
+function markSim() {
+  $$('.nd').forEach((el) => { el.classList.toggle('cur', el.dataset.id === SIM.cur); el.classList.toggle('seen', SIM.seen.has(el.dataset.id) && el.dataset.id !== SIM.cur) })
+}
+function visit(id, via) {
+  SIM.cur = id; SIM.seen.add(id)
+  if (via) { SIM.hot.add(via); SIM.live = via }
+  markSim(); drawWires()
+  if (built && $('#follow').checked && !SIM.inst && !nodeVisible(id)) centerOn(id, true)
+}
+function simReset(inst) {
+  SIM.tok++; SIM.cur = null; SIM.wait = null; SIM.vars = {}; SIM.hot = new Set(); SIM.live = null; SIM.seen = new Set(); SIM.steps = 0; SIM.ended = false
+  $('#msgs').innerHTML = ''
+  addMsg(`Phiên thử lúc ${hm(new Date())} · kịch bản bản nháp`, 'sys')
+  const st = G.nodes.find((n) => n.type === 'start')
+  if (!st) { addMsg('Kịch bản chưa có node Bắt đầu', 'sys warn'); return }
+  return run(st.id, null, inst)
+}
+async function run(id, via, inst) {
+  const tok = SIM.tok; SIM.inst = inst
+  while (id) {
+    if (tok !== SIM.tok) return
+    if (++SIM.steps > 40) { addMsg('Dừng thử: kịch bản lặp quá 40 bước', 'sys warn'); return }
+    const n = byId(id); if (!n) return
+    visit(id, via); via = null
+    const say = async (t) => { const ty = addMsg('<i></i><i></i><i></i>', 'typing'); await sleep(420, inst); ty.remove(); if (tok !== SIM.tok) return false; addMsg(esc(fillVars(t)), 'bub bot'); addMsg(`#${n.id} · ${esc(TYPES[n.type].name)}`, 'meta'); return true }
+    let port = 'next'
+    if (n.type === 'msg') { if (!(await say(n.text))) return }
+    else if (n.type === 'ask') { if (!SIM.vars[n.var]) { if (!(await say(n.text))) return; SIM.wait = n.id; SIM.inst = false; return } }
+    else if (n.type === 'intent') { SIM.wait = n.id; SIM.inst = false; return }
+    else if (n.type === 'lookup') {
+      const code = String(SIM.vars[n.var] || '').toUpperCase().replace(/\s/g, ''), hit = ORDERS[code]
+      if (hit) SIM.vars.trang_thai = hit
+      port = hit ? 'ok' : 'no'
+      addMsg(`#${n.id} · tra “${esc(code || 'trống')}” → ${hit ? 'tìm thấy' : 'không thấy'}`, 'meta')
+    } else if (n.type === 'handoff') {
+      if (!(await say(n.text))) return
+      const now = new Date(), open = inHours(now), early = now.getHours() * 60 + now.getMinutes() < toMin(SET.from)
+      addMsg(open ? `Đã chuyển cho nhóm ${esc(n.team)} · thời gian chờ khoảng 2 phút` : `Ngoài giờ hỗ trợ (${SET.from}–${SET.to}) · nhân viên sẽ nhắn lại lúc ${SET.from} ${early ? 'hôm nay' : 'sáng mai'}`, 'sys ' + (open ? 'ok' : 'warn'))
+      SIM.ended = true; SIM.live = null; drawWires(); return
+    } else if (n.type === 'end') {
+      if (n.text && !(await say(n.text))) return
+      addMsg('Phiên kết thúc — nhắn tiếp để bắt đầu phiên mới', 'sys ok'); SIM.ended = true; SIM.live = null; drawWires(); return
+    }
+    const e = edgeOf(n.id, port)
+    if (!e) { const p = outPorts(n).find((x) => x.k === port); addMsg(`Node “${esc(n.title)}” chưa nối đầu ra “${esc(p ? p.label : port)}”<button type="button" data-open="${n.id}">Mở node</button>`, 'sys warn'); SIM.ended = true; return }
+    via = n.id + ':' + port; id = e.t
+  }
+}
+async function simUser(text, inst) {
+  if (SIM.ended || !SIM.wait) {
+    if (SIM.ended) await simReset(true); else { $("#cerr").textContent = "Đợi Lan trả lời xong rồi nhắn tiếp nhé"; return }
+  }
+  addMsg(esc(text), 'bub me')
+  const n = byId(SIM.wait); SIM.wait = null
+  if (!n) return
+  if (n.type === 'intent') {
+    const r = classify(text)
+    const code = norm(text).match(/mh ?(\d{3,4})/); if (code) SIM.vars.ma_don = 'MH' + code[1]
+    const pass = r.it.k !== 'else' && r.conf >= SET.thr
+    addMsg(pass ? `ý định: ${esc(r.it.name)} · ${r.conf}%` : r.it.k === 'else' ? `không khớp ý định nào` : `${esc(r.it.name)} ${r.conf}% < ngưỡng ${SET.thr}%`, 'meta me')
+    if (!pass) addUnmatched(text)
+    const port = pass ? r.it.k : 'else', e = edgeOf(n.id, port)
+    if (!e) { addMsg(`Nhánh “${esc(itById(port).name)}” chưa nối tới node nào<button type="button" data-open="${n.id}">Mở node</button>`, 'sys warn'); SIM.ended = true; return }
+    run(e.t, n.id + ':' + port, inst)
+  } else if (n.type === 'ask') {
+    let v = text.trim(); const m = norm(v).match(/mh ?(\d{3,4})/); if (n.var === 'ma_don' && m) v = 'MH' + m[1]
+    SIM.vars[n.var] = v
+    addMsg(`lưu {${esc(n.var)}} = “${esc(v)}”`, 'meta me')
+    const e = edgeOf(n.id, 'next')
+    if (!e) { addMsg(`Node “${esc(n.title)}” chưa nối đầu ra<button type="button" data-open="${n.id}">Mở node</button>`, 'sys warn'); SIM.ended = true; return }
+    run(e.t, n.id + ':next', inst)
+  }
+}
+$('#msgs').addEventListener('click', (e) => { const b = e.target.closest('[data-open]'); if (b) { select(b.dataset.open, true); centerOn(b.dataset.open, true) } })
+
+/* ---------- conversations ---------- */
+const FN = ['An', 'Châu', 'Dung', 'Giang', 'Hà', 'Hạnh', 'Lan Anh', 'Linh', 'Mai', 'My', 'Ngân', 'Nhi', 'Quyên', 'Tâm', 'Thảo', 'Trang', 'Uyên', 'Vy', 'Yến', 'Thư']
+const FM = ['Thị', 'Ngọc', 'Thu', 'Khánh', 'Bảo', 'Thanh', 'Minh']
+const MN = ['Bình', 'Hiếu', 'Hòa', 'Huy', 'Khoa', 'Nam', 'Phúc', 'Quân', 'Sơn', 'Trí', 'Tú', 'Long', 'Duy', 'Khang']
+const MM = ['Văn', 'Minh', 'Quốc', 'Hoàng', 'Gia', 'Hải', 'Đức']
+const SUR = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Huỳnh', 'Phan', 'Vũ', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Hồ', 'Ngô', 'Dương', 'Lý']
+const FIRST = {
+  gia: ['Bánh kem 16cm giá bao nhiêu ạ?', 'Cho mình xin bảng giá bánh sinh nhật', 'Bánh tiramisu bao nhiêu tiền vậy shop?'],
+  dat: ['Mình muốn đặt bánh sinh nhật cho bé', 'Đặt trước 2 cái bánh kem cho thứ bảy được không?', 'Order bánh bông lan trứng muối'],
+  gio: ['Tiệm mở cửa mấy giờ vậy?', 'Chủ nhật tiệm có mở cửa không?', 'Mấy giờ tiệm đóng cửa ạ?'],
+  don: ['Tra giúp mình đơn MH1024', 'Đơn của mình giao tới đâu rồi?', 'Mã đơn MH1031 sao chưa giao?'],
+  ship: ['Ship về Thủ Đức phí bao nhiêu?', 'Có giao hàng tận nơi không shop?', 'Phí vận chuyển nội thành thế nào?'],
+  khieu: ['Bánh giao tới bị móp hết rồi', 'Giao trễ 1 tiếng, mình rất thất vọng', 'Cho mình gặp nhân viên'],
+  else: ['Bánh có ít ngọt không ạ', 'Shop có xuất hóa đơn VAT không', 'Viết chữ lên bánh được không'],
+}
+const CH = { zalo: { n: 'Zalo', c: '#0068ff', l: 'Z' }, mess: { n: 'Messenger', c: '#a334fa', l: 'M' }, web: { n: 'Website', c: '#db2777', l: 'W' } }
+const ST = { bot: { n: 'Bot giải quyết', c: 'ok' }, nv: { n: 'Chuyển nhân viên', c: '' }, bo: { n: 'Khách bỏ dở', c: 'warn' } }
+let convSeq = 4820
+function mkConv(r, t) {
+  const f = r() < .68, name = pick(r, SUR) + ' ' + (f ? pick(r, FM) + ' ' + pick(r, FN) : pick(r, MM) + ' ' + pick(r, MN))
+  const iw = [['gia', .24], ['dat', .19], ['gio', .11], ['don', .2], ['ship', .12], ['khieu', .07], ['else', .07]]
+  let x = r(), it = 'gia'; for (const [k, w] of iw) { if ((x -= w) <= 0) { it = k; break } }
+  const conf = it === 'else' ? 22 + Math.floor(r() * 30) : 58 + Math.floor(r() * 40)
+  const st = it === 'khieu' ? (r() < .85 ? 'nv' : 'bo') : it === 'else' ? (r() < .5 ? 'nv' : 'bo') : (r() < .84 ? 'bot' : r() < .5 ? 'nv' : 'bo')
+  return { id: 'HT-' + (convSeq++), name, ch: pick(r, ['zalo', 'zalo', 'mess', 'mess', 'web']), it, conf, st, turns: 2 + Math.floor(r() * 11), t, seen: r() < .7, first: pick(r, FIRST[it]) }
+}
+let CONVS = (() => { const r = rng(7601), a = []; let t = Date.now() - 2 * 60000; for (let i = 0; i < 140; i++) { a.push(mkConv(r, t)); t -= (6 + r() * 38) * 60000 } return a.reverse().map((c, i) => ({ ...c, id: 'HT-' + (4820 + i) })).reverse() })()
+convSeq = 4960
+const TQ = { q: '', ch: '', st: '', it: '', sort: 't', dir: 'desc', page: 1, sel: new Set() }
+const PS = 12
+function convFiltered() {
+  const q = norm(TQ.q)
+  let a = CONVS.filter((c) => (!TQ.ch || c.ch === TQ.ch) && (!TQ.st || c.st === TQ.st) && (!TQ.it || c.it === TQ.it) && (!q || norm(c.name + ' ' + c.id + ' ' + c.first + ' ' + itById(c.it).name).includes(q)))
+  const k = TQ.sort, m = TQ.dir === 'asc' ? 1 : -1
+  const val = (c) => k === 'it' ? itById(c.it).name : k === 'ch' ? CH[c.ch].n : k === 'st' ? ST[c.st].n : c[k]
+  a.sort((x, y) => { const A = val(x), B = val(y); return (typeof A === 'number' ? A - B : String(A).localeCompare(String(B), 'vi')) * m })
+  return a
+}
+const initials = (n) => { const p = n.split(' '); return (p[0][0] + p[p.length - 1][0]).toUpperCase() }
+function renderSum() {
+  const tot = CONVS.length, un = CONVS.filter((c) => !c.seen).length, nv = CONVS.filter((c) => c.st === 'nv').length, bot = CONVS.filter((c) => c.st === 'bot').length
+  $('#sumbar').innerHTML = `<div><small>Tổng hội thoại</small><b class="num">${nf(tot)}</b></div><div><small>Bot giải quyết</small><b class="num">${nf(bot)}</b></div><div><small>Chuyển nhân viên</small><b class="num">${nf(nv)}</b></div><div><small>Chưa xem</small><b class="num gt">${nf(un)}</b></div>`
+  $$('[data-tabn="hoi-thoai"]').forEach((x) => (x.textContent = un))
+}
+function renderTable() {
+  const all = convFiltered(), pages = Math.max(1, Math.ceil(all.length / PS))
+  TQ.page = Math.min(TQ.page, pages)
+  const rows = all.slice((TQ.page - 1) * PS, TQ.page * PS)
+  $('#tbody').innerHTML = rows.map((c) => {
+    const I = itById(c.it), C = CH[c.ch], S = ST[c.st], ck = TQ.sel.has(c.id)
+    return `<tr data-id="${c.id}" class="${ck ? 'chk' : ''}"><td class="cb"><input type="checkbox" class="cbx" data-pk="${c.id}" ${ck ? 'checked' : ''} aria-label="Chọn ${esc(c.name)}"></td>
+      <td class="mono" data-l="Mã" style="font-size:12.5px">${c.id}</td>
+      <td class="c-who"><div class="who"><span class="av">${initials(c.name)}</span><div><b class="${c.seen ? '' : 'unseen'}">${esc(c.name)}</b><small>${esc(c.first.length > 38 ? c.first.slice(0, c.first.lastIndexOf(' ', 36)) + '…' : c.first)}</small></div></div></td>
+      <td data-l="Kênh"><span class="ch"><i style="background:${C.c}">${C.l}</i>${C.n}</span></td>
+      <td data-l="Ý định"><span class="idot"><i style="background:${I.c}"></i>${esc(I.name)}</span></td>
+      <td data-l="Tin cậy"><span class="cf${c.conf < SET.thr ? ' lo' : ''}"><span><i style="width:${c.conf}%"></i></span>${c.conf}%</span></td>
+      <td data-l="Trạng thái"><span class="chip ${S.c}">${S.n}</span></td>
+      <td data-l="Lượt" class="mono">${c.turns}</td>
+      <td data-l="Thời gian" data-ago="${c.t}">${ago(c.t)}</td></tr>`
+  }).join('')
+  $('#empty').classList.toggle('on', !all.length)
+  const from = all.length ? (TQ.page - 1) * PS + 1 : 0, to = Math.min(all.length, TQ.page * PS)
+  let pb = ''
+  const span = [...new Set([1, TQ.page - 1, TQ.page, TQ.page + 1, pages])].filter((p) => p >= 1 && p <= pages).sort((a, b) => a - b)
+  span.forEach((p, i) => { if (i && p - span[i - 1] > 1) pb += '<span aria-hidden="true" style="color:var(--mute)">…</span>'; pb += `<button type="button" data-pg="${p}" ${p === TQ.page ? 'aria-current="page"' : ''} aria-label="Trang ${p}">${p}</button>` })
+  $('#pager').innerHTML = `<span class="info">${from}–${to} / ${all.length} hội thoại</span><button type="button" data-pg="${TQ.page - 1}" ${TQ.page <= 1 ? 'disabled' : ''} aria-label="Trang trước">‹</button>${pb}<button type="button" data-pg="${TQ.page + 1}" ${TQ.page >= pages ? 'disabled' : ''} aria-label="Trang sau">›</button>`
+  $('#pager').style.display = all.length ? '' : 'none'
+  $$('#tbl th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === TQ.sort ? (TQ.dir === 'asc' ? 'ascending' : 'descending') : 'none'))
+  const ids = rows.map((r) => r.id), n = ids.filter((i) => TQ.sel.has(i)).length
+  $('#all').checked = !!ids.length && n === ids.length; $('#all').indeterminate = n > 0 && n < ids.length
+  $('#bulk').classList.toggle('on', TQ.sel.size > 0); $('#bulkN').textContent = `${TQ.sel.size} đã chọn`
+  renderSum()
+}
+function initTable() {
+  $('#fIt').innerHTML = '<option value="">Mọi ý định</option>' + INTENTS.concat([ELSE]).map((i) => `<option value="${i.k}">${esc(i.name)}</option>`).join('')
+  $('#fIt').value = TQ.it
+  let qt; $('#q').oninput = () => { clearTimeout(qt); qt = setTimeout(() => { TQ.q = $('#q').value; TQ.page = 1; renderTable() }, 120) }
+  $('#fCh').onchange = () => { TQ.ch = $('#fCh').value; TQ.page = 1; renderTable() }
+  $('#fSt').onchange = () => { TQ.st = $('#fSt').value; TQ.page = 1; renderTable() }
+  $('#fIt').onchange = () => { TQ.it = $('#fIt').value; TQ.page = 1; renderTable() }
+  $('#mSort').onchange = () => { const [k, d] = $('#mSort').value.split(':'); TQ.sort = k; TQ.dir = d; renderTable() }
+  $('#clearF').onclick = () => { Object.assign(TQ, { q: '', ch: '', st: '', it: '', page: 1 }); $('#q').value = ''; $('#fCh').value = ''; $('#fSt').value = ''; $('#fIt').value = ''; renderTable() }
+  $('#tbl thead').addEventListener('click', (e) => { const b = e.target.closest('.sb'); if (!b) return; const k = b.dataset.k; if (TQ.sort === k) TQ.dir = TQ.dir === 'asc' ? 'desc' : 'asc'; else { TQ.sort = k; TQ.dir = k === 'name' || k === 'id' || k === 'ch' || k === 'it' || k === 'st' ? 'asc' : 'desc' } renderTable() })
+  $('#all').onchange = () => { const ids = $$('#tbody tr').map((r) => r.dataset.id); ids.forEach((i) => ($('#all').checked ? TQ.sel.add(i) : TQ.sel.delete(i))); renderTable() }
+  $('#tbody').addEventListener('click', (e) => {
+    const cb = e.target.closest('[data-pk]'); if (cb) { cb.checked ? TQ.sel.add(cb.dataset.pk) : TQ.sel.delete(cb.dataset.pk); renderTable(); return }
+    if (e.target.closest('td.cb')) return
+    const tr = e.target.closest('tr'); if (tr) openConv(tr.dataset.id)
+  })
+  $('#pager').addEventListener('click', (e) => { const b = e.target.closest('[data-pg]'); if (b && !b.disabled) { TQ.page = +b.dataset.pg; renderTable() } })
+  $('#bulk').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-bulk]'); if (!b) return
+    const act = b.dataset.bulk, ids = [...TQ.sel], before = JSON.stringify(CONVS)
+    const back = () => { CONVS = JSON.parse(before); renderTable() }
+    if (act === 'clear') { TQ.sel.clear(); renderTable(); return }
+    if (act === 'seen') { CONVS.forEach((c) => ids.includes(c.id) && (c.seen = true)); toast(`Đã đánh dấu ${ids.length} hội thoại là đã xem`, back) }
+    if (act === 'nv') { CONVS.forEach((c) => ids.includes(c.id) && (c.st = 'nv')); toast(`Đã chuyển ${ids.length} hội thoại cho nhân viên`, back) }
+    if (act === 'del') { CONVS = CONVS.filter((c) => !ids.includes(c.id)); toast(`Đã xóa ${ids.length} hội thoại`, back) }
+    TQ.sel.clear(); renderTable()
+  })
+}
+function transcript(c) {
+  const R = rng(+c.id.slice(3)), I = itById(c.it), out = [['me', c.first]]
+  const bot = { gia: 'Bánh kem 16cm từ 280.000 ₫, 20cm từ 390.000 ₫. Mousse và tiramisu từ 320.000 ₫ nha.', dat: 'Bạn muốn nhận bánh ngày nào ạ? (VD: thứ bảy, 20/11)', gio: 'Tiệm mở cửa 7:00–21:00 mỗi ngày, kể cả chủ nhật và ngày lễ.', don: 'Bạn cho Lan xin mã đơn nhé (VD: MH1024).', ship: 'Nội thành dưới 5 km phí 20.000 ₫, đơn từ 500.000 ₫ được miễn phí giao.', khieu: 'Lan rất tiếc về trải nghiệm này. Lan chuyển bạn sang nhân viên ngay nhé.', else: 'Xin lỗi, Lan chưa hiểu ý bạn. Bạn hỏi lại theo cách khác giúp Lan nhé?' }[c.it]
+  out.push(['meta', `ý định: ${I.name} · ${c.conf}%`], ['bot', bot])
+  if (c.it === 'dat') out.push(['me', pick(R, ['Thứ bảy này nha', 'Sáng chủ nhật ạ', '20/11 nhé'])], ['bot', 'Lan đã ghi nhận. Nhân viên sẽ gọi xác nhận trong 15 phút.'])
+  if (c.it === 'don') out.push(['me', pick(R, ['MH1024', 'MH1031', 'MH0998'])], ['bot', 'Đơn của bạn đang được giao, shipper sẽ tới trong khoảng 15 phút.'])
+  if (c.st === 'nv') out.push(['sys', 'Đã chuyển cho nhóm CSKH ca ngày'], ['bot', 'Chị Thảo bên CSKH đây ạ, chị hỗ trợ bạn tiếp nhé.'])
+  else if (c.st === 'bo') out.push(['sys', 'Khách không trả lời sau 10 phút — phiên tự đóng'])
+  else out.push(['me', pick(R, ['Cảm ơn shop', 'Ok cảm ơn Lan nha', 'Dạ cảm ơn'])], ['bot', 'Cảm ơn bạn đã nhắn Mây Hồng. Chúc bạn một ngày ngọt ngào!'])
+  return out
+}
+let convOpen = null
+function openConv(id) {
+  const c = CONVS.find((x) => x.id === id); if (!c) return
+  convOpen = id; c.seen = true; renderTable()
+  const d = $('#convD'), C = CH[c.ch]
+  d.innerHTML = `<div class="dh"><span class="av">${initials(c.name)}</span><div><h2 id="cdH">${esc(c.name)}</h2><p><span class="mono">${c.id}</span> · ${C.n} · ${ago(c.t)} · ${c.turns} lượt</p></div><button class="ib" type="button" id="cdX" aria-label="Đóng hội thoại">${ic('x')}</button></div>
+    <div class="db">${transcript(c).map(([w, t]) => w === 'me' ? `<div class="bub me">${esc(t)}</div>` : w === 'bot' ? `<div class="bub bot">${esc(t)}</div>` : w === 'meta' ? `<div class="meta me">${esc(t)}</div>` : `<div class="sys">${esc(t)}</div>`).join('')}</div>
+    <div class="df"><label class="sr" for="cdIt">Gán lại ý định</label><select class="inp" id="cdIt">${INTENTS.concat([ELSE]).map((i) => `<option value="${i.k}"${i.k === c.it ? ' selected' : ''}>${esc(i.name)}</option>`).join('')}</select><button class="btn" type="button" id="cdSave">Gán lại</button><button class="btn pri" type="button" id="cdTry">${ic('chat')}Chạy thử câu này</button></div>`
+  d.classList.add('on'); pushLayer(d, closeConv)
+  $('#cdX').onclick = closeConv
+  $('#cdSave').onclick = () => { const old = c.it, nv = $('#cdIt').value; if (nv === old) { toast('Ý định không đổi'); return } c.it = nv; renderTable(); toast(`Đã gán lại thành “${itById(nv).name}”`, () => { c.it = old; renderTable(); if (convOpen === c.id) $('#cdIt').value = old }) }
+  $('#cdTry').onclick = () => { closeConv(); location.hash = 'kich-ban'; setTimeout(async () => { await simReset(true); simUser(c.first); openSide('chat') }, 80) }
+  setTimeout(() => $('#cdX').focus(), 50)
+}
+function closeConv() { $('#convD').classList.remove('on'); popLayer($('#convD')); const tr = convOpen && $(`#tbody tr[data-id="${convOpen}"]`); convOpen = null; tr && tr.focus?.() }
+
+/* ---------- stats ---------- */
+const HW = [1, .5, .3, .2, .2, .4, 1.2, 2.5, 4, 5, 5.5, 6, 6.5, 5, 4.5, 4.5, 5, 5.5, 6.5, 7, 6.5, 5, 3.5, 2]
+function dayFrac(d = NOW) { const tot = HW.reduce((a, b) => a + b); let s = 0; for (let h = 0; h < d.getHours(); h++) s += HW[h]; return (s + HW[d.getHours()] * d.getMinutes() / 60) / tot }
+const DAYS = 90
+const SER = (() => {
+  const r = rng(76), out = [], t0 = new Date(NOW); t0.setHours(0, 0, 0, 0)
+  const W = { gia: .24, dat: .19, gio: .11, don: .2, ship: .12, khieu: .07, else: .07 }
+  for (let i = 0; i < DAYS; i++) {
+    const d = new Date(t0); d.setDate(d.getDate() - (DAYS - 1 - i))
+    const wk = d.getDay() === 0 || d.getDay() === 6 ? 1.24 : 1, noise = .88 + r() * .24, bs = .62 + i * .0011 + (r() - .5) * .04, ns = .21 - i * .0005 + (r() - .5) * .02, cf = 76 + i * .06 + (r() - .5) * 4
+    const jit = Object.fromEntries(Object.entries(W).map(([k, w]) => [k, w * (.8 + r() * .4)]))
+    let tot = Math.round((230 + i * 1.1) * wk * noise)
+    if (i === DAYS - 1) tot = Math.max(0, Math.round(tot * dayFrac()))
+    const bot = Math.round(tot * bs), nv = Math.round(tot * ns), bo = tot - bot - nv
+    const js = Object.values(jit).reduce((a, b) => a + b), raw = Object.entries(jit).map(([k, w]) => [k, tot * w / js])
+    const it = Object.fromEntries(raw.map(([k, v]) => [k, Math.floor(v)]))
+    let rest = tot - Object.values(it).reduce((a, b) => a + b)
+    raw.sort((a, b) => (b[1] % 1) - (a[1] % 1)).forEach(([k]) => { if (rest > 0) { it[k]++; rest-- } })
+    out.push({ d, tot, bot, nv, bo, conf: cf, it })
+  }
+  return out
+})()
+let RANGE = 30, statsBuilt = false
+const LAST = DAYS - 2 // chart plots complete days only; today (partial) lives in the KPIs
+const AS = { s: DAYS - 30, ymax: 0 }
+function rangeAgg(r) {
+  const a = SER.slice(DAYS - r), sum = (k) => a.reduce((s, x) => s + x[k], 0)
+  const tot = sum('tot'), it = {}
+  for (const x of a) for (const [k, v] of Object.entries(x.it)) it[k] = (it[k] || 0) + v
+  const conf = a.reduce((s, x) => s + x.conf * x.tot, 0) / Math.max(1, tot)
+  return { tot, bot: sum('bot'), nv: sum('nv'), bo: sum('bo'), it, conf }
+}
+const ymaxFor = (r) => { const m = Math.max(...SER.slice(Math.max(0, DAYS - 1 - r), DAYS - 1).map((x) => x.tot)); const step = m > 300 ? 100 : 50; return Math.ceil(m * 1.08 / step) * step }
+function drawArea() {
+  const svg = $('#area'); if (!svg || !svg.clientWidth) return
+  const W = svg.clientWidth, H = 260, L = 40, R = 8, T = 12, B = 26, w = W - L - R, h = H - T - B
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`)
+  const s = AS.s, span = LAST - s, X = (i) => L + (i - s) / span * w, Y = (v) => T + h - v / AS.ymax * h
+  const i0 = Math.max(0, Math.floor(s) - 1)
+  const lay = (f) => { let p = ''; for (let i = i0; i <= LAST; i++) p += (i === i0 ? 'M' : 'L') + X(i).toFixed(1) + ',' + Y(f(SER[i])).toFixed(1); return p }
+  const band = (top, bot) => { let p = lay(top); for (let i = LAST; i >= i0; i--) p += 'L' + X(i).toFixed(1) + ',' + Y(bot(SER[i])).toFixed(1); return p + 'Z' }
+  let g = ''
+  const step = AS.ymax / 4
+  for (let k = 0; k <= 4; k++) { const v = step * k, y = Y(v); g += `<line class="gl" x1="${L}" x2="${W - R}" y1="${y}" y2="${y}"/><text x="${L - 8}" y="${y + 4}" text-anchor="end">${nf(v)}</text>` }
+  const nT = W < 500 ? 3 : 6
+  for (let k = 0; k < nT; k++) { const i = Math.round(LAST - (span * k) / (nT - 1)); if (i < Math.ceil(s)) continue; const x = X(i); g += `<text x="${x}" y="${H - 6}" text-anchor="${k === 0 ? 'end' : k === nT - 1 ? 'start' : 'middle'}">${i === LAST ? 'Hôm qua' : dm(SER[i].d)}</text>` }
+  const cs = getComputedStyle(document.documentElement), cv = cs.getPropertyValue('--v').trim(), cp = cs.getPropertyValue('--p').trim(), cw = cs.getPropertyValue('--warn').trim()
+  svg.innerHTML = `<defs><clipPath id="aClip"><rect x="${L}" y="0" width="${w}" height="${H}"/></clipPath><linearGradient id="aG1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${cv}" stop-opacity=".55"/><stop offset="1" stop-color="${cv}" stop-opacity=".12"/></linearGradient></defs>${g}
+    <g clip-path="url(#aClip)"><path d="${band((x) => x.bot, () => 0)}" fill="url(#aG1)"/><path d="${band((x) => x.bot + x.nv, (x) => x.bot)}" fill="${cp}" fill-opacity=".42"/><path d="${band((x) => x.tot, (x) => x.bot + x.nv)}" fill="${cw}" fill-opacity=".45"/>
+    <path d="${lay((x) => x.tot)}" fill="none" stroke="${cp}" stroke-width="1.6"/><path d="${lay((x) => x.bot)}" fill="none" stroke="${cv}" stroke-width="1.6"/></g>
+    <line id="aCur" y1="${T}" y2="${T + h}" stroke="var(--ink)" stroke-opacity=".35" stroke-dasharray="3 3" visibility="hidden"/>`
+  svg._m = { X, L, w, s, span }
+}
+function areaHover(e) {
+  const svg = $('#area'), m = svg._m; if (!m) return
+  const r = svg.getBoundingClientRect(), px = e.clientX - r.left
+  if (px < m.L - 4) return areaLeave()
+  const i = Math.max(Math.ceil(m.s), Math.min(LAST, Math.round(m.s + (px - m.L) / m.w * m.span))), x = m.X(i), d = SER[i]
+  const cur = $('#aCur'); cur.setAttribute('x1', x); cur.setAttribute('x2', x); cur.setAttribute('visibility', 'visible')
+  const tip = $('#aTip')
+  tip.innerHTML = `<b>${DOW[d.d.getDay()]}, ${dm(d.d)}</b><div><span><i style="background:var(--v)"></i>Bot giải quyết</span><b class="num">${nf(d.bot)}</b></div><div><span><i style="background:var(--p)"></i>Chuyển NV</span><b class="num">${nf(d.nv)}</b></div><div><span><i style="background:var(--warn)"></i>Bỏ dở</span><b class="num">${nf(d.bo)}</b></div><div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><span>Tổng</span><b class="num">${nf(d.tot)}</b></div>`
+  tip.classList.add('on')
+  const tw = tip.offsetWidth, left = x + 14 + tw > r.width ? x - tw - 14 : x + 14
+  tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '10px'
+}
+function areaLeave() { $('#aTip')?.classList.remove('on'); $('#aCur')?.setAttribute('visibility', 'hidden') }
+function renderKpis(animate) {
+  const a = rangeAgg(RANGE), pct = a.tot ? a.bot / a.tot * 100 : 0
+  const today = SER[DAYS - 1].tot
+  const k = [['Hội thoại', a.tot, `${nf(today)} hôm nay (đến ${hm(NOW)})`], ['Lan tự giải quyết', pct, `${nf(a.bot)} hội thoại`, '%'], ['Chuyển nhân viên', a.nv, `${(a.nv / Math.max(1, a.tot) * 100).toFixed(1).replace('.', ',')}% tổng số`], ['Độ tin cậy TB', a.conf, `ngưỡng hiện tại ${SET.thr}%`, '%']]
+  $('#kpis').innerHTML = k.map(([l, v, sub, u], i) => `<div class="kpi"><small>${l}</small><b class="num${i === 1 ? ' gt' : ''}" data-v="${v}" data-u="${u || ''}" data-n="${i === 0 ? a.tot : ''}">${u ? v.toFixed(1).replace('.', ',') + u : nf(v)}</b><em>${sub}</em></div>`).join('')
+  if (animate && gsapOk() && !STATIC) $$('#kpis b').forEach((b) => { const o = { v: 0 }, v = +b.dataset.v, u = b.dataset.u; gsap.to(o, { v, duration: .8, ease: 'power2.out', onUpdate: () => (b.textContent = u ? o.v.toFixed(1).replace('.', ',') + u : nf(o.v)) }) })
+  // donut
+  const C = 2 * Math.PI * 76, parts = [a.bot, a.nv, a.bo]; let off = 0
+  parts.forEach((p, i) => { const len = p / Math.max(1, a.tot) * C; const el = $('#dg' + i); el.style.strokeDasharray = `${Math.max(0, len - 3)} ${C}`; el.style.strokeDashoffset = -off; off += len })
+  $('#dPct').textContent = Math.round(pct) + '%'
+  $('#dSub').textContent = RANGE + ' ngày gần nhất'
+  $('#dLeg').innerHTML = [['Bot giải quyết', a.bot, 'var(--v)'], ['Chuyển nhân viên', a.nv, 'var(--p)'], ['Khách bỏ dở', a.bo, 'var(--warn)']].map(([n, v, c]) => `<li><i style="background:${c}"></i>${n}<b data-n="${v}">${nf(v)}</b></li>`).join('')
+  // bars
+  const list = INTENTS.concat([ELSE]), max = Math.max(1, ...list.map((i) => a.it[i.k] || 0))
+  if ($('#bars').children.length !== list.length) $('#bars').innerHTML = list.map((i) => `<li><button type="button" data-it="${i.k}" aria-label="Xem hội thoại ý định ${esc(i.name)}"><span class="bn" title="${esc(i.name)}">${esc(i.name)}</span><span class="bt"><i style="background:${i.c};transform:scaleX(0)"></i></span><span class="bv"></span></button></li>`).join('')
+  list.forEach((i) => {
+    const b = $(`#bars [data-it="${i.k}"]`), v = a.it[i.k] || 0
+    b.querySelector('.bt i').style.transform = `scaleX(${v / max})`
+    b.querySelector('.bv').innerHTML = v ? `<b data-n="${v}">${nf(v)}</b> · ${(v / a.tot * 100).toFixed(0)}%` : `<b data-n="0">mới</b>`
+    b.title = `${i.name}: ${nf(v)} hội thoại`
+  })
+}
+function setRange(r) {
+  RANGE = r
+  $$('#rng button').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.r === r))
+  renderKpis(true)
+  const to = { s: Math.max(0, LAST - r + 1), ymax: ymaxFor(r) }
+  if (gsapOk()) { gsap.killTweensOf(AS); gsap.to(AS, { ...to, duration: .7, ease: 'power3.inOut', onUpdate: drawArea }) } else { Object.assign(AS, to); drawArea() }
+}
+const UNM = [['Bánh có ít ngọt không ạ', 14, 'gia'], ['Có bánh cho người ăn kiêng không', 11, 'dat'], ['Shop có xuất hóa đơn VAT không', 9, 'dat'], ['Viết chữ lên bánh được không', 8, 'dat'], ['Có nến kèm theo không shop', 6, 'dat'], ['Thanh toán bằng thẻ được không', 5, 'gia'], ['Bánh để tủ lạnh được mấy ngày', 4, 'gio']].map(([t, n, g]) => ({ t, n, g }))
+function addUnmatched(text) {
+  const ex = UNM.find((u) => norm(u.t) === norm(text))
+  if (ex) ex.n++; else UNM.unshift({ t: text.trim(), n: 1, g: 'gia' })
+  if (statsBuilt) renderUnm()
+}
+function renderUnm() {
+  $('#unmN').textContent = UNM.length
+  $('#unm').innerHTML = UNM.length ? UNM.slice(0, 4).map((u, i) => `<li><q>${esc(u.t)}</q><small>${u.n} lần</small><div class="as"><label class="sr" for="ua${i}">Gán “${esc(u.t)}” vào ý định</label><select class="inp" id="ua${i}">${INTENTS.map((it) => `<option value="${it.k}"${it.k === u.g ? ' selected' : ''}>${esc(it.name)}</option>`).join('')}</select><button class="btn sm" type="button" data-ua="${i}">Gán</button><button class="ib" type="button" data-ux="${i}" aria-label="Bỏ qua câu “${esc(u.t)}”">${ic('x')}</button></div></li>`).join('') : '<li style="grid-template-columns:1fr;color:var(--mute)">Lan đã hiểu hết các câu gần đây. Tuyệt!</li>'
+}
+function renderICards() {
+  $('#icards').innerHTML = INTENTS.map((i) => `<article class="icard" style="--ic:${i.c}"><h3><i style="width:9px;height:9px;border-radius:50%;background:${i.c}"></i>${esc(i.name)}<span>${i.kw.length + i.ph.length} mẫu</span></h3><div class="phr">${i.ph.slice(0, 3).map((p) => `<span>${esc(p)}</span>`).join('')}${i.ph.length > 3 ? `<span>+${i.ph.length - 3} câu</span>` : ''}</div><button class="btn sm" type="button" data-it="${i.k}">${ic('eye')}Xem hội thoại</button></article>`).join('')
+}
+function goIntent(k) { TQ.it = k; TQ.page = 1; location.hash = 'hoi-thoai'; if ($('#fIt').options.length) $('#fIt').value = k; renderTable() }
+function hourGreet(d = NOW) { const h = d.getHours(); return h < 5 ? 'Khuya rồi' : h < 11 ? 'Chào buổi sáng' : h < 13 ? 'Chào buổi trưa' : h < 18 ? 'Chào buổi chiều' : 'Chào buổi tối' }
+function buildStats() {
+  if (statsBuilt) return
+  statsBuilt = true
+  const open = inHours()
+  $('#hello').innerHTML = `${hourGreet()}, Quỳnh. <span class="chip ${open ? 'ok' : 'warn'}">${open ? `Trong giờ hỗ trợ · đến ${SET.to}` : `Ngoài giờ hỗ trợ · Lan đang trực một mình`}</span>`
+  AS.s = Math.max(0, LAST - RANGE + 1); AS.ymax = ymaxFor(RANGE)
+  renderKpis(true); drawArea(); renderUnm(); renderICards()
+  $('#rng').onclick = (e) => { const b = e.target.closest('[data-r]'); if (b) setRange(+b.dataset.r) }
+  const aw = $('#areaW'); aw.addEventListener('pointermove', areaHover); aw.addEventListener('pointerleave', areaLeave); aw.addEventListener('pointerdown', areaHover)
+  $('#bars').onclick = (e) => { const b = e.target.closest('[data-it]'); if (b) goIntent(b.dataset.it) }
+  $('#icards').onclick = (e) => { const b = e.target.closest('[data-it]'); if (b) goIntent(b.dataset.it) }
+  $('#unm').onclick = (e) => {
+    const a = e.target.closest('[data-ua]'), x = e.target.closest('[data-ux]')
+    if (a) { const i = +a.dataset.ua, u = UNM[i], it = itById($('#ua' + i).value), before = UNM.slice(), kw = norm(u.t); UNM.splice(i, 1); it.kw.push(kw); it.ph.push(u.t); renderUnm(); renderICards(); if (built) renderGraph()
+      toast(`Lan đã học “${u.t}” → ${it.name}`, () => { UNM.splice(0, UNM.length, ...before); it.kw = it.kw.filter((k) => k !== kw); it.ph = it.ph.filter((p) => p !== u.t); renderUnm(); renderICards() }) }
+    if (x) { const i = +x.dataset.ux, before = UNM.slice(), u = UNM[i]; UNM.splice(i, 1); renderUnm(); toast(`Đã bỏ qua “${u.t}”`, () => { UNM.splice(0, UNM.length, ...before); renderUnm() }) }
+  }
+  if (gsapOk()) gsap.from('#v-y-dinh .card', { opacity: 0, y: 14, duration: .45, stagger: .05, ease: 'power2.out', clearProps: 'opacity,transform' })
+}
+/* add intent */
+const ICOLS = ['#22d3ee', '#a3e635', '#fb923c', '#e879f9', '#2dd4bf']
+function openIntM() {
+  $('#iCol').innerHTML = ICOLS.map((c, i) => `<label><input type="radio" name="icol" value="${c}"${i ? '' : ' checked'} aria-label="Màu ${i + 1}"><span style="background:${c}"></span></label>`).join('')
+  $('#iName').value = ''; $('#iPh').value = ''; $('#eIName').textContent = ''; $('#eIPh').textContent = ''; $$('#intF .inp').forEach((x) => x.classList.remove('bad'))
+  openModal('#intM'); setTimeout(() => $('#iName').focus(), 40)
+}
+$('#intF').onsubmit = (e) => {
+  e.preventDefault()
+  const name = $('#iName').value.trim(), lines = $('#iPh').value.split('\n').map((x) => x.trim()).filter(Boolean)
+  const dup = INTENTS.concat([ELSE]).some((i) => norm(i.name) === norm(name))
+  const e1 = !name ? 'Nhập tên ý định' : name.length < 3 ? 'Tên cần ít nhất 3 ký tự' : dup ? 'Đã có ý định trùng tên này' : ''
+  const short = lines.find((l) => l.length < 4)
+  const e2 = lines.length < 3 ? `Cần ít nhất 3 câu mẫu (đang có ${lines.length})` : short ? `Câu “${short}” quá ngắn — tối thiểu 4 ký tự` : ''
+  $('#eIName').textContent = e1; $('#eIPh').textContent = e2; $('#iName').classList.toggle('bad', !!e1); $('#iPh').classList.toggle('bad', !!e2)
+  if (e1 || e2) { (e1 ? $('#iName') : $('#iPh')).focus(); return }
+  const k = 'i' + Date.now().toString(36), c = ($('#intF input[name=icol]:checked') || {}).value || ICOLS[0]
+  const it = { k, name, c, kw: lines.map(norm), ph: lines }
+  INTENTS.push(it); closeModal('#intM')
+  const after = () => { if (statsBuilt) { $('#bars').innerHTML = ''; renderKpis(false); renderICards() } if (built) renderGraph(); renderIns(); initTableOpts() }
+  after()
+  toast(`Đã thêm “${name}” — nối nhánh mới trong kịch bản`, () => { const i = INTENTS.indexOf(it); if (i >= 0) INTENTS.splice(i, 1); G.edges = G.edges.filter((x) => x.p !== k); after() })
+}
+function initTableOpts() { const v = $('#fIt').value; $('#fIt').innerHTML = '<option value="">Mọi ý định</option>' + INTENTS.concat([ELSE]).map((i) => `<option value="${i.k}">${esc(i.name)}</option>`).join(''); $('#fIt').value = v }
+$('#addInt').onclick = openIntM
+
+/* ---------- settings ---------- */
+let SAVED = JSON.parse(JSON.stringify(SET))
+function fillSettings(s) {
+  $('#sName').value = s.name; $('#sHot').value = s.hot; $('#sGreet').value = s.greet; $('#sFrom').value = s.from; $('#sTo').value = s.to; $('#sThr').value = s.thr; $('#sMail').value = s.mail
+  $$('#sform input[name=tone]').forEach((r) => (r.checked = r.value === s.tone))
+  $$('#sform input[name=chn]').forEach((c) => (c.checked = s.chn.includes(c.value)))
+  $$('#sform .err').forEach((e) => (e.textContent = '')); $$('#sform .inp').forEach((x) => x.classList.remove('bad'))
+  updPrev()
+}
+function readSettings() {
+  return { name: $('#sName').value.trim(), hot: $('#sHot').value.trim(), greet: $('#sGreet').value.trim(), tone: ($('#sform input[name=tone]:checked') || {}).value || 'than', from: $('#sFrom').value.trim(), to: $('#sTo').value.trim(), thr: +$('#sThr').value, mail: $('#sMail').value.trim(), chn: $$('#sform input[name=chn]:checked').map((c) => c.value) }
+}
+function updPrev() {
+  const s = readSettings()
+  $('#thrO').textContent = s.thr + '%'; $('#gCnt').textContent = `${s.greet.length}/160`
+  $('#pvName').textContent = s.name || 'Trợ lý'; $('#pvAv').textContent = (s.name || 'L')[0].toUpperCase()
+  $('#pvGreet').textContent = s.greet || '…'
+  const tz = /^\d{2}:\d{2}$/.test(s.from) && /^\d{2}:\d{2}$/.test(s.to)
+  $('#pvTone').textContent = { than: `Dạ tiệm đóng cửa lúc ${tz ? s.to : '21:00'} nha bạn, ghé sớm để còn nhiều bánh ạ!`, lich: `Kính chào quý khách, cửa hàng phục vụ đến ${tz ? s.to : '21:00'} hằng ngày.`, gon: `Đóng cửa lúc ${tz ? s.to : '21:00'}.` }[s.tone]
+  const now = new Date(), m = now.getHours() * 60 + now.getMinutes(), open = tz && m >= toMin(s.from) && m < toMin(s.to)
+  $('#pvSt').textContent = open ? 'Nhân viên đang trực' : 'Ngoài giờ — chỉ có trợ lý trả lời'
+  $('#pvFoot').textContent = `Hotline ${s.hot || '—'} · Thiết kế concept — thương hiệu giả định.`
+  const dirty = JSON.stringify(s) !== JSON.stringify(SAVED)
+  $('#dirty').textContent = dirty ? 'Có thay đổi chưa lưu' : 'Chưa có thay đổi'; $('#dirty').classList.toggle('dirty', dirty)
+}
+function validSettings(s) {
+  const E = {}, hhmm = /^([01]\d|2[0-3]):[0-5]\d$/
+  if (!s.name) E.eName = 'Nhập tên trợ lý'; else if (s.name.length < 2) E.eName = 'Tên cần ít nhất 2 ký tự'
+  if (!/^0[35789]\d{8}$/.test(s.hot.replace(/[\s.]/g, ''))) E.eHot = 'Số điện thoại gồm 10 số, bắt đầu bằng 03, 05, 07, 08 hoặc 09'
+  if (!s.greet) E.eGreet = 'Nhập lời chào'; else if (s.greet.length > 160) E.eGreet = `Lời chào dài ${s.greet.length} ký tự — tối đa 160`
+  if (!hhmm.test(s.from)) E.eFrom = 'Giờ theo dạng HH:MM, VD 08:00'
+  if (!hhmm.test(s.to)) E.eTo = 'Giờ theo dạng HH:MM, VD 21:00'
+  else if (!E.eFrom && toMin(s.to) <= toMin(s.from)) E.eTo = 'Giờ kết thúc phải sau giờ bắt đầu'
+  if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(s.mail)) E.eMail = 'Email chưa đúng định dạng'
+  if (!s.chn.length) E.eChn = 'Bật ít nhất một kênh để Lan còn nơi trả lời'
+  return E
+}
+function initSettings() {
+  fillSettings(SET)
+  $('#sform').addEventListener('input', (e) => { if (e.target.classList.contains('bad')) { e.target.classList.remove('bad'); const er = e.target.parentElement.querySelector('.err') || e.target.closest('.fld')?.querySelector('.err'); if (er) er.textContent = '' } updPrev() })
+  $('#sform').addEventListener('change', updPrev)
+  $('#sCancel').onclick = () => { fillSettings(SAVED); toast('Đã hủy các thay đổi chưa lưu') }
+  $('#sform').onsubmit = (e) => {
+    e.preventDefault()
+    const s = readSettings(), E = validSettings(s)
+    $$('#sform .err').forEach((x) => (x.textContent = E[x.id] || ''))
+    const map = { eName: 'sName', eHot: 'sHot', eGreet: 'sGreet', eFrom: 'sFrom', eTo: 'sTo', eMail: 'sMail' }
+    Object.entries(map).forEach(([k, id]) => $('#' + id).classList.toggle('bad', !!E[k]))
+    const first = Object.keys(E)[0]
+    if (first) { (map[first] ? $('#' + map[first]) : $('#sform input[name=chn]')).focus(); return }
+    const prev = JSON.parse(JSON.stringify(SET))
+    Object.assign(SET, s); SAVED = JSON.parse(JSON.stringify(SET)); updPrev(); applySettings()
+    toast('Đã lưu cài đặt trợ lý', () => { Object.assign(SET, prev); SAVED = JSON.parse(JSON.stringify(SET)); fillSettings(SET); applySettings() })
+  }
+}
+function applySettings() {
+  $('#chatName').textContent = `${SET.name} · chat thử`; $('#chatAv').textContent = SET.name[0].toUpperCase()
+  if (built) renderGraph()
+  if (statsBuilt) { renderKpis(false); const open = inHours(); $('#hello').innerHTML = `${hourGreet()}, Quỳnh. <span class="chip ${open ? 'ok' : 'warn'}">${open ? `Trong giờ hỗ trợ · đến ${SET.to}` : `Ngoài giờ hỗ trợ · Lan đang trực một mình`}</span>` }
+  if ($('#tbody').children.length) renderTable()
+}
+
+/* ---------- modal helpers ---------- */
+let lastFocus = null
+function openModal(sel) { const m = $(sel); lastFocus = document.activeElement; m.classList.add('on'); pushLayer(m, () => closeModal(sel)); setTimeout(() => (m.querySelector('[autofocus]') || m.querySelector('.mf .btn.pri:not(:disabled)') || m.querySelector('.mf .btn'))?.focus(), 30) }
+function closeModal(sel) { const m = $(sel); m.classList.remove('on'); popLayer(m); lastFocus?.focus?.({ preventScroll: true }) }
+$$('.modal').forEach((m) => { m.addEventListener('click', (e) => { if (e.target === m || e.target.closest('[data-close]')) closeModal('#' + m.id) }) })
+
+/* ---------- palette ---------- */
+let palItems = [], palIdx = 0
+function palData(q) {
+  const nq = norm(q), out = []
+  const views = Object.entries(VIEWS).map(([k, v]) => ({ g: 'Màn hình', t: v.t, s: '#' + k, run: () => (location.hash = k) }))
+  const cmds = [
+    ...Object.entries(TYPES).filter(([k]) => k !== 'start').map(([k, T]) => ({ g: 'Lệnh', t: 'Thêm khối: ' + T.name, s: 'Kịch bản', run: () => { location.hash = 'kich-ban'; setTimeout(() => addNode(k), 60) } })),
+    { g: 'Lệnh', t: 'Kiểm tra lỗi kịch bản', s: 'Kịch bản', run: () => { location.hash = 'kich-ban'; setTimeout(openChk, 80) } },
+    { g: 'Lệnh', t: 'Xuất bản kịch bản', s: 'Kịch bản', run: () => { location.hash = 'kich-ban'; setTimeout(openPub, 80) } },
+    { g: 'Lệnh', t: 'Mở chat thử', s: 'Kịch bản', run: () => { location.hash = 'kich-ban'; setTimeout(() => { openSide('chat'); $('#cin').focus() }, 80) } },
+    { g: 'Lệnh', t: 'Vừa khung kịch bản', s: 'Kịch bản', run: () => { location.hash = 'kich-ban'; setTimeout(() => fit(true), 60) } },
+    { g: 'Lệnh', t: 'Thêm ý định', s: 'Ý định', run: () => { location.hash = 'y-dinh'; setTimeout(openIntM, 60) } },
+    { g: 'Lệnh', t: 'Đổi giao diện sáng/tối', s: 'Giao diện', run: toggleTheme },
+  ]
+  for (const x of [...views, ...cmds]) if (!nq || norm(x.t + ' ' + x.s).includes(nq)) out.push(x)
+  if (nq) {
+    G.nodes.filter((n) => norm(n.title).includes(nq)).slice(0, 4).forEach((n) => out.push({ g: 'Node', t: n.title, s: '#' + n.id, run: () => { location.hash = 'kich-ban'; setTimeout(() => { select(n.id, true); centerOn(n.id, true) }, 80) } }))
+    CONVS.filter((c) => norm(c.name + ' ' + c.id).includes(nq)).slice(0, 5).forEach((c) => out.push({ g: 'Hội thoại', t: c.name, s: c.id, run: () => { location.hash = 'hoi-thoai'; setTimeout(() => openConv(c.id), 80) } }))
+  }
+  return out
+}
+function renderPal() {
+  palItems = palData($('#palI').value); palIdx = Math.min(palIdx, Math.max(0, palItems.length - 1))
+  let g = '', h = ''
+  palItems.forEach((x, i) => { if (x.g !== g) { g = x.g; h += `<li class="grp" role="presentation">${g}</li>` } h += `<li role="option" id="po${i}" data-i="${i}" aria-selected="${i === palIdx}">${esc(x.t)}<small>${esc(x.s)}</small></li>` })
+  $('#palL').innerHTML = h || '<li class="grp" role="presentation">Không tìm thấy gì — thử từ khóa khác</li>'
+  $('#palI').setAttribute('aria-activedescendant', palItems.length ? 'po' + palIdx : '')
+  $('#po' + palIdx)?.scrollIntoView({ block: 'nearest' })
+}
+function openPal() { if ($('#pal').classList.contains('on')) return; closeMnav(); $('#palI').value = ''; palIdx = 0; renderPal(); lastFocus = document.activeElement; $('#pal').classList.add('on'); pushLayer($('#pal'), closePal); setTimeout(() => $('#palI').focus(), 20) }
+function closePal() { $('#pal').classList.remove('on'); popLayer($('#pal')); lastFocus?.focus?.({ preventScroll: true }) }
+$('#palI').oninput = () => { palIdx = 0; renderPal() }
+$('#palI').onkeydown = (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); palIdx = Math.min(palItems.length - 1, palIdx + 1); renderPal() }
+  if (e.key === 'ArrowUp') { e.preventDefault(); palIdx = Math.max(0, palIdx - 1); renderPal() }
+  if (e.key === 'Enter' && palItems[palIdx]) { e.preventDefault(); const it = palItems[palIdx]; closePal(); it.run() }
+}
+$('#palL').onclick = (e) => { const li = e.target.closest('[data-i]'); if (li) { const it = palItems[+li.dataset.i]; closePal(); it.run() } }
+$('#pal').addEventListener('click', (e) => { if (e.target.id === 'pal') closePal() })
+$('#srchBtn').onclick = openPal; $('#mnSearch').onclick = () => { closeMnav(); openPal() }
+
+/* ---------- popovers, mobile nav ---------- */
+function togglePop(btn, pop) {
+  const on = !pop.classList.contains('on')
+  $$('.top .pop.on').forEach((p) => { p.classList.remove('on'); popLayer(p) }); $$('#bellBtn,#acctBtn').forEach((b) => b.setAttribute('aria-expanded', 'false'))
+  if (!on) return
+  pop.classList.add('on'); btn.setAttribute('aria-expanded', 'true')
+  pushLayer(pop, () => { pop.classList.remove('on'); btn.setAttribute('aria-expanded', 'false'); popLayer(pop); btn.focus() })
+}
+const NTF = [['Lan gặp 11 câu chưa hiểu trong hôm nay', 52, 'y-dinh'], ['Tỉ lệ chuyển nhân viên giảm 2,1% so với tuần trước', 190, 'y-dinh'], ['Minh Tú đã xuất bản kịch bản v13', 60 * 51, 'kich-ban'], ['Khách Phạm Ngọc Vy khiếu nại giao trễ', 60 * 6, 'hoi-thoai']]
+$('#bellL').innerHTML = NTF.map(([t, m, go]) => `<button class="ntf mline" type="button" data-go="${go}" style="font-weight:400"><i></i><span>${esc(t)}<small data-ago="${Date.now() - m * 60000}">${ago(Date.now() - m * 60000)}</small></span></button>`).join('')
+$('#bellBtn').onclick = () => { togglePop($('#bellBtn'), $('#bellPop')); $('#bellDot').style.display = 'none' }
+$('#acctBtn').onclick = () => togglePop($('#acctBtn'), $('#acctPop'))
+$('#acctTheme').onclick = toggleTheme
+$('#themeBtn').onclick = toggleTheme
+document.addEventListener('click', (e) => {
+  const g = e.target.closest('[data-go]'); if (g) { $$('.top .pop.on').forEach((p) => { p.classList.remove('on'); popLayer(p) }); location.hash = g.dataset.go; return }
+  if (!e.target.closest('.pop, #bellBtn, #acctBtn, #chkBtn')) { $$('.top .pop.on').forEach((p) => { p.classList.remove('on'); popLayer(p) }); $$('#bellBtn,#acctBtn').forEach((b) => b.setAttribute('aria-expanded', 'false')); if ($('#chkPop').classList.contains('on')) closeChk() }
+})
+function openMnav() { const m = $('#mnav'); m.classList.add('on'); m.setAttribute('aria-hidden', 'false'); $$('a,button', m).forEach((x) => x.removeAttribute('tabindex')); $('#scrim').classList.add('on'); $('#burger').setAttribute('aria-expanded', 'true'); pushLayer(m, closeMnav); setTimeout(() => $('#mnavL a')?.focus(), 40) }
+function closeMnav() { const m = $('#mnav'); if (!m.classList.contains('on')) return; m.classList.remove('on'); m.setAttribute('aria-hidden', 'true'); $$('a,button', m).forEach((x) => x.setAttribute('tabindex', '-1')); $('#scrim').classList.remove('on'); $('#burger').setAttribute('aria-expanded', 'false'); popLayer(m); $('#burger').focus() }
+$('#burger').onclick = () => ($('#mnav').classList.contains('on') ? closeMnav() : openMnav())
+$('#scrim').onclick = closeMnav
+$('#mnav').addEventListener('keydown', (e) => { if (e.key !== 'Tab') return; const f = $$('a:not([tabindex="-1"]),button:not([tabindex="-1"])', $('#mnav')); const a = f[0], z = f[f.length - 1]; if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus() } else if (!e.shiftKey && document.activeElement === z) { e.preventDefault(); a.focus() } })
+
+/* ---------- router ---------- */
+const VIEWS = { 'kich-ban': { t: 'Kịch bản', ic: 'flow' }, 'hoi-thoai': { t: 'Hội thoại', ic: 'chat' }, 'y-dinh': { t: 'Ý định & thống kê', ic: 'chart' }, 'cai-dat': { t: 'Cài đặt', ic: 'gear' } }
+const navHTML = (k, v) => `<a href="#${k}" data-v="${k}">${ic(v.ic)}${v.t}${k === 'hoi-thoai' ? ' <span class="n" data-tabn="hoi-thoai"></span>' : ''}</a>`
+$('#tabs').insertAdjacentHTML('beforeend', Object.entries(VIEWS).map(([k, v]) => navHTML(k, v)).join(''))
+$('#mnavL').innerHTML = Object.entries(VIEWS).map(([k, v]) => navHTML(k, v)).join('')
+$$('#mnavL a').forEach((a) => a.setAttribute('tabindex', '-1'))
+$('#mnavL').addEventListener('click', () => closeMnav())
+function moveInd() { const a = $('#tabs a[aria-current=page]'); if (!a || !a.offsetWidth) return; const i = $('#tind'); i.style.left = a.offsetLeft + 'px'; i.style.width = a.offsetWidth + 'px' }
+let tableInit = false, setInit = false, curView = null
+function route() {
+  let v = location.hash.slice(1); if (!VIEWS[v]) v = 'kich-ban'
+  for (let i = layers.length + 2; i-- > 0 && layers.length;) layers[layers.length - 1].close()
+  $$('.view').forEach((s) => s.classList.toggle('on', s.id === 'v-' + v))
+  $$('[data-v]').forEach((a) => (a.dataset.v === v ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')))
+  document.body.dataset.view = v
+  document.title = `${VIEWS[v].t} — Trợ Lý Lan`
+  moveInd()
+  if (v === 'kich-ban') { if (!built) buildBuilder(); else { drawWires(); drawMini() } }
+  if (v === 'hoi-thoai') { if (!tableInit) { tableInit = true; initTable() } else initTableOpts(); renderTable() }
+  if (v === 'y-dinh') { if (!statsBuilt) buildStats(); else { renderKpis(false); drawArea(); renderUnm() } }
+  if (v === 'cai-dat' && !setInit) { setInit = true; initSettings() }
+  if (curView && curView !== v) scrollTo(0, 0)
+  curView = v
+}
+addEventListener('hashchange', route)
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#pal').classList.contains('on') ? closePal() : openPal(); return }
+  if (e.key === 'Escape') {
+    if (layers.length) { e.preventDefault(); layers[layers.length - 1].close(); return }
+    if (curView === 'kich-ban' && (sel.n || sel.e)) { sel.n = null; sel.e = null; applySel(); drawWires(); renderIns() }
+  }
+})
+let rzT
+addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { moveInd(); if (curView === 'kich-ban' && built) { drawWires(); drawMini() } if (statsBuilt && curView === 'y-dinh') drawArea(); if (!isOverlay() && $('#side').classList.contains('on')) closeSide() }, 120) })
+
+/* ---------- live updates ---------- */
+if (!STATIC) {
+  setInterval(() => $$('[data-ago]').forEach((s) => (s.textContent = ago(+s.dataset.ago))), 30000)
+  const lr = rng(Date.now() % 9973)
+  setInterval(() => { const c = mkConv(lr, Date.now()); c.seen = false; CONVS.unshift(c); if (curView === 'hoi-thoai') renderTable(); else renderSum() }, 25000)
+  setInterval(() => updVer(), 60000)
+} else $('#liveChip').textContent = 'Ảnh chụp tĩnh'
+
+setTheme(document.documentElement.dataset.theme || 'dark', false)
+renderSum()
+$('#chatName').textContent = `${SET.name} · chat thử`
+route()
+if (document.fonts) document.fonts.ready.then(() => { moveInd(); if (built && curView === 'kich-ban') { drawWires(); drawMini() } })
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

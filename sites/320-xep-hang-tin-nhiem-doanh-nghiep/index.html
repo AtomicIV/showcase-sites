@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VietRating — Tổ Chức Xếp Hạng Tín Nhiệm Độc Lập & Thẩm Định Trái Phiếu Doanh Nghiệp</title>
+<meta name="description" content="VietRating được Bộ Tài chính cấp phép dịch vụ xếp hạng tín nhiệm doanh nghiệp (Issuer Rating) và công cụ nợ trái phiếu (Issue Rating) theo chuẩn Nghị định 88/2014/NĐ-CP và Luật Chứng khoán.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23081424'/%3E%3Crect x='10' y='10' width='44' height='44' rx='6' fill='%2310243F' stroke='%2338BDF8' stroke-width='2.5'/%3E%3Cpath d='M18 42h6V30h-6v12zm11 0h6V22h-6v20zm11 0h6V16h-6v26z' fill='%23FACC15'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#081424; --bg2:#10243F; --paper:#F8FAFC; --ink:#081424;
+  --accent:#38BDF8; --gold:#FACC15; --green:#22C55E; --cream:#F8FAFC; --muted:#94A3B8; --mutedD:#475569;
+  --line:rgba(56,189,248,.26);
+  --head:"Space Grotesk", sans-serif; --body:"Be Vietnam Pro", sans-serif; --mono:"JetBrains Mono", monospace;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:clip;max-width:100%;background:var(--bg);color:var(--cream);font-family:var(--body);font-size:17px;line-height:1.65}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+img,svg,canvas{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--gold);color:var(--bg);padding:10px 16px;z-index:400;font-weight:600}
+.skip:focus{left:12px}
+.wrap{width:min(1280px,100% - 48px);margin-inline:auto}
+main,section,footer{overflow-x:clip}
+
+h1,h2,h3{font-family:var(--head);font-weight:700;margin:0;line-height:1.1;letter-spacing:-.02em}
+h2{font-size:clamp(34px,4.5vw,62px)}
+h1 em,h2 em{font-style:normal;color:var(--gold)}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.kick{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.kick::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px 2px rgba(250,204,21,.75)}
+.mask{display:block;overflow:hidden;padding:.18em .04em;margin:-.18em -.04em}
+.mask>span{display:block}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border:1px solid var(--gold);background:var(--gold);color:var(--bg);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border-radius:8px;cursor:pointer;transition:transform .35s var(--ease),background .3s}
+.btn:hover{background:#FDE047;border-color:#FDE047;transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--cream);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn.sm{min-height:42px;padding:0 16px;font-size:11px}
+
+/* Nav */
+.nav{position:fixed;inset:0 0 auto;z-index:100;transition:background .35s,border-color .35s;border-bottom:1px solid transparent}
+.nav.solid{background:rgba(8,20,36,.94);backdrop-filter:blur(12px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:16px}
+.logo{display:inline-flex;align-items:center;gap:12px;font-family:var(--head);font-size:24px;font-weight:700;color:var(--cream)}
+.logo svg{width:32px;height:32px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.nav ul a:hover{color:var(--gold)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:46px;height:46px;border:1px solid var(--line);background:var(--bg2);border-radius:6px;cursor:pointer;align-items:center;justify-content:center}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--cream);transition:transform .3s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:16px;right:16px;top:84px;z-index:99;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .3s,visibility .3s,transform .35s var(--ease)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;min-height:50px;padding:0 12px;font-family:var(--head);font-size:20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mmenu a:last-child{border:0;color:var(--gold)}
+
+/* Hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:124px 0 64px;display:flex;align-items:center;background:radial-gradient(ellipse 65% 55% at 75% 25%,rgba(56,189,248,.2),transparent 70%),radial-gradient(ellipse 50% 50% at 20% 85%,rgba(250,204,21,.12),transparent 70%),var(--bg)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(38px,5.4vw,74px);line-height:1.08;margin-top:16px}
+.hero-lead{max-width:50ch;color:var(--muted);font-size:18px;margin-top:20px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;padding-top:24px;border-top:1px solid var(--line)}
+.hero-stats strong{display:block;font-family:var(--head);font-size:32px;color:var(--gold)}
+.hero-stats span{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+.hero-shrine{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 35px 75px -30px rgba(0,0,0,.9)}
+.hero-shrine canvas{width:100%;height:auto;border-radius:10px;cursor:pointer}
+.hero-shrine-meta{display:flex;justify-content:space-between;margin-top:12px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Pinned 5-Pillar Credit Rating Methodology */
+.process{position:relative;background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.pr-pin{height:100vh;height:100svh;display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:48px;align-items:center;width:min(1280px,100% - 48px);margin-inline:auto;padding-top:76px}
+.psteps{position:relative;height:250px;margin-top:24px}
+.pstep{position:absolute;inset:0}
+.pstep .n{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.pstep h3{font-size:clamp(24px,2.5vw,35px);margin:8px 0 12px}
+.pstep p{color:var(--muted);max-width:44ch}
+.pr-vis{background:#050D18;border:1px solid var(--line);border-radius:16px;padding:20px}
+.pr-vis canvas{width:100%;height:auto;border-radius:10px}
+.pr-meter{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.pr-meter b{color:var(--gold)}
+
+/* Interactive Preliminary Credit Rating & Bond Yield Simulator */
+.cabinet{padding:130px 0;background:var(--bg)}
+.sec-head{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:end;margin-bottom:48px}
+.sec-head p{color:var(--muted)}
+.cab-shell{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+.cab-stage{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px}
+.cab-stage canvas{width:100%;height:auto;border-radius:10px;background:#050D18}
+.cab-controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sl-row{display:grid;gap:6px}
+.sl-row label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.sl-row input[type="range"]{width:100%;accent-color:var(--gold);cursor:pointer}
+.cab-info{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:26px;display:grid;gap:18px}
+.art-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.a-btn{padding:12px 14px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:8px;cursor:pointer;text-align:left}
+.a-btn .mono{font-size:10px;color:var(--accent);display:block}
+.a-btn b{font-family:var(--head);font-size:18px}
+.a-btn[aria-pressed="true"]{border-color:var(--gold);background:rgba(250,204,21,.16)}
+.motif-decode{padding:16px;background:rgba(56,189,248,.14);border-left:3px solid var(--gold);border-radius:6px;font-size:15px}
+
+/* Rating Services */
+.dynasty{padding:120px 0;background:var(--paper);color:var(--ink)}
+.dynasty .kick{color:#0284C7}
+.dynasty h2 em{color:#0284C7}
+.dynasty .sec-head p{color:var(--mutedD)}
+.dyn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.dcard{background:#fff;border:1px solid rgba(8,20,36,.12);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.dcard .mono{color:#0284C7}
+.dcard h3{font-size:22px}
+.dcard p{color:var(--mutedD);font-size:15px}
+
+/* Governance & Independence */
+.scan{padding:120px 0;background:var(--bg2);border-top:1px solid var(--line)}
+.scan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.scard{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px}
+.scard .mono{color:var(--gold)}
+.scard h3{font-size:23px}
+.scard p{color:var(--muted);font-size:15px}
+
+/* CTA */
+.cta{padding:120px 0;background:radial-gradient(ellipse 60% 60% at 50% 100%,rgba(56,189,248,.22),transparent 70%),var(--bg);border-top:1px solid var(--line)}
+.cta-box{max-width:840px;margin:0 auto;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:46px;text-align:center}
+.cta-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px;text-align:left}
+.cta-form .full{grid-column:1/-1}
+.cta-form label{display:block;font-family:var(--mono);font-size:11px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.cta-form input,.cta-form select{width:100%;min-height:48px;padding:0 14px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--cream)}
+.cta-ok{margin-top:16px;min-height:24px;font-family:var(--mono);font-size:13px;color:var(--gold)}
+
+footer{background:#040A12;border-top:1px solid var(--line);padding:52px 0 34px}
+.f-top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;padding-bottom:24px}
+.f-nav{display:flex;flex-wrap:wrap;gap:16px;list-style:none;margin:0;padding:0}
+.f-nav a{font-family:var(--mono);font-size:12px;text-transform:uppercase;color:var(--muted)}
+.f-fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:20px;border-top:1px solid rgba(255,255,255,.08);font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.rm .pr-pin{height:auto;padding:110px 0 80px}
+.rm .psteps{height:auto;display:grid;gap:20px}
+.rm .pstep{position:static}
+
+@media (max-width:1024px){
+  .nav ul,.nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero-grid,.pr-pin,.sec-head,.cab-shell,.scan-grid{grid-template-columns:1fr;gap:28px}
+  .pr-pin{height:auto;padding:100px 0 70px}
+  .dyn-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .wrap,.pr-pin{width:calc(100% - 32px)}
+  .hero{padding:104px 0 52px}
+  .hero-stats,.cab-controls,.art-tabs,.dyn-grid,.cta-form{grid-template-columns:1fr}
+  .cta-box{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="VietRating Định mức Tín nhiệm Độc lập Trang chủ">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="3" width="26" height="26" rx="4" fill="#10243F" stroke="#38BDF8" stroke-width="2"/><path d="M9 22h3v-7H9v7zm5.5 0h3V11h-3v11zM20 22h3V8h-3v14z" fill="#FACC15"/></svg>
+      VietRating
+    </a>
+    <nav aria-label="Menu chính">
+      <ul>
+        <li><a href="#process">Phương Pháp 5 Trụ Cột</a></li>
+        <li><a href="#cabinet">Mô Phỏng Xếp Hạng</a></li>
+        <li><a href="#dynasty">Trái Phiếu & Tổ Chức</a></li>
+        <li><a href="#scan">Hội Đồng Độc Lập</a></li>
+      </ul>
+    </nav>
+    <div class="nav-r">
+      <a class="btn sm" href="#visit">Đăng Ký Xếp Hạng</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#process">Quy Trình Phân Tích 5 Trụ Cột</a>
+  <a href="#cabinet">Mô Phỏng Bảng Điểm Tín Nhiệm (BB → AAA)</a>
+  <a href="#dynasty">Xếp Hạng Tổ Chức Phát Hành & Trái Phiếu</a>
+  <a href="#scan">Chuẩn Mực Hội Đồng Tín Nhiệm Độc Lập</a>
+  <a href="#visit">Yêu Cầu Xếp Hạng Tín Nhiệm Sơ Bộ</a>
+</div>
+
+<main id="main">
+  <section class="hero" id="top" aria-labelledby="hero-h">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="kick hf">Tổ chức Xếp hạng Tín nhiệm Độc lập · Cấp phép Bộ Tài Chính</p>
+        <h1 id="hero-h"><span class="mask"><span>Chuẩn mực minh bạch</span></span><span class="mask"><span>cho <em>thị trường vốn Việt.</em></span></span></h1>
+        <p class="hero-lead hf">VietRating cung cấp báo cáo xếp hạng tín nhiệm độc lập cho Tổ chức phát hành (Issuer Rating) và Công cụ nợ Trái phiếu doanh nghiệp (Issue Rating) từ bậc C đến AAA — giúp doanh nghiệp giảm tới 180 điểm cơ bản lãi suất huy động và mở khóa dòng vốn từ các Quỹ bảo hiểm, Quỹ hưu trí.</p>
+        <div class="hero-cta hf">
+          <a class="btn" href="#cabinet">Mô Phỏng Bậc Tín Nhiệm & Lãi Suất Trái Phiếu</a>
+          <a class="btn ghost" href="#process">Xem Phương Pháp Luận 5 Trụ Cột</a>
+        </div>
+        <div class="hero-stats hf">
+          <div><strong>310.000 Tỷ</strong><span>Giá trị trái phiếu & tổ chức đã xếp hạng</span></div>
+          <div><strong>-1.6% Lãi</strong><span>Tiết kiệm chi phí vốn với bậc từ A trở lên</span></div>
+          <div><strong>19 Ngành</strong><span>Bộ tiêu chí định lượng chuyên biệt</span></div>
+        </div>
+      </div>
+      <div class="hero-shrine hf">
+        <canvas id="heroC" width="580" height="420" role="img" aria-label="Đường cong lợi suất trái phiếu doanh nghiệp Việt Nam theo bậc xếp hạng tín nhiệm AAA, AA, A, BBB và BB"></canvas>
+        <div class="hero-shrine-meta">
+          <span>Di chuột để tra cứu Chênh lệch Lãi suất (Credit Spread) theo từng bậc</span>
+          <span style="color:var(--gold)">VN Corporate Yield Curve Q4</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process" id="process" aria-labelledby="pr-h">
+    <div class="pr-pin" id="prPin">
+      <div>
+        <p class="kick">Chuẩn hóa theo thông lệ quốc tế Moody's / S&P</p>
+        <h2 id="pr-h">Phân tích độc lập<br><em>năm trụ cột tín nhiệm</em></h2>
+        <div class="psteps">
+          <article class="pstep">
+            <p class="n">Trụ cột 01 · Rủi ro Ngành & Vị thế Cạnh tranh (Business Profile)</p>
+            <h3>Đánh giá chu kỳ ngành, rào cản gia nhập & thị phần cốt lõi</h3>
+            <p>Đo lường độ ổn định của biên lợi nhuận EBITDA qua các chu kỳ kinh tế vĩ mô, sự đa dạng hóa sản phẩm và mức độ phụ thuộc vào khách hàng lớn.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Trụ cột 02 · Đòn bẩy Tài chính & Khả năng Trả lãi (Leverage & Coverage)</p>
+            <h3>Kiểm định tỷ số Nợ ròng/EBITDA và Hệ số chi trả lãi vay (ICR)</h3>
+            <p>Phân tích dòng tiền hoạt động tự do (FOCF) trong 3 năm lịch sử và phóng chiếu kịch bản căng thẳng (Stress Test) khi lãi suất thị trường biến động.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Trụ cột 03 · Cấu trúc Nợ & Độ phủ Thanh khoản 12 Tháng (Liquidity)</p>
+            <h3>Đối chiếu nguồn tiền mặt sẵn có với nghĩa vụ nợ đến hạn ngắn hạn</h3>
+            <p>Đánh giá rủi ro tái cấp vốn (Refinancing Risk), hạn mức tín dụng dự phòng cam kết từ ngân hàng và tài sản thế chấp có tính thanh khoản cao.</p>
+          </article>
+          <article class="pstep">
+            <p class="n">Trụ cột 04 & 05 · Quản trị Minh bạch & Cấu trúc Đảm bảo Trái phiếu</p>
+            <h3>Hội đồng Xếp hạng Biểu quyết Độc lập & Giám sát Định kỳ Hàng quý</h3>
+            <p>Xem xét giao dịch bên liên quan, chất lượng kiểm toán Big4 và điều khoản bảo lãnh thanh toán để quyết định nâng bậc (Notching up) cho lô trái phiếu.</p>
+          </article>
+        </div>
+      </div>
+      <div class="pr-vis" aria-hidden="true">
+        <canvas id="pinC" width="660" height="440"></canvas>
+        <div class="pr-meter">
+          <span>Trụ cột phân tích: <b id="pGal">Trụ cột 1 · Vị thế Ngành</b></span>
+          <span>Cơ sở pháp lý: <b id="pEra">Nghị định 88/2014 & Luật CK</b></span>
+          <span>Độ minh bạch dữ liệu: <b id="pPct">100%</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cabinet" id="cabinet" aria-labelledby="cab-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Công cụ ước lượng bậc tín nhiệm trước phát hành (Indicative Rating)</p>
+          <h2 id="cab-h" style="margin-top:16px">Mô phỏng bảng chấm điểm<br><em>tín nhiệm & lãi suất trái phiếu</em></h2>
+        </div>
+        <p class="rv">Chọn nhóm ngành của tổ chức phát hành, kéo hệ số khả năng chi trả lãi vay (ICR = EBITDA / Chi phí lãi vay) và tỷ lệ Nợ ròng/EBITDA để xem bậc xếp hạng dự kiến từ BB lên AAA.</p>
+      </div>
+      <div class="cab-shell">
+        <div class="cab-stage">
+          <canvas id="cabC" width="680" height="400" role="img" aria-label="Bảng mô phỏng thang điểm xếp hạng tín nhiệm từ BB đến AAA và lãi suất coupon trái phiếu"></canvas>
+          <div class="cab-controls">
+            <div class="sl-row">
+              <label for="rotR"><span>Hệ số trả lãi ICR (EBITDA / Lãi vay)</span><b id="vRot">4.2x</b></label>
+              <input id="rotR" type="range" min="1.2" max="9.0" step="0.2" value="4.2">
+            </div>
+            <div class="sl-row">
+              <label for="zoomR"><span>Đòn bẩy Nợ ròng / EBITDA (Lần)</span><b id="vZoom">2.5x</b></label>
+              <input id="zoomR" type="range" min="1.0" max="6.0" step="0.5" value="2.5">
+            </div>
+          </div>
+        </div>
+        <div class="cab-info">
+          <span class="mono" style="color:var(--accent)">Chọn ngành của Tổ chức phát hành</span>
+          <div class="art-tabs" id="artTabs" role="group" aria-label="Chọn ngành xếp hạng">
+            <button type="button" class="a-btn" data-a="0" aria-pressed="true">
+              <span class="mono">Dòng tiền Ổn định · PPA</span>
+              <b>Năng Lượng & Hạ Tầng</b>
+            </button>
+            <button type="button" class="a-btn" data-a="1" aria-pressed="false">
+              <span class="mono">Thâm dụng Vốn · Chu kỳ</span>
+              <b>Bất Động Sản & KCN</b>
+            </button>
+            <button type="button" class="a-btn" data-a="2" aria-pressed="false">
+              <span class="mono">Biên lợi nhuận Thực</span>
+              <b>Sản Xuất & Xuất Khẩu</b>
+            </button>
+            <button type="button" class="a-btn" data-a="3" aria-pressed="false">
+              <span class="mono">Khung CAMEL · CAR</span>
+              <b>Ngân Hàng & Chứng Khoán</b>
+            </button>
+          </div>
+          <div>
+            <span class="mono" style="color:var(--gold)" id="aMeta">Thang điểm Quốc gia (National Scale): vnAAA · vnAA · vnA · vnBBB · vnBB</span>
+            <h3 id="aTitle" style="font-size:24px;margin:6px 0 8px">Doanh Nghiệp Điện Tái Tạo, Cấp Nước & Hạ Tầng Giao Thông</h3>
+            <p id="aDesc" style="color:var(--muted)">Hưởng lợi từ hợp đồng mua bán dài hạn và dòng tiền hoạt động dự báo chính xác, cho phép huy động trái phiếu kỳ hạn 5–10 năm với chi phí vốn thấp.</p>
+          </div>
+          <div class="motif-decode" id="aDecode" role="status" aria-live="polite">
+            <strong>Bậc xếp hạng sơ bộ dự kiến: vnA+ (Triển vọng: Ổn định)</strong> — Lãi suất trái phiếu kỳ hạn 3–5 năm tham chiếu: <strong>8.45%/năm</strong> (Chênh lệch +175 bps so với Trái phiếu Chính phủ).
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="dynasty" id="dynasty" aria-labelledby="dy-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Đáp ứng quy định bắt buộc của Luật Chứng khoán</p>
+          <h2 id="dy-h" style="margin-top:16px">Bốn dịch vụ <em>định mức tín nhiệm</em></h2>
+        </div>
+        <p class="rv">Báo cáo của VietRating được chấp thuận trong bộ hồ sơ đăng ký chào bán trái phiếu ra công chúng trình Ủy ban Chứng khoán Nhà nước.</p>
+      </div>
+      <div class="dyn-grid">
+        <article class="dcard rv">
+          <span class="mono">01 · Issuer Rating</span>
+          <h3>Xếp Hạng Tổ Chức Phát Hành</h3>
+          <p>Đánh giá toàn diện năng lực trả nợ tổng thể của doanh nghiệp, phục vụ đàm phán hạn mức tín dụng hợp vốn quốc tế và M&A.</p>
+        </article>
+        <article class="dcard rv">
+          <span class="mono">02 · Bond Issue Rating</span>
+          <h3>Xếp Hạng Công Cụ Nợ Trái Phiếu</h3>
+          <p>Xếp hạng riêng cho từng lô trái phiếu phát hành ra công chúng hoặc riêng lẻ, có tính đến tài sản bảo đảm và bảo lãnh thanh toán của ngân hàng.</p>
+        </article>
+        <article class="dcard rv">
+          <span class="mono">03 · Green Bond SPO</span>
+          <h3>Đánh Giá Độc Lập Trái Phiếu Xanh (SPO)</h3>
+          <p>Cung cấp Ý kiến bên thứ hai (Second-Party Opinion) theo chuẩn ICMA Green Bond Principles để doanh nghiệp tiếp cận quỹ tài chính xanh quốc tế.</p>
+        </article>
+        <article class="dcard rv">
+          <span class="mono">04 · Private Credit Assessment</span>
+          <h3>Đánh Giá Tín Nhiệm Riêng Tư (Indicative)</h3>
+          <p>Giúp HĐQT và CFO biết trước mức điểm tín nhiệm dự kiến và cách cải thiện cấu trúc tài chính trước khi công bố rộng rãi ra thị trường.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="scan" id="scan" aria-labelledby="sc-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <p class="kick">Tường lửa ngăn chặn xung đột lợi ích</p>
+          <h2 id="sc-h" style="margin-top:16px">Ba nguyên tắc <em>độc lập tuyệt đối</em></h2>
+        </div>
+        <p class="rv">Tuân thủ nghiêm ngặt Bộ quy tắc ứng xử của Tổ chức Quốc tế các Ủy ban Chứng khoán (IOSCO).</p>
+      </div>
+      <div class="scan-grid">
+        <article class="scard rv">
+          <span class="mono">01 · Chinese Wall Policy</span>
+          <h3>Tách Biệt Thương Mại & Phân Tích</h3>
+          <p>Chuyên viên phân tích tín nhiệm hoàn toàn không được phép tham gia đàm phán phí dịch vụ với khách hàng để bảo đảm tính khách quan.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">02 · Independent Rating Committee</span>
+          <h3>Hội Đồng Xếp Hạng Biểu Quyết Đa Số</h3>
+          <p>Mọi quyết định cấp bậc hoặc thay đổi triển vọng tín nhiệm đều do Hội đồng gồm 5 chuyên gia cao cấp độc lập bỏ phiếu kín quyết định.</p>
+        </article>
+        <article class="scard rv">
+          <span class="mono">03 · Continuous Surveillance</span>
+          <h3>Giám Sát & Cập Nhật Định Kỳ</h3>
+          <p>Theo dõi liên tục báo cáo tài chính bán niên, kiểm toán năm và các sự kiện trọng yếu suốt vòng đời lưu hành của trái phiếu.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta" id="visit" aria-labelledby="cta-h">
+    <div class="wrap">
+      <div class="cta-box">
+        <p class="kick">Dành Cho Tổ Chức Phát Hành, Công Ty Chứng Khoán Tư Vấn (IB) & Quỹ Đầu Tư</p>
+        <h2 id="cta-h" style="margin-top:14px">Đăng Ký Họp Phiên Thẩm Định Sơ Bộ &<br><em>Nhận Khung Phương Pháp Luận Ngành</em></h2>
+        <form class="cta-form" id="ctaForm" novalidate>
+          <div>
+            <label for="vName">Họ tên & Chức danh (CFO / Giám đốc Nguồn vốn / IB)</label>
+            <input id="vName" type="text" placeholder="Phan Tuấn Kiệt — Giám đốc Khối Nguồn vốn" required>
+          </div>
+          <div>
+            <label for="vEmail">Email tổ chức</label>
+            <input id="vEmail" type="email" placeholder="kiet.phan@energycorp.vn" required>
+          </div>
+          <div>
+            <label for="vRole">Mục đích đăng ký xếp hạng tín nhiệm</label>
+            <select id="vRole">
+              <option value="public">Phát hành Trái phiếu ra công chúng (Trình UBCKNN)</option>
+              <option value="priv">Phát hành Trái phiếu riêng lẻ cho Quỹ đầu tư / Bảo hiểm</option>
+              <option value="indicative">Đánh giá Tín nhiệm Sơ bộ nội bộ (Indicative Rating)</option>
+            </select>
+          </div>
+          <div>
+            <label for="vEra">Quy mô đợt phát hành dự kiến</label>
+            <select id="vEra">
+              <option value="b1">Từ 200 Tỷ – 500 Tỷ VNĐ</option>
+              <option value="b2">Từ 500 Tỷ – 2.000 Tỷ VNĐ</option>
+              <option value="b3">Trên 2.000 Tỷ VNĐ hoặc Trái phiếu Xanh Quốc tế</option>
+            </select>
+          </div>
+          <div class="full" style="text-align:center;margin-top:8px">
+            <button class="btn" type="submit">Yêu Cầu Hồ Sơ Quy Trình & Lịch Họp Rating</button>
+          </div>
+        </form>
+        <p class="cta-ok" id="ctaOk" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <a class="logo" href="#top">VietRating Credit Agency</a>
+      <ul class="f-nav">
+        <li><a href="#process">5 Trụ Cột</a></li>
+        <li><a href="#cabinet">Mô Phỏng Điểm</a></li>
+        <li><a href="#dynasty">Dịch Vụ Rating</a></li>
+        <li><a href="#scan">Chuẩn IOSCO</a></li>
+        <li><a href="#visit">Đăng Ký</a></li>
+      </ul>
+    </div>
+    <div class="f-fine">
+      <span>© <span id="yr"></span> VietRating Independent Credit Rating Agency · Giấy phép Đủ điều kiện Kinh doanh Dịch vụ Xếp hạng Tín nhiệm</span>
+      <span>Thiết kế concept — thương hiệu giả định.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const G = window.gsap;
+  const anim = !!G && !reduce;
+  if (!anim) document.documentElement.classList.add('rm');
+  if (G && window.ScrollTrigger) G.registerPlugin(ScrollTrigger);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  $('#yr').textContent = new Date().getFullYear();
+
+  // Hero Corporate Bond Yield & Credit Spread Canvas
+  const heroC = $('#heroC'), heroX = heroC.getContext('2d');
+  function drawHero(activeBand = 1) {
+    const w = 580, h = 420;
+    heroX.fillStyle = '#050D18';
+    heroX.fillRect(0, 0, w, h);
+
+    const bands = [
+      { rating: 'vnAAA', spread: '+95 bps', yield: '7.65%/năm', risk: 'Năng lực trả nợ Tối ưu', col: '#22C55E' },
+      { rating: 'vnAA', spread: '+135 bps', yield: '8.05%/năm', risk: 'Rủi ro tín dụng Rất thấp', col: '#38BDF8' },
+      { rating: 'vnA', spread: '+185 bps', yield: '8.55%/năm', risk: 'Nền tảng Tài chính Vững mạnh', col: '#FACC15' },
+      { rating: 'vnBBB', spread: '+260 bps', yield: '9.30%/năm', risk: 'Ngưỡng Đầu tư Tiêu chuẩn', col: '#F97316' },
+      { rating: 'vnBB', spread: '+390 bps', yield: '10.60%/năm', risk: 'Nhạy cảm với Chu kỳ Kinh tế', col: '#EF4444' }
+    ];
+
+    heroX.fillStyle = '#38BDF8';
+    heroX.font = '600 11px "JetBrains Mono", monospace';
+    heroX.fillText('THANG ĐIỂM TÍN NHIỆM QUỐC GIA & LỢI SUẤT THAM CHIẾU KỲ HẠN 5 NĂM', 32, 34);
+
+    bands.forEach((b, i) => {
+      const y = 54 + i * 68;
+      const sel = i === activeBand;
+      heroX.fillStyle = sel ? 'rgba(56,189,248,0.18)' : 'rgba(16,36,63,0.75)';
+      heroX.fillRect(32, y, 516, 56);
+      heroX.strokeStyle = sel ? b.col : 'rgba(255,255,255,0.12)';
+      heroX.lineWidth = sel ? 2 : 1;
+      heroX.strokeRect(32, y, 516, 56);
+
+      heroX.fillStyle = b.col;
+      heroX.fillRect(32, y, 88, 56);
+      heroX.fillStyle = '#081424';
+      heroX.font = '700 16px "Space Grotesk", sans-serif';
+      heroX.fillText(b.rating, 48, y + 34);
+
+      heroX.fillStyle = '#F8FAFC';
+      heroX.font = '600 14px "Be Vietnam Pro", sans-serif';
+      heroX.fillText(b.risk, 136, y + 25);
+      heroX.fillStyle = '#94A3B8';
+      heroX.font = '500 11px "JetBrains Mono", monospace';
+      heroX.fillText(`Chênh lệch G-Bond: ${b.spread}`, 136, y + 44);
+
+      heroX.fillStyle = b.col;
+      heroX.font = '700 14px "JetBrains Mono", monospace';
+      heroX.fillText(b.yield, 435, y + 34);
+    });
+  }
+  drawHero(1);
+  heroC.addEventListener('pointermove', (e) => {
+    const r = heroC.getBoundingClientRect();
+    const y = ((e.clientY - r.top) / r.height) * 420;
+    const idx = Math.max(0, Math.min(4, Math.floor((y - 54) / 68)));
+    drawHero(idx);
+  });
+
+  // Pinned 5-Pillar Scorecard Canvas
+  const pinC = $('#pinC'), pinX = pinC.getContext('2d');
+  const GALS = [
+    ['Trụ cột 1 · Vị thế Ngành & Quy mô', 'Trọng số 25% Điểm cơ sở'],
+    ['Trụ cột 2 · Đòn bẩy & Dòng tiền', 'Nợ ròng/EBITDA & ICR (30%)'],
+    ['Trụ cột 3 · Độ phủ Thanh khoản', 'Nguồn tiền/Nợ ngắn hạn >= 1.2x'],
+    ['Trụ cột 4 & 5 · Quản trị & Bảo lãnh', 'Hội đồng Xếp hạng Độc lập']
+  ];
+  function renderPin(p) {
+    const w = 660, h = 440;
+    const step = p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3;
+    pinX.fillStyle = '#050D18';
+    pinX.fillRect(0, 0, w, h);
+
+    const pillars = [
+      { wgt: '25%', name: '01. Hồ sơ Rủi ro Kinh doanh & Vị thế Thị trường', score: 86, col: '#38BDF8' },
+      { wgt: '30%', name: '02. Đòn bẩy Tài chính & Khả năng Trả lãi (ICR)', score: 82, col: '#22C55E' },
+      { wgt: '20%', name: '03. Thanh khoản 12 Tháng & Cấu trúc Kỳ hạn Nợ', score: 88, col: '#FACC15' },
+      { wgt: '15%', name: '04. Quản trị Công ty, Minh bạch & Kiểm toán', score: 90, col: '#38BDF8' },
+      { wgt: '10%', name: '05. Cấu trúc Đảm bảo & Bảo lãnh Lô Trái phiếu', score: 85, col: '#22C55E' }
+    ];
+
+    pillars.forEach((pl, i) => {
+      const y = 36 + i * 76;
+      const highlight = i === step || (step === 3 && i >= 3);
+      pinX.fillStyle = highlight ? 'rgba(56,189,248,0.18)' : 'rgba(255,255,255,0.04)';
+      pinX.fillRect(34, y, 592, 62);
+      pinX.strokeStyle = highlight ? pl.col : 'rgba(255,255,255,0.12)';
+      pinX.strokeRect(34, y, 592, 62);
+
+      pinX.fillStyle = pl.col;
+      pinX.font = '700 12px "JetBrains Mono", monospace';
+      pinX.fillText(`TRỌNG SỐ ${pl.wgt}`, 50, y + 25);
+      pinX.fillStyle = '#F8FAFC';
+      pinX.font = '600 14px "Be Vietnam Pro", sans-serif';
+      pinX.fillText(pl.name, 50, y + 47);
+
+      // Score bar on right
+      pinX.fillStyle = 'rgba(255,255,255,0.1)';
+      pinX.fillRect(460, y + 22, 140, 18);
+      pinX.fillStyle = pl.col;
+      pinX.fillRect(460, y + 22, (pl.score / 100) * 140, 18);
+    });
+
+    $('#pGal').textContent = GALS[step][0];
+    $('#pEra').textContent = GALS[step][1];
+    $('#pPct').textContent = `${Math.round(Math.max(25, p * 100))}%`;
+  }
+  renderPin(0.5);
+
+  // Interactive Preliminary Credit Rating & Bond Yield Simulator
+  const SECTORS = [
+    {
+      sectorBonus: 0.6,
+      meta: 'Thang điểm Quốc gia (National Scale): vnAAA · vnAA · vnA · vnBBB · vnBB',
+      title: 'Doanh Nghiệp Điện Tái Tạo, Cấp Nước & Hạ Tầng Giao Thông',
+      desc: 'Hưởng lợi từ hợp đồng mua bán dài hạn và dòng tiền hoạt động dự báo chính xác, cho phép huy động trái phiếu kỳ hạn 5–10 năm với chi phí vốn thấp.'
+    },
+    {
+      sectorBonus: -0.4,
+      meta: 'Trọng tâm thẩm định: Pháp lý dự án 1/500, tỷ lệ hấp thụ Pre-sales & Quỹ đất sạch',
+      title: 'Chủ Đầu Tư Khu Đô Thị, Khu Công Nghiệp & Bất Động Sản Thương Mại',
+      desc: 'Yêu cầu kiểm soát chặt chẽ tỷ lệ nợ vay trên hàng tồn kho và tiến độ dòng tiền thu từ khách hàng theo từng giai đoạn bàn giao.'
+    },
+    {
+      sectorBonus: 0.2,
+      meta: 'Trọng tâm thẩm định: Vòng quay vốn lưu động, biên EBITDA & Hợp đồng xuất khẩu',
+      title: 'Tập Đoàn Sản Xuất Công Nghiệp, Thép, Thực Phẩm & Nông Nghiệp',
+      desc: 'Đánh giá sức chống chịu trước biến động giá nguyên vật liệu đầu vào và năng lực duy trì dòng tiền hoạt động thuần dương.'
+    },
+    {
+      sectorBonus: 0.4,
+      meta: 'Khung phân tích CAMEL: Hệ số an toàn vốn (CAR), Tỷ lệ nợ xấu (NPL) & CASA',
+      title: 'Ngân Hàng Thương Mại, Công Ty Chứng Khoán & Tài Chính Tiêu Dùng',
+      desc: 'Phục vụ phát hành trái phiếu tăng vốn cấp 2 (Tier-2 Capital Bonds) hoặc trái phiếu xanh tài trợ tín dụng bền vững.'
+    }
+  ];
+
+  const cabC = $('#cabC'), cabX = cabC.getContext('2d');
+  let curSec = 0, icr = 4.2, netDebtEbitda = 2.5;
+
+  function renderCabinet() {
+    const w = 680, h = 400;
+    cabX.fillStyle = '#050D18';
+    cabX.fillRect(0, 0, w, h);
+
+    const s = SECTORS[curSec];
+    const composite = icr * 1.15 - netDebtEbitda * 0.85 + s.sectorBonus;
+
+    let rating = 'vnBBB', outlook = 'Ổn định', coupon = 9.35, spread = 265, idxBand = 3;
+    if (composite >= 5.2) { rating = 'vnAAA'; outlook = 'Ổn định'; coupon = 7.60; spread = 90; idxBand = 0; }
+    else if (composite >= 3.8) { rating = 'vnAA'; outlook = 'Tích cực'; coupon = 8.05; spread = 135; idxBand = 1; }
+    else if (composite >= 2.4) { rating = 'vnA+'; outlook = 'Ổn định'; coupon = 8.45; spread = 175; idxBand = 2; }
+    else if (composite >= 1.1) { rating = 'vnBBB'; outlook = 'Ổn định'; coupon = 9.30; spread = 260; idxBand = 3; }
+    else { rating = 'vnBB'; outlook = 'Thận trọng'; coupon = 10.75; spread = 405; idxBand = 4; }
+
+    cabX.fillStyle = '#38BDF8';
+    cabX.font = '600 12px "JetBrains Mono", monospace';
+    cabX.fillText(`CHỈ SỐ TÀI CHÍNH: ICR = ${icr.toFixed(1)}x · NỢ RÒNG/EBITDA = ${netDebtEbitda.toFixed(1)}x`, 36, 36);
+
+    // 5 Rating Blocks horizontally
+    const ladder = [
+      { r: 'vnAAA', c: '#22C55E', sub: 'Chuẩn Vàng' },
+      { r: 'vnAA', c: '#38BDF8', sub: 'Rất Cao' },
+      { r: 'vnA+', c: '#FACC15', sub: 'Vững Mạnh' },
+      { r: 'vnBBB', c: '#F97316', sub: 'Đầu Tư' },
+      { r: 'vnBB', c: '#EF4444', sub: 'Lợi Suất Cao' }
+    ];
+
+    ladder.forEach((ld, i) => {
+      const x = 36 + i * 124;
+      const active = i === idxBand;
+      cabX.fillStyle = active ? ld.c : 'rgba(16,36,63,0.75)';
+      cabX.fillRect(x, 60, 112, 118);
+      cabX.strokeStyle = active ? '#FFFFFF' : ld.c;
+      cabX.lineWidth = active ? 3 : 1.5;
+      cabX.strokeRect(x, 60, 112, 118);
+
+      cabX.fillStyle = active ? '#081424' : '#F8FAFC';
+      cabX.font = '700 22px "Space Grotesk", sans-serif';
+      cabX.fillText(ld.r, x + 18, 112);
+      cabX.font = '600 11px "JetBrains Mono", monospace';
+      cabX.fillText(ld.sub, x + 18, 146);
+    });
+
+    // Detailed Output Panel
+    cabX.fillStyle = '#10243F';
+    cabX.fillRect(36, 208, 608, 160);
+    cabX.strokeStyle = '#38BDF8';
+    cabX.strokeRect(36, 208, 608, 160);
+
+    cabX.fillStyle = '#FACC15';
+    cabX.font = '700 12px "JetBrains Mono", monospace';
+    cabX.fillText(`KẾT QUẢ MÔ PHỎNG TÍN NHIỆM SƠ BỘ · TRIỂN VỌNG: ${outlook.toUpperCase()}`, 56, 240);
+
+    cabX.fillStyle = '#F8FAFC';
+    cabX.font = '700 28px "Space Grotesk", sans-serif';
+    cabX.fillText(`Bậc Xếp Hạng: ${rating}  |  Coupon Tham Chiếu: ${coupon.toFixed(2)}%/năm`, 56, 282);
+
+    cabX.fillStyle = '#94A3B8';
+    cabX.font = '400 14px "Be Vietnam Pro", sans-serif';
+    cabX.fillText(`• Chênh lệch so với Trái phiếu Chính phủ 5 năm (Credit Spread): +${spread} bps`, 56, 318);
+    cabX.fillText(`• Đủ điều kiện phân phối cho Quỹ Bảo hiểm Nhân thọ, Quỹ Mở & Ngân hàng Thương mại`, 56, 344);
+
+    $('#aDecode').innerHTML = `<strong>Bậc xếp hạng sơ bộ dự kiến: ${rating} (Triển vọng: ${outlook})</strong> — Lãi suất trái phiếu kỳ hạn 3–5 năm tham chiếu: <strong>${coupon.toFixed(2)}%/năm</strong> (Chênh lệch +${spread} bps so với Trái phiếu Chính phủ).`;
+  }
+
+  function selectSec(idx) {
+    curSec = idx;
+    const s = SECTORS[idx];
+    $('#aMeta').textContent = s.meta;
+    $('#aTitle').textContent = s.title;
+    $('#aDesc').textContent = s.desc;
+    $$('#artTabs .a-btn').forEach((b, i) => b.setAttribute('aria-pressed', i === idx));
+    renderCabinet();
+  }
+  selectSec(0);
+
+  $('#artTabs').addEventListener('click', (e) => {
+    const b = e.target.closest('.a-btn');
+    if (b) selectSec(+b.dataset.a);
+  });
+  $('#rotR').addEventListener('input', (e) => {
+    icr = +e.target.value;
+    $('#vRot').textContent = `${icr.toFixed(1)}x`;
+    renderCabinet();
+  });
+  $('#zoomR').addEventListener('input', (e) => {
+    netDebtEbitda = +e.target.value;
+    $('#vZoom').textContent = `${netDebtEbitda.toFixed(1)}x`;
+    renderCabinet();
+  });
+
+  // Nav, Mobile Menu & Form
+  const nav = $('#nav');
+  addEventListener('scroll', () => nav.classList.toggle('solid', scrollY > 30), { passive: true });
+  const mb = $('#menuBtn'), mm = $('#mmenu');
+  function setMenu(open) {
+    mb.setAttribute('aria-expanded', open);
+    mm.classList.toggle('open', open);
+    mm.setAttribute('aria-hidden', !open);
+  }
+  mb.addEventListener('click', () => setMenu(mb.getAttribute('aria-expanded') !== 'true'));
+  mm.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
+
+  $('#ctaForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const n = $('#vName').value.trim();
+    $('#ctaOk').textContent = n ? `Trân trọng cảm ơn ${n}! Khối Dịch vụ Thị trường Vốn VietRating sẽ gửi Khung Phương pháp luận Ngành và xác nhận lịch họp Rating sơ bộ.` : 'Vui lòng nhập họ tên và địa chỉ email tổ chức.';
+  });
+
+  let lenis = null;
+  if (anim && window.Lenis) {
+    lenis = new Lenis({ lerp: 0.085 });
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    G.ticker.add((t) => lenis.raf(t * 1000));
+    G.ticker.lagSmoothing(0);
+  }
+  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+    const id = a.getAttribute('href');
+    if (id.length < 2 || !$(id)) return;
+    e.preventDefault();
+    lenis ? lenis.scrollTo($(id)) : $(id).scrollIntoView({ behavior: 'smooth' });
+  }));
+
+  if (!anim) return;
+
+  G.from('.hero h1 .mask>span', { yPercent: 110, duration: 1.1, stagger: 0.12, ease: 'expo.out', delay: 0.15 });
+  G.from('.hf', { autoAlpha: 0, y: 20, duration: 0.85, stagger: 0.08, ease: 'power3.out', delay: 0.35 });
+
+  const psteps = $$('.pstep');
+  let curP = -1;
+  function setP(i) {
+    if (i === curP) return;
+    curP = i;
+    psteps.forEach((s, k) => G.to(s, { autoAlpha: k === i ? 1 : 0, y: k === i ? 0 : 16, duration: 0.45, overwrite: true }));
+  }
+  G.set(psteps, { autoAlpha: 0 });
+  renderPin(0); setP(0);
+  ScrollTrigger.create({
+    trigger: '.process', start: 'top top', end: '+=280%', pin: '#prPin', scrub: true,
+    onUpdate(self) {
+      const p = self.progress;
+      renderPin(p);
+      setP(p < 0.24 ? 0 : p < 0.5 ? 1 : p < 0.76 ? 2 : 3);
+    }
+  });
+
+  ScrollTrigger.batch('.rv', {
+    start: 'top 88%', once: true,
+    onEnter: (els) => G.from(els, { autoAlpha: 0, y: 28, duration: 0.9, stagger: 0.08, ease: 'power3.out' })
+  });
+})();
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>

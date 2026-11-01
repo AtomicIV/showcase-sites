@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clause — Đọc kỹ từng dòng trước khi đặt bút ký</title>
+<meta name="description" content="Clause rà soát hợp đồng từng dòng đối chiếu với bộ quy tắc của riêng bạn, giải thích mọi điều khoản rủi ro bằng ngôn ngữ đời thường và soạn thảo bản sửa đổi để bạn chấp nhận ngay.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23172033'/%3E%3Cpath d='M16 20h32M16 30h32M16 40h20' stroke='%23F4F1E8' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M12 30h40' stroke='%23E0474F' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M40 44h10' stroke='%236E9BEA' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Brygada+1918:ital,wght@0,400..700;1,400..700&family=Onest:wght@400..700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F4F1E8; --paper2:#EBE6D8; --sheet:#FFFDF7; --ink:#172033; --muted:#4D5669; --blue:#2B5CB8; --blue-d:#1F4690; --blue-l:#DDE7F8; --red:#C3262E; --red-l:#F8DEDA; --ochre:#8A5A00; --ochre-l:#F4E6C6;
+  --line:rgba(23,32,51,.14); --line2:rgba(23,32,51,.28);
+  --serif:"Brygada 1918", Georgia, serif; --mono:"IBM Plex Mono", ui-monospace, monospace; --sans:"Onest", system-ui, sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--ink);color:var(--paper);padding:10px 16px;z-index:400}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.wrap{width:min(1240px,100% - 64px);margin-inline:auto}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:500;margin:0;line-height:1.08;letter-spacing:-.015em}
+h2{font-size:clamp(38px,4.6vw,72px)}
+h2 em{font-style:italic;color:var(--blue)}
+p{margin:0}
+.mono{font-family:var(--mono)}
+.kick{display:inline-flex;align-items:center;gap:12px;font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.kick b{font-weight:600;color:var(--red)}
+.mask{display:block;overflow:hidden;padding:.18em .04em .18em;margin:-.18em -.04em -.18em}
+.mask>span{display:block}
+del,.del{text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px;color:var(--red)}
+ins,.ins{text-decoration:underline double;text-decoration-color:var(--blue);text-underline-offset:4px;color:var(--blue-d)}
+
+.btn{--mx:0px;--my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);font-weight:600;font-size:16px;text-decoration:none;cursor:pointer;border-radius:4px;transform:translate(var(--mx),var(--my));transition:transform .5s var(--ease),background .3s,color .3s,box-shadow .3s}
+.btn:hover{background:var(--blue-d);border-color:var(--blue-d);box-shadow:4px 4px 0 var(--blue-l)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--sheet);color:var(--ink);border-color:var(--ink)}
+.btn.sm{min-height:44px;padding:0 16px;font-size:15px}
+.btn[disabled]{opacity:.45;cursor:not-allowed;box-shadow:none}
+.btn svg{width:18px;height:18px}
+.tlink{text-decoration:none;background:linear-gradient(var(--red),var(--red)) 0 55%/0 2px no-repeat;transition:background-size .4s var(--ease)}
+.tlink:hover{background-size:100% 2px}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto;z-index:90;transition:background .4s,box-shadow .4s}
+.nav.solid{background:rgba(244,241,232,.93);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;gap:20px}
+.logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--serif);font-weight:600;font-size:27px;letter-spacing:-.02em;min-height:44px}
+.logo svg{width:30px;height:30px}
+.nav ul{display:flex;gap:2px;list-style:none;margin:0;padding:0}
+.nav ul a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;text-decoration:none;font-size:15px;font-weight:500}
+.nav ul a span{background:linear-gradient(var(--red),var(--red)) 0 55%/0 2px no-repeat;transition:background-size .4s var(--ease)}
+.nav ul a:hover span{background-size:100% 2px}
+.nav-r{display:flex;align-items:center;gap:10px}
+.menu-btn{display:none;width:48px;height:48px;border:1.5px solid var(--ink);background:var(--sheet);cursor:pointer;align-items:center;justify-content:center;border-radius:4px}
+.menu-btn i,.menu-btn i::after{display:block;width:20px;height:2px;background:var(--ink);transition:transform .35s}
+.menu-btn i{position:relative;transform:translateY(-3px)}
+.menu-btn i::after{content:"";position:absolute;left:0;top:6px}
+.menu-btn[aria-expanded="true"] i{transform:rotate(45deg)}
+.menu-btn[aria-expanded="true"] i::after{transform:translateY(-6px) rotate(-90deg)}
+.mmenu{position:fixed;left:12px;right:12px;top:82px;z-index:89;background:var(--sheet);border:1.5px solid var(--ink);padding:10px;display:grid;opacity:0;visibility:hidden;transform:translateY(-10px);transition:opacity .35s,visibility .35s,transform .45s var(--ease);box-shadow:6px 6px 0 var(--blue-l)}
+.mmenu.open{opacity:1;visibility:visible;transform:none}
+.mmenu a{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 12px;text-decoration:none;font-family:var(--serif);font-size:26px;border-bottom:1px solid var(--line)}
+.mmenu a:last-child{border:0}
+.mmenu a small{font-family:var(--mono);font-size:13px;color:var(--muted)}
+
+/* hero */
+.hero{position:relative;min-height:100vh;min-height:100svh;padding:130px 0 80px;display:flex;align-items:center;overflow:hidden}
+.rail{position:absolute;left:0;top:0;bottom:0;width:58px;border-right:1px solid rgba(195,38,46,.45);box-shadow:3px 0 0 -2px rgba(195,38,46,.45);padding-top:136px;font-family:var(--mono);font-size:12px;line-height:34px;color:#7A8090;text-align:right;padding-right:12px;pointer-events:none}
+.hero .wrap{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+.hero h1{font-size:clamp(50px,6.4vw,102px);line-height:1.08;font-weight:500;margin:22px 0 0}
+.hdel{position:relative;display:inline-block;color:var(--red)}
+.hdel .strike{position:absolute;left:-2%;right:-2%;top:54%;height:.07em;background:var(--red);transform-origin:0 50%;border-radius:2px}
+.hins{position:relative;display:inline-block;color:var(--blue);font-style:italic;padding-right:.05em}
+.hins .dbl{position:absolute;left:0;right:0;bottom:.02em;height:.12em;border-top:2px solid var(--blue);border-bottom:2px solid var(--blue);transform-origin:0 50%}
+.hero-lead{font-size:20px;color:var(--muted);max-width:44ch;margin:30px 0 34px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.hero-meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:34px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.hero-meta span{display:inline-flex;align-items:center;gap:8px}
+.hero-meta i{width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.sheets{position:relative;aspect-ratio:.86;width:100%;max-width:520px;justify-self:center}
+.sheet{position:absolute;inset:0;background:var(--sheet);border:1px solid var(--line2);box-shadow:0 30px 60px -30px rgba(23,32,51,.35)}
+.sheet.b2{transform:rotate(-5deg) translate(-16px,10px)}
+.sheet.b1{transform:rotate(3deg) translate(12px,4px)}
+.sheet.front{padding:38px 38px 30px 62px;overflow:hidden}
+.sheet.front::before{content:"";position:absolute;left:44px;top:0;bottom:0;width:4px;border-left:1px solid rgba(195,38,46,.5);border-right:1px solid rgba(195,38,46,.5)}
+.sh-h{font-family:var(--serif);font-weight:600;font-size:19px;letter-spacing:.06em;text-align:center}
+.sh-sub{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin:4px 0 22px}
+.sh-cl{font-family:var(--serif);font-size:15px;line-height:1.55;margin-bottom:14px;position:relative}
+.sh-cl b{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--muted);margin-right:6px}
+.sh-cl mark{background:linear-gradient(var(--blue-l),var(--blue-l)) 0 0/100% 100% no-repeat;color:inherit;padding:0 2px;box-shadow:inset 0 -2px 0 var(--blue)}
+.sh-cl mark.r{background-image:linear-gradient(var(--red-l),var(--red-l));box-shadow:inset 0 -2px 0 var(--red)}
+.bars i{display:block;height:8px;background:var(--paper2);margin:9px 0;border-radius:2px}
+.mnote{position:absolute;z-index:3;width:min(250px,56%);background:var(--sheet);border:1.5px solid var(--blue);padding:12px 14px;font-size:14px;line-height:1.45;box-shadow:6px 6px 0 var(--blue-l)}
+.mnote .t{display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue-d);margin-bottom:4px}
+.mnote.r{border-color:var(--red);box-shadow:6px 6px 0 var(--red-l)}
+.mnote.r .t{color:var(--red)}
+.mnote.n1{right:-9%;top:30%}
+.mnote.n2{left:-12%;bottom:12%}
+.stamp{position:absolute;right:6%;bottom:5%;z-index:2;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);border:2px solid var(--blue);padding:8px 12px;transform:rotate(-7deg);background:rgba(255,253,247,.85)}
+
+/* docket band */
+.docket{background:var(--ink);color:var(--paper);padding:34px 0}
+.docket .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.dk{border-left:1px solid rgba(244,241,232,.25);padding-left:18px}
+.dk b{display:block;font-family:var(--serif);font-weight:500;font-size:clamp(36px,3.6vw,52px);line-height:1}
+.dk span{font-family:var(--mono);font-size:13px;color:#C3C8D4;letter-spacing:.04em}
+
+/* how (pinned) */
+.how{position:relative;background:var(--paper2)}
+.how-pin{position:relative;height:100vh;height:100svh;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;align-items:center;width:min(1240px,100% - 64px);margin-inline:auto;padding-top:76px}
+.how h2{margin:16px 0 26px;font-size:clamp(40px,4.4vw,68px)}
+.steps{position:relative;height:210px}
+.step{position:absolute;inset:0}
+.step .no{font-family:var(--mono);font-size:13px;color:var(--red);letter-spacing:.1em}
+.step h3{font-size:clamp(28px,2.6vw,38px);margin:8px 0 12px}
+.step p{color:var(--muted);max-width:42ch}
+.prog{display:flex;align-items:center;gap:14px;margin-top:18px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.prog .bar{flex:1;max-width:240px;height:3px;background:var(--line);position:relative;overflow:hidden}
+.prog .bar i{position:absolute;inset:0;background:var(--blue);transform-origin:0 50%;transform:scaleX(0)}
+.reader{position:relative;height:min(78vh,700px);background:var(--sheet);border:1px solid var(--line2);overflow:hidden;box-shadow:0 30px 60px -30px rgba(23,32,51,.3)}
+.reader::before{content:"";position:absolute;left:40px;top:0;bottom:0;width:4px;border-left:1px solid rgba(195,38,46,.45);border-right:1px solid rgba(195,38,46,.45);z-index:1}
+.rpage{position:absolute;left:0;right:0;top:0;padding:40px 30px 40px 64px;will-change:transform}
+.rpage h4{font-size:20px;letter-spacing:.06em;text-align:center;margin-bottom:24px}
+.rc{position:relative;font-family:var(--serif);font-size:15.5px;line-height:1.55;padding:10px 12px;margin:0 -12px 6px;border-left:3px solid transparent;transition:background .5s,border-color .5s}
+.rc b{font-family:var(--mono);font-size:12px;color:var(--muted);margin-right:6px}
+.rc .tag{position:absolute;right:8px;top:-9px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;background:var(--sheet);border:1px solid currentColor;opacity:0;transform:translateY(6px);transition:opacity .45s,transform .45s var(--ease)}
+.rc.read .tag{opacity:1;transform:none}
+.rc.read.ok{border-left-color:rgba(23,32,51,.25)}
+.rc .tag.ok{color:var(--muted)}
+.rc .tag.hi{color:var(--red)}
+.rc .tag.md{color:var(--ochre)}
+.rc.read.hi{background:var(--red-l);border-left-color:var(--red)}
+.rc.read.md{background:var(--ochre-l);border-left-color:var(--ochre)}
+.rule{position:absolute;left:0;right:0;top:50%;height:0;border-top:2px solid var(--blue);z-index:2;pointer-events:none}
+.rule::before{content:"Clause đang đọc";position:absolute;right:10px;top:-26px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper);background:var(--blue);padding:3px 8px}
+.rule::after{content:"";position:absolute;left:0;right:0;top:-60px;height:58px;background:linear-gradient(transparent,rgba(43,92,184,.08))}
+
+/* demo */
+.demo{padding:140px 0 120px}
+.sec-head{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:end;margin-bottom:46px}
+.sec-head p{color:var(--muted);max-width:46ch}
+.picker{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.picker button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:64px;padding:10px 18px;border:1.5px solid var(--line2);background:var(--sheet);cursor:pointer;text-align:left;border-radius:4px;transition:border-color .3s,box-shadow .3s,transform .4s var(--ease)}
+.picker button small{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
+.picker button b{font-family:var(--serif);font-weight:600;font-size:18px}
+.picker button:hover{transform:translateY(-2px);border-color:var(--ink)}
+.picker button[aria-selected="true"]{border-color:var(--ink);box-shadow:5px 5px 0 var(--blue-l)}
+.desk{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;align-items:start}
+.docbox{position:relative;background:var(--sheet);border:1px solid var(--line2);box-shadow:0 30px 60px -34px rgba(23,32,51,.4)}
+.docbar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px 12px 20px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--muted)}
+.docbar .dots{display:flex;gap:6px}
+.docbar .dots i{width:10px;height:10px;border-radius:50%;border:1px solid var(--line2)}
+.doc{--m:44px;position:relative;max-height:660px;overflow:auto;padding:34px 30px 40px 66px;scroll-behavior:smooth;overscroll-behavior:contain;background:linear-gradient(90deg,transparent var(--m),rgba(195,38,46,.45) var(--m) calc(var(--m) + 1px),transparent calc(var(--m) + 1px) calc(var(--m) + 3px),rgba(195,38,46,.45) calc(var(--m) + 3px) calc(var(--m) + 4px),transparent calc(var(--m) + 4px));background-attachment:local}
+.doc h3{font-size:24px;letter-spacing:.02em;text-align:center}
+.doc .parties{font-family:var(--serif);font-style:italic;text-align:center;color:var(--muted);margin:8px 0 26px;font-size:16px}
+.cl{position:relative;padding:12px 14px;margin:0 -14px 4px;border-left:3px solid transparent;transition:background .5s,border-color .5s,opacity .5s}
+.cl h4{font-size:18px;font-weight:600;margin-bottom:4px;letter-spacing:0}
+.cl h4 .no{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--muted);margin-right:8px}
+.cl p{font-family:var(--serif);font-size:16.5px;line-height:1.6}
+.cl .flag{position:absolute;left:-50px;top:14px;width:30px;height:30px;display:grid;place-items:center;font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;border-radius:50%;opacity:0;transform:scale(.4);transition:opacity .35s,transform .45s var(--ease)}
+.cl.hit .flag{opacity:1;transform:none}
+.cl.hit.high{background:var(--red-l);border-left-color:var(--red)}
+.cl.hit.high .flag{background:var(--red)}
+.cl.hit.med{background:var(--ochre-l);border-left-color:var(--ochre)}
+.cl.hit.med .flag{background:var(--ochre)}
+.cl.hit.low{background:var(--blue-l);border-left-color:var(--blue)}
+.cl.hit.low .flag{background:var(--blue)}
+.cl.fixed{background:rgba(221,231,248,.45)!important;border-left-color:var(--blue)!important}
+.cl.fixed .flag{background:var(--blue)!important}
+.cl.kept{background:transparent!important;border-left-color:var(--line2)!important}
+.cl.kept .flag{background:#7A8090!important}
+.cl.focus{box-shadow:0 0 0 2px var(--ink)}
+.cl:focus{outline:none}
+.cl ins{display:block;margin-top:6px}
+.scan{position:absolute;left:0;right:0;top:0;height:120px;pointer-events:none;background:linear-gradient(180deg,rgba(43,92,184,0),rgba(43,92,184,.12) 80%,rgba(43,92,184,.0));border-bottom:2px solid var(--blue);opacity:0}
+.side{position:sticky;top:96px;display:grid;gap:14px}
+.meter{display:grid;grid-template-columns:120px 1fr;gap:18px;align-items:center;background:var(--sheet);border:1px solid var(--line2);padding:16px 18px}
+.gauge{position:relative;width:120px;height:70px}
+.gauge svg{width:120px;height:70px;overflow:visible}
+.gauge b{position:absolute;left:0;right:0;bottom:-2px;text-align:center;font-family:var(--serif);font-size:30px;line-height:1}
+.meter .lbl{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.meter .lvl{font-family:var(--serif);font-size:26px;line-height:1.1;margin:2px 0 6px}
+.meter .cnt{font-size:15px;color:var(--muted)}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px}
+.notes{display:grid;gap:12px;max-height:560px;overflow:auto;padding:2px 4px 4px 2px;overscroll-behavior:contain}
+.empty{border:1.5px dashed var(--line2);padding:26px 22px;color:var(--muted);background:rgba(255,253,247,.5)}
+.empty b{display:block;font-family:var(--serif);font-weight:500;font-size:24px;color:var(--ink);margin-bottom:6px;line-height:1.15}
+.note{position:relative;background:var(--sheet);border:1px solid var(--line2);border-left:4px solid var(--red);padding:16px 18px 16px;transition:opacity .4s,border-color .4s}
+.note.med{border-left-color:var(--ochre)}
+.note.low{border-left-color:var(--blue)}
+.note.done{opacity:.72}
+.note .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+.chip{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;color:#fff;background:var(--red)}
+.note.med .chip{background:var(--ochre)}
+.note.low .chip{background:var(--blue)}
+.note .ref{border:0;background:none;padding:0 2px;min-height:44px;cursor:pointer;font-family:var(--mono);font-size:13px;color:var(--blue-d);text-decoration:underline;text-underline-offset:3px}
+.note h4{font-size:21px;margin-bottom:6px;letter-spacing:-.005em}
+.note p{font-size:15.5px;color:var(--muted)}
+.note .fix{margin-top:12px;padding:10px 12px;background:var(--blue-l);font-family:var(--serif);font-size:15.5px;line-height:1.5;color:var(--ink)}
+.note .fix small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue-d);margin-bottom:4px}
+.note .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.note .state{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-d);margin-top:10px}
+.note .state:empty{display:none}
+.disc{margin-top:18px;font-size:14px;color:var(--muted);display:flex;gap:10px;align-items:flex-start}
+.disc svg{flex:none;width:18px;height:18px;margin-top:3px}
+
+/* playbook */
+.play{padding:120px 0;background:var(--sheet);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.play-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:70px;align-items:start}
+.play h2{margin:16px 0 22px}
+.play .lead{color:var(--muted);max-width:40ch}
+.big{font-family:var(--serif);font-size:clamp(110px,13vw,200px);line-height:.9;letter-spacing:-.04em;margin-top:30px;color:var(--ink)}
+.big small{display:block;font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:10px}
+.toc{list-style:none;margin:0;padding:0;border-top:1.5px solid var(--ink)}
+.toc li{border-bottom:1px solid var(--line)}
+.toc button{width:100%;display:grid;grid-template-columns:52px minmax(0,auto) 1fr auto;gap:12px;align-items:baseline;min-height:58px;padding:14px 0;border:0;background:none;cursor:pointer;text-align:left}
+.toc .n{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.toc .h{font-family:var(--serif);font-size:21px;font-weight:500}
+.toc .lead-dots{border-bottom:2px dotted var(--line2);transform:translateY(-6px)}
+.toc .p{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-d)}
+.toc .d{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s var(--ease)}
+.toc .d>div{overflow:hidden}
+.toc .d p{padding:0 0 16px 64px;color:var(--muted);max-width:60ch}
+.toc li.open .d{grid-template-rows:1fr}
+.toc button:hover .h{color:var(--blue-d)}
+
+/* pricing */
+.price{padding:130px 0 110px}
+.bill{display:inline-flex;border:1.5px solid var(--ink);border-radius:4px;padding:3px;margin-bottom:34px;background:var(--sheet)}
+.bill button{min-height:44px;padding:0 18px;border:0;background:none;cursor:pointer;font-weight:600;font-size:15px;border-radius:2px}
+.bill button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.plan{position:relative;background:var(--sheet);border:1px solid var(--line2);padding:30px 28px 28px;display:flex;flex-direction:column;gap:14px;transition:transform .5s var(--ease),box-shadow .5s}
+.plan:hover{transform:translateY(-6px);box-shadow:0 26px 50px -30px rgba(23,32,51,.4)}
+.plan .hd{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:12px}
+.plan h3{font-size:34px}
+.plan .amt{font-family:var(--serif);font-size:58px;line-height:1;letter-spacing:-.03em}
+.plan .amt small{font-family:var(--sans);font-size:15px;color:var(--muted);letter-spacing:0}
+.plan ul{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:16px}
+.plan li{display:grid;grid-template-columns:20px 1fr;gap:8px}
+.plan li::before{content:"§";font-family:var(--serif);color:var(--blue)}
+.plan .btn{margin-top:auto}
+.plan.feat{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.plan.feat .hd{color:#C3C8D4;border-color:rgba(244,241,232,.2)}
+.plan.feat .amt small{color:#C3C8D4}
+.plan.feat li::before{color:#8FB0EC}
+.plan.feat .btn{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.plan.feat .btn:hover{background:var(--blue-l);box-shadow:none}
+.plan .badge{position:absolute;top:-13px;right:22px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--red);color:#fff;padding:4px 10px}
+
+/* faq */
+.faq{padding:40px 0 120px}
+.faq-grid{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:60px;align-items:start}
+.faq h2{margin-top:16px}
+.qs{border-top:1.5px solid var(--ink)}
+.q{border-bottom:1px solid var(--line)}
+.q button{width:100%;display:grid;grid-template-columns:56px 1fr 28px;gap:10px;align-items:center;min-height:68px;padding:12px 0;border:0;background:none;cursor:pointer;text-align:left}
+.q .n{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.q .t{font-family:var(--serif);font-size:22px;line-height:1.2}
+.q .pm{position:relative;width:20px;height:20px}
+.q .pm::before,.q .pm::after{content:"";position:absolute;left:0;right:0;top:9px;height:2px;background:var(--ink);transition:transform .4s var(--ease)}
+.q .pm::after{transform:rotate(90deg)}
+.q.open .pm::after{transform:rotate(0)}
+.q .a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s var(--ease)}
+.q .a>div{overflow:hidden}
+.q .a p{padding:0 30px 20px 66px;color:var(--muted)}
+.q.open .a{grid-template-rows:1fr}
+
+/* cta */
+.cta{padding:0 0 120px}
+.cta .box{position:relative;background:var(--ink);color:var(--paper);padding:70px 60px;display:grid;grid-template-columns:1.1fr 1fr;gap:50px;align-items:center;overflow:hidden}
+.cta .box::before{content:"";position:absolute;left:34px;top:0;bottom:0;width:4px;border-left:1px solid rgba(224,71,79,.6);border-right:1px solid rgba(224,71,79,.6)}
+.cta h2{color:var(--paper)}
+.cta h2 em{color:#8FB0EC}
+.cta .lead{color:#C3C8D4;margin-top:18px;max-width:42ch}
+.cta form{display:grid;gap:12px}
+.cta label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#C3C8D4}
+.cta input{min-height:54px;padding:0 16px;border:1.5px solid rgba(244,241,232,.5);background:transparent;color:var(--paper);border-radius:4px}
+.cta input::placeholder{color:#9AA2B3}
+.cta .btn{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+.cta .btn:hover{background:var(--blue-l);box-shadow:none}
+.cta .ok{min-height:24px;font-family:var(--mono);font-size:13px;color:#8FB0EC}
+
+footer{padding:56px 0 36px;border-top:1px solid var(--line)}
+footer .top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;padding-bottom:36px}
+footer h4{font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+footer ul{list-style:none;margin:0;padding:0}
+footer li a{display:inline-flex;align-items:center;min-height:36px;text-decoration:none}
+footer li a:hover{color:var(--blue-d)}
+footer .tl{color:var(--muted);max-width:30ch;margin-top:10px;font-size:15px}
+footer .fine{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-top:22px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+
+.toast{position:fixed;left:50%;bottom:24px;z-index:200;transform:translate(-50%,calc(100% + 40px));visibility:hidden;background:var(--ink);color:var(--paper);padding:14px 20px;font-size:15px;max-width:calc(100% - 32px);transition:transform .5s var(--ease),visibility .5s;box-shadow:6px 6px 0 var(--blue)}
+.toast.show{transform:translate(-50%,0);visibility:visible}
+
+.rm .how-pin{height:auto;padding:110px 0 90px}
+.rm .steps{height:auto;display:grid;gap:26px}
+.rm .step{position:static}
+.rm .reader{height:520px}
+
+@media (max-width:1100px){
+  .desk{grid-template-columns:minmax(0,1fr)}
+  .side{position:static}
+  .notes{max-height:none;overflow:visible}
+}
+@media (max-width:1000px){
+  .nav ul{display:none}
+  .nav-r .btn{display:none}
+  .menu-btn{display:inline-flex}
+  .hero .wrap{grid-template-columns:1fr;gap:70px}
+  .sheets{max-width:460px}
+  .docket .wrap{grid-template-columns:1fr 1fr;row-gap:28px}
+  .sec-head,.play-grid,.faq-grid{grid-template-columns:1fr;gap:26px}
+  .how-pin{grid-template-columns:1fr;grid-template-rows:auto auto;gap:18px;align-content:center;padding-top:80px}
+  .reader{order:-1;height:42vh}
+  .plans{grid-template-columns:1fr;max-width:520px}
+  .cta .box{grid-template-columns:1fr;padding:56px 40px}
+  footer .top{grid-template-columns:1fr 1fr}
+  footer .top>div:first-child{grid-column:1/-1}
+}
+@media (max-width:760px){
+  .wrap,.how-pin{width:calc(100% - 32px)}
+  body{font-size:16px}
+  .nav .wrap{height:68px}
+  .mmenu{top:74px}
+  .rail{display:none}
+  .hero{padding:104px 0 70px;min-height:0}
+  .hero h1{font-size:clamp(40px,11.5vw,56px)}
+  .hero-lead{font-size:17px;margin:22px 0 26px}
+  .sheets{max-width:330px;margin:0 auto}
+  .sheet.front{padding:24px 18px 20px 40px}
+  .sheet.front::before{left:26px}
+  .sh-h{font-size:15px}
+  .sh-sub{margin-bottom:14px}
+  .sh-cl{font-size:13px;margin-bottom:10px}
+  .mnote{font-size:13px;padding:10px 12px;width:62%}
+  .mnote.n1{right:-4%;top:34%}
+  .mnote.n2{left:-4%;bottom:10%}
+  .stamp{right:4%;bottom:2%;font-size:11px}
+  .docket{padding:30px 0}
+  .dk b{font-size:34px}
+  .how-pin{padding-top:76px;gap:12px}
+  .how .kick{display:none}
+  .how h2{font-size:32px;margin:0 0 8px}
+  .reader{height:38vh}
+  .rpage{padding:24px 14px 24px 50px}
+  .reader::before{left:30px}
+  .rc{font-size:14px}
+  .steps{height:178px}
+  .step h3{font-size:24px;margin:4px 0 6px}
+  .step p{font-size:15px;line-height:1.5}
+  .prog{margin-top:6px}
+  .demo{padding:100px 0 90px}
+  .picker{display:grid;grid-template-columns:1fr}
+  .doc{max-height:58vh;padding:24px 16px 30px 52px}
+  .doc{--m:32px}
+  .cl .flag{left:-46px;width:26px;height:26px;font-size:11px}
+  .cl p{font-size:16px}
+  .ctrl{display:grid;grid-template-columns:repeat(3,1fr)}
+  .ctrl #runBtn{grid-column:1/-1}
+  .ctrl .btn{padding:0 8px}
+  .meter{grid-template-columns:104px 1fr;gap:14px;padding:14px}
+  .gauge,.gauge svg{width:104px;height:62px}
+  .play{padding:90px 0}
+  .toc button{grid-template-columns:40px 1fr auto;min-height:56px}
+  .toc .lead-dots{display:none}
+  .toc .h{font-size:19px}
+  .toc .d p{padding-left:52px}
+  .price{padding:100px 0 90px}
+  .plan .amt{font-size:50px}
+  .q button{grid-template-columns:44px 1fr 24px}
+  .q .t{font-size:19px}
+  .q .a p{padding:0 10px 18px 54px}
+  .cta .box{padding:44px 22px 40px 44px}
+  .cta .box::before{left:20px}
+  footer .top{gap:28px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Chuyển đến nội dung chính</a>
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Clause, trang chủ"><svg viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="2" width="24" height="26" rx="2" fill="#FFFDF7" stroke="#172033" stroke-width="2"/><path d="M8 9h14M8 14h14M8 19h9" stroke="#172033" stroke-width="2" stroke-linecap="round"/><path d="M6 14h18" stroke="#C3262E" stroke-width="2.2" stroke-linecap="round"/><path d="M19 23h6" stroke="#2B5CB8" stroke-width="2.4" stroke-linecap="round"/></svg>Clause</a>
+    <nav aria-label="Điều hướng chính"><ul><li><a href="#how"><span>Cách đọc duyệt</span></a></li><li><a href="#demo"><span>Thử hợp đồng</span></a></li><li><a href="#playbook"><span>Sổ tay quy tắc</span></a></li><li><a href="#pricing"><span>Bảng giá</span></a></li><li><a href="#faq"><span>Hỏi đáp</span></a></li></ul></nav>
+    <div class="nav-r">
+      <a class="btn sm mag" href="#start">Bắt đầu rà soát</a>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mmenu" aria-label="Mở menu"><i></i></button>
+    </div>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true">
+  <a href="#how">Cách đọc duyệt <small>§1</small></a><a href="#demo">Thử hợp đồng <small>§2</small></a><a href="#playbook">Sổ tay quy tắc <small>§3</small></a><a href="#pricing">Bảng giá <small>§4</small></a><a href="#faq">Hỏi đáp <small>§5</small></a><a href="#start">Bắt đầu rà soát <small>§6</small></a>
+</div>
+
+<main id="main">
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="rail" id="rail" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <p class="kick hf"><b>§</b> AI rà soát hợp đồng</p>
+      <h1 id="hero-h" aria-label="Đặt bút ký với đôi mắt mở to.">
+        <span class="mask" aria-hidden="true"><span>Đặt bút ký</span></span>
+        <span class="mask" aria-hidden="true"><span>với đôi mắt</span></span>
+        <span class="mask" aria-hidden="true"><span><span class="hdel">nhắm<i class="strike"></i></span> <span class="hins">mở to.<i class="dbl"></i></span></span></span>
+      </h1>
+      <p class="hero-lead hf">Clause đọc hợp đồng theo đúng cách một luật sư cẩn trọng làm việc: soi kỹ từng dòng, đối chiếu với những nguyên tắc mà đội ngũ của bạn thực sự nắm giữ. Hệ thống gắn cờ điều khoản rủi ro, giải thích dễ hiểu và soạn sẵn phương án sửa đổi. Thường chỉ mất chưa đầy một phút.</p>
+      <div class="hero-cta hf"><a class="btn mag" href="#demo">Thử hợp đồng mẫu <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="btn ghost" href="#how">Xem cách đọc duyệt</a></div>
+      <div class="hero-meta hf"><span><i></i>Nhận file Word &amp; PDF, xuất file kèm vết sửa đổi</span><span><i></i>Tài liệu của bạn không bao giờ dùng để huấn luyện AI</span></div>
+    </div>
+    <div class="sheets" id="sheets" aria-hidden="true">
+      <div class="sheet b2"></div>
+      <div class="sheet b1"></div>
+      <div class="sheet front">
+        <p class="sh-h">HỢP ĐỒNG DỊCH VỤ TỔNG THỂ</p>
+        <p class="sh-sub">Lumenbase Inc. · Harbour Freight Co.</p>
+        <p class="sh-cl"><b>4.1</b>Dịch vụ bắt đầu vào Ngày Hiệu Lực và duy trì trong suốt Thời Hạn Ban Đầu.</p>
+        <p class="sh-cl"><b>4.2</b>Hợp đồng này tự động gia hạn các kỳ tiếp theo kéo dài <mark>hai mươi bốn (24) tháng</mark> trừ khi có thông báo trước 180 ngày.</p>
+        <div class="bars"><i style="width:92%"></i><i style="width:84%"></i><i style="width:60%"></i></div>
+        <p class="sh-cl"><b>9.3</b>Khách hàng sẽ bồi thường cho Nhà cung cấp trước <mark class="r">mọi tổn thất</mark>, bất kể phát sinh dưới hình thức nào.</p>
+        <div class="bars"><i style="width:88%"></i><i style="width:95%"></i><i style="width:72%"></i><i style="width:80%"></i><i style="width:40%"></i></div>
+      </div>
+      <div class="mnote n1"><p class="t"><span>Điều · 4.2</span><span>Trung bình</span></p>Tự động gia hạn 2 năm với thời hạn báo trước 6 tháng. Đề xuất sửa thành 12 tháng và báo trước 30 ngày.</div>
+      <div class="mnote r n2"><p class="t"><span>Điều · 9.3</span><span>Cao</span></p>Bồi thường một chiều không giới hạn mức trần. Hãy chuyển thành hai chiều và giới hạn ở mức phí đã thanh toán.</div>
+      <p class="stamp">Đã duyệt · 38 giây · 4 vấn đề</p>
+    </div>
+  </div>
+</section>
+
+<section class="docket" aria-label="Clause qua những con số">
+  <div class="wrap">
+    <div class="dk rv"><b>38 s</b><span>thời gian duyệt trung vị, hợp đồng 20 trang</span></div>
+    <div class="dk rv"><b>212</b><span>loại điều khoản hệ thống nhận diện</span></div>
+    <div class="dk rv"><b>9 / 10</b><span>đề xuất viết lại được chấp thuận</span></div>
+    <div class="dk rv"><b>0</b><span>hợp đồng bị dùng để huấn luyện mô hình</span></div>
+  </div>
+</section>
+
+<section class="how" id="how" aria-labelledby="how-h">
+  <div class="how-pin" id="howPin">
+    <div>
+      <p class="kick"><b>§1</b> Cách đọc duyệt</p>
+      <h2 id="how-h">Từng dòng một,<br><em>như con người đọc</em></h2>
+      <div class="steps">
+        <article class="step"><p class="no">01 — PHÂN TÁCH</p><h3>Nhận diện cấu trúc</h3><p>Clause tách văn bản thành từng điều khoản, định nghĩa và tham chiếu chéo, để cụm từ “Dịch vụ” ở mục 9 vẫn mang đúng ý nghĩa đã quy định tại mục 1.</p></article>
+        <article class="step"><p class="no">02 — ĐỐI CHIẾU</p><h3>Soi chiếu với sổ tay quy tắc</h3><p>Mọi điều khoản đều được kiểm tra với các giới hạn mà đội ngũ của bạn chấp nhận hoặc từ chối: hạn thanh toán, mức trần trách nhiệm, điều kiện gia hạn, quyền sở hữu trí tuệ.</p></article>
+        <article class="step"><p class="no">03 — GIẢI THÍCH</p><h3>Diễn giải bằng lời lẽ dễ hiểu</h3><p>Mỗi cảnh báo đi kèm một ghi chú bên lề: điều khoản đó thực sự nói gì, vì sao nó ảnh hưởng tới bạn, và mức độ nghiêm trọng ra sao. Không thuật ngữ rắc rối, không vòng vo.</p></article>
+        <article class="step"><p class="no">04 — GẠCH SỬA</p><h3>Soạn thảo phương án sửa</h3><p>Các đề xuất viết lại xuất hiện dưới dạng vết sửa đổi (tracked changes) đúng văn phong của bạn, giúp đối tác thấy rõ từng chữ được chỉnh và lý do. Bạn chỉ việc chấp nhận, sửa thêm hoặc bỏ qua.</p></article>
+      </div>
+      <div class="prog"><span id="progN">Điều khoản 01 / 14</span><span class="bar"><i id="progBar"></i></span></div>
+    </div>
+    <div class="reader" aria-hidden="true">
+      <div class="rpage" id="rpage"></div>
+      <div class="rule"></div>
+    </div>
+  </div>
+</section>
+
+<section class="demo" id="demo" aria-labelledby="demo-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick"><b>§2</b> Thử hợp đồng</p><h2 id="demo-h" class="split" style="margin-top:16px">Chọn một hợp đồng.<br><em>Xem hệ thống rà soát.</em></h2></div><p class="rv">Ba bản hợp đồng mẫu được biên soạn riêng cho trang này và hoàn toàn giả định. Hãy chọn một bản và nhấn Rà soát: các điều khoản rủi ro sẽ lần lượt sáng lên kèm ghi chú và câu chữ đề xuất sửa đổi để bạn chấp nhận ngay.</p></div>
+    <div class="picker" id="picker" role="tablist" aria-label="Hợp đồng mẫu"></div>
+    <div class="desk">
+      <div class="docbox">
+        <div class="docbar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="docName">contract.docx</span><span id="docPages">8 điều khoản</span></div>
+        <div class="doc" id="doc" role="tabpanel" tabindex="0" aria-label="Nội dung hợp đồng" data-lenis-prevent></div>
+      </div>
+      <div class="side">
+        <div class="meter">
+          <div class="gauge" aria-hidden="true"><svg viewBox="0 0 120 70"><path d="M10 64A50 50 0 0 1 110 64" fill="none" stroke="rgba(23,32,51,.12)" stroke-width="10"/><path id="gArc" d="M10 64A50 50 0 0 1 110 64" fill="none" stroke="#C3262E" stroke-width="10" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg><b id="gNum">–</b></div>
+          <div><p class="lbl">Rủi ro hợp đồng</p><p class="lvl" id="gLvl">Chưa rà soát</p><p class="cnt" id="gCnt">Nhấn Rà soát để bắt đầu đọc.</p></div>
+        </div>
+        <div class="ctrl">
+          <button class="btn" type="button" id="runBtn">Rà soát hợp đồng này</button>
+          <button class="btn ghost sm" type="button" id="prevBtn" disabled aria-label="Vấn đề trước">← Trước</button>
+          <button class="btn ghost sm" type="button" id="nextBtn" disabled aria-label="Vấn đề tiếp theo">Tiếp →</button>
+          <button class="btn ghost sm" type="button" id="allBtn" disabled>Chấp nhận tất cả</button>
+        </div>
+        <div class="notes" id="notes" aria-label="Ghi chú rà soát"></div>
+        <p class="sr" id="live" aria-live="polite"></p>
+      </div>
+    </div>
+    <p class="disc"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="none" stroke="#4D5669" stroke-width="1.6"/><path d="M10 9v5M10 6v.5" stroke="#4D5669" stroke-width="1.8" stroke-linecap="round"/></svg><span>Các bản hợp đồng mẫu và các bên liên quan đều là giả định, quy trình rà soát được lập trình sẵn cho bản thiết kế concept này. Clause không phải là công ty luật và không nội dung nào tại đây mang tính tư vấn pháp lý.</span></p>
+  </div>
+</section>
+
+<section class="play" id="playbook" aria-labelledby="play-h">
+  <div class="wrap play-grid">
+    <div>
+      <p class="kick"><b>§3</b> Sổ tay quy tắc</p>
+      <h2 id="play-h" class="split">Nguyên tắc của bạn,<br><em>ghi rõ thành văn</em></h2>
+      <p class="lead rv">Ngay khi khởi tạo, Clause đã nắm sẵn 40 nguyên tắc thương lượng mà hầu hết các đội ngũ tinh gọn quan tâm. Bạn chỉ cần chỉnh sửa bất kỳ mục nào bằng một câu tự nhiên (“chúng tôi không bao giờ chấp nhận hạn thanh toán quá 45 ngày”) và mọi lần rà soát sau đó sẽ tự động tuân theo.</p>
+      <p class="big rv" aria-hidden="true">40<small>Nguyên tắc mặc định, tùy chỉnh toàn bộ</small></p>
+    </div>
+    <ol class="toc" id="toc"></ol>
+  </div>
+</section>
+
+<section class="price" id="pricing" aria-labelledby="price-h">
+  <div class="wrap">
+    <div class="sec-head"><div><p class="kick"><b>§4</b> Bảng giá</p><h2 id="price-h" class="split" style="margin-top:16px">Rẻ hơn nhiều<br><em>một điều khoản bất lợi</em></h2></div><p class="rv">Mọi gói dịch vụ đều bao gồm ghi chú giải thích dễ hiểu, đề xuất viết lại kèm vết sửa đổi và sổ tay quy tắc tùy chỉnh. Thanh toán theo năm tiết kiệm hai tháng chi phí.</p></div>
+    <div class="bill" role="group" aria-label="Chu kỳ thanh toán"><button type="button" aria-pressed="true" data-b="m">Theo tháng</button><button type="button" aria-pressed="false" data-b="y">Theo năm</button></div>
+    <div class="plans">
+      <article class="plan rv"><p class="hd"><span>Phụ lục A</span><span>Cho cá nhân</span></p><h3>Solo</h3><p class="amt"><span class="pv" data-m="29" data-y="24">$29</span><small> / tháng</small></p><ul><li>20 lượt rà soát mỗi tháng</li><li>Sổ tay quy tắc mặc định, cho phép sửa</li><li>Xuất file Word và PDF</li></ul><a class="btn ghost" href="#start">Bắt đầu gói Solo</a></article>
+      <article class="plan feat rv"><span class="badge">Phổ biến nhất</span><p class="hd"><span>Phụ lục B</span><span>Theo thành viên</span></p><h3>Team</h3><p class="amt"><span class="pv" data-m="79" data-y="66">$79</span><small> / người / tháng</small></p><ul><li>Rà soát không giới hạn</li><li>Sổ tay quy tắc dùng chung toàn nhóm</li><li>Luồng phê duyệt và nhật ký kiểm toán</li><li>Tích hợp công cụ chữ ký điện tử</li></ul><a class="btn" href="#start">Dùng thử gói Team</a></article>
+      <article class="plan rv"><p class="hd"><span>Phụ lục C</span><span>Cho văn phòng luật</span></p><h3>Firm</h3><p class="amt">Liên hệ<small></small></p><ul><li>Triển khai hạ tầng riêng biệt</li><li>Biến hợp đồng mẫu của bạn thành quy tắc</li><li>Phân quyền theo từng hồ sơ vụ việc</li><li>Luật sư chuyên trách hỗ trợ triển khai</li></ul><a class="btn ghost" href="#start">Trò chuyện cùng chúng tôi</a></article>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="faq" aria-labelledby="faq-h">
+  <div class="wrap faq-grid">
+    <div><p class="kick"><b>§5</b> Câu hỏi thường gặp</p><h2 id="faq-h" class="split">Những dòng chữ nhỏ<br><em>về chúng tôi</em></h2></div>
+    <div class="qs" id="qs"></div>
+  </div>
+</section>
+
+<section class="cta" id="start" aria-labelledby="cta-h">
+  <div class="wrap">
+    <div class="box rv">
+      <div><p class="kick" style="color:#C3C8D4"><b style="color:#E0474F">§6</b> Bắt đầu rà soát</p><h2 id="cta-h" style="margin-top:16px">Hợp đồng tiếp theo,<br><em>được đọc thấu đáo</em></h2><p class="lead">Miễn phí 14 ngày cho mọi gói dịch vụ. Hãy thử tải lên một bản hợp đồng bạn từng ký và xem Clause sẽ nhận xét những gì.</p></div>
+      <form id="ctaForm" novalidate>
+        <label for="ctaE">Email công việc</label>
+        <input id="ctaE" type="email" placeholder="ban@congty.com" autocomplete="email">
+        <button class="btn" type="submit">Bắt đầu dùng thử miễn phí</button>
+        <p class="ok" id="ctaOk" role="status"></p>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <div><a class="logo" href="#top"><svg viewBox="0 0 30 30" aria-hidden="true"><rect x="3" y="2" width="24" height="26" rx="2" fill="#FFFDF7" stroke="#172033" stroke-width="2"/><path d="M8 9h14M8 14h14M8 19h9" stroke="#172033" stroke-width="2" stroke-linecap="round"/><path d="M6 14h18" stroke="#C3262E" stroke-width="2.2" stroke-linecap="round"/><path d="M19 23h6" stroke="#2B5CB8" stroke-width="2.4" stroke-linecap="round"/></svg>Clause</a><p class="tl">Công cụ rà soát hợp đồng dành cho những người luôn đọc kỹ điều khoản, và cả những ai muốn bắt đầu thói quen đó.</p></div>
+      <div><h4>Sản phẩm</h4><ul><li><a href="#how">Cách đọc duyệt</a></li><li><a href="#demo">Thử hợp đồng</a></li><li><a href="#playbook">Sổ tay quy tắc</a></li></ul></div>
+      <div><h4>Công ty</h4><ul><li><a href="#pricing">Bảng giá</a></li><li><a href="#faq">Bảo mật</a></li><li><a href="#start">Liên hệ</a></li></ul></div>
+      <div><h4>Pháp lý</h4><ul><li><a href="#faq">Điều khoản</a></li><li><a href="#faq">Quyền riêng tư</a></li><li><a href="#faq">Miễn trừ tư vấn pháp lý</a></li></ul></div>
+    </div>
+    <p class="fine"><span>© <span id="yr"></span> Clause Labs</span><span>Thiết kế concept — thương hiệu giả định.</span></p>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
+<script>
+(() => {
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+const G = window.gsap
+const anim = !!G && !reduce
+if (!anim) document.documentElement.classList.add('rm')
+if (G) G.registerPlugin(ScrollTrigger)
+const $ = (s, r = document) => r.querySelector(s)
+const $$ = (s, r = document) => [...r.querySelectorAll(s)]
+$('#yr').textContent = new Date().getFullYear()
+$('#rail').innerHTML = Array.from({ length: 28 }, (_, i) => `<div>${i + 1}</div>`).join('')
+
+/* ============ sample contracts (fictional) ============ */
+const DOCS = [
+  {
+    key: 'design', label: 'Thiết kế tự do', file: 'northfold-design-agreement.docx', title: 'Hợp đồng Dịch vụ Thiết kế',
+    parties: 'Giữa Công ty TNHH Northfold Studio (“Khách hàng”) và nhà thiết kế có tên tại Phụ lục C (“Nhà thiết kế”).', base: 84,
+    clauses: [
+      { h: 'Phạm vi dịch vụ', t: 'Nhà thiết kế sẽ cung cấp dịch vụ thiết kế nhận diện thương hiệu được mô tả tại Phụ lục A (“Dịch vụ”) và bất kỳ dịch vụ bổ sung nào mà Khách hàng yêu cầu hợp lý trong Thời hạn hợp đồng.',
+        i: { s: 'med', title: 'Phạm vi công việc mở không giới hạn', note: 'Cụm từ “bất kỳ dịch vụ bổ sung nào mà Khách hàng yêu cầu hợp lý” đồng nghĩa việc phát sinh có thể bị thêm vào mà không có phí hay thời hạn mới.', fix: 'Nhà thiết kế sẽ cung cấp dịch vụ thiết kế nhận diện thương hiệu được mô tả tại Phụ lục A (“Dịch vụ”). Mọi công việc phát sinh ngoài phạm vi sẽ được thỏa thuận bằng văn bản và tính phí theo đơn giá ngày của Nhà thiết kế.' } },
+      { h: 'Phí và thanh toán', t: 'Khách hàng sẽ thanh toán các khoản phí tại Phụ lục B trong vòng chín mươi (90) ngày kể từ ngày nhận được hóa đơn hợp lệ.',
+        i: { s: 'high', title: 'Hạn thanh toán kéo dài 90 ngày', note: 'Ba tháng là quãng thời gian quá dài để chờ nhận thù lao cho công sức bạn đã bỏ ra, và cũng không có chế tài nào ngăn việc chậm trả.', fix: 'Khách hàng sẽ thanh toán các khoản phí tại Phụ lục B trong vòng ba mươi (30) ngày kể từ ngày nhận được hóa đơn hợp lệ. Khoản thanh toán chậm sẽ chịu lãi suất 4%/năm cộng biên độ cơ sở.' } },
+      { h: 'Sở hữu trí tuệ', t: 'Toàn bộ quyền sở hữu trí tuệ do Nhà thiết kế tạo ra, dù có liên quan đến Dịch vụ hay không, đều được chuyển giao cho Khách hàng ngay khi khởi tạo.',
+        i: { s: 'high', title: 'Nguy cơ mất quyền sở hữu mọi tác phẩm', note: 'Cụm từ “dù có liên quan đến Dịch vụ hay không” bao trùm cả sản phẩm bạn làm cho khách hàng khác. Hơn nữa quyền sở hữu chuyển giao trước cả khi bạn được trả tiền.', fix: 'Quyền sở hữu trí tuệ đối với sản phẩm bàn giao cuối cùng sẽ chuyển sang Khách hàng sau khi thanh toán đầy đủ. Nhà thiết kế giữ toàn quyền đối với tư liệu có sẵn, bản phác thảo không sử dụng và bí quyết nghề nghiệp.' } },
+      { h: 'Hồ sơ năng lực (Portfolio)', t: 'Nhà thiết kế không được phép nhắc tới Khách hàng hoặc Dịch vụ trên bất kỳ phương tiện nào.',
+        i: { s: 'low', title: 'Cấm đưa vào hồ sơ năng lực', note: 'Bạn sẽ không thể giới thiệu dự án này cho các khách hàng tương lai, ngay cả khi sản phẩm đã ra mắt công chúng.', fix: 'Nhà thiết kế được phép trưng bày sản phẩm hoàn thiện trong hồ sơ năng lực sau khi Khách hàng đã công bố rộng rãi, trừ khi Khách hàng có văn bản phản đối.' } },
+      { h: 'Chấm dứt hợp đồng', t: 'Khách hàng có thể chấm dứt Hợp đồng này bất kỳ lúc nào mà không cần báo trước. Không phát sinh nghĩa vụ thanh toán cho các hạng mục đang thực hiện dở dang.',
+        i: { s: 'high', title: 'Đơn phương chấm dứt, không trả phí phần đã làm', note: 'Khách hàng có thể dừng dự án ngay ngày mai và không phải trả đồng nào cho hàng tuần làm việc bạn đã bỏ ra.', fix: 'Mỗi bên có thể chấm dứt Hợp đồng này bằng văn bản báo trước mười bốn (14) ngày. Khách hàng sẽ thanh toán đầy đủ cho toàn bộ khối lượng công việc đã hoàn thành tính đến ngày chấm dứt.' } },
+      { h: 'Bảo mật thông tin', t: 'Mỗi bên cam kết giữ bí mật thông tin bảo mật của bên kia trong suốt Thời hạn hợp đồng và hai năm tiếp theo.' },
+      { h: 'Trách nhiệm pháp lý', t: 'Trách nhiệm bồi thường của Nhà thiết kế theo Hợp đồng này là không giới hạn.',
+        i: { s: 'med', title: 'Trách nhiệm bồi thường vô hạn', note: 'Một sai sót nhỏ trên file logo về lý thuyết có thể khiến bạn phải đền bù số tiền lớn hơn cả tổng giá trị dự án. Hầu hết hợp đồng đều đặt mức trần.', fix: 'Tổng trách nhiệm bồi thường của mỗi bên theo Hợp đồng này được giới hạn ở tổng mức phí đã thanh toán trong mười hai (12) tháng trước thời điểm phát sinh yêu cầu bồi thường.' } },
+      { h: 'Toàn bộ thỏa thuận', t: 'Hợp đồng này cùng các Phụ lục đính kèm cấu thành toàn bộ thỏa thuận giữa hai bên về Dịch vụ.' },
+    ],
+  },
+  {
+    key: 'saas', label: 'Thuê bao phần mềm', file: 'lumenbase-subscription.pdf', title: 'Hợp đồng Thuê bao Phần mềm',
+    parties: 'Giữa Lumenbase Inc. (“Nhà cung cấp”) và khách hàng có tên tại Đơn đặt hàng (“Khách hàng”).', base: 76,
+    clauses: [
+      { h: 'Thời hạn và gia hạn', t: 'Gói thuê bao tự động gia hạn các kỳ tiếp theo kéo dài hai mươi bốn (24) tháng trừ khi Khách hàng gửi thông báo bằng văn bản ít nhất một trăm tám mươi (180) ngày trước ngày gia hạn.',
+        i: { s: 'high', title: 'Phải báo hủy trước tận sáu tháng', note: 'Chỉ cần quên mốc thời gian nửa năm trước ngày gia hạn là bạn sẽ bị ràng buộc thêm hai năm nữa.', fix: 'Gói thuê bao tự động gia hạn các kỳ tiếp theo kéo dài mười hai (12) tháng trừ khi một trong hai bên gửi văn bản thông báo ít nhất ba mươi (30) ngày trước ngày gia hạn.' } },
+      { h: 'Biểu phí', t: 'Nhà cung cấp có thể thay đổi mức phí bất kỳ lúc nào bằng cách công bố bảng giá mới trên trang web của mình.',
+        i: { s: 'high', title: 'Giá có thể tăng bất cứ lúc nào', note: 'Không cần báo trước, không giới hạn mức tăng và không có quyền hủy hợp đồng nếu giá tăng gấp đôi giữa kỳ.', fix: 'Nhà cung cấp chỉ có thể điều chỉnh phí mỗi năm một lần với văn bản báo trước sáu mươi (60) ngày. Mức tăng tối đa không quá 5% và áp dụng vào kỳ gia hạn tiếp theo.' } },
+      { h: 'Thanh toán', t: 'Phí thuê bao được xuất hóa đơn trả trước theo năm và thanh toán trong vòng ba mươi (30) ngày kể từ ngày xuất hóa đơn.' },
+      { h: 'Sử dụng Dữ liệu Khách hàng', t: 'Nhà cung cấp có thể sử dụng Dữ liệu Khách hàng để cải tiến sản phẩm và dịch vụ, bao gồm cả việc huấn luyện các mô hình học máy.',
+        i: { s: 'med', title: 'Dữ liệu của bạn có thể bị dùng để huấn luyện AI', note: 'Mọi thông tin bạn đưa lên hệ thống, kể cả hồ sơ mật của khách hàng, đều có thể bị dùng để xây dựng tính năng cho người khác.', fix: 'Nhà cung cấp chỉ sử dụng Dữ liệu Khách hàng nhằm mục đích cung cấp Dịch vụ cho Khách hàng. Nhà cung cấp cam kết không dùng Dữ liệu Khách hàng để huấn luyện mô hình khi chưa có sự đồng ý bằng văn bản.' } },
+      { h: 'Độ sẵn sàng của hệ thống', t: 'Nhà cung cấp sẽ nỗ lực hợp lý về mặt thương mại để duy trì Dịch vụ hoạt động.',
+        i: { s: 'low', title: 'Không cam kết tỷ lệ hoạt động (Uptime)', note: '“Nỗ lực hợp lý về mặt thương mại” không phải là con số cụ thể. Nếu hệ thống sập cả tuần, bạn không có cơ sở nào để yêu cầu hoàn tiền.', fix: 'Nhà cung cấp cam kết duy trì Dịch vụ hoạt động 99,9% thời gian mỗi tháng. Với mỗi 0,1% thấp hơn mức này, Khách hàng được khấu trừ 10% phí thuê bao của tháng đó.' } },
+      { h: 'Kết thúc thuê bao', t: 'Khi Gói thuê bao kết thúc, Dữ liệu Khách hàng sẽ bị xóa ngay lập tức.',
+        i: { s: 'med', title: 'Không có thời gian sao lưu dữ liệu', note: 'Toàn bộ hồ sơ của bạn biến mất ngay khoảnh khắc hợp đồng hết hạn mà không có cơ hội xuất dữ liệu ra.', fix: 'Trong vòng ba mươi (30) ngày sau khi Gói thuê bao kết thúc, Khách hàng có quyền xuất toàn bộ dữ liệu của mình. Sau thời hạn đó Nhà cung cấp sẽ xóa dữ liệu và xác nhận bằng văn bản.' } },
+      { h: 'Giới hạn trách nhiệm', t: 'Tổng trách nhiệm bồi thường của Nhà cung cấp được giới hạn ở mức phí đã thanh toán trong một (1) tháng trước khi phát sinh khiếu nại.',
+        i: { s: 'med', title: 'Mức trần bồi thường chỉ bằng một tháng phí', note: 'Nếu họ làm mất dữ liệu của bạn, khoản đền bù tối đa bạn nhận được chỉ tương đương một tháng thuê bao.', fix: 'Tổng trách nhiệm bồi thường của mỗi bên được giới hạn ở mức phí đã thanh toán trong mười hai (12) tháng trước khiếu nại, riêng vi phạm bảo vệ dữ liệu được giới hạn ở mức gấp ba lần khoản đó.' } },
+      { h: 'Thông báo', t: 'Mọi thông báo phải được lập thành văn bản và gửi tới địa chỉ email ghi trong Đơn đặt hàng.' },
+    ],
+  },
+  {
+    key: 'lease', label: 'Thuê mặt bằng studio', file: 'copperline-unit-4-lease.pdf', title: 'Hợp đồng Thuê Căn số 4, Khu Copperline Yard',
+    parties: 'Giữa Công ty Bất động sản Copperline (“Bên cho thuê”) và bên thuê có tên tại Bản thông tin chi tiết (“Bên thuê”).', base: 88,
+    clauses: [
+      { h: 'Tiền thuê', t: 'Tiền thuê được thanh toán trước theo từng quý vào các ngày đầu quý thông lệ.' },
+      { h: 'Điều chỉnh tiền thuê', t: 'Tiền thuê sẽ được xem xét điều chỉnh vào mỗi dịp kỷ niệm ngày bắt đầu Thời hạn thuê và chỉ có thể điều chỉnh tăng.',
+        i: { s: 'high', title: 'Chỉ tăng không giảm, điều chỉnh hàng năm', note: 'Tiền thuê có thể tăng lên mỗi năm và không bao giờ giảm xuống, ngay cả khi giá mặt bằng khu vực đi xuống.', fix: 'Tiền thuê sẽ được xem xét mỗi ba năm một lần theo Chỉ số Giá tiêu dùng (CPI), mức tăng trần 4%/năm, và có thể tăng hoặc giảm tùy theo thị trường.' } },
+      { h: 'Sửa chữa và bảo trì', t: 'Bên thuê phải duy trì toàn bộ Tòa nhà, bao gồm cả phần mái và kết cấu chính, trong tình trạng tốt.',
+        i: { s: 'high', title: 'Bạn phải gánh chi phí sửa cả tòa nhà', note: 'Bạn chỉ thuê một căn studio nhỏ nhưng điều khoản này bắt bạn chịu trách nhiệm cho cả mái nhà và kết cấu của toàn bộ tòa nhà.', fix: 'Bên thuê có trách nhiệm giữ gìn phần nội thất bên trong Căn thuê không xuống cấp hơn so với hiện trạng ban đầu được ghi nhận tại biên bản bàn giao.' } },
+      { h: 'Phí dịch vụ', t: 'Bên thuê sẽ thanh toán một phần hợp lý trong toàn bộ chi phí mà Bên cho thuê chi trả liên quan đến Tòa nhà.',
+        i: { s: 'med', title: 'Phí dịch vụ không có mức trần', note: '“Toàn bộ chi phí” không kèm mức trần hay bảng kê có thể bao gồm cả những hạng mục nâng cấp chỉ mang lại lợi ích cho chủ nhà.', fix: 'Bên thuê sẽ thanh toán tỷ lệ hợp lý trong các chi phí vận hành khu vực chung, giới hạn tối đa £4.50 trên mỗi foot vuông mỗi năm, kèm bảng quyết toán chi phí thực tế hàng năm.' } },
+      { h: 'Mục đích sử dụng', t: 'Căn thuê chỉ được sử dụng làm studio thiết kế và văn phòng làm việc, không dùng cho mục đích nào khác.' },
+      { h: 'Chấm dứt thuê trước hạn', t: 'Bên thuê không có quyền chấm dứt Hợp đồng thuê này trước khi hết Thời hạn thuê.',
+        i: { s: 'med', title: 'Không có lối thoát suốt mười năm', note: 'Dù quy mô studio của bạn mở rộng, thu hẹp hay chuyển đi nơi khác, bạn vẫn phải trả tiền thuê đến tận ngày cuối cùng.', fix: 'Bên thuê có quyền chấm dứt Hợp đồng thuê vào năm thứ ba hoặc năm thứ sáu của Thời hạn thuê bằng cách gửi văn bản thông báo trước ít nhất sáu (6) tháng.' } },
+      { h: 'Tiền đặt cọc', t: 'Bên thuê sẽ nộp khoản tiền đặt cọc tương đương mười hai tháng tiền thuê, được hoàn trả theo quyết định riêng của Bên cho thuê.',
+        i: { s: 'med', title: 'Cọc cả năm tiền thuê, hoàn trả “tùy ý chủ nhà”', note: 'Khoản cọc quá lớn và không có cam kết rõ ràng khi nào hay trong điều kiện nào bạn được nhận lại.', fix: 'Bên thuê sẽ nộp khoản đặt cọc tương đương ba tháng tiền thuê, được giữ trong tài khoản riêng và hoàn trả trong vòng 28 ngày sau khi kết thúc Hợp đồng thuê, trừ đi các chi phí thiệt hại có chứng từ.' } },
+      { h: 'Cải tạo nội thất', t: 'Bên thuê có thể thực hiện các thay đổi nội thất không ảnh hưởng kết cấu khi có sự đồng ý của Bên cho thuê, và Bên cho thuê không được từ chối một cách vô lý.' },
+    ],
+  },
+]
+const SEV = { high: { w: 3, l: 'Cao', c: 'C' }, med: { w: 2, l: 'Trung bình', c: 'TB' }, low: { w: 1, l: 'Thấp', c: 'T' } }
+
+/* ============ demo state ============ */
+let cur = 0, timers = [], found = [], decided = {}, running = false, reviewed = false, focusIdx = -1
+const picker = $('#picker'), docEl = $('#doc'), notesEl = $('#notes')
+picker.innerHTML = DOCS.map((d, i) => `<button type="button" role="tab" id="tab-${d.key}" aria-controls="doc" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}" data-i="${i}"><small>${d.file}</small><b>${d.label}</b></button>`).join('')
+const issuesOf = (d) => d.clauses.map((c, k) => (c.i ? k : -1)).filter((k) => k >= 0)
+
+function renderDoc() {
+  const d = DOCS[cur]
+  docEl.setAttribute('aria-labelledby', 'tab-' + d.key)
+  $('#docName').textContent = d.file
+  $('#docPages').textContent = d.clauses.length + ' điều khoản'
+  docEl.innerHTML = `<div class="scan" id="scan" aria-hidden="true"></div><h3>${d.title}</h3><p class="parties">${d.parties}</p>` + d.clauses.map((c, k) => `<article class="cl${c.i ? ' ' + c.i.s : ''}" id="cl-${d.key}-${k}" tabindex="-1"><span class="flag" aria-hidden="true">${c.i ? SEV[c.i.s].c : ''}</span><h4><span class="no">${k + 1}.</span>${c.h}</h4><p class="txt">${c.t}</p></article>`).join('')
+  docEl.scrollTop = 0
+}
+function emptyNotes() {
+  const d = DOCS[cur]
+  notesEl.innerHTML = `<div class="empty"><b>${d.clauses.length} điều khoản, chưa đọc.</b>Nhấn <strong>Rà soát hợp đồng này</strong> và Clause sẽ đọc từ đầu đến cuối, dừng lại ở bất kỳ điểm nào trái với sổ tay quy tắc của bạn.</div>`
+}
+function score() {
+  const d = DOCS[cur], all = issuesOf(d)
+  const tot = all.reduce((a, k) => a + SEV[d.clauses[k].i.s].w, 0)
+  const open = found.filter((k) => decided[k] !== 'acc').reduce((a, k) => a + SEV[d.clauses[k].i.s].w, 0)
+  return Math.max(8, Math.round(d.base * open / tot))
+}
+function updateMeter() {
+  const arc = $('#gArc')
+  if (!found.length) { $('#gNum').textContent = '–'; $('#gLvl').textContent = 'Chưa rà soát'; $('#gCnt').textContent = 'Nhấn Rà soát để bắt đầu đọc.'; arc.setAttribute('stroke-dashoffset', 100); return }
+  const s = score()
+  const lvl = s >= 60 ? 'Rủi ro cao' : s >= 30 ? 'Rủi ro trung bình' : 'Rủi ro thấp'
+  const col = s >= 60 ? '#C3262E' : s >= 30 ? '#8A5A00' : '#2B5CB8'
+  $('#gNum').textContent = s
+  $('#gLvl').textContent = lvl
+  const acc = found.filter((k) => decided[k] === 'acc').length, kept = found.filter((k) => decided[k] === 'keep').length
+  $('#gCnt').textContent = running ? `Đang đọc… phát hiện ${found.length} vấn đề` : `${found.length} vấn đề · ${acc} đã sửa · ${kept} giữ nguyên`
+  arc.setAttribute('stroke', col)
+  if (anim) G.to(arc, { attr: { 'stroke-dashoffset': 100 - s }, duration: .8, ease: 'power3.out' })
+  else arc.setAttribute('stroke-dashoffset', 100 - s)
+}
+function noteHTML(k) {
+  const d = DOCS[cur], c = d.clauses[k], i = c.i
+  return `<article class="note ${i.s}" id="nt-${d.key}-${k}" data-k="${k}"><div class="top"><span class="chip">Rủi ro ${SEV[i.s].l}</span><button type="button" class="ref" data-k="${k}">§${k + 1} ${c.h}</button></div><h4>${i.title}</h4><p>${i.note}</p><div class="fix"><small>Đề xuất viết lại</small>${i.fix}</div><div class="acts"><button type="button" class="btn sm acc" data-k="${k}">Chấp nhận sửa</button><button type="button" class="btn ghost sm keep" data-k="${k}">Giữ bản gốc</button></div><p class="state"></p></article>`
+}
+function clauseEl(k) { return $(`#cl-${DOCS[cur].key}-${k}`) }
+function scrollDocTo(k) {
+  const el = clauseEl(k); if (!el) return
+  docEl.scrollTo({ top: Math.max(0, el.offsetTop - 70), behavior: anim ? 'smooth' : 'auto' })
+}
+function flash(k) {
+  $$('.cl.focus', docEl).forEach((x) => x.classList.remove('focus'))
+  const el = clauseEl(k); if (!el) return
+  el.classList.add('focus'); setTimeout(() => el.classList.remove('focus'), 1400)
+}
+function setNav() {
+  const can = reviewed && found.length > 0
+  $('#prevBtn').disabled = $('#nextBtn').disabled = !can
+  $('#allBtn').disabled = !can || found.every((k) => decided[k])
+}
+function stop() { timers.forEach(clearTimeout); timers = []; running = false }
+function choose(i, focus) {
+  stop(); cur = i; found = []; decided = {}; reviewed = false; focusIdx = -1
+  $$('#picker button').forEach((b, k) => { b.setAttribute('aria-selected', k === i); b.tabIndex = k === i ? 0 : -1 })
+  if (focus) $$('#picker button')[i].focus()
+  renderDoc(); emptyNotes(); updateMeter(); setNav()
+  $('#runBtn').disabled = false; $('#runBtn').textContent = 'Rà soát hợp đồng này'
+  if (anim) G.fromTo('#doc .cl, #doc h3, #doc .parties', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .5, stagger: .03, ease: 'power2.out', clearProps: 'opacity,transform' })
+}
+function review() {
+  if (running) return
+  if (reviewed) { choose(cur) }
+  const d = DOCS[cur], list = issuesOf(d)
+  running = true; notesEl.innerHTML = ''
+  $('#runBtn').disabled = true; $('#runBtn').textContent = 'Đang rà soát…'
+  $('#live').textContent = `Đang rà soát ${d.title}.`
+  const step = anim ? 950 : 0
+  const scan = $('#scan')
+  if (anim && scan) G.fromTo(scan, { y: 0, opacity: 1 }, { y: () => docEl.scrollHeight - 120, duration: (list.length + 1) * step / 1000, ease: 'none', onComplete: () => G.to(scan, { opacity: 0, duration: .4 }) })
+  const show = (n) => {
+    const k = list[n], el = clauseEl(k)
+    found.push(k)
+    el.classList.add('hit')
+    if (anim) scrollDocTo(k)
+    notesEl.insertAdjacentHTML('beforeend', noteHTML(k))
+    const card = notesEl.lastElementChild
+    if (anim) { G.from(card, { x: 30, opacity: 0, duration: .55, ease: 'power3.out', clearProps: 'transform,opacity' }); notesEl.scrollTo({ top: card.offsetTop - notesEl.offsetTop, behavior: 'smooth' }) }
+    updateMeter()
+  }
+  const finish = () => {
+    running = false; reviewed = true
+    $('#runBtn').disabled = false; $('#runBtn').textContent = 'Rà soát lại'
+    updateMeter(); setNav()
+    const c = { high: 0, med: 0, low: 0 }; found.forEach((k) => c[d.clauses[k].i.s]++)
+    $('#live').textContent = `Đã rà soát xong: ${found.length} vấn đề, ${c.high} cao, ${c.med} trung bình, ${c.low} thấp.`
+    if (anim) docEl.scrollTo({ top: 0, behavior: 'smooth' })
+    if (anim) notesEl.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+  if (!anim) { list.forEach((_, n) => show(n)); finish(); return }
+  list.forEach((_, n) => timers.push(setTimeout(() => show(n), 500 + n * step)))
+  timers.push(setTimeout(finish, 500 + list.length * step + 200))
+}
+function decide(k, how) {
+  const d = DOCS[cur], c = d.clauses[k], el = clauseEl(k), card = $(`#nt-${d.key}-${k}`)
+  if (!el || !card) return
+  decided[k] = how
+  const txt = $('.txt', el)
+  el.classList.remove('fixed', 'kept')
+  if (how === 'acc') {
+    el.classList.add('fixed')
+    txt.innerHTML = `<del>${c.t}</del><ins>${c.i.fix}</ins>`
+    if (anim) G.from($('ins', txt), { opacity: 0, y: 8, duration: .6, ease: 'power3.out', clearProps: 'all' })
+    $('.state', card).textContent = 'Đã chấp nhận sửa · đã thêm vết sửa đổi'
+  } else {
+    el.classList.add('kept')
+    txt.textContent = c.t
+    $('.state', card).textContent = 'Đã giữ bản gốc · đã lưu vào nhật ký'
+  }
+  card.classList.add('done')
+  $('.acc', card).textContent = how === 'acc' ? 'Đã chấp nhận' : 'Chấp nhận sửa'
+  $('.acc', card).disabled = how === 'acc'
+  $('.keep', card).textContent = how === 'keep' ? 'Đã giữ' : 'Giữ bản gốc'
+  $('.keep', card).disabled = how === 'keep'
+  if (how === 'acc') { $('.keep', card).textContent = 'Hoàn tác, giữ bản gốc'; $('.keep', card).disabled = false }
+  scrollDocTo(k); flash(k)
+  updateMeter(); setNav()
+  $('#live').textContent = how === 'acc' ? `Đã chấp nhận bản sửa cho điều khoản ${k + 1}. Điểm rủi ro còn ${score()}.` : `Đã giữ bản gốc cho điều khoản ${k + 1}.`
+}
+picker.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && +b.dataset.i !== cur) choose(+b.dataset.i) })
+picker.addEventListener('keydown', (e) => {
+  const m = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key]; if (!m) return
+  e.preventDefault(); choose((cur + m + DOCS.length) % DOCS.length, true)
+})
+$('#runBtn').addEventListener('click', review)
+notesEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  const k = +b.dataset.k
+  if (b.classList.contains('acc')) decide(k, 'acc')
+  else if (b.classList.contains('keep')) decide(k, 'keep')
+  else if (b.classList.contains('ref')) { focusIdx = found.indexOf(k); scrollDocTo(k); flash(k); showDoc() }
+})
+function showDoc() {
+  if (innerWidth >= 1100) return
+  const box = $('.docbox')
+  lenis ? lenis.scrollTo(box, { offset: -80 }) : box.scrollIntoView({ behavior: anim ? 'smooth' : 'auto' })
+}
+function jump(dir) {
+  if (!found.length) return
+  focusIdx = (focusIdx + dir + found.length) % found.length
+  const k = found[focusIdx]
+  scrollDocTo(k); flash(k)
+  const card = $(`#nt-${DOCS[cur].key}-${k}`)
+  if (card) { const r = $('.ref', card); r.focus({ preventScroll: true }); notesEl.scrollTo({ top: card.offsetTop - notesEl.offsetTop, behavior: anim ? 'smooth' : 'auto' }); if (innerWidth < 1100) card.scrollIntoView({ block: 'nearest' }) }
+}
+$('#prevBtn').addEventListener('click', () => jump(-1))
+$('#nextBtn').addEventListener('click', () => jump(1))
+$('#allBtn').addEventListener('click', () => { found.filter((k) => decided[k] !== 'acc').forEach((k) => decide(k, 'acc')); toast('Đã chấp nhận toàn bộ đề xuất sửa đổi. Bản hợp đồng có vết sửa đã sẵn sàng gửi lại đối tác.') })
+choose(0)
+
+/* ============ playbook + faq ============ */
+const TOC = [
+  ['Thời hạn thanh toán', 'Tối đa 30 ngày', 'Gắn cờ mọi thời hạn dài hơn mức trần của bạn và các điều khoản thiếu lãi phạt chậm thanh toán.'],
+  ['Trần trách nhiệm bồi thường', '12 tháng phí', 'Gắn cờ trách nhiệm vô hạn, giới hạn một chiều và các ngoại lệ làm vô hiệu hóa mức trần.'],
+  ['Tự động gia hạn', '12 tháng · báo trước 30 ngày', 'Gắn cờ các kỳ gia hạn quá dài và thời hạn báo hủy quá sớm dễ bị bỏ lỡ.'],
+  ['Quyền sở hữu tác phẩm', 'Khi thanh toán đủ', 'Gắn cờ việc chuyển giao quyền vượt ngoài phạm vi dự án hoặc chuyển giao trước khi bạn nhận đủ thù lao.'],
+  ['Chấm dứt hợp đồng', 'Hai chiều, trả đủ phần đã làm', 'Gắn cờ quyền đơn phương hủy ngang và các điều khoản bỏ mặc khối lượng công việc đã thực hiện không được thanh toán.'],
+  ['Dữ liệu và bảo mật', 'Không huấn luyện AI', 'Gắn cờ quyền tái sử dụng dữ liệu của bạn, thời hạn bảo mật quá ngắn và thiếu cam kết xóa dữ liệu.'],
+  ['Bồi thường thiệt hại', 'Hai chiều, có mức trần', 'Gắn cờ nghĩa vụ bồi thường một chiều và cụm từ “mọi tổn thất bất kể phát sinh dưới hình thức nào”.'],
+  ['Điều chỉnh giá', 'Mỗi năm 1 lần, ≤ 5%', 'Gắn cờ quyền tự ý tăng giá, thiếu thông báo trước và tăng giá không giới hạn mức trần.'],
+]
+$('#toc').innerHTML = TOC.map(([h, p, d], i) => `<li><button type="button" aria-expanded="false" aria-controls="tocd${i}"><span class="n">1.${i + 1}</span><span class="h">${h}</span><span class="lead-dots" aria-hidden="true"></span><span class="p">${p}</span></button><div class="d" id="tocd${i}"><div><p>${d}</p></div></div></li>`).join('')
+$('#toc').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const li = b.parentElement, on = !li.classList.contains('open'); li.classList.toggle('open', on); b.setAttribute('aria-expanded', on) })
+const FAQ = [
+  ['Clause có phải là luật sư không?', 'Không. Clause là phần mềm đọc hợp đồng đối chiếu với sổ tay quy tắc và giải thích những điểm rủi ro phát hiện được. Với những thương vụ giá trị lớn hoặc phức tạp, hãy mang ghi chú của Clause tới gặp luật sư chuyên môn: bạn sẽ tiết kiệm được rất nhiều giờ phí tư vấn của họ.'],
+  ['Các bản hợp đồng tôi tải lên được xử lý thế nào?', 'Tài liệu được mã hóa khi lưu trữ, đặt tại khu vực máy chủ bạn chọn và xóa theo đúng lịch trình của bạn. Chúng tôi tuyệt đối không dùng tài liệu của bạn để huấn luyện mô hình AI, dù là của chúng tôi hay bên thứ ba.'],
+  ['Hệ thống hỗ trợ những loại hợp đồng nào?', 'Các thỏa thuận thương mại thông dụng: hợp đồng dịch vụ, thuê bao phần mềm, thỏa thuận bảo mật (NDA), hợp đồng thuê mặt bằng, cung ứng và đại lý. Nhận file Word và PDF; xuất ra file Word có sẵn vết sửa đổi (tracked changes) hoặc bản PDF sạch.'],
+  ['Hệ thống có học được nguyên tắc riêng của nhóm tôi không?', 'Có. Bạn chỉ cần viết lại quy tắc bằng những câu văn tự nhiên, hoặc tải lên vài hợp đồng bạn từng ký kết để Clause trích xuất các nguyên tắc thương lượng và gợi ý cho bạn phê duyệt.'],
+  ['Nếu hệ thống nhận định sai thì sao?', 'Mỗi cảnh báo đều trích dẫn chính xác từng từ ngữ trong hợp đồng mà nó phản hồi để bạn dễ dàng kiểm chứng lập luận. Khi bạn bỏ qua một cảnh báo kèm lý do, sổ tay quy tắc của nhóm sẽ ghi nhớ cho các lần sau.'],
+]
+$('#qs').innerHTML = FAQ.map(([q, a], i) => `<div class="q"><button type="button" aria-expanded="false" aria-controls="qa${i}" id="qq${i}"><span class="n">5.${i + 1}</span><span class="t">${q}</span><span class="pm" aria-hidden="true"></span></button><div class="a" id="qa${i}" role="region" aria-labelledby="qq${i}"><div><p>${a}</p></div></div></div>`).join('')
+$('#qs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const q = b.parentElement, on = !q.classList.contains('open'); q.classList.toggle('open', on); b.setAttribute('aria-expanded', on) })
+
+/* pricing */
+$('.bill').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return
+  $$('.bill button').forEach((x) => x.setAttribute('aria-pressed', x === b))
+  $$('.pv').forEach((p) => { p.textContent = '$' + p.dataset[b.dataset.b]; if (anim) G.fromTo(p, { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: .4, ease: 'power3.out', clearProps: 'all' }) })
+})
+
+/* ============ pinned reader page ============ */
+const RC = [
+  ['1.1', 'Định nghĩa. Các thuật ngữ viết hoa mang ý nghĩa được quy định tại Phụ lục 1.', 'ok'],
+  ['2.1', 'Nhà cung cấp sẽ cung ứng các Dịch vụ được mô tả trong Đơn đặt hàng.', 'ok'],
+  ['2.4', 'Khách hàng sẽ cung cấp mọi sự hỗ trợ mà Nhà cung cấp có thể yêu cầu tùy từng thời điểm.', 'md', 'Nghĩa vụ mơ hồ'],
+  ['3.1', 'Phí dịch vụ được thanh toán trong vòng sáu mươi (60) ngày kể từ ngày xuất hóa đơn.', 'md', 'Hạn 60 > 30 ngày'],
+  ['3.5', 'Nhà cung cấp có thể tạm ngừng Dịch vụ ngay lập tức đối với bất kỳ khoản chậm thanh toán nào.', 'hi', 'Không báo trước'],
+  ['4.2', 'Hợp đồng này tự động gia hạn các kỳ tiếp theo kéo dài hai mươi bốn (24) tháng.', 'md', 'Gia hạn quá dài'],
+  ['5.1', 'Mỗi bên cam kết giữ bí mật Thông tin Bảo mật của bên kia.', 'ok'],
+  ['6.3', 'Mọi sản phẩm bàn giao thuộc quyền sở hữu của Nhà cung cấp cho đến khi Khách hàng thanh toán mọi khoản nợ theo bất kỳ thỏa thuận nào.', 'hi', 'Vi phạm chéo'],
+  ['7.1', 'Mỗi bên cam đoan có đầy đủ thẩm quyền ký kết Hợp đồng này.', 'ok'],
+  ['9.3', 'Khách hàng sẽ bồi thường cho Nhà cung cấp trước mọi tổn thất, bất kể phát sinh dưới hình thức nào.', 'hi', 'Bồi thường 1 chiều'],
+  ['10.1', 'Không bên nào chịu trách nhiệm đối với các thiệt hại gián tiếp hoặc hệ quả phát sinh.', 'ok'],
+  ['11.2', 'Nhà cung cấp có thể chuyển nhượng Hợp đồng này mà không cần sự đồng ý.', 'md', 'Đơn phương'],
+  ['12.4', 'Thông báo có thể được gửi qua email tới các địa chỉ ghi trong Đơn đặt hàng.', 'ok'],
+  ['14.1', 'Hợp đồng này được điều chỉnh bởi luật pháp quy định trong Đơn đặt hàng.', 'ok'],
+]
+$('#rpage').innerHTML = `<h4>HỢP ĐỒNG DỊCH VỤ TỔNG THỂ</h4>` + RC.map(([n, t, s, tag]) => `<div class="rc ${s}"><b>${n}</b>${t}<span class="tag ${s}">${s === 'ok' ? 'Ổn' : tag}</span></div>`).join('')
+const rcs = $$('#rpage .rc'), rpage = $('#rpage'), reader = $('.reader')
+function readerAt(p) {
+  const H = rpage.offsetHeight, V = reader.clientHeight
+  const ty = -p * Math.max(0, H - V * .5) + V * .1
+  rpage.style.transform = `translateY(${ty.toFixed(1)}px)`
+  let n = 0
+  rcs.forEach((c) => { const mid = c.offsetTop + c.offsetHeight / 2 + ty; const on = mid < V * .5; c.classList.toggle('read', on); if (on) n++ })
+  $('#progN').textContent = `Điều khoản ${String(Math.max(1, n)).padStart(2, '0')} / ${rcs.length}`
+  $('#progBar').style.transform = `scaleX(${p.toFixed(3)})`
+}
+
+/* ============ nav, menu, forms ============ */
+const nav = $('#nav'); const onS = () => nav.classList.toggle('solid', scrollY > 30); addEventListener('scroll', onS, { passive: true }); onS()
+const mb = $('#menuBtn'), mm = $('#mmenu')
+function menu(open) {
+  mb.setAttribute('aria-expanded', open); mm.classList.toggle('open', open); mm.setAttribute('aria-hidden', !open)
+  mb.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu')
+  if (open) setTimeout(() => mm.querySelector('a').focus(), 60)
+}
+mb.addEventListener('click', () => menu(mb.getAttribute('aria-expanded') !== 'true'))
+mm.addEventListener('click', (e) => { if (e.target.closest('a')) menu(false) })
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && mm.classList.contains('open')) { menu(false); mb.focus() } })
+let tt = null
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 3200) }
+$('#ctaForm').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#ctaE').value.trim(); $('#ctaOk').textContent = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Hoàn tất. Liên kết dùng thử đang được gửi tới bạn (bản concept: không gửi email thật).' : 'Địa chỉ email có vẻ chưa đầy đủ.' })
+let lenis = null
+if (anim && window.Lenis) {
+  lenis = new Lenis({ lerp: .09 }); window.lenis = lenis
+  lenis.on('scroll', ScrollTrigger.update)
+  G.ticker.add((t) => lenis.raf(t * 1000)); G.ticker.lagSmoothing(0)
+}
+$$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
+  const id = a.getAttribute('href'); if (id.length < 2) return
+  const t = $(id); if (!t) return
+  e.preventDefault()
+  lenis ? lenis.scrollTo(t, { offset: 0 }) : t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+}))
+if (anim && matchMedia('(hover:hover)').matches) $$('.mag').forEach((b) => {
+  b.addEventListener('pointermove', (e) => { const r = b.getBoundingClientRect(); b.style.setProperty('--mx', `${(e.clientX - r.left - r.width / 2) * .18}px`); b.style.setProperty('--my', `${(e.clientY - r.top - r.height / 2) * .3}px`) })
+  b.addEventListener('pointerleave', () => { b.style.setProperty('--mx', '0px'); b.style.setProperty('--my', '0px') })
+})
+
+if (!anim) { readerAt(1); rcs.forEach((c) => c.classList.add('read')); rpage.style.transform = 'none'; return }
+
+/* ============ motion ============ */
+G.set('.hero h1 .mask>span', { yPercent: 112 })
+G.set('.hdel .strike', { scaleX: 0 })
+G.set('.hins', { clipPath: 'inset(0 100% -20% 0)' })
+G.set('.hins .dbl', { scaleX: 0 })
+G.set('.hf', { autoAlpha: 0, y: 18 })
+G.set('#sheets .sheet', { autoAlpha: 0, y: 70, rotation: 0 })
+G.set('#sheets .mnote', { autoAlpha: 0, x: 24 })
+G.set('#sheets .stamp', { autoAlpha: 0, scale: 1.6 })
+G.set('#sheets mark', { backgroundSize: '0% 100%' })
+G.set('.rail div', { opacity: 0 })
+G.timeline({ delay: .1 })
+  .to('.rail div', { opacity: 1, duration: .3, stagger: .02 }, 0)
+  .to('.hero h1 .mask>span', { yPercent: 0, duration: 1, stagger: .1, ease: 'expo.out' }, .05)
+  .to('#sheets .sheet', { autoAlpha: 1, y: 0, rotation: (i) => [-5, 3, 0][i], duration: 1, stagger: .1, ease: 'expo.out' }, .1)
+  .to('.hdel .strike', { scaleX: 1, duration: .45, ease: 'power2.inOut' }, .8)
+  .to('.hins', { clipPath: 'inset(0 0% -20% 0)', duration: .55, ease: 'steps(5)' }, 1.15)
+  .to('.hins .dbl', { scaleX: 1, duration: .4, ease: 'power2.out' }, 1.55)
+  .to('.hf', { autoAlpha: 1, y: 0, duration: .8, stagger: .07, ease: 'power3.out' }, .55)
+  .to('#sheets mark', { backgroundSize: '100% 100%', duration: .6, stagger: .3, ease: 'power2.inOut' }, 1)
+  .to('#sheets .mnote', { autoAlpha: 1, x: 0, duration: .7, stagger: .25, ease: 'back.out(1.6)' }, 1.3)
+  .to('#sheets .stamp', { autoAlpha: 1, scale: 1, duration: .35, ease: 'power4.in' }, 1.8)
+const sheets = $('#sheets')
+if (matchMedia('(hover:hover)').matches) {
+  $('.hero').addEventListener('pointermove', (e) => { const dx = e.clientX / innerWidth - .5, dy = e.clientY / innerHeight - .5; $$('.sheet', sheets).forEach((s, i) => G.to(s, { x: dx * (6 + i * 8), y: dy * (6 + i * 6), duration: .9, ease: 'power3.out', overwrite: 'auto' })); G.to('#sheets .mnote', { x: dx * -18, y: dy * -12, duration: 1, ease: 'power3.out', overwrite: 'auto' }) })
+}
+
+$$('.split').forEach((h) => {
+  h.innerHTML = h.innerHTML.split(/<br\s*\/?>/).map((l) => `<span class="mask"><span>${l}</span></span>`).join('')
+  const lines = h.querySelectorAll('.mask>span'); G.set(lines, { yPercent: 112 })
+  ScrollTrigger.create({ trigger: h, start: 'top 88%', once: true, onEnter: () => G.to(lines, { yPercent: 0, duration: 1.1, stagger: .1, ease: 'expo.out' }) })
+})
+G.set('.rv', { autoAlpha: 0, y: 34 })
+ScrollTrigger.batch('.rv', { start: 'top 90%', once: true, onEnter: (els) => G.to(els, { autoAlpha: 1, y: 0, duration: 1, stagger: .08, ease: 'expo.out', clearProps: 'transform' }) })
+G.set('.toc li', { autoAlpha: 0, x: -20 })
+ScrollTrigger.create({ trigger: '#toc', start: 'top 85%', once: true, onEnter: () => G.to('.toc li', { autoAlpha: 1, x: 0, duration: .7, stagger: .06, ease: 'power3.out', clearProps: 'transform' }) })
+
+// pinned reader: the page scrolls under the reading rule (scrubbed); step copy swaps on the clock
+const steps = $$('.step')
+let curS = -1, sTw = []
+function setStep(i) {
+  if (i === curS) return
+  const prev = curS; curS = i
+  sTw.forEach((t) => t.kill()); sTw = []
+  steps.forEach((s, k) => { if (k !== i && k !== prev) G.set(s, { autoAlpha: 0 }) })
+  if (prev >= 0) sTw.push(G.to(steps[prev], { autoAlpha: 0, y: -14, duration: .3, ease: 'power2.in' }))
+  sTw.push(G.fromTo(steps[i], { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: .7, delay: prev >= 0 ? .2 : 0, ease: 'power3.out' }))
+}
+G.set(steps, { autoAlpha: 0 })
+readerAt(0); setStep(0)
+ScrollTrigger.create({
+  trigger: '.how', start: 'top top', end: '+=260%', pin: '#howPin', scrub: true,
+  onUpdate(self) { const p = self.progress; readerAt(p); setStep(p < .24 ? 0 : p < .5 ? 1 : p < .76 ? 2 : 3) },
+})
+addEventListener('load', () => ScrollTrigger.refresh())
+})()
+</script>
+<script src="i18n.en.js" defer></script><script src="../../tools/i18n-dict.js" defer></script><script src="../../tools/i18n-site.js" defer></script>
+</body>
+</html>
